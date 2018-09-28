@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Joint : MonoBehaviour
@@ -8,7 +10,12 @@ public class Joint : MonoBehaviour
     public Structure Root;
     public List<Structure> Connections = new List<Structure>();
 
-    public static Joint Build(Structure root, Plant plant)
+    public void Start()
+    {
+        transform.localEulerAngles = Vector3.zero;
+    }
+
+    public static Joint Build(Plant plant, Structure root)
     {
         var model = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         model.name = "Joint";
@@ -28,10 +35,17 @@ public class Joint : MonoBehaviour
         joint.transform.localPosition = Vector3.forward * root.Length;
         return joint;
     }
+    public static Joint Build(Plant plant, Structure root, JointDTO dto)
+    {
+        var joint = Build(plant, root);
+        joint.transform.localPosition = dto.LocalPosition;
+        joint.Connections = dto.Connections.Select(x => Structure.Build(plant,joint,x)).ToList();
+        return joint;
+    }
 
     public Structure Branch(GameObject prefab)
     {
-        var structure = Structure.Build(this, prefab, Plant);
+        var structure = Structure.Build(Plant, this, prefab);
         Connections.Add(structure);
         return structure;
     }
@@ -49,21 +63,38 @@ public class Joint : MonoBehaviour
             SetPosition(newPos);
         }
     }
-
     public void SetPosition(Vector3 position)
     {
         transform.position = position;
 
-        if (Root == null) return;
-        Root.transform.LookAt(transform);
-        transform.rotation = Root.transform.rotation;
-        Root.Model.transform.localScale = new Vector3(
-            Root.Model.transform.localScale.x,
-            Root.Model.transform.localScale.y,
-            Vector3.Distance(transform.position, Root.transform.position));
+        if (Root == null)
+        {
+            Plant.transform.position = transform.position;
+        }
+        else
+        {
+            Root.Length = Vector3.Distance(transform.position, Root.transform.position);
+            Root.transform.LookAt(transform);
+            transform.rotation = Root.transform.rotation;
+        }
     }
     public void ResetPosition()
     {
         transform.localPosition = new Vector3(0, 0, Root.Model.transform.localScale.z);
+    }
+}
+
+[Serializable]
+public class JointDTO
+{
+    public StructureDTO FromStructure;
+    public IEnumerable<StructureDTO> Connections;
+    public Vector3 LocalPosition;
+
+    public JointDTO(StructureDTO from, Joint joint)
+    {
+        FromStructure = from;
+        Connections = joint.Connections.Select(x => new StructureDTO(x));
+        LocalPosition = joint.transform.localPosition;
     }
 }

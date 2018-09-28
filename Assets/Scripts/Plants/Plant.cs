@@ -6,17 +6,33 @@ using UnityEngine;
 
 public class Plant : MonoBehaviour
 {
-    [HideInInspector]
-    public Joint Root; 
     public bool IsManipulatable;
+    public List<GameObject> Structures;
+
+    public Joint Root { get; set; }
+    public int StructureIndex { get; set; }
 
 	public void Start()
 	{
-	    Root = Joint.Build(null, this);
+        transform.localEulerAngles = new Vector3(-90,0,0);
+        if(Root == null)Root = Joint.Build(this, null);
+	    ClearStructure();
 	}
+    public static Plant Build(Vector3 worldPosition, PlantDTO dto)
+    {
+        var plantObj = new GameObject("plant");
+        plantObj.transform.position = worldPosition;
+        var plant = plantObj.AddComponent<Plant>();
+        Destroy(plant.Root);
+        plant.Root = Joint.Build(plant,null,dto.RootJoint);
+        return plant;
+    }
 
-    public List<GameObject> Structures;
-    public int StructureIndex = -1;
+    public void Reproduce()
+    {
+        var pos = transform.position + new Vector3(5, 0, 5);
+        Build(pos, new PlantDTO(this));
+    }
 
     public GameObject GetStructure()
     {
@@ -27,5 +43,15 @@ public class Plant : MonoBehaviour
     {
         StructureIndex = -1;
     }
+}
 
+[Serializable]
+public class PlantDTO
+{
+    public JointDTO RootJoint;
+
+    public PlantDTO(Plant plant)
+    {
+        RootJoint = new JointDTO(null, plant.Root);
+    }
 }
