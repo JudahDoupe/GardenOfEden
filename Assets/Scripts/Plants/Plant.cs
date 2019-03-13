@@ -7,6 +7,7 @@ using UnityEngine;
 public class Plant : MonoBehaviour
 {
     public bool IsManipulatable;
+    public float Age;
     public List<GameObject> Structures;
 
     public Joint Root { get; set; }
@@ -14,10 +15,15 @@ public class Plant : MonoBehaviour
 
 	public void Start()
 	{
+	    Age = IsManipulatable ? 1 : 0;
         transform.localEulerAngles = new Vector3(-90,0,0);
         if(Root == null)Root = Joint.Build(this, null);
 	    ClearStructure();
 	}
+    public void Update()
+    {
+        if (!IsManipulatable) Age += Time.smoothDeltaTime / 3f;
+    }
     public static Plant Build(Vector3 worldPosition, PlantDTO dto)
     {
         var plantObj = new GameObject("plant");

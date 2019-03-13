@@ -4,15 +4,23 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Joint : MonoBehaviour
+public class Joint : MonoBehaviour, IInteractable
 {
     public Plant Plant;
     public Structure Root;
     public List<Structure> Connections = new List<Structure>();
 
+    public Renderer Selecter { get; set; }
+
     public void Start()
     {
         transform.localEulerAngles = Vector3.zero;
+        Selecter = GetComponent<Renderer>();
+    }
+    public void Update()
+    {
+        if(Root != null)transform.localPosition = new Vector3(0, 0, Root.Length);
+        Selecter.enabled = Plant.IsManipulatable;
     }
 
     public static Joint Build(Plant plant, Structure root)
@@ -78,9 +86,10 @@ public class Joint : MonoBehaviour
             transform.rotation = Root.transform.rotation;
         }
     }
-    public void ResetPosition()
+
+    public void Interact(object withObject)
     {
-        transform.localPosition = new Vector3(0, 0, Root.Model.transform.localScale.z);
+        throw new NotImplementedException();
     }
 }
 
