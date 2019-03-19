@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml.Schema;
 using UnityEngine;
 
-public class Structure : MonoBehaviour
+public class Structure : MonoBehaviour, IInteractable
 {
     public float Age = 0;
     public float Length = 1;
@@ -22,7 +22,6 @@ public class Structure : MonoBehaviour
     {
         Model = gameObject.transform.Find("Model").gameObject;
         Model.transform.localScale = new Vector3(Girth, Girth, Length);
-        transform.localPosition = Vector3.zero;
     }
     public void Update()
     {
@@ -62,6 +61,18 @@ public class Structure : MonoBehaviour
         Destroy(structure.Head.gameObject);
         structure.Head = Joint.Build(plant, structure, dto.ToJoint);
         return structure;
+    }
+
+    public void Interact(FirstPersonController player)
+    {
+        //TODO: Only add to hand if there is nothing in hand
+        transform.parent = player.Hand.transform;
+        transform.localEulerAngles = Vector3.zero;
+        transform.localPosition = Model.transform.GetChild(0).transform.localPosition * -1;
+    }
+    public Vector3 InteractionPosition()
+    {
+        return Model.transform.GetChild(0).transform.position;
     }
 }
 

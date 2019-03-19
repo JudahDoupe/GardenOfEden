@@ -11,14 +11,12 @@ public class Plant : MonoBehaviour
     public List<GameObject> Structures;
 
     public Joint Root { get; set; }
-    public int StructureIndex { get; set; }
 
 	public void Start()
 	{
 	    Age = IsManipulatable ? 1 : 0;
         transform.localEulerAngles = new Vector3(-90,0,0);
         if(Root == null)Root = Joint.Build(this, null);
-	    ClearStructure();
 	}
     public void Update()
     {
@@ -32,22 +30,6 @@ public class Plant : MonoBehaviour
         Destroy(plant.Root);
         plant.Root = Joint.Build(plant,null,dto.RootJoint);
         return plant;
-    }
-
-    public void Reproduce()
-    {
-        var pos = transform.position + new Vector3(5, 0, 5);
-        Build(pos, new PlantDTO(this));
-    }
-
-    public GameObject GetStructure()
-    {
-        var structure = StructureIndex < 0 ? null : Structures[StructureIndex];
-        return structure;
-    }
-    public void ClearStructure()
-    {
-        StructureIndex = -1;
     }
 }
 

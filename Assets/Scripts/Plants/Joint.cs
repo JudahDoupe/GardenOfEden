@@ -35,12 +35,14 @@ public class Joint : MonoBehaviour, IInteractable
         {
             joint.transform.parent = plant.transform;
             joint.transform.LookAt(Vector3.up);
-            return joint;
+        }
+        else
+        {
+            joint.transform.parent = root.transform;
+            joint.transform.localScale = Vector3.one * root.Girth;
+            joint.transform.localPosition = Vector3.forward * root.Length;
         }
 
-        joint.transform.parent = root.transform;
-        joint.transform.localScale = Vector3.one * root.Girth;
-        joint.transform.localPosition = Vector3.forward * root.Length;
         return joint;
     }
     public static Joint Build(Plant plant, Structure root, JointDTO dto)
@@ -58,19 +60,6 @@ public class Joint : MonoBehaviour, IInteractable
         return structure;
     }
 
-    public void Click(Vector3 position)
-    {
-        if (Plant.GetStructure() == null) return;
-        Branch(Plant.GetStructure());
-        Plant.ClearStructure();
-    }
-    public void Drag(Vector3 newPos)
-    {
-        if (Plant.GetStructure() == null)
-        {
-            SetPosition(newPos);
-        }
-    }
     public void SetPosition(Vector3 position)
     {
         transform.position = position;
@@ -87,9 +76,13 @@ public class Joint : MonoBehaviour, IInteractable
         }
     }
 
-    public void Interact(object withObject)
+    public void Interact(FirstPersonController player)
     {
         throw new NotImplementedException();
+    }
+    public Vector3 InteractionPosition()
+    {
+        return transform.position;
     }
 }
 

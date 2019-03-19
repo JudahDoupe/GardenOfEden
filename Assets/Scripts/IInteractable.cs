@@ -4,5 +4,6 @@ using UnityEngine;
 
 public interface IInteractable
 {
-    void Interact(object withObject);
+    void Interact(FirstPersonController player);
+    Vector3 InteractionPosition();
 }

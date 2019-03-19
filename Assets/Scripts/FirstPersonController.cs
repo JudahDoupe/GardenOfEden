@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.ComponentModel;
 using System.Linq;
+using RaycastHit = UnityEngine.RaycastHit;
 
 [AddComponentMenu("First Person Controller")]
 public class FirstPersonController : MonoBehaviour {
@@ -89,6 +90,16 @@ public class FirstPersonController : MonoBehaviour {
 
     #endregion
 
+    #region Item Settings
+
+    [Space(8)]
+    [Header("Item Holding Settings")]
+    [Space(8)]
+    [Tooltip("The Object that will be the players hand.")]
+    public GameObject Hand;
+
+    #endregion
+
     void Start()
     {
         _originalRotation = transform.localRotation.eulerAngles;
@@ -115,32 +126,43 @@ public class FirstPersonController : MonoBehaviour {
         Cursor.visible = !IsMouseHidden;
 
         //Cursor
-
         if (InGameCursor != null)
         {
+            InGameCursor.SetActive(false);
             var cursurRay = new Ray(_camera.transform.position, _camera.transform.forward);
             RaycastHit hit;
+            Transform interactableTransform = null;
+
             if (Physics.Raycast(cursurRay, out hit, ReachDistance))
             {
                 InGameCursor.SetActive(true);
                 InGameCursor.transform.position = hit.point;
                 InGameCursor.transform.LookAt(_camera.transform);
+                interactableTransform = GetInteractableTransform(hit.transform);
             }
             else
             {
-                InGameCursor.SetActive(false);
+                InGameCursor.transform.position = _camera.transform.position + _camera.transform.forward * ReachDistance;
             }
 
-            var nearbyObjects = Physics.SphereCastAll(hit.transform != null ? hit.point : _camera.transform.position + _camera.transform.forward * ReachDistance, SnapDistance, _camera.transform.forward);
-            var interactableTransform = nearbyObjects.FirstOrDefault(x => x.transform.GetComponent<IInteractable>() != null).transform;
+            if (interactableTransform == null)
+            {
+                var nearbyObjects = new Stack<RaycastHit>(Physics.SphereCastAll(InGameCursor.transform.position, SnapDistance, _camera.transform.forward));
+                while (interactableTransform == null && nearbyObjects.Count > 0)
+                {
+                    var nearbyObject = nearbyObjects.Pop();
+                    interactableTransform = GetInteractableTransform(nearbyObject.transform);
+                }
+            }
+
             if (interactableTransform != null)
             {
                 InGameCursor.SetActive(true);
-                InGameCursor.transform.position = interactableTransform.position;
+                InGameCursor.transform.position = interactableTransform.GetComponent<IInteractable>().InteractionPosition();
 
                 if (Input.GetMouseButtonDown(0))
                 {
-                    interactableTransform.GetComponent<IInteractable>().Interact(null);
+                    interactableTransform.GetComponent<IInteractable>().Interact(this);
                 }
             }
         }
@@ -173,6 +195,15 @@ public class FirstPersonController : MonoBehaviour {
         }
 
         _rigidbody.velocity = IsPlayerMovable ? movementVelocity : Vector3.zero;
+    }
+
+    private Transform GetInteractableTransform(Transform t)
+    {
+        while (t != null && t.GetComponent<IInteractable>() == null)
+        {
+            t = t.parent;
+        }
+        return t;
     }
 }
 
