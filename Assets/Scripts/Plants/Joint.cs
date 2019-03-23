@@ -12,11 +12,6 @@ public class Joint : MonoBehaviour, IInteractable
 
     public Renderer Selecter { get; set; }
 
-    public void Start()
-    {
-        transform.localEulerAngles = Vector3.zero;
-        Selecter = GetComponent<Renderer>();
-    }
     public void Update()
     {
         if(Root != null)transform.localPosition = new Vector3(0, 0, Root.Length);
@@ -28,6 +23,10 @@ public class Joint : MonoBehaviour, IInteractable
         var model = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         model.name = "Joint";
         var joint = model.AddComponent<Joint>();
+        joint.transform.localEulerAngles = Vector3.zero;
+        joint.Selecter = joint.GetComponent<Renderer>();
+        joint.Selecter.material.ChangeRenderMode(MaterialExtentions.BlendMode.Transparent);
+        joint.Selecter.material.color = new Color(0,0.5f,1,0.25f);
         joint.Root = root;
         joint.Plant = plant;
 

@@ -79,7 +79,7 @@ public class Structure : MonoBehaviour, IInteractable
     public bool IsInteractable(FirstPersonController player)
     {
         //TODO: only interactable if player has correct tools
-        throw new NotImplementedException();
+        return player.HeldObject == null;
     }
     public void Interact(FirstPersonController player)
     {

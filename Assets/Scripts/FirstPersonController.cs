@@ -98,10 +98,17 @@ public class FirstPersonController : MonoBehaviour {
     [Space(8)]
     [Header("Item Holding Settings")]
     [Space(8)]
-    [Tooltip("The Object that will be the players hand.")]
-    public GameObject Hand;
-    [Tooltip("The Object that is being held.")]
+    [Tooltip("The hand that the player will hold items in.")]
+    public GameObject ItemHand;
+
+    [Tooltip("The hand that the player will hold tools in.")]
+    public GameObject ToolHand;
+
+    [Tooltip("The object that is being held.")]
     public GameObject HeldObject;
+
+    [Tooltip("The tool that is being held.")]
+    public GameObject HeldTool;
 
     #endregion
 
@@ -111,7 +118,6 @@ public class FirstPersonController : MonoBehaviour {
         _rigidbody = GetComponent<Rigidbody>();
         _camera = transform.GetComponentInChildren<Camera>();
     }
-
     void LateUpdate()
     {
         //Camera
@@ -133,50 +139,42 @@ public class FirstPersonController : MonoBehaviour {
         //Cursor
         if (InGameCursor != null)
         {
+            InGameCursor.transform.position = _camera.transform.position + _camera.transform.forward * ReachDistance;
             InGameCursor.SetActive(false);
-            var cursurRay = new Ray(_camera.transform.position, _camera.transform.forward);
-            RaycastHit hit;
-            Transform interactableTransform = null;
 
-            if (!IsCursorFreeFloating && Physics.Raycast(cursurRay, out hit, ReachDistance))
+            if (IsCursorFreeFloating)
             {
                 InGameCursor.SetActive(true);
-                InGameCursor.transform.position = hit.point;
-                InGameCursor.transform.LookAt(_camera.transform);
-                interactableTransform = GetInteractableTransform(hit.transform);
             }
             else
             {
-                InGameCursor.transform.position = _camera.transform.position + _camera.transform.forward * ReachDistance;
-                if (IsCursorFreeFloating)
+                RaycastHit hit;
+                if (Physics.Raycast(new Ray(_camera.transform.position, _camera.transform.forward), out hit, ReachDistance))
                 {
                     InGameCursor.SetActive(true);
+                    InGameCursor.transform.position = hit.point;
+                    InGameCursor.transform.LookAt(_camera.transform);
                 }
-            }
 
-            if (!IsCursorFreeFloating && interactableTransform == null)
-            {
-                var nearbyObjects = new Stack<RaycastHit>(Physics.SphereCastAll(InGameCursor.transform.position, SnapDistance, _camera.transform.forward));
-                while (interactableTransform == null && nearbyObjects.Count > 0)
+                var interactableTransform = Physics.SphereCastAll(InGameCursor.transform.position, SnapDistance, _camera.transform.forward)
+                    .Select(x => GetInteractableTransform(x.transform))
+                    .Where(x => x != null)
+                    .OrderBy(x => Vector3.Distance(x.GetComponent<IInteractable>().InteractionPosition(), hit.point))
+                    .FirstOrDefault();
+
+                if (interactableTransform != null)
                 {
-                    var nearbyObject = nearbyObjects.Pop();
-                    interactableTransform = GetInteractableTransform(nearbyObject.transform);
-                }
-            }
+                    InGameCursor.transform.position = interactableTransform.GetComponent<IInteractable>().InteractionPosition();
+                    InGameCursor.transform.LookAt(_camera.transform);
 
-            if (interactableTransform != null)
-            {
-                InGameCursor.SetActive(true);
-                InGameCursor.transform.position = interactableTransform.GetComponent<IInteractable>().InteractionPosition();
-
-                if (Input.GetMouseButtonDown(0))
-                {
-                    interactableTransform.GetComponent<IInteractable>().Interact(this);
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        interactableTransform.GetComponent<IInteractable>().Interact(this);
+                    }
                 }
             }
         }
     }
-
     void FixedUpdate()
     {
         var inputVector = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
@@ -211,7 +209,7 @@ public class FirstPersonController : MonoBehaviour {
         if (HeldObject == null)
         {
             HeldObject = item;
-            item.transform.parent = Hand.transform;
+            item.transform.parent = ItemHand.transform;
             item.transform.localEulerAngles = Vector3.zero;
             var interactionPoint = item.GetComponent<IInteractable>()?.InteractionPosition() ?? item.transform.position;
             item.transform.localPosition = item.transform.InverseTransformPoint(interactionPoint);
@@ -222,7 +220,6 @@ public class FirstPersonController : MonoBehaviour {
             return false;
         }
     }
-
     public GameObject DropItem()
     {
         var item = HeldObject;
@@ -230,9 +227,11 @@ public class FirstPersonController : MonoBehaviour {
         return item;
     }
 
+
+
     private Transform GetInteractableTransform(Transform t)
     {
-        while (t != null && t.GetComponent<IInteractable>() == null)
+        while (t != null && (t.GetComponent<IInteractable>() == null || !t.GetComponent<IInteractable>().IsInteractable(this)))
         {
             t = t.parent;
         }
