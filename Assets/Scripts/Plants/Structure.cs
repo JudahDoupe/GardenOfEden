@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Schema;
+using UnityEditor;
 using UnityEngine;
 
 public class Structure : MonoBehaviour, IInteractable
@@ -9,13 +11,13 @@ public class Structure : MonoBehaviour, IInteractable
     public float Age = 0;
     public float Length = 1;
     public float Girth = 1;
+    public GameObject Prefab;
     public PlantStructureType Type;
 
     public float SproutingAge { get; set; }
     public Joint Root { get; set; }
     public Joint Head { get; set; }
     public GameObject Model { get; set; }
-    public GameObject Prefab { get; set; }
     public Plant Plant { get; set; }
 
     public void Start()
@@ -36,9 +38,10 @@ public class Structure : MonoBehaviour, IInteractable
         }
     }
 
-    public static Structure Build(Plant plant, Joint root, GameObject prefab)
+    public static Structure BuildPrefab(Plant plant, Joint root, GameObject prefab)
     {
         var obj = Instantiate(prefab, root.transform);
+        obj.transform.localPosition = Vector3.zero;
         var structure = obj.GetComponent<Structure>();
 
         if (structure == null)
@@ -47,33 +50,50 @@ public class Structure : MonoBehaviour, IInteractable
         structure.Plant = plant;
         structure.SproutingAge = plant.Age - 1;
         structure.Prefab = prefab;
-        structure.Head = Joint.Build(plant, structure);
+        structure.Head = Joint.BuildNew(plant, structure);
         structure.Root = root;
         return structure;
     }
-    public static Structure Build(Plant plant, Joint root, StructureDTO dto)
+    public static Structure BuildDto(Plant plant, Joint root, StructureDTO dto)
     {
-        var structure = Build(plant, root, dto.Prefab);
+        var structure = BuildPrefab(plant, root, dto.Prefab);
         structure.transform.localRotation = dto.LocalRotation;
         structure.Length = dto.Length;
         structure.Girth = dto.Girth;
         structure.SproutingAge = dto.SproutingAge;
         Destroy(structure.Head.gameObject);
-        structure.Head = Joint.Build(plant, structure, dto.ToJoint);
+        structure.Head = Joint.BuildDto(plant, structure, dto.ToJoint);
         return structure;
     }
+    public Structure Disconnect()
+    {
+        Root?.Disconnect(this);
+        Head?.Disconnect(this);
+        Root = null;
+        Head = null;
+        Plant = null;
+        transform.parent = null;
+        return this;
+    }
 
+    public bool IsInteractable(FirstPersonController player)
+    {
+        //TODO: only interactable if player has correct tools
+        throw new NotImplementedException();
+    }
     public void Interact(FirstPersonController player)
     {
-        //TODO: Only add to hand if there is nothing in hand
-        transform.parent = player.Hand.transform;
-        transform.localEulerAngles = Vector3.zero;
-        transform.localPosition = Model.transform.GetChild(0).transform.localPosition * -1;
+        //TODO: different behavior based on differnt tools
+        if (player.HeldObject == null)
+        {
+            player.GrabItem(Disconnect().gameObject);
+        }
     }
     public Vector3 InteractionPosition()
     {
         return Model.transform.GetChild(0).transform.position;
     }
+
 }
 
 [Serializable]

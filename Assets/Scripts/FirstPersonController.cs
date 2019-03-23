@@ -88,6 +88,9 @@ public class FirstPersonController : MonoBehaviour {
     [Tooltip("Determines when the cursor will attach to a near by object.")]
     public float SnapDistance = 0.5f;
 
+    [Tooltip("Determines if the cursor will connect with objects in the world, or float in front of the player.")]
+    public bool IsCursorFreeFloating = false;
+
     #endregion
 
     #region Item Settings
@@ -97,6 +100,8 @@ public class FirstPersonController : MonoBehaviour {
     [Space(8)]
     [Tooltip("The Object that will be the players hand.")]
     public GameObject Hand;
+    [Tooltip("The Object that is being held.")]
+    public GameObject HeldObject;
 
     #endregion
 
@@ -133,7 +138,7 @@ public class FirstPersonController : MonoBehaviour {
             RaycastHit hit;
             Transform interactableTransform = null;
 
-            if (Physics.Raycast(cursurRay, out hit, ReachDistance))
+            if (!IsCursorFreeFloating && Physics.Raycast(cursurRay, out hit, ReachDistance))
             {
                 InGameCursor.SetActive(true);
                 InGameCursor.transform.position = hit.point;
@@ -143,9 +148,13 @@ public class FirstPersonController : MonoBehaviour {
             else
             {
                 InGameCursor.transform.position = _camera.transform.position + _camera.transform.forward * ReachDistance;
+                if (IsCursorFreeFloating)
+                {
+                    InGameCursor.SetActive(true);
+                }
             }
 
-            if (interactableTransform == null)
+            if (!IsCursorFreeFloating && interactableTransform == null)
             {
                 var nearbyObjects = new Stack<RaycastHit>(Physics.SphereCastAll(InGameCursor.transform.position, SnapDistance, _camera.transform.forward));
                 while (interactableTransform == null && nearbyObjects.Count > 0)
@@ -195,6 +204,30 @@ public class FirstPersonController : MonoBehaviour {
         }
 
         _rigidbody.velocity = IsPlayerMovable ? movementVelocity : Vector3.zero;
+    }
+
+    public bool GrabItem(GameObject item)
+    {
+        if (HeldObject == null)
+        {
+            HeldObject = item;
+            item.transform.parent = Hand.transform;
+            item.transform.localEulerAngles = Vector3.zero;
+            var interactionPoint = item.GetComponent<IInteractable>()?.InteractionPosition() ?? item.transform.position;
+            item.transform.localPosition = item.transform.InverseTransformPoint(interactionPoint);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public GameObject DropItem()
+    {
+        var item = HeldObject;
+        HeldObject = null;
+        return item;
     }
 
     private Transform GetInteractableTransform(Transform t)
