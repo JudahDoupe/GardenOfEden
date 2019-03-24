@@ -79,12 +79,12 @@ public class Structure : MonoBehaviour, IInteractable
     public bool IsInteractable(FirstPersonController player)
     {
         //TODO: only interactable if player has correct tools
-        return player.HeldObject == null;
+        return player.Material == null;
     }
     public void Interact(FirstPersonController player)
     {
         //TODO: different behavior based on differnt tools
-        if (player.HeldObject == null)
+        if (player.Material == null)
         {
             player.GrabItem(Disconnect().gameObject);
         }

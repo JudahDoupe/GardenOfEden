@@ -105,7 +105,7 @@ public class Joint : MonoBehaviour, IInteractable
     }
     public void Interact(FirstPersonController player)
     {
-        var item = player.DropItem();
+        var item = player.DropMaterial();
         if (item?.GetComponent<Structure>() is Structure structure)
         {
             Graft(structure);
@@ -125,7 +125,7 @@ public class Joint : MonoBehaviour, IInteractable
         player.IsCursorFreeFloating = true;
         while (Input.GetMouseButton(0))
         {
-            SetPosition(player.InGameCursor.transform.position);
+            SetPosition(player.Focus.transform.position);
             yield return new WaitForEndOfFrame();
         }
         player.IsCursorFreeFloating = false;

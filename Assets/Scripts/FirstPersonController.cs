@@ -74,14 +74,11 @@ public class FirstPersonController : MonoBehaviour {
 
     #endregion
 
-    #region Cursor Settings
+    #region Focus Settings
 
     [Space(8)]
-    [Header("In Game Cursor Settings")]
+    [Header("In Focus Settings")]
     [Space(8)]
-    [Tooltip("The Object that will be the players in game cursor.")]
-    public GameObject InGameCursor;
-
     [Tooltip("Determines how far the cursor will project.")]
     public float ReachDistance = 5;
 
@@ -93,30 +90,21 @@ public class FirstPersonController : MonoBehaviour {
 
     #endregion
 
-    #region Item Settings
+    public Transform Focus { get; set; }
 
-    [Space(8)]
-    [Header("Item Holding Settings")]
-    [Space(8)]
-    [Tooltip("The hand that the player will hold items in.")]
-    public GameObject ItemHand;
-
-    [Tooltip("The hand that the player will hold tools in.")]
-    public GameObject ToolHand;
-
-    [Tooltip("The object that is being held.")]
-    public GameObject HeldObject;
-
-    [Tooltip("The tool that is being held.")]
-    public GameObject HeldTool;
-
-    #endregion
+    public Transform ToolHand { get; set; }
+    public Transform Tool { get; set; }
+    public Transform MaterialHand { get; set; }
+    public Transform Material { get; set; }
 
     void Start()
     {
         _originalRotation = transform.localRotation.eulerAngles;
         _rigidbody = GetComponent<Rigidbody>();
         _camera = transform.GetComponentInChildren<Camera>();
+        ToolHand = transform.Find("Body/RightArm/RightForeArm/RightHand");
+        MaterialHand = transform.Find("Body/LeftArm/LeftForeArm/LeftHand");
+        Focus = transform.Find("Body/Head/Focus");
     }
     void LateUpdate()
     {
@@ -136,27 +124,27 @@ public class FirstPersonController : MonoBehaviour {
         Cursor.lockState = IsMouseHidden ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !IsMouseHidden;
 
-        //Cursor
-        if (InGameCursor != null)
+        //Focus
+        if (Focus != null)
         {
-            InGameCursor.transform.position = _camera.transform.position + _camera.transform.forward * ReachDistance;
-            InGameCursor.SetActive(false);
+            Focus.transform.position = _camera.transform.position + _camera.transform.forward * ReachDistance;
+            Focus.Find("FocusModel").gameObject.SetActive(false);
 
             if (IsCursorFreeFloating)
             {
-                InGameCursor.SetActive(true);
+                Focus.Find("FocusModel").gameObject.SetActive(true);
             }
             else
             {
                 RaycastHit hit;
                 if (Physics.Raycast(new Ray(_camera.transform.position, _camera.transform.forward), out hit, ReachDistance))
                 {
-                    InGameCursor.SetActive(true);
-                    InGameCursor.transform.position = hit.point;
-                    InGameCursor.transform.LookAt(_camera.transform);
+                    Focus.Find("FocusModel").gameObject.SetActive(true);
+                    Focus.transform.position = hit.point;
+                    Focus.LookAt(_camera.transform);
                 }
 
-                var interactableTransform = Physics.SphereCastAll(InGameCursor.transform.position, SnapDistance, _camera.transform.forward)
+                var interactableTransform = Physics.SphereCastAll(Focus.transform.position, SnapDistance, _camera.transform.forward)
                     .Select(x => GetInteractableTransform(x.transform))
                     .Where(x => x != null)
                     .OrderBy(x => Vector3.Distance(x.GetComponent<IInteractable>().InteractionPosition(), hit.point))
@@ -164,8 +152,8 @@ public class FirstPersonController : MonoBehaviour {
 
                 if (interactableTransform != null)
                 {
-                    InGameCursor.transform.position = interactableTransform.GetComponent<IInteractable>().InteractionPosition();
-                    InGameCursor.transform.LookAt(_camera.transform);
+                    Focus.transform.position = interactableTransform.GetComponent<IInteractable>().InteractionPosition();
+                    Focus.LookAt(_camera.transform);
 
                     if (Input.GetMouseButtonDown(0))
                     {
@@ -191,7 +179,7 @@ public class FirstPersonController : MonoBehaviour {
                              + transform.up * _rigidbody.velocity.y;
 
         var groundedRay = new Ray(transform.position, -transform.up);
-        var groundedRayLength = GetComponent<CapsuleCollider>().height * 0.55f;
+        var groundedRayLength = 0.55f;
         IsGrounded = Physics.RaycastAll(groundedRay, groundedRayLength).Where(x => !x.collider.isTrigger).Any();
 
         var isJumping = CanHoldJump ? Input.GetButton("Jump") : Input.GetButtonDown("Jump");
@@ -206,13 +194,13 @@ public class FirstPersonController : MonoBehaviour {
 
     public bool GrabItem(GameObject item)
     {
-        if (HeldObject == null)
+        if (Material == null)
         {
-            HeldObject = item;
-            item.transform.parent = ItemHand.transform;
-            item.transform.localEulerAngles = Vector3.zero;
-            var interactionPoint = item.GetComponent<IInteractable>()?.InteractionPosition() ?? item.transform.position;
-            item.transform.localPosition = item.transform.InverseTransformPoint(interactionPoint);
+            Material = item.transform;
+            Material.parent = MaterialHand.transform;
+            Material.localEulerAngles = Vector3.zero;
+            var interactionPoint = Material.GetComponent<IInteractable>()?.InteractionPosition() ?? Material.position;
+            Material.localPosition = item.transform.InverseTransformPoint(interactionPoint);
             return true;
         }
         else
@@ -220,11 +208,18 @@ public class FirstPersonController : MonoBehaviour {
             return false;
         }
     }
-    public GameObject DropItem()
+    public Transform DropMaterial()
     {
-        var item = HeldObject;
-        HeldObject = null;
-        return item;
+        if (Material != null)
+        {
+            var item = Material;
+            item.parent = null;
+            return item;
+        }
+        else
+        {
+            return null;
+        }
     }
 
 
