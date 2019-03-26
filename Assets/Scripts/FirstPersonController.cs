@@ -93,9 +93,9 @@ public class FirstPersonController : MonoBehaviour {
     public Transform Focus { get; set; }
 
     public Transform ToolHand { get; set; }
-    public Transform Tool { get; set; }
+    public Tool Tool { get; set; }
     public Transform MaterialHand { get; set; }
-    public Transform Material { get; set; }
+    public BuildingMaterial Material { get; set; }
 
     void Start()
     {
@@ -147,17 +147,17 @@ public class FirstPersonController : MonoBehaviour {
                 var interactableTransform = Physics.SphereCastAll(Focus.transform.position, SnapDistance, _camera.transform.forward)
                     .Select(x => GetInteractableTransform(x.transform))
                     .Where(x => x != null)
-                    .OrderBy(x => Vector3.Distance(x.GetComponent<IInteractable>().InteractionPosition(), hit.point))
+                    .OrderBy(x => Vector3.Distance(x.GetComponent<Interactable>().InteractionPosition(), hit.point))
                     .FirstOrDefault();
 
                 if (interactableTransform != null)
                 {
-                    Focus.transform.position = interactableTransform.GetComponent<IInteractable>().InteractionPosition();
+                    Focus.transform.position = interactableTransform.GetComponent<Interactable>().InteractionPosition();
                     Focus.LookAt(_camera.transform);
 
                     if (Input.GetMouseButtonDown(0))
                     {
-                        interactableTransform.GetComponent<IInteractable>().Interact(this);
+                        interactableTransform.GetComponent<Interactable>().Interact(this);
                     }
                 }
             }
@@ -192,41 +192,50 @@ public class FirstPersonController : MonoBehaviour {
         _rigidbody.velocity = IsPlayerMovable ? movementVelocity : Vector3.zero;
     }
 
-    public bool GrabItem(GameObject item)
+    public void GrabTool(Tool tool)
     {
-        if (Material == null)
-        {
-            Material = item.transform;
-            Material.parent = MaterialHand.transform;
-            Material.localEulerAngles = Vector3.zero;
-            var interactionPoint = Material.GetComponent<IInteractable>()?.InteractionPosition() ?? Material.position;
-            Material.localPosition = item.transform.InverseTransformPoint(interactionPoint);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        DropTool();
+        Tool = tool;
+        Tool.transform.parent = ToolHand.transform;
+        Tool.transform.localEulerAngles = Vector3.zero;
+        var interactionPoint = Tool.InteractionPosition();
+        Tool.transform.localPosition = -tool.transform.InverseTransformPoint(interactionPoint);
     }
-    public Transform DropMaterial()
+    public void GrabMaterial(BuildingMaterial material)
     {
-        if (Material != null)
+        DropMaterial();
+        Material = material;
+        Material.transform.parent = MaterialHand.transform;
+        Material.transform.localEulerAngles = Vector3.zero;
+        var interactionPoint = Material.InteractionPosition();
+        Material.transform.localPosition = -material.transform.InverseTransformPoint(interactionPoint);
+    }
+
+    public BuildingMaterial DropMaterial()
+    {
+        var oldMaterial = Material;
+        if (oldMaterial != null)
         {
-            var item = Material;
-            item.parent = null;
-            return item;
+            oldMaterial.transform.parent = null;
         }
-        else
+        Material = null;
+        return oldMaterial;
+    }
+    public Tool DropTool()
+    {
+        var oldTool = Tool;
+        if (oldTool != null)
         {
-            return null;
+            oldTool.transform.parent = null;
         }
+        return oldTool;
     }
 
 
 
     private Transform GetInteractableTransform(Transform t)
     {
-        while (t != null && (t.GetComponent<IInteractable>() == null || !t.GetComponent<IInteractable>().IsInteractable(this)))
+        while (t != null && (t.GetComponent<Interactable>() == null || !t.GetComponent<Interactable>().IsInteractable(this)))
         {
             t = t.parent;
         }

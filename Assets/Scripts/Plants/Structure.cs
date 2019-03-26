@@ -6,7 +6,7 @@ using System.Xml.Schema;
 using UnityEditor;
 using UnityEngine;
 
-public class Structure : MonoBehaviour, IInteractable
+public class Structure : BuildingMaterial
 {
     public float Age = 0;
     public float Length = 1;
@@ -76,24 +76,37 @@ public class Structure : MonoBehaviour, IInteractable
         return this;
     }
 
-    public bool IsInteractable(FirstPersonController player)
+    public override bool IsInteractable(FirstPersonController player)
     {
-        //TODO: only interactable if player has correct tools
-        return player.Material == null;
+        return (player.Tool == null && Plant == null) ||
+               player.Tool?.Type == Tool.ToolType.Axe ||
+               player.Tool?.Type == Tool.ToolType.BranchBeefer;
     }
-    public void Interact(FirstPersonController player)
+    public override void Interact(FirstPersonController player)
     {
-        //TODO: different behavior based on differnt tools
-        if (player.Material == null)
+        if (Type == PlantStructureType.Stem)
         {
-            player.GrabItem(Disconnect().gameObject);
+            if (player.Material == null && (player.Tool?.Type == Tool.ToolType.Axe || Plant == null))
+            {
+                player.GrabMaterial(Disconnect());
+            }
+            else if (player.Tool?.Type == Tool.ToolType.BranchBeefer)
+            {
+                //Adjust age
+            }
+        }
+        else
+        {
+            if (player.Material == null)
+            {
+                player.GrabMaterial(Disconnect());
+            }
         }
     }
-    public Vector3 InteractionPosition()
+    public override Vector3 InteractionPosition()
     {
-        return Model.transform.GetChild(0).transform.position;
+        return transform.Find("Model")?.GetChild(0)?.transform.position ?? transform.position;
     }
-
 }
 
 [Serializable]

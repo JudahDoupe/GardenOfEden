@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Joint : MonoBehaviour, IInteractable
+public class Joint : Interactable
 {
     public Plant Plant;
     public Structure Root;
@@ -98,26 +98,28 @@ public class Joint : MonoBehaviour, IInteractable
         }
     }
 
-    public bool IsInteractable(FirstPersonController player)
+    public override bool IsInteractable(FirstPersonController player)
     {
-        //TODO: should be interactible if player has the right tool
-        return Plant.IsManipulatable;
+        return Plant.IsManipulatable && 
+               ( player.Tool?.Type == Tool.ToolType.BranchStretcher ||
+                 player.Tool?.Type == Tool.ToolType.BranchBender ||
+                 player.Material is Structure );
     }
-    public void Interact(FirstPersonController player)
+    public override void Interact(FirstPersonController player)
     {
-        var item = player.DropMaterial();
-        if (item?.GetComponent<Structure>() is Structure structure)
+        if (player.Tool?.Type == Tool.ToolType.BranchStretcher)
         {
-            Graft(structure);
+            //TODO: Adjust Length
         }
-        else
+        else if (player.Tool?.Type == Tool.ToolType.BranchBender)
         {
+            //TODO: Adjust Direction
             StartCoroutine(Drag(player));
         }
-    }
-    public Vector3 InteractionPosition()
-    {
-        return transform.position;
+        else if (player.Material is Structure)
+        {
+            Graft(player.DropMaterial() as Structure);
+        }
     }
 
     private IEnumerator Drag(FirstPersonController player)
