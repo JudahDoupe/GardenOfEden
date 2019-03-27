@@ -4,19 +4,14 @@ using UnityEngine;
 
 public class Tool : Interactable
 {
-    public ToolType Type;
-
     public override void Interact(FirstPersonController player)
     {
         player.GrabTool(this);
     }
 
-    public enum ToolType
+    public virtual void Use(FirstPersonController player, Interactable obj)
     {
-        Axe,
-        BranchStretcher,
-        BranchBender,
-        BranchBeefer,
+
     }
 }
 

@@ -101,37 +101,18 @@ public class Joint : Interactable
     public override bool IsInteractable(FirstPersonController player)
     {
         return Plant.IsManipulatable && 
-               ( player.Tool?.Type == Tool.ToolType.BranchStretcher ||
-                 player.Tool?.Type == Tool.ToolType.BranchBender ||
+               ( (player.Tool is BranchStretcher && Root != null) ||
+                 (player.Tool is BranchBender && Root != null) ||
                  player.Material is Structure );
     }
     public override void Interact(FirstPersonController player)
     {
-        if (player.Tool?.Type == Tool.ToolType.BranchStretcher)
-        {
-            //TODO: Adjust Length
-        }
-        else if (player.Tool?.Type == Tool.ToolType.BranchBender)
-        {
-            //TODO: Adjust Direction
-            StartCoroutine(Drag(player));
-        }
-        else if (player.Material is Structure)
+        if (player.Material is Structure)
         {
             Graft(player.DropMaterial() as Structure);
         }
     }
 
-    private IEnumerator Drag(FirstPersonController player)
-    {
-        player.IsCursorFreeFloating = true;
-        while (Input.GetMouseButton(0))
-        {
-            SetPosition(player.Focus.transform.position);
-            yield return new WaitForEndOfFrame();
-        }
-        player.IsCursorFreeFloating = false;
-    }
     private IEnumerator Fall()
     {
         var rigidbody = gameObject.AddComponent<Rigidbody>();

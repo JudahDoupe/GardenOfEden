@@ -32,7 +32,7 @@ public class FirstPersonController : MonoBehaviour {
     [Tooltip("For Debuging or if You don't plan on having a pause menu or quit button.")]
     public bool IsMouseHidden = false;
     
-    private Camera _camera;
+    public Camera Camera { get; set; }
     private Vector3 _targetAngles;
     private Vector3 _followAngles;
     private Vector3 _followVelocity;
@@ -101,7 +101,7 @@ public class FirstPersonController : MonoBehaviour {
     {
         _originalRotation = transform.localRotation.eulerAngles;
         _rigidbody = GetComponent<Rigidbody>();
-        _camera = transform.GetComponentInChildren<Camera>();
+        Camera = transform.GetComponentInChildren<Camera>();
         ToolHand = transform.Find("Body/RightArm/RightForeArm/RightHand");
         MaterialHand = transform.Find("Body/LeftArm/LeftForeArm/LeftHand");
         Focus = transform.Find("Body/Head/Focus");
@@ -118,7 +118,7 @@ public class FirstPersonController : MonoBehaviour {
         }
 
         _followAngles = Vector3.SmoothDamp(_followAngles, _targetAngles, ref _followVelocity, LookDamping);
-        _camera.transform.localRotation = Quaternion.Euler(-_followAngles.x + _originalRotation.x,0,0);
+        Camera.transform.localRotation = Quaternion.Euler(-_followAngles.x + _originalRotation.x,0,0);
         transform.localRotation =  Quaternion.Euler(0, _followAngles.y+_originalRotation.y, 0);
 
         Cursor.lockState = IsMouseHidden ? CursorLockMode.Locked : CursorLockMode.None;
@@ -127,7 +127,7 @@ public class FirstPersonController : MonoBehaviour {
         //Focus
         if (Focus != null)
         {
-            Focus.transform.position = _camera.transform.position + _camera.transform.forward * ReachDistance;
+            Focus.transform.position = Camera.transform.position + Camera.transform.forward * ReachDistance;
             Focus.Find("FocusModel").gameObject.SetActive(false);
 
             if (IsCursorFreeFloating)
@@ -137,27 +137,31 @@ public class FirstPersonController : MonoBehaviour {
             else
             {
                 RaycastHit hit;
-                if (Physics.Raycast(new Ray(_camera.transform.position, _camera.transform.forward), out hit, ReachDistance))
+                if (Physics.Raycast(new Ray(Camera.transform.position, Camera.transform.forward), out hit, ReachDistance))
                 {
                     Focus.Find("FocusModel").gameObject.SetActive(true);
                     Focus.transform.position = hit.point;
-                    Focus.LookAt(_camera.transform);
+                    Focus.LookAt(Camera.transform);
                 }
 
-                var interactableTransform = Physics.SphereCastAll(Focus.transform.position, SnapDistance, _camera.transform.forward)
+                var interactableTransform = Physics.SphereCastAll(Focus.transform.position, SnapDistance, Camera.transform.forward)
                     .Select(x => GetInteractableTransform(x.transform))
                     .Where(x => x != null)
                     .OrderBy(x => Vector3.Distance(x.GetComponent<Interactable>().InteractionPosition(), hit.point))
                     .FirstOrDefault();
 
-                if (interactableTransform != null)
+                if (interactableTransform?.GetComponent<Interactable>() is Interactable interactable)
                 {
-                    Focus.transform.position = interactableTransform.GetComponent<Interactable>().InteractionPosition();
-                    Focus.LookAt(_camera.transform);
+                    Focus.transform.position = interactable.InteractionPosition();
+                    Focus.LookAt(Camera.transform);
 
                     if (Input.GetMouseButtonDown(0))
                     {
-                        interactableTransform.GetComponent<Interactable>().Interact(this);
+                        interactable.Interact(this);
+                    }
+                    if(Input.GetMouseButtonDown(1))
+                    {
+                        Tool.Use(this, interactable);
                     }
                 }
             }

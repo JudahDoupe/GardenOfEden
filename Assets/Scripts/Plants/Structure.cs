@@ -79,20 +79,16 @@ public class Structure : BuildingMaterial
     public override bool IsInteractable(FirstPersonController player)
     {
         return (player.Tool == null && Plant == null) ||
-               player.Tool?.Type == Tool.ToolType.Axe ||
-               player.Tool?.Type == Tool.ToolType.BranchBeefer;
+               player.Tool is Axe ||
+               player.Tool is BranchBeefer;
     }
     public override void Interact(FirstPersonController player)
     {
         if (Type == PlantStructureType.Stem)
         {
-            if (player.Material == null && (player.Tool?.Type == Tool.ToolType.Axe || Plant == null))
+            if (player.Material == null && Plant == null)
             {
                 player.GrabMaterial(Disconnect());
-            }
-            else if (player.Tool?.Type == Tool.ToolType.BranchBeefer)
-            {
-                //Adjust age
             }
         }
         else
