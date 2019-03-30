@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
-    public virtual bool IsInteractable(FirstPersonController player, Item item)
+    public virtual bool IsInteractable(FirstPersonController player)
     {
         return true;
     }
 
-    public virtual void Interact(FirstPersonController player, Item item)
+    public virtual void Interact(FirstPersonController player)
     {
 
     }

@@ -98,18 +98,6 @@ public class Joint : Interactable
         }
     }
 
-    public override bool IsInteractable(FirstPersonController player, Item item)
-    {
-        if (Plant.IsManipulatable)
-        {
-            return item is Structure || (Root != null && (item is BranchStretcher || item is BranchBender));
-        }
-        else
-        {
-            return false;
-        }
-    }
-
     private IEnumerator Fall()
     {
         var rigidbody = gameObject.AddComponent<Rigidbody>();

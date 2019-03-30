@@ -11,17 +11,7 @@ public class Item : Interactable
 
     public virtual void Use(FirstPersonController player, Interactable interactable)
     {
-        //TODO: Determine if a player should use an item and item calls interact or if interacting with an interactable should call use on the item
-    }
 
-    public virtual bool IsGrabable(FirstPersonController player)
-    {
-        return true;
-    }
-
-    public virtual Item Grab(FirstPersonController player)
-    {
-        return this;
     }
 
     public virtual Vector3 GrabPosition()
@@ -47,16 +37,13 @@ public class Item : Interactable
         Destroy(rigidbody);
     }
 
-    public override bool IsInteractable(FirstPersonController player, Item item)
+    public override bool IsInteractable(FirstPersonController player)
     {
-        return item == null;
+        return true;
     }
 
-    public override void Interact(FirstPersonController player, Item item)
+    public override void Interact(FirstPersonController player)
     {
-        if (item == null)
-        {
-            player.GrabItem(this);
-        }
+        player.GrabItem(this);
     }
 }
