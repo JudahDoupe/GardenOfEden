@@ -92,18 +92,18 @@ public class FirstPersonController : MonoBehaviour {
 
     public Transform Focus { get; set; }
 
-    public Transform ToolHand { get; set; }
-    public Tool Tool { get; set; }
-    public Transform MaterialHand { get; set; }
-    public BuildingMaterial Material { get; set; }
+    public Transform RightHand { get; set; }
+    public Item RightHandItem { get; set; }
+    public Transform LeftHand { get; set; }
+    public Item LeftHandItem { get; set; }
 
     void Start()
     {
         _originalRotation = transform.localRotation.eulerAngles;
         _rigidbody = GetComponent<Rigidbody>();
         Camera = transform.GetComponentInChildren<Camera>();
-        ToolHand = transform.Find("Body/RightArm/RightForeArm/RightHand");
-        MaterialHand = transform.Find("Body/LeftArm/LeftForeArm/LeftHand");
+        RightHand = transform.Find("Body/RightArm/RightForeArm/RightHand");
+        LeftHand = transform.Find("Body/LeftArm/LeftForeArm/LeftHand");
         Focus = transform.Find("Body/Head/Focus");
     }
     void LateUpdate()
@@ -139,29 +139,30 @@ public class FirstPersonController : MonoBehaviour {
                 RaycastHit hit;
                 if (Physics.Raycast(new Ray(Camera.transform.position, Camera.transform.forward), out hit, ReachDistance))
                 {
-                    Focus.Find("FocusModel").gameObject.SetActive(true);
                     Focus.transform.position = hit.point;
                     Focus.LookAt(Camera.transform);
+                    Focus.Find("FocusModel").gameObject.SetActive(true);
                 }
 
-                var interactableTransform = Physics.SphereCastAll(Focus.transform.position, SnapDistance, Camera.transform.forward)
-                    .Select(x => GetInteractableTransform(x.transform))
+                var interactable = Physics.SphereCastAll(Focus.transform.position, SnapDistance, Camera.transform.forward)
+                    .Select(x => GetInteractableTransformInParents(x.transform, LeftHandItem) ?? GetInteractableTransformInParents(x.transform, RightHandItem))
                     .Where(x => x != null)
-                    .OrderBy(x => Vector3.Distance(x.GetComponent<Interactable>().InteractionPosition(), hit.point))
-                    .FirstOrDefault();
+                    .OrderBy(x => Vector3.Distance(x.GetComponent<Interactable>().InteractPosition(), hit.point))
+                    .FirstOrDefault()?
+                    .GetComponent<Interactable>();
 
-                if (interactableTransform?.GetComponent<Interactable>() is Interactable interactable)
+                if (interactable != null)
                 {
-                    Focus.transform.position = interactable.InteractionPosition();
+                    Focus.transform.position = interactable.InteractPosition();
                     Focus.LookAt(Camera.transform);
 
-                    if (Input.GetMouseButtonDown(0))
+                    if (Input.GetMouseButtonDown(0) && interactable.IsInteractable(this, LeftHandItem))
                     {
-                        interactable.Interact(this);
+                        interactable.Interact(this, LeftHandItem);
                     }
-                    if(Input.GetMouseButtonDown(1))
+                    if (Input.GetMouseButtonDown(1) && interactable.IsInteractable(this, RightHandItem))
                     {
-                        Tool.Use(this, interactable);
+                        interactable.Interact(this, RightHandItem);
                     }
                 }
             }
@@ -196,50 +197,55 @@ public class FirstPersonController : MonoBehaviour {
         _rigidbody.velocity = IsPlayerMovable ? movementVelocity : Vector3.zero;
     }
 
-    public void GrabTool(Tool tool)
+    public void GrabItem(Item item)
     {
-        DropTool();
-        Tool = tool;
-        Tool.transform.parent = ToolHand.transform;
-        Tool.transform.localEulerAngles = Vector3.zero;
-        var interactionPoint = Tool.InteractionPosition();
-        Tool.transform.localPosition = -tool.transform.InverseTransformPoint(interactionPoint);
-    }
-    public void GrabMaterial(BuildingMaterial material)
-    {
-        DropMaterial();
-        Material = material;
-        Material.transform.parent = MaterialHand.transform;
-        Material.transform.localEulerAngles = Vector3.zero;
-        var interactionPoint = Material.InteractionPosition();
-        Material.transform.localPosition = -material.transform.InverseTransformPoint(interactionPoint);
-    }
 
-    public BuildingMaterial DropMaterial()
-    {
-        var oldMaterial = Material;
-        if (oldMaterial != null)
+        if (Input.GetMouseButtonDown(0))
         {
-            oldMaterial.transform.parent = null;
+            DropItem(LeftHandItem);
+            LeftHandItem = item.Grab(this);
+            LeftHandItem.transform.parent = LeftHand;
+            LeftHandItem.transform.localEulerAngles = Vector3.zero;
+            LeftHandItem.transform.localPosition = -LeftHandItem.transform.InverseTransformPoint(LeftHandItem.GrabPosition());
         }
-        Material = null;
-        return oldMaterial;
-    }
-    public Tool DropTool()
-    {
-        var oldTool = Tool;
-        if (oldTool != null)
+        else
         {
-            oldTool.transform.parent = null;
+            DropItem(RightHandItem);
+            RightHandItem = item.Grab(this);
+            RightHandItem.transform.parent = RightHand;
+            RightHandItem.transform.localEulerAngles = Vector3.zero;
+            RightHandItem.transform.localPosition = -RightHandItem.transform.InverseTransformPoint(RightHandItem.GrabPosition());
         }
-        return oldTool;
+    }
+
+    public Item DropItem(Item droppedItem)
+    {
+        if (droppedItem == null)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                droppedItem = LeftHandItem;
+            }
+            else
+            {
+                droppedItem = RightHandItem;
+            }
+        }
+
+        if (droppedItem != null)
+        {
+            droppedItem.transform.parent = null;
+            droppedItem.Fall();
+        }
+
+        return droppedItem;
     }
 
 
 
-    private Transform GetInteractableTransform(Transform t)
+    private Transform GetInteractableTransformInParents(Transform t, Item item)
     {
-        while (t != null && (t.GetComponent<Interactable>() == null || !t.GetComponent<Interactable>().IsInteractable(this)))
+        while (t != null && (t.GetComponent<Interactable>() == null || !t.GetComponent<Interactable>().IsInteractable(this, item)))
         {
             t = t.parent;
         }

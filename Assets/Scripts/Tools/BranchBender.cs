@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BranchBender : Tool
+public class BranchBender : Item
 {
-    public override void Use(FirstPersonController player, Interactable obj)
+    public override void Use(FirstPersonController player, Interactable interactable)
     {
-        if (obj is Joint joint)
+        if (interactable is Joint joint)
         {
             StartCoroutine(Drag(player, joint));
         }

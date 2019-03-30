@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BranchStretcher : Tool
+public class BranchStretcher : Item
 {
-    public override void Use(FirstPersonController player, Interactable obj)
+    public override void Use(FirstPersonController player, Interactable interactable)
     {
-        if (obj is Joint joint)
+        if (interactable is Joint joint)
         {
             StartCoroutine(Stretch(player, joint));
         }

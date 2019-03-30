@@ -23,7 +23,6 @@ public class Joint : Interactable
         var model = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         model.name = "Joint";
         var joint = model.AddComponent<Joint>();
-        joint.transform.localEulerAngles = Vector3.zero;
         joint.Selecter = joint.GetComponent<Renderer>();
         joint.Selecter.material.ChangeRenderMode(MaterialExtentions.BlendMode.Transparent);
         joint.Selecter.material.color = new Color(0,0.5f,1,0.25f);
@@ -40,6 +39,7 @@ public class Joint : Interactable
             joint.transform.parent = root.transform;
             joint.transform.localScale = Vector3.one * root.Girth;
             joint.transform.localPosition = Vector3.forward * root.Length;
+            joint.transform.localEulerAngles = Vector3.zero;
         }
 
         return joint;
@@ -60,9 +60,9 @@ public class Joint : Interactable
     }
     public Structure Graft(Structure existingStructure)
     {
-        var structure = Branch(existingStructure.Prefab);
+        var newStructure = Branch(existingStructure.Prefab);
         Destroy(existingStructure.gameObject);
-        return structure;
+        return newStructure;
     }
     public void Disconnect(Structure structure)
     {
@@ -98,18 +98,15 @@ public class Joint : Interactable
         }
     }
 
-    public override bool IsInteractable(FirstPersonController player)
+    public override bool IsInteractable(FirstPersonController player, Item item)
     {
-        return Plant.IsManipulatable && 
-               ( (player.Tool is BranchStretcher && Root != null) ||
-                 (player.Tool is BranchBender && Root != null) ||
-                 player.Material is Structure );
-    }
-    public override void Interact(FirstPersonController player)
-    {
-        if (player.Material is Structure)
+        if (Plant.IsManipulatable)
         {
-            Graft(player.DropMaterial() as Structure);
+            return item is Structure || (Root != null && (item is BranchStretcher || item is BranchBender));
+        }
+        else
+        {
+            return false;
         }
     }
 

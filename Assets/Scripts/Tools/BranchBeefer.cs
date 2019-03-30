@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BranchBeefer : Tool
+public class BranchBeefer : Item
 {
-    public override void Use(FirstPersonController player, Interactable obj)
+    public override void Use(FirstPersonController player, Interactable interactable)
     {
-        if (obj is Structure structure)
+        if (interactable is Structure structure)
         {
             StartCoroutine(Beef(player, structure));
         }
@@ -16,11 +16,11 @@ public class BranchBeefer : Tool
     {
         player.IsCursorFreeFloating = true;
         var oldReach = player.ReachDistance;
-        player.ReachDistance = Vector3.Distance(player.Camera.transform.position, structure.InteractionPosition());
+        player.ReachDistance = Vector3.Distance(player.Camera.transform.position, structure.GrabPosition());
 
         while (Input.GetMouseButton(1))
         {
-            structure.Girth = Vector3.Distance(player.Focus.transform.position, structure.InteractionPosition());
+            structure.Girth = Vector3.Distance(player.Focus.transform.position, structure.GrabPosition());
             yield return new WaitForEndOfFrame();
         }
 

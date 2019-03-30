@@ -6,7 +6,7 @@ using System.Xml.Schema;
 using UnityEditor;
 using UnityEngine;
 
-public class Structure : BuildingMaterial
+public class Structure : Item
 {
     public float Age = 0;
     public float Length = 1;
@@ -73,33 +73,22 @@ public class Structure : BuildingMaterial
         Head = null;
         Plant = null;
         transform.parent = null;
+        Fall();
         return this;
     }
 
-    public override bool IsInteractable(FirstPersonController player)
+    public override bool IsUsable(FirstPersonController player, Interactable interactable)
     {
-        return (player.Tool == null && Plant == null) ||
-               player.Tool is Axe ||
-               player.Tool is BranchBeefer;
+        return interactable is Joint && Plant == null;
     }
-    public override void Interact(FirstPersonController player)
+    public override void Use(FirstPersonController player, Interactable interactable)
     {
-        if (Type == PlantStructureType.Stem)
+        if (interactable is Joint joint)
         {
-            if (player.Material == null && Plant == null)
-            {
-                player.GrabMaterial(Disconnect());
-            }
-        }
-        else
-        {
-            if (player.Material == null)
-            {
-                player.GrabMaterial(Disconnect());
-            }
+            joint.Graft(player.DropItem(this) as Structure);
         }
     }
-    public override Vector3 InteractionPosition()
+    public override Vector3 GrabPosition()
     {
         return transform.Find("Model")?.GetChild(0)?.transform.position ?? transform.position;
     }
