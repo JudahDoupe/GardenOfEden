@@ -14,7 +14,7 @@ public class Interactable : MonoBehaviour
 
     }
 
-    public virtual Vector3 InteractPosition()
+    public virtual Vector3 InteractionPosition()
     {
         return transform.Find("Model")?.transform.position ?? transform.position;
     }

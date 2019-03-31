@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class BranchBeefer : Item
 {
+    public override bool IsUsable(FirstPersonController player, Interactable interactable)
+    {
+        return interactable is Structure;
+    }
+
     public override void Use(FirstPersonController player, Interactable interactable)
     {
         if (interactable is Structure structure)
@@ -16,11 +21,11 @@ public class BranchBeefer : Item
     {
         player.IsCursorFreeFloating = true;
         var oldReach = player.ReachDistance;
-        player.ReachDistance = Vector3.Distance(player.Camera.transform.position, structure.GrabPosition());
+        player.ReachDistance = Vector3.Distance(player.Camera.transform.position, structure.InteractionPosition());
 
-        while (Input.GetMouseButton(1))
+        while (player.RightHandItem == this ? Input.GetMouseButton(1) : Input.GetMouseButton(0))
         {
-            structure.Girth = Vector3.Distance(player.Focus.transform.position, structure.GrabPosition());
+            structure.Girth = Vector3.Distance(player.Focus.transform.position, structure.InteractionPosition());
             yield return new WaitForEndOfFrame();
         }
 

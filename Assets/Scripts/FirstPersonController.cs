@@ -144,45 +144,31 @@ public class FirstPersonController : MonoBehaviour {
                     Focus.Find("FocusModel").gameObject.SetActive(true);
                 }
 
-                var interactable = Physics.SphereCastAll(Focus.transform.position, SnapDistance, Camera.transform.forward)
-                    .Select(x => GetInteractableTransformInParents(x.transform))
-                    .Where(x => x != null)
-                    .OrderBy(x => Vector3.Distance(x.GetComponent<Interactable>().InteractPosition(), hit.point))
-                    .FirstOrDefault()?
-                    .GetComponent<Interactable>();
+                var x1 = Physics.SphereCastAll(Focus.transform.position, SnapDistance, Camera.transform.forward);
+                var x2 = x1.Select(x => GetInteractableTransformInParents(x.transform)?.GetComponent<Interactable>()).ToList();
+                var x3 = x2.Where(x => x != null).ToList();
+                var x4 = x3.Where(x => (RightHandItem?.IsUsable(this,x) ?? x.IsInteractable(this)) ||
+                                (LeftHandItem?.IsUsable(this,x) ?? x.IsInteractable(this))).ToList();
+                var x5 = x4.OrderBy(x => Vector3.Distance(x.InteractionPosition(), hit.point)).ToList();
+                var interactable = x5.FirstOrDefault();
 
                 if (interactable != null)
                 {
                     //TODO: Have a right hand and left hand focus
-                    // If we have an item only focus if item is usable
-                    Focus.transform.position = interactable.InteractPosition();
+                    Focus.transform.position = interactable.InteractionPosition();
                     Focus.LookAt(Camera.transform);
                 }
 
                 if (Input.GetMouseButtonDown(0))
                 {
-                    if (LeftHandItem != null)
-                    {
-                        LeftHandItem.Use(this, interactable);
-                    }
-                    else if (interactable != null && interactable.IsInteractable(this))
-                    {
-                        interactable.Interact(this);
-                    }
+                    UseItem(LeftHandItem, interactable);
                 }
 
                 if (Input.GetMouseButtonDown(1))
-                    {
-                        if (RightHandItem != null)
-                        {
-                            RightHandItem.Use(this, interactable);
-                        }
-                        else if (interactable != null && interactable.IsInteractable(this))
-                        {
-                            interactable.Interact(this);
-                        }
-                    }
+                {
+                    UseItem(RightHandItem, interactable);
                 }
+            }
         }
     }
     void FixedUpdate()
@@ -223,7 +209,7 @@ public class FirstPersonController : MonoBehaviour {
             LeftHandItem = item;
             LeftHandItem.transform.parent = LeftHand;
             LeftHandItem.transform.localEulerAngles = Vector3.zero;
-            LeftHandItem.transform.localPosition = -LeftHandItem.transform.InverseTransformPoint(LeftHandItem.GrabPosition());
+            LeftHandItem.transform.localPosition = -LeftHandItem.transform.InverseTransformPoint(LeftHandItem.InteractionPosition());
         }
         else
         {
@@ -231,38 +217,53 @@ public class FirstPersonController : MonoBehaviour {
             RightHandItem = item;
             RightHandItem.transform.parent = RightHand;
             RightHandItem.transform.localEulerAngles = Vector3.zero;
-            RightHandItem.transform.localPosition = -RightHandItem.transform.InverseTransformPoint(RightHandItem.GrabPosition());
+            RightHandItem.transform.localPosition = -RightHandItem.transform.InverseTransformPoint(RightHandItem.InteractionPosition());
         }
-    }
 
+        Destroy(item.GetComponent<Rigidbody>());
+    }
     public Item DropItem(Item droppedItem)
     {
-        if (droppedItem == null)
+        if (droppedItem == LeftHandItem)
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                droppedItem = LeftHandItem;
-            }
-            else
-            {
-                droppedItem = RightHandItem;
-            }
+            LeftHandItem = null;
+        }
+        else if (droppedItem == RightHandItem)
+        {
+            RightHandItem = null;
         }
 
         if (droppedItem != null)
         {
             droppedItem.transform.parent = null;
             droppedItem.Fall();
+            droppedItem.GetComponent<Rigidbody>()?.AddForce(transform.forward * 200);
         }
 
         return droppedItem;
     }
-
-
+    private void UseItem(Item item, Interactable interactable)
+    {
+        if (item != null)
+        {
+            if (item.IsUsable(this, interactable))
+            {
+                item.Use(this, interactable);
+            }
+            else if (Focus.Find("FocusModel").gameObject.activeSelf)
+            {
+                DropItem(item);
+            }
+        }
+        else if (interactable != null && interactable.IsInteractable(this))
+        {
+            interactable.Interact(this);
+        }
+    }
 
     private Transform GetInteractableTransformInParents(Transform t)
     {
-        while (t != null && (t.GetComponent<Interactable>() == null || !t.GetComponent<Interactable>().IsInteractable(this)))
+        while (t != null && (t.GetComponent<Interactable>() == null))
         {
             t = t.parent;
         }

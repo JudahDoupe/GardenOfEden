@@ -34,6 +34,7 @@ public class Plant : MonoBehaviour
     }
     public static Plant BuildFromClipping(Joint root)
     {
+
         var plant = root.gameObject.AddComponent<Plant>();
         plant.Root = root;
 

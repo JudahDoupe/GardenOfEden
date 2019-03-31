@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class BranchStretcher : Item
 {
+    public override bool IsUsable(FirstPersonController player, Interactable interactable)
+    {
+        return interactable is Joint;
+    }
+
     public override void Use(FirstPersonController player, Interactable interactable)
     {
         if (interactable is Joint joint)
@@ -18,11 +23,11 @@ public class BranchStretcher : Item
         var oldReach = player.ReachDistance;
         player.ReachDistance = Vector3.Distance(player.Camera.transform.position, joint.transform.position);
 
-        while (Input.GetMouseButton(1))
+        while (player.RightHandItem == this ? Input.GetMouseButton(1) : Input.GetMouseButton(0))
         {
             var worldToLocalMatrix = Matrix4x4.TRS(player.Focus.transform.position, player.Focus.transform.rotation, Vector3.one).inverse;
-            var transformedPoint = worldToLocalMatrix.MultiplyPoint3x4(joint.Root.transform.position);
-            joint.Root.Length = Mathf.Max(-transformedPoint.y, 0.1f);
+            var transformedPoint = worldToLocalMatrix.MultiplyPoint3x4(joint.Base.transform.position);
+            joint.Base.Length = Mathf.Max(-transformedPoint.y, 0.1f);
             yield return new WaitForEndOfFrame();
         }
 

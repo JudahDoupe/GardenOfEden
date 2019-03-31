@@ -7,14 +7,17 @@ using UnityEngine;
 public class Joint : Interactable
 {
     public Plant Plant;
-    public Structure Root;
+    public Structure Base;
     public List<Structure> Connections = new List<Structure>();
 
     public Renderer Selecter { get; set; }
 
     public void Update()
     {
-        if(Root != null)transform.localPosition = new Vector3(0, 0, Root.Length);
+        if (Base != null)
+        {
+            transform.localPosition = new Vector3(0, 0, Base.Length);
+        }
         Selecter.enabled = Plant.IsManipulatable;
     }
 
@@ -23,10 +26,11 @@ public class Joint : Interactable
         var model = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         model.name = "Joint";
         var joint = model.AddComponent<Joint>();
+        joint.GetComponent<SphereCollider>().isTrigger = true;
         joint.Selecter = joint.GetComponent<Renderer>();
         joint.Selecter.material.ChangeRenderMode(MaterialExtentions.BlendMode.Transparent);
         joint.Selecter.material.color = new Color(0,0.5f,1,0.25f);
-        joint.Root = root;
+        joint.Base = root;
         joint.Plant = plant;
 
         if (root == null)
@@ -37,7 +41,7 @@ public class Joint : Interactable
         else
         {
             joint.transform.parent = root.transform;
-            joint.transform.localScale = Vector3.one * root.Girth;
+            joint.transform.localScale = joint.Plant.IsManipulatable ? Vector3.one : Vector3.one * root.Girth;
             joint.transform.localPosition = Vector3.forward * root.Length;
             joint.transform.localEulerAngles = Vector3.zero;
         }
@@ -68,34 +72,42 @@ public class Joint : Interactable
     {
         Connections.Remove(structure);
 
-        if (Root == structure)
+        if (Base == structure)
         {
-            Root = null;
+            BuildNew(Plant, structure);
+            Base = null;
+            Plant = Plant.BuildFromClipping(this); //Maybe we dont want to do this???
             transform.parent = null;
-            Plant = Plant.BuildFromClipping(this);
             StartCoroutine(Fall());
         }
 
-        if (!Connections.Any() && Root == null)
+        if (!Connections.Any() && Base == null)
         {
             Destroy(gameObject);
-        }
+        }    
+
+        structure.TryBecomingItem();
+        Connections.ForEach(x => x.TryBecomingItem());
     }
 
     public void SetPosition(Vector3 position)
     {
         transform.position = position;
 
-        if (Root == null)
+        if (Base == null)
         {
             Plant.transform.position = transform.position;
         }
         else
         {
-            Root.Length = Vector3.Distance(transform.position, Root.transform.position);
-            Root.transform.LookAt(transform);
-            transform.rotation = Root.transform.rotation;
+            Base.Length = Vector3.Distance(transform.position, Base.transform.position);
+            Base.transform.LookAt(transform);
+            transform.rotation = Base.transform.rotation;
         }
+    }
+    public override bool IsInteractable(FirstPersonController player)
+    {
+        return false;
     }
 
     private IEnumerator Fall()
@@ -103,7 +115,7 @@ public class Joint : Interactable
         var rigidbody = gameObject.AddComponent<Rigidbody>();
         rigidbody.angularDrag *= 10;
         rigidbody.drag *= 5;
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(1);
         while (rigidbody.velocity.magnitude > 0.0001f)
         {
             yield return new WaitForEndOfFrame();

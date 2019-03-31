@@ -50,8 +50,10 @@ public class Structure : Item
         structure.Plant = plant;
         structure.SproutingAge = plant.Age - 1;
         structure.Prefab = prefab;
-        structure.Head = Joint.BuildNew(plant, structure);
         structure.Root = root;
+        structure.Girth = root?.Base?.Girth ?? 1;
+        structure.Length = root?.Base?.Length ?? 1;
+        structure.Head = Joint.BuildNew(plant, structure);
         return structure;
     }
     public static Structure BuildDto(Plant plant, Joint root, StructureDTO dto)
@@ -65,17 +67,6 @@ public class Structure : Item
         structure.Head = Joint.BuildDto(plant, structure, dto.ToJoint);
         return structure;
     }
-    public Structure Disconnect()
-    {
-        Root?.Disconnect(this);
-        Head?.Disconnect(this);
-        Root = null;
-        Head = null;
-        Plant = null;
-        transform.parent = null;
-        Fall();
-        return this;
-    }
 
     public override bool IsUsable(FirstPersonController player, Interactable interactable)
     {
@@ -88,9 +79,26 @@ public class Structure : Item
             joint.Graft(player.DropItem(this) as Structure);
         }
     }
-    public override Vector3 GrabPosition()
+    public override bool IsInteractable(FirstPersonController player)
+    {
+        return Plant == null;
+    }
+    public override Vector3 InteractionPosition()
     {
         return transform.Find("Model")?.GetChild(0)?.transform.position ?? transform.position;
+    }
+
+    public void TryBecomingItem()
+    {
+        if (Root?.Base == null && !Head.Connections.Any())
+        {
+            transform.parent = null;
+            Destroy(Root.gameObject);
+            Destroy(Head.gameObject);
+            Root = null;
+            Head = null;
+            Plant = null;
+        }
     }
 }
 
