@@ -61,7 +61,7 @@ public class FirstPersonController : MonoBehaviour {
     public float StrafeSpeed = 4f;
 
     [Tooltip("Determines how high Player Jumps.")]
-    [Range(0.1f, 50)]
+    [Range(0.1f, 10)]
     public float JumpPower = 5f;
 
     [Tooltip("Determines if the jump button needs to be pressed down to jump, or if the player can hold the jump button to automaticly jump every time the it hits the ground.")]
