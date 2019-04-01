@@ -7,16 +7,16 @@ public class Axe : Item
 {
     public override bool IsUsable(FirstPersonController player, Interactable interactable)
     {
-        var joint = interactable as Joint;
-        return joint != null && joint.Base != null && joint.Connections.Any();
+        return interactable as Connection;
     }
 
     public override void Use(FirstPersonController player, Interactable interactable)
     {
-        if (interactable is Joint joint)
+        if (interactable is Connection connection)
         {
-            joint.Disconnect(joint.Base);
-            joint.GetComponent<Rigidbody>()?.AddForce(player.transform.forward * 200);
+            var structure = connection.To;
+            connection.Break();
+            structure.GetComponent<Rigidbody>()?.AddForce(player.transform.forward * 200);
         }
     }
 }

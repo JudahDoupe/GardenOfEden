@@ -128,11 +128,13 @@ public class FirstPersonController : MonoBehaviour {
         if (Focus != null)
         {
             Focus.transform.position = Camera.transform.position + Camera.transform.forward * ReachDistance;
-            Focus.Find("FocusModel").gameObject.SetActive(false);
+            Focus.Find("RightHandFocusModel").gameObject.SetActive(false);
+            Focus.Find("LeftHandFocusModel").gameObject.SetActive(false);
 
             if (IsCursorFreeFloating)
             {
-                Focus.Find("FocusModel").gameObject.SetActive(true);
+                Focus.Find("RightHandFocusModel").gameObject.SetActive(true);
+                Focus.Find("LeftHandFocusModel").gameObject.SetActive(true);
             }
             else
             {
@@ -141,20 +143,21 @@ public class FirstPersonController : MonoBehaviour {
                 {
                     Focus.transform.position = hit.point;
                     Focus.LookAt(Camera.transform);
-                    Focus.Find("FocusModel").gameObject.SetActive(true);
                 }
 
-                var x1 = Physics.SphereCastAll(Focus.transform.position, SnapDistance, Camera.transform.forward);
-                var x2 = x1.Select(x => GetInteractableTransformInParents(x.transform)?.GetComponent<Interactable>()).ToList();
-                var x3 = x2.Where(x => x != null).ToList();
-                var x4 = x3.Where(x => (RightHandItem?.IsUsable(this,x) ?? x.IsInteractable(this)) ||
-                                (LeftHandItem?.IsUsable(this,x) ?? x.IsInteractable(this))).ToList();
-                var x5 = x4.OrderBy(x => Vector3.Distance(x.InteractionPosition(), hit.point)).ToList();
-                var interactable = x5.FirstOrDefault();
+                var interactable = Physics
+                    .SphereCastAll(Focus.transform.position, SnapDistance, Camera.transform.forward)
+                    .Select(x => GetInteractableTransformInParents(x.transform)?.GetComponent<Interactable>()).ToList()
+                    .Where(x => x != null).ToList()
+                    .Where(x => (RightHandItem?.IsUsable(this,x) ?? x.IsInteractable(this)) ||
+                                (LeftHandItem?.IsUsable(this,x) ?? x.IsInteractable(this))).ToList()
+                    .OrderBy(x => Vector3.Distance(x.InteractionPosition(), hit.point)).ToList()
+                    .FirstOrDefault();
 
                 if (interactable != null)
                 {
-                    //TODO: Have a right hand and left hand focus
+                    Focus.Find("RightHandFocusModel").gameObject.SetActive(RightHandItem?.IsUsable(this, interactable) ?? interactable.IsInteractable(this));
+                    Focus.Find("LeftHandFocusModel").gameObject.SetActive(LeftHandItem?.IsUsable(this, interactable) ?? interactable.IsInteractable(this));
                     Focus.transform.position = interactable.InteractionPosition();
                     Focus.LookAt(Camera.transform);
                 }
@@ -250,7 +253,7 @@ public class FirstPersonController : MonoBehaviour {
             {
                 item.Use(this, interactable);
             }
-            else if (Focus.Find("FocusModel").gameObject.activeSelf)
+            else if (Input.GetKey(KeyCode.LeftShift))
             {
                 DropItem(item);
             }
