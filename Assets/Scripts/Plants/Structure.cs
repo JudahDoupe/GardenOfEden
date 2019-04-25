@@ -26,6 +26,13 @@ public class Structure : Item
         Model.transform.localScale = new Vector3(Girth, Girth, Length);
         Connections = new List<Connection>();
         Age = Length / 2 + Girth;
+
+        var t = transform;
+        while (t != null && (t.GetComponent<Plant>() == null))
+        {
+            t = t.parent;
+        }
+        Plant = t?.GetComponent<Plant>();
     }
     public void Update()
     {
@@ -55,14 +62,38 @@ public class Structure : Item
         structure.Connections = new List<Connection>();
         return structure;
     }
+    public static Structure Create(Plant plant, PlantDNA.Structure dna)
+    {
+        var structure = Create(plant, dna.Prefab);
+        structure.Girth = dna.Girth;
+        structure.Length = dna.Length;
+
+        foreach (var dnaConnection in dna.Connections)
+        {
+            Connection.Create(structure, dnaConnection);
+        }
+
+        return structure;
+    }
 
     public Connection Connect(Structure structure, Vector3 localPosition)
     {
-        var rotation = Quaternion.FromToRotation(Vector3.up, InteractionPosition() - localPosition).eulerAngles;
+        var rotation = Quaternion.FromToRotation(Vector3.up, InteractionPosition() - localPosition);
         var connection = Connection.Create(this, structure, localPosition, rotation);
         Connections.Add(connection);
         Destroy(structure.GetComponent<Rigidbody>());
         return connection;
+    }
+
+    public PlantDNA.Structure GetDNA()
+    {
+        return new PlantDNA.Structure
+        {
+            Prefab = Prefab,
+            Length = Length,
+            Girth = Girth,
+            Connections = Connections.Select(c => c.GetDNA()).ToList()
+        };
     }
 
     public override bool IsUsable(FirstPersonController player, Interactable interactable)

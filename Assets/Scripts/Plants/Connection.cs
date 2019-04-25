@@ -18,7 +18,7 @@ public class Connection : Interactable
         }
     }
 
-    public static Connection Create(Structure from, Structure to, Vector3 localPosition, Vector3 localRotation)
+    public static Connection Create(Structure from, Structure to, Vector3 localPosition, Quaternion localRotation)
     {
         var model = new GameObject("Connection");
         model.AddComponent<SphereCollider>();
@@ -30,13 +30,20 @@ public class Connection : Interactable
         connection.transform.parent = from.transform;
         connection.transform.localScale = connection.From.Plant.IsManipulatable ? Vector3.one : Vector3.one * from.Girth;
         connection.transform.localPosition = localPosition;
-        connection.transform.localEulerAngles = localRotation;
+        connection.transform.localRotation = localRotation;
         connection.To = to;
         connection.To.Plant = connection.From.Plant;
         connection.To.BaseConnection = connection;
         connection.To.transform.parent = connection.transform;
         connection.To.transform.localPosition = Vector3.zero;
-        connection.To.transform.localEulerAngles = Vector3.zero;
+        connection.To.transform.localRotation = Quaternion.identity;
+
+        return connection;
+    }
+    public static Connection Create(Structure from, PlantDNA.Connection dna)
+    {
+
+        var connection = Create(from, Structure.Create(from.Plant, dna.Structure), dna.Position, dna.Rotation);
 
         return connection;
     }
@@ -49,6 +56,16 @@ public class Connection : Interactable
 
         From.Connections.Remove(this);
         Destroy(gameObject);
+    }
+
+    public PlantDNA.Connection GetDNA()
+    {
+        return new PlantDNA.Connection
+        {
+            Position = transform.localPosition,
+            Rotation = transform.localRotation,
+            Structure = To.GetDNA()
+        };
     }
 
     public void SetPosition(Vector3 position)
