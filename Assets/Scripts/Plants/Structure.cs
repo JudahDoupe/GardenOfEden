@@ -8,44 +8,22 @@ using UnityEngine;
 
 public class Structure : Item
 {
-    public float Age = 0;
+    private const float SecondaryGrowthSpeed = 20;
+    private const float DaysToMaturity = 1;
+
+    public float DaysOld = 0;
     public float Length = 1;
     public float Girth = 1;
     public GameObject Prefab;
     public PlantStructureType Type;
 
-    public float SproutingAge { get; set; }
-    public List<Connection> Connections { get; set; }
+    public Plant Plant;
+    public GameObject Model;
+    public List<Connection> Connections { get; set; } = new List<Connection>();
     public Connection BaseConnection { get; set; }
-    public GameObject Model { get; set; }
-    public Plant Plant { get; set; }
+    public PlantDNA.Structure DNA { get; set; }
 
-    public void Start()
-    {
-        Model = gameObject.transform.Find("Model").gameObject;
-        Model.transform.localScale = new Vector3(Girth, Girth, Length);
-        Connections = new List<Connection>();
-        Age = Length / 2 + Girth;
-
-        var t = transform;
-        while (t != null && (t.GetComponent<Plant>() == null))
-        {
-            t = t.parent;
-        }
-        Plant = t?.GetComponent<Plant>();
-    }
-    public void Update()
-    {
-        if (Plant != null && !Plant.IsManipulatable)
-        {
-            Age = Mathf.Max(Plant.Age - SproutingAge,0);
-        }
-
-        var growth = 1 / (1 + Mathf.Exp(5 - 10 * Age));
-        transform.localScale = new Vector3(growth, growth, growth);
-        Model.transform.localScale = new Vector3(Girth, Girth, Length);
-        if (growth > 1) Model.transform.localScale += new Vector3(1 / Girth, 1 / Girth, 1 / Length);
-    }
+    private bool _hasSprouted = false;
 
     public static Structure Create(Plant plant, GameObject prefab)
     {
@@ -57,9 +35,8 @@ public class Structure : Item
             Debug.Log("You forgot to add a Structure component to your prefab DUMBASS!!!");
 
         structure.Plant = plant;
-        structure.SproutingAge = plant.Age - 1;
         structure.Prefab = prefab;
-        structure.Connections = new List<Connection>();
+        structure.Model = structure.transform.Find("Model").gameObject;
         return structure;
     }
     public static Structure Create(Plant plant, PlantDNA.Structure dna)
@@ -67,13 +44,32 @@ public class Structure : Item
         var structure = Create(plant, dna.Prefab);
         structure.Girth = dna.Girth;
         structure.Length = dna.Length;
-
-        foreach (var dnaConnection in dna.Connections)
-        {
-            Connection.Create(structure, dnaConnection);
-        }
+        structure.DNA = dna;
 
         return structure;
+    }
+
+    public void Grow(float days)
+    {
+        DaysOld += days;
+        
+        var primaryGrowth = 1 / (1 + Mathf.Exp(5 - 10 / DaysToMaturity * DaysOld));
+        var secondaryGrowth = 1 + DaysOld / SecondaryGrowthSpeed;
+
+        transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
+        Model.transform.localScale = new Vector3(Girth * secondaryGrowth, Girth * secondaryGrowth, Length);
+
+        if (!_hasSprouted && DaysOld > DaysToMaturity)
+        {
+            foreach (var connection in DNA.Connections)
+            {
+                Connection.Create(this, connection);
+            }
+
+            _hasSprouted = true;
+        }
+
+        Connections.ForEach(c => c.To.Grow(days));
     }
 
     public Connection Connect(Structure structure, Vector3 localPosition)

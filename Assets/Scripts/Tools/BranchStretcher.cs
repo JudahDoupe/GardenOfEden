@@ -28,7 +28,7 @@ public class BranchStretcher : Item
             var worldToLocalMatrix = Matrix4x4.TRS(player.Focus.transform.position, player.Focus.transform.rotation, Vector3.one).inverse;
             var transformedPoint = worldToLocalMatrix.MultiplyPoint3x4(structure.transform.position);
             structure.Length = Mathf.Clamp(-transformedPoint.y * 2, 0.25f, 2);
-            structure.Girth = Mathf.Clamp(structure.Age - structure.Length / 2, 0.1f, 1);
+            structure.Girth = Mathf.Clamp(structure.DaysOld - structure.Length / 2, 0.1f, 1);
             yield return new WaitForEndOfFrame();
         }
 

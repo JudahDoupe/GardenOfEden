@@ -17,7 +17,12 @@ public class Plant : MonoBehaviour
 	}
     public void Update()
     {
-        if (!IsManipulatable) Age += Time.smoothDeltaTime / 3f;
+        if (!IsManipulatable)
+        {
+            var daysPast = Time.smoothDeltaTime / 3f;
+            Age += daysPast;
+            Trunk.Grow(daysPast);
+        }
     }
 
     public static Plant Create(PlantDNA dna, Vector3 worldPosition)
@@ -25,11 +30,13 @@ public class Plant : MonoBehaviour
         var plantObj = new GameObject("plant");
         plantObj.transform.position = worldPosition;
         var plant = plantObj.AddComponent<Plant>();
+        plant.IsManipulatable = false;
 
         var trunk = Structure.Create(plant, dna.Trunk);
         trunk.transform.parent = plantObj.transform;
         trunk.transform.localPosition = Vector3.zero;
         trunk.transform.localEulerAngles = Vector3.zero;
+        plant.Trunk = trunk;
 
         return plant;
     }

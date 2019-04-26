@@ -26,9 +26,10 @@ public class Connection : Interactable
         connection.GetComponent<SphereCollider>().isTrigger = true;
         Destroy(connection.GetComponent<Renderer>());
 
+        from.Connections.Add(connection);
         connection.From = from;
         connection.transform.parent = from.transform;
-        connection.transform.localScale = connection.From.Plant.IsManipulatable ? Vector3.one : Vector3.one * from.Girth;
+        connection.transform.localScale = Vector3.one;
         connection.transform.localPosition = localPosition;
         connection.transform.localRotation = localRotation;
         connection.To = to;
