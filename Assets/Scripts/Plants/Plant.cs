@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Plant : MonoBehaviour
 {
@@ -10,11 +11,8 @@ public class Plant : MonoBehaviour
     public float Age;
     public Structure Trunk;
 
-	public void Start()
-	{
-	    Age = IsManipulatable ? 1 : 0;
-        transform.localEulerAngles = new Vector3(-90,0,0);
-	}
+    private bool _hasReproduced;
+    
     public void Update()
     {
         if (!IsManipulatable)
@@ -22,6 +20,10 @@ public class Plant : MonoBehaviour
             var daysPast = Time.smoothDeltaTime / 3f;
             Age += daysPast;
             Trunk.Grow(daysPast);
+            if (Age > 2 && !_hasReproduced)
+            {
+                Reproduce();
+            }
         }
     }
 
@@ -29,6 +31,7 @@ public class Plant : MonoBehaviour
     {
         var plantObj = new GameObject("plant");
         plantObj.transform.position = worldPosition;
+        plantObj.transform.localEulerAngles = new Vector3(-90, Random.Range(0, 365), 0);
         var plant = plantObj.AddComponent<Plant>();
         plant.IsManipulatable = false;
 
@@ -39,6 +42,20 @@ public class Plant : MonoBehaviour
         plant.Trunk = trunk;
 
         return plant;
+    }
+
+    public void Reproduce()
+    {
+        var randomLocation = Random.insideUnitSphere;
+        randomLocation.Scale(new Vector3(5, 0, 5));
+        var worldPosition = transform.position + randomLocation;
+
+        if (Physics.OverlapSphere(worldPosition, 1).All(x => x.gameObject.GetComponent<Plant>() == null))
+        {
+            Create(GetDNA(), worldPosition);
+            _hasReproduced = true;
+        }
+
     }
 
     public PlantDNA GetDNA()

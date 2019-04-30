@@ -29,6 +29,7 @@ public class BranchStretcher : Item
             var transformedPoint = worldToLocalMatrix.MultiplyPoint3x4(structure.transform.position);
             structure.Length = Mathf.Clamp(-transformedPoint.y * 2, 0.25f, 2);
             structure.Girth = Mathf.Clamp(structure.DaysOld - structure.Length / 2, 0.1f, 1);
+            structure.UpdateModel();
             yield return new WaitForEndOfFrame();
         }
 

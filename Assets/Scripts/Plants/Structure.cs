@@ -52,12 +52,8 @@ public class Structure : Item
     public void Grow(float days)
     {
         DaysOld += days;
-        
-        var primaryGrowth = 1 / (1 + Mathf.Exp(5 - 10 / DaysToMaturity * DaysOld));
-        var secondaryGrowth = 1 + DaysOld / SecondaryGrowthSpeed;
 
-        transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
-        Model.transform.localScale = new Vector3(Girth * secondaryGrowth, Girth * secondaryGrowth, Length);
+        UpdateModel();
 
         if (!_hasSprouted && DaysOld > DaysToMaturity)
         {
@@ -70,6 +66,15 @@ public class Structure : Item
         }
 
         Connections.ForEach(c => c.To.Grow(days));
+    }
+
+    public void UpdateModel()
+    {
+        var primaryGrowth = 1 / (1 + Mathf.Exp(5 - 10 / DaysToMaturity * DaysOld));
+        var secondaryGrowth = 1 + DaysOld / SecondaryGrowthSpeed;
+
+        transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
+        Model.transform.localScale = new Vector3(Girth * secondaryGrowth, Girth * secondaryGrowth, Length);
     }
 
     public Connection Connect(Structure structure, Vector3 localPosition)
