@@ -24,6 +24,7 @@ public class Structure : Item
     public PlantDNA.Structure DNA { get; set; }
 
     private bool _hasSprouted = false;
+    private bool _alive = true;
 
     public static Structure Create(Plant plant, GameObject prefab)
     {
@@ -37,6 +38,8 @@ public class Structure : Item
         structure.Plant = plant;
         structure.Prefab = prefab;
         structure.Model = structure.transform.Find("Model").gameObject;
+        structure.Rigidbody = obj.AddComponent<Rigidbody>();
+        structure.Rigidbody.constraints = RigidbodyConstraints.FreezeAll;
         return structure;
     }
     public static Structure Create(Plant plant, PlantDNA.Structure dna)
@@ -51,6 +54,8 @@ public class Structure : Item
 
     public void Grow(float days)
     {
+        if (!_alive) return;
+
         DaysOld += days;
 
         UpdateModel();
@@ -77,12 +82,29 @@ public class Structure : Item
         Model.transform.localScale = new Vector3(Girth * secondaryGrowth, Girth * secondaryGrowth, Length);
     }
 
+    void OnCollisionEnter(Collision collision)
+    {
+        var t = collision.collider.transform;
+        Plant plant = null;
+        while (t != null && plant == null)
+        {
+            plant = t.GetComponent<Plant>();
+            t = t.parent;
+        }
+
+        if (plant != null && plant != Plant)
+        {
+            _alive = false;
+        }
+    }
+
     public Connection Connect(Structure structure, Vector3 localPosition)
     {
         var rotation = Quaternion.FromToRotation(Vector3.up, InteractionPosition() - localPosition);
         var connection = Connection.Create(this, structure, localPosition, rotation);
         Connections.Add(connection);
-        Destroy(structure.GetComponent<Rigidbody>());
+        structure.Rigidbody.isKinematic = false;
+        structure.Rigidbody.constraints = RigidbodyConstraints.FreezeAll;
         return connection;
     }
 

@@ -223,7 +223,7 @@ public class FirstPersonController : MonoBehaviour {
             RightHandItem.transform.localPosition = -RightHandItem.transform.InverseTransformPoint(RightHandItem.InteractionPosition());
         }
 
-        Destroy(item.GetComponent<Rigidbody>());
+        item.Rigidbody.isKinematic = true;
     }
     public Item DropItem(Item droppedItem)
     {

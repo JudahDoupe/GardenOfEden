@@ -50,7 +50,7 @@ public class Plant : MonoBehaviour
         randomLocation.Scale(new Vector3(5, 0, 5));
         var worldPosition = transform.position + randomLocation;
 
-        if (Physics.OverlapSphere(worldPosition, 1).All(x => x.gameObject.GetComponent<Plant>() == null))
+        if (Physics.OverlapSphere(worldPosition, 2).All(x => x.gameObject.GetComponent<Plant>() == null))
         {
             Create(GetDNA(), worldPosition);
             _hasReproduced = true;

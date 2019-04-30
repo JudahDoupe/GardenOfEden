@@ -4,6 +4,21 @@ using UnityEngine;
 
 public class Item : Interactable
 {
+    public Rigidbody Rigidbody;
+
+    void Start()
+    {
+        Rigidbody = GetComponent<Rigidbody>();
+        if (Rigidbody == null)
+        {
+            Rigidbody = gameObject.AddComponent<Rigidbody>();
+            Rigidbody.isKinematic = true;
+        }
+
+        Rigidbody.angularDrag *= 10;
+        Rigidbody.drag *= 5;
+    }
+
     public virtual bool IsUsable(FirstPersonController player, Interactable interactable)
     {
         return true;
@@ -21,15 +36,14 @@ public class Item : Interactable
 
     private IEnumerator StartFall()
     {
-        var rigidbody = gameObject.AddComponent<Rigidbody>();
-        rigidbody.angularDrag *= 10;
-        rigidbody.drag *= 5;
+        Rigidbody.isKinematic = false;
+        Rigidbody.constraints = RigidbodyConstraints.None;
         yield return new WaitForSeconds(1);
-        while (rigidbody != null && rigidbody.velocity.magnitude > 0.0001f)
+        while (!Rigidbody.isKinematic && Rigidbody.velocity.magnitude > 0.0001f)
         {
             yield return new WaitForEndOfFrame();
         }
-        Destroy(rigidbody);
+        Rigidbody.isKinematic = true;
     }
 
     public override bool IsInteractable(FirstPersonController player)
