@@ -113,7 +113,6 @@ public class FirstPersonController : MonoBehaviour {
         Cursor.lockState = IsMouseHidden ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !IsMouseHidden;
 
-
         //Camera
         if (IsCameraMovable)
         {
@@ -126,8 +125,6 @@ public class FirstPersonController : MonoBehaviour {
             Camera.transform.localRotation = Quaternion.Euler(-_followAngles.x + _originalRotation.x,0,0);
             transform.localRotation =  Quaternion.Euler(0, _followAngles.y+_originalRotation.y, 0);
         }
-
-
 
         //Focus
         if (Focus != null)

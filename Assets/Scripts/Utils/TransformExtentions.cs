@@ -13,4 +13,17 @@ public static class TransformExtentions
         }
         return t;
     }
+
+    public static Transform RecursiveFind(this Transform aParent, string aName)
+    {
+        foreach (Transform child in aParent)
+        {
+            if (child.name == aName)
+                return child;
+            var result = child.RecursiveFind(aName);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
 }
