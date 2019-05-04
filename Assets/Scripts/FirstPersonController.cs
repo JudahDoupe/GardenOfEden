@@ -88,6 +88,8 @@ public class FirstPersonController : MonoBehaviour {
     [Tooltip("Determines if the cursor will connect with objects in the world, or float in front of the player.")]
     public bool IsCursorFreeFloating = false;
 
+    public bool IsFocusEnabled = true;
+
     #endregion
 
     public Transform Focus { get; set; }
@@ -108,21 +110,24 @@ public class FirstPersonController : MonoBehaviour {
     }
     void LateUpdate()
     {
+        Cursor.lockState = IsMouseHidden ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = !IsMouseHidden;
+
+
         //Camera
-        if(IsCameraMovable)
+        if (IsCameraMovable)
         {
             _targetAngles.y += Input.GetAxis("Mouse X") * MouseSensitivity;
             _targetAngles.x += Input.GetAxis("Mouse Y") * MouseSensitivity;
             _targetAngles.y = Mathf.Clamp(_targetAngles.y, -0.5f * RangeOfMotion.y, 0.5f * RangeOfMotion.y);
             _targetAngles.x = Mathf.Clamp(_targetAngles.x, -0.5f * RangeOfMotion.x, 0.5f * RangeOfMotion.x);
+
+            _followAngles = Vector3.SmoothDamp(_followAngles, _targetAngles, ref _followVelocity, LookDamping);
+            Camera.transform.localRotation = Quaternion.Euler(-_followAngles.x + _originalRotation.x,0,0);
+            transform.localRotation =  Quaternion.Euler(0, _followAngles.y+_originalRotation.y, 0);
         }
 
-        _followAngles = Vector3.SmoothDamp(_followAngles, _targetAngles, ref _followVelocity, LookDamping);
-        Camera.transform.localRotation = Quaternion.Euler(-_followAngles.x + _originalRotation.x,0,0);
-        transform.localRotation =  Quaternion.Euler(0, _followAngles.y+_originalRotation.y, 0);
 
-        Cursor.lockState = IsMouseHidden ? CursorLockMode.Locked : CursorLockMode.None;
-        Cursor.visible = !IsMouseHidden;
 
         //Focus
         if (Focus != null)
@@ -131,45 +136,52 @@ public class FirstPersonController : MonoBehaviour {
             Focus.Find("RightHandFocusModel").gameObject.SetActive(false);
             Focus.Find("LeftHandFocusModel").gameObject.SetActive(false);
 
-            if (IsCursorFreeFloating)
+            if (IsFocusEnabled)
             {
-                Focus.Find("RightHandFocusModel").gameObject.SetActive(true);
-                Focus.Find("LeftHandFocusModel").gameObject.SetActive(true);
-            }
-            else
-            {
-                RaycastHit hit;
-                if (Physics.Raycast(new Ray(Camera.transform.position, Camera.transform.forward), out hit, ReachDistance))
+                if (IsCursorFreeFloating)
                 {
-                    Focus.transform.position = hit.point;
-                    Focus.LookAt(Camera.transform);
+                    Focus.Find("RightHandFocusModel").gameObject.SetActive(true);
+                    Focus.Find("LeftHandFocusModel").gameObject.SetActive(true);
                 }
-
-                var interactable = Physics
-                    .SphereCastAll(Focus.transform.position, SnapDistance, Camera.transform.forward)
-                    .Select(x => GetInteractableTransformInParents(x.transform)?.GetComponent<Interactable>()).ToList()
-                    .Where(x => x != null).ToList()
-                    .Where(x => (RightHandItem?.IsUsable(this,x) ?? x.IsInteractable(this)) ||
-                                (LeftHandItem?.IsUsable(this,x) ?? x.IsInteractable(this))).ToList()
-                    .OrderBy(x => Vector3.Distance(x.InteractionPosition(), hit.point)).ToList()
-                    .FirstOrDefault();
-
-                if (interactable != null)
+                else
                 {
-                    Focus.Find("RightHandFocusModel").gameObject.SetActive(RightHandItem?.IsUsable(this, interactable) ?? interactable.IsInteractable(this));
-                    Focus.Find("LeftHandFocusModel").gameObject.SetActive(LeftHandItem?.IsUsable(this, interactable) ?? interactable.IsInteractable(this));
-                    Focus.transform.position = interactable.InteractionPosition();
-                    Focus.LookAt(Camera.transform);
-                }
+                    RaycastHit hit;
+                    if (Physics.Raycast(new Ray(Camera.transform.position, Camera.transform.forward), out hit,
+                        ReachDistance))
+                    {
+                        Focus.transform.position = hit.point;
+                        Focus.LookAt(Camera.transform);
+                    }
 
-                if (Input.GetMouseButtonDown(0))
-                {
-                    UseItem(LeftHandItem, interactable);
-                }
+                    var interactable = Physics
+                        .SphereCastAll(Focus.transform.position, SnapDistance, Camera.transform.forward)
+                        .Select(x => x.transform.ParentWithComponent<Interactable>()?.GetComponent<Interactable>())
+                        .ToList()
+                        .Where(x => x != null).ToList()
+                        .Where(x => (RightHandItem?.IsUsable(this, x) ?? x.IsInteractable(this)) ||
+                                    (LeftHandItem?.IsUsable(this, x) ?? x.IsInteractable(this))).ToList()
+                        .OrderBy(x => Vector3.Distance(x.InteractionPosition(), hit.point)).ToList()
+                        .FirstOrDefault();
 
-                if (Input.GetMouseButtonDown(1))
-                {
-                    UseItem(RightHandItem, interactable);
+                    if (interactable != null)
+                    {
+                        Focus.Find("RightHandFocusModel").gameObject.SetActive(
+                            RightHandItem?.IsUsable(this, interactable) ?? interactable.IsInteractable(this));
+                        Focus.Find("LeftHandFocusModel").gameObject
+                            .SetActive(LeftHandItem?.IsUsable(this, interactable) ?? interactable.IsInteractable(this));
+                        Focus.transform.position = interactable.InteractionPosition();
+                        Focus.LookAt(Camera.transform);
+                    }
+
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        UseItem(LeftHandItem, interactable);
+                    }
+
+                    if (Input.GetMouseButtonDown(1))
+                    {
+                        UseItem(RightHandItem, interactable);
+                    }
                 }
             }
         }
@@ -262,15 +274,6 @@ public class FirstPersonController : MonoBehaviour {
         {
             interactable.Interact(this);
         }
-    }
-
-    private Transform GetInteractableTransformInParents(Transform t)
-    {
-        while (t != null && (t.GetComponent<Interactable>() == null))
-        {
-            t = t.parent;
-        }
-        return t;
     }
 }
 
