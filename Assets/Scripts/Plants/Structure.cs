@@ -102,8 +102,8 @@ public class Structure : Item
 
     public Connection Connect(Structure structure, Vector3 localPosition)
     {
-        var rotation = Quaternion.FromToRotation(Vector3.up, InteractionPosition() - localPosition);
-        var connection = Connection.Create(this, structure, localPosition, rotation);
+        var rotation = Quaternion.LookRotation(localPosition.normalized, Vector3.up);
+        var connection = Connection.Create(this, structure, Vector3.Scale(localPosition, new Vector3(0,0,1)), rotation);
         Connections.Add(connection);
         structure.Rigidbody.isKinematic = false;
         structure.Rigidbody.constraints = RigidbodyConstraints.FreezeAll;
@@ -119,6 +119,16 @@ public class Structure : Item
             Girth = Girth,
             Connections = Connections.Select(c => c.GetDNA()).ToList()
         };
+    }
+
+    public void Clicked(Vector3 hitPosition)
+    {
+        var pedestal = transform.ParentWithComponent<PlantCreationPedestal>()?.GetComponent<PlantCreationPedestal>();
+        if (pedestal != null && pedestal.SelectedDna != null)
+        {
+            var structure = Create(Plant, pedestal.SelectedDna);
+            Connect(structure, transform.InverseTransformPoint(hitPosition));
+        }
     }
 
     public override bool IsUsable(FirstPersonController player, Interactable interactable)

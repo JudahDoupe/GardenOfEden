@@ -10,20 +10,10 @@ public class Connection : Interactable
     public Structure From;
     public Structure To;
 
-    public void Update()
-    {
-        if (From != null)
-        {
-            transform.localPosition = new Vector3(0, 0, From.Length);
-        }
-    }
-
     public static Connection Create(Structure from, Structure to, Vector3 localPosition, Quaternion localRotation)
     {
         var model = new GameObject("Connection");
-        model.AddComponent<SphereCollider>();
         var connection = model.AddComponent<Connection>();
-        connection.GetComponent<SphereCollider>().isTrigger = true;
         Destroy(connection.GetComponent<Renderer>());
 
         from.Connections.Add(connection);
