@@ -6,7 +6,7 @@ using System.Xml.Schema;
 using UnityEditor;
 using UnityEngine;
 
-public class Structure : Item
+public class Structure : MonoBehaviour
 {
     private const float SecondaryGrowthSpeed = 20;
     private const float DaysToMaturity = 1;
@@ -22,6 +22,7 @@ public class Structure : Item
     public List<Connection> Connections { get; set; } = new List<Connection>();
     public Connection BaseConnection { get; set; }
     public PlantDNA.Structure DNA { get; set; }
+    public Rigidbody Rigidbody { get; set; }
 
     private bool _hasSprouted = false;
     private bool _alive = true;
@@ -131,26 +132,21 @@ public class Structure : Item
         }
     }
 
-    public override bool IsUsable(FirstPersonController player, Interactable interactable)
+    public virtual void Fall()
     {
-        return interactable is Structure && (interactable as Structure).Plant != null;
+        StartCoroutine(StartFall());
     }
-    public override void Use(FirstPersonController player, Interactable interactable)
+
+    private IEnumerator StartFall()
     {
-        if (interactable is Structure structure)
+        Rigidbody.isKinematic = false;
+        Rigidbody.constraints = RigidbodyConstraints.None;
+        yield return new WaitForSeconds(1);
+        while (!Rigidbody.isKinematic && Rigidbody.velocity.magnitude > 0.0001f)
         {
-            player.DropItem(this);
-            var localPos = structure.transform.worldToLocalMatrix * player.Focus.transform.position;
-            structure.Connect(this, localPos);
+            yield return new WaitForEndOfFrame();
         }
-    }
-    public override bool IsInteractable(FirstPersonController player)
-    {
-        return BaseConnection == null && transform.parent?.GetComponent<Plant>() == null;
-    }
-    public override Vector3 InteractionPosition()
-    {
-        return transform.Find("Model")?.GetChild(0)?.transform.position ?? transform.position;
+        Rigidbody.isKinematic = true;
     }
 }
 

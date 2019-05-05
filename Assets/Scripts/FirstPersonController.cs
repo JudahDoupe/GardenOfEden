@@ -95,9 +95,7 @@ public class FirstPersonController : MonoBehaviour {
     public Transform Focus { get; set; }
 
     public Transform RightHand { get; set; }
-    public Item RightHandItem { get; set; }
     public Transform LeftHand { get; set; }
-    public Item LeftHandItem { get; set; }
 
     void Start()
     {
@@ -155,29 +153,21 @@ public class FirstPersonController : MonoBehaviour {
                         .Select(x => x.transform.ParentWithComponent<Interactable>()?.GetComponent<Interactable>())
                         .ToList()
                         .Where(x => x != null).ToList()
-                        .Where(x => (RightHandItem?.IsUsable(this, x) ?? x.IsInteractable(this)) ||
-                                    (LeftHandItem?.IsUsable(this, x) ?? x.IsInteractable(this))).ToList()
+                        .Where(x => x.IsInteractable(this)).ToList()
                         .OrderBy(x => Vector3.Distance(x.InteractionPosition(), hit.point)).ToList()
                         .FirstOrDefault();
 
                     if (interactable != null)
                     {
-                        Focus.Find("RightHandFocusModel").gameObject.SetActive(
-                            RightHandItem?.IsUsable(this, interactable) ?? interactable.IsInteractable(this));
-                        Focus.Find("LeftHandFocusModel").gameObject
-                            .SetActive(LeftHandItem?.IsUsable(this, interactable) ?? interactable.IsInteractable(this));
+                        Focus.Find("RightHandFocusModel").gameObject.SetActive(interactable.IsInteractable(this));
+                        Focus.Find("LeftHandFocusModel").gameObject.SetActive(interactable.IsInteractable(this));
                         Focus.transform.position = interactable.InteractionPosition();
                         Focus.LookAt(Camera.transform);
                     }
 
                     if (Input.GetMouseButtonDown(0))
                     {
-                        UseItem(LeftHandItem, interactable);
-                    }
-
-                    if (Input.GetMouseButtonDown(1))
-                    {
-                        UseItem(RightHandItem, interactable);
+                        interactable.Interact(this);
                     }
                 }
             }
@@ -210,67 +200,6 @@ public class FirstPersonController : MonoBehaviour {
         }
 
         _rigidbody.velocity = IsPlayerMovable ? movementVelocity : Vector3.zero;
-    }
-
-    public void GrabItem(Item item)
-    {
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            DropItem(LeftHandItem);
-            LeftHandItem = item;
-            LeftHandItem.transform.parent = LeftHand;
-            LeftHandItem.transform.localEulerAngles = Vector3.zero;
-            LeftHandItem.transform.localPosition = -LeftHandItem.transform.InverseTransformPoint(LeftHandItem.InteractionPosition());
-        }
-        else
-        {
-            DropItem(RightHandItem);
-            RightHandItem = item;
-            RightHandItem.transform.parent = RightHand;
-            RightHandItem.transform.localEulerAngles = Vector3.zero;
-            RightHandItem.transform.localPosition = -RightHandItem.transform.InverseTransformPoint(RightHandItem.InteractionPosition());
-        }
-
-        item.Rigidbody.isKinematic = true;
-    }
-    public Item DropItem(Item droppedItem)
-    {
-        if (droppedItem == LeftHandItem)
-        {
-            LeftHandItem = null;
-        }
-        else if (droppedItem == RightHandItem)
-        {
-            RightHandItem = null;
-        }
-
-        if (droppedItem != null)
-        {
-            droppedItem.transform.parent = null;
-            droppedItem.Fall();
-            droppedItem.GetComponent<Rigidbody>()?.AddForce(transform.forward * 200);
-        }
-
-        return droppedItem;
-    }
-    private void UseItem(Item item, Interactable interactable)
-    {
-        if (item != null)
-        {
-            if (item.IsUsable(this, interactable))
-            {
-                item.Use(this, interactable);
-            }
-            else if (Input.GetKey(KeyCode.LeftShift))
-            {
-                DropItem(item);
-            }
-        }
-        else if (interactable != null && interactable.IsInteractable(this))
-        {
-            interactable.Interact(this);
-        }
     }
 }
 
