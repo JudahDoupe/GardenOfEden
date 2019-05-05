@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 
 public class PlantCreationPedestal : Interactable
@@ -9,6 +10,9 @@ public class PlantCreationPedestal : Interactable
 
     public Transform _cameraTarget;
     public Vector3 CameraMoveSpeed = new Vector3(1,0.1f,0.5f);
+
+    public PlantDNA.Structure SelectedDna { get; set; }
+    public Plant Plant { get; set; }
 
     public override void Interact(FirstPersonController player)
     {

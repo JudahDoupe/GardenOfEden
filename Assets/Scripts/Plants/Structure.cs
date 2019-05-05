@@ -26,9 +26,9 @@ public class Structure : Item
     private bool _hasSprouted = false;
     private bool _alive = true;
 
-    public static Structure Create(Plant plant, GameObject prefab)
+    public static Structure Create(Plant plant, PlantDNA.Structure dna)
     {
-        var obj = Instantiate(prefab);
+        var obj = Instantiate(dna.Prefab);
         obj.transform.localPosition = Vector3.zero;
         var structure = obj.GetComponent<Structure>();
 
@@ -36,18 +36,20 @@ public class Structure : Item
             Debug.Log("You forgot to add a Structure component to your prefab DUMBASS!!!");
 
         structure.Plant = plant;
-        structure.Prefab = prefab;
+        structure.Prefab = dna.Prefab;
         structure.Model = structure.transform.Find("Model").gameObject;
         structure.Rigidbody = obj.AddComponent<Rigidbody>();
         structure.Rigidbody.constraints = RigidbodyConstraints.FreezeAll;
-        return structure;
-    }
-    public static Structure Create(Plant plant, PlantDNA.Structure dna)
-    {
-        var structure = Create(plant, dna.Prefab);
         structure.Girth = dna.Girth;
         structure.Length = dna.Length;
         structure.DNA = dna;
+
+        if (plant.IsManipulatable)
+        {
+            structure.DaysOld = DaysToMaturity;
+        }
+
+        structure.UpdateModel();
 
         return structure;
     }

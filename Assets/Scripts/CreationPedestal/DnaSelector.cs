@@ -4,15 +4,10 @@ using UnityEngine;
 
 public class DnaSelector : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public void Clicked()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        var pedestal = transform.parent.GetComponent<PlantCreationPedestal>();
+        var myDna = GetComponent<DnaContainer>().Dna;
+        pedestal.SelectedDna = pedestal.SelectedDna == myDna ? null : myDna;
     }
 }

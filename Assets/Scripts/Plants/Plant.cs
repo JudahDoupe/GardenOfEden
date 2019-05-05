@@ -7,6 +7,8 @@ using Random = UnityEngine.Random;
 
 public class Plant : MonoBehaviour
 {
+    public const float RootRadius = 2;
+
     public bool IsManipulatable;
     public float Age;
     public Structure Trunk;
@@ -27,13 +29,13 @@ public class Plant : MonoBehaviour
         }
     }
 
-    public static Plant Create(PlantDNA dna, Vector3 worldPosition)
+    public static Plant Create(PlantDNA dna, Vector3 worldPosition, bool isManipulatable = false)
     {
         var plantObj = new GameObject("plant");
         plantObj.transform.position = worldPosition;
         plantObj.transform.localEulerAngles = new Vector3(-90, Random.Range(0, 365), 0);
         var plant = plantObj.AddComponent<Plant>();
-        plant.IsManipulatable = false;
+        plant.IsManipulatable = isManipulatable;
 
         var trunk = Structure.Create(plant, dna.Trunk);
         trunk.transform.parent = plantObj.transform;
@@ -46,16 +48,20 @@ public class Plant : MonoBehaviour
 
     public void Reproduce()
     {
-        var randomLocation = Random.insideUnitSphere;
-        randomLocation.Scale(new Vector3(5, 0, 5));
-        var worldPosition = transform.position + randomLocation;
-
-        if (Physics.OverlapSphere(worldPosition, 2).All(x => x.gameObject.GetComponent<Plant>() == null))
+        for (int i = 0; i < 4; i++)
         {
-            Create(GetDNA(), worldPosition);
-            _hasReproduced = true;
-        }
+            var randomLocation = Random.insideUnitSphere * 10;
+            var worldPosition = transform.position + randomLocation;
+            var ray = new Ray(worldPosition, Vector3.down);
 
+            if (Physics.Raycast(ray, out RaycastHit hit) &&
+                hit.transform.gameObject.layer == 8 && 
+                Physics.OverlapSphere(hit.point, RootRadius).All(x => x.gameObject.GetComponent<Plant>() == null))
+            {
+                _hasReproduced = true;
+                Create(GetDNA(), hit.point);
+            }
+        }
     }
 
     public PlantDNA GetDNA()

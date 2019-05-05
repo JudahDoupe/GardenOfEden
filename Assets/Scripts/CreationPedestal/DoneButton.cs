@@ -6,6 +6,8 @@ public class DoneButton : MonoBehaviour
 {
     public void Clicked()
     {
-        transform.parent.GetComponent<PlantCreationPedestal>().EndCreation();
+        var pedestal = transform.parent.GetComponent<PlantCreationPedestal>();
+        pedestal.Plant.Reproduce();
+        pedestal.EndCreation();
     }
 }
