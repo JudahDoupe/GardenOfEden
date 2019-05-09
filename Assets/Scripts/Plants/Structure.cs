@@ -11,69 +11,81 @@ public class Structure : MonoBehaviour
     private const float SecondaryGrowthSpeed = 20;
     private const float DaysToMaturity = 1;
 
-    public float DaysOld = 0;
-    public float Length = 1;
-    public float Girth = 1;
-    public GameObject Prefab;
-    public PlantStructureType Type;
-
+    public float DaysOld;
     public Plant Plant;
-    public GameObject Model;
-    public List<Connection> Connections { get; set; } = new List<Connection>();
+    public PlantDNA.Structure DNA;
     public Connection BaseConnection { get; set; }
-    public PlantDNA.Structure DNA { get; set; }
-    public Rigidbody Rigidbody { get; set; }
+    public List<Connection> Connections { get; set; } = new List<Connection>();
 
+    private GameObject _model;
+    private Rigidbody _rigidbody;
     private bool _hasSprouted = false;
-    private bool _alive = true;
+    private bool _isAlive = true;
 
     public static Structure Create(Plant plant, PlantDNA.Structure dna)
     {
-        var obj = Instantiate(dna.Prefab);
-        obj.transform.localPosition = Vector3.zero;
-        var structure = obj.GetComponent<Structure>();
-
+        var structure = Instantiate(dna.Prefab).GetComponent<Structure>();
         if (structure == null)
             Debug.Log("You forgot to add a Structure component to your prefab DUMBASS!!!");
 
+        structure.transform.localPosition = Vector3.zero;
+        structure.DaysOld = plant.IsAlive ? 0 : DaysToMaturity;
         structure.Plant = plant;
-        structure.Prefab = dna.Prefab;
-        structure.Model = structure.transform.Find("Model").gameObject;
-        structure.Rigidbody = obj.AddComponent<Rigidbody>();
-        structure.Rigidbody.constraints = RigidbodyConstraints.FreezeAll;
-        structure.Girth = dna.Girth;
-        structure.Length = dna.Length;
         structure.DNA = dna;
 
-        if (plant.IsManipulatable)
-        {
-            structure.DaysOld = DaysToMaturity;
-        }
+        structure._model = structure.transform.Find("Model").gameObject;
+        structure._rigidbody = structure.gameObject.AddComponent<Rigidbody>();
+        structure._rigidbody.constraints = RigidbodyConstraints.FreezeAll;
+        structure._isAlive = plant.IsAlive;
 
         structure.UpdateModel();
+        structure.StartCoroutine(structure.Grow());
 
         return structure;
     }
 
-    public void Grow(float days)
+    public Connection Connect(Structure structure, Vector3 localPosition)
     {
-        if (!_alive) return;
+        var position = Vector3.Scale(localPosition, new Vector3(0, 0, 1));
+        var rotation = Quaternion.LookRotation(localPosition.normalized, Vector3.up);
+        var connection = Connection.Create(this, structure, position, rotation);
+        Connections.Add(connection);
+        return connection;
+    }
 
-        DaysOld += days;
-
-        UpdateModel();
-
-        if (!_hasSprouted && DaysOld > DaysToMaturity)
+    public IEnumerator Grow()
+    {
+        var startTime = Time.time;
+        var deltaTime = 0f; 
+        while (_isAlive)
         {
-            foreach (var connection in DNA.Connections)
+            _isAlive = Plant.IsAlive;
+            DaysOld += (deltaTime) / 3f;
+
+            UpdateModel();
+
+            if (!_hasSprouted)
             {
-                Connection.Create(this, connection);
+                foreach (var connection in DNA.Connections)
+                {
+                    Connection.Create(this, connection);
+                }
+
+                _hasSprouted = true;
             }
 
-            _hasSprouted = true;
-        }
+            if (DaysOld > DaysToMaturity)
+            {
+                yield return new WaitForSeconds(10);
+            }
+            else
+            {
+                yield return new WaitForEndOfFrame();
+            }
 
-        Connections.ForEach(c => c.To.Grow(days));
+            deltaTime = Time.time - startTime;
+            startTime = Time.time;
+        }
     }
 
     public void UpdateModel()
@@ -82,42 +94,27 @@ public class Structure : MonoBehaviour
         var secondaryGrowth = 1 + DaysOld / SecondaryGrowthSpeed;
 
         transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
-        Model.transform.localScale = new Vector3(Girth * secondaryGrowth, Girth * secondaryGrowth, Length);
+        _model.transform.localScale = new Vector3(DNA.Girth * secondaryGrowth, DNA.Girth * secondaryGrowth, DNA.Length);
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        var t = collision.collider.transform;
-        Plant plant = null;
-        while (t != null && plant == null)
-        {
-            plant = t.GetComponent<Plant>();
-            t = t.parent;
-        }
+        Plant plant = collision.collider.transform.ParentWithComponent<Plant>()?.GetComponent<Plant>();
 
         if (plant != null && plant != Plant)
         {
-            _alive = false;
+            _isAlive = false;
         }
     }
 
-    public Connection Connect(Structure structure, Vector3 localPosition)
-    {
-        var rotation = Quaternion.LookRotation(localPosition.normalized, Vector3.up);
-        var connection = Connection.Create(this, structure, Vector3.Scale(localPosition, new Vector3(0,0,1)), rotation);
-        Connections.Add(connection);
-        structure.Rigidbody.isKinematic = false;
-        structure.Rigidbody.constraints = RigidbodyConstraints.FreezeAll;
-        return connection;
-    }
 
     public PlantDNA.Structure GetDNA()
     {
         return new PlantDNA.Structure
         {
-            Prefab = Prefab,
-            Length = Length,
-            Girth = Girth,
+            Prefab = DNA.Prefab,
+            Length = DNA.Length,
+            Girth = DNA.Girth,
             Connections = Connections.Select(c => c.GetDNA()).ToList()
         };
     }
@@ -130,23 +127,6 @@ public class Structure : MonoBehaviour
             var structure = Create(Plant, pedestal.SelectedDna);
             Connect(structure, transform.InverseTransformPoint(hitPosition));
         }
-    }
-
-    public virtual void Fall()
-    {
-        StartCoroutine(StartFall());
-    }
-
-    private IEnumerator StartFall()
-    {
-        Rigidbody.isKinematic = false;
-        Rigidbody.constraints = RigidbodyConstraints.None;
-        yield return new WaitForSeconds(1);
-        while (!Rigidbody.isKinematic && Rigidbody.velocity.magnitude > 0.0001f)
-        {
-            yield return new WaitForEndOfFrame();
-        }
-        Rigidbody.isKinematic = true;
     }
 }
 

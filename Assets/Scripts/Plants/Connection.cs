@@ -12,38 +12,35 @@ public class Connection : Interactable
 
     public static Connection Create(Structure from, Structure to, Vector3 localPosition, Quaternion localRotation)
     {
-        var model = new GameObject("Connection");
-        var connection = model.AddComponent<Connection>();
-        Destroy(connection.GetComponent<Renderer>());
-
-        from.Connections.Add(connection);
-        connection.From = from;
+        var connection = new GameObject("Connection", typeof(Connection)).GetComponent<Connection>();
         connection.transform.parent = from.transform;
         connection.transform.localScale = Vector3.one;
         connection.transform.localPosition = localPosition;
         connection.transform.localRotation = localRotation;
+
+        to.Plant = from.Plant;
+        to.BaseConnection = connection;
+        to.transform.parent = connection.transform;
+        to.transform.localPosition = Vector3.zero;
+        to.transform.localRotation = Quaternion.identity;
+
         connection.To = to;
-        connection.To.Plant = connection.From.Plant;
-        connection.To.BaseConnection = connection;
-        connection.To.transform.parent = connection.transform;
-        connection.To.transform.localPosition = Vector3.zero;
-        connection.To.transform.localRotation = Quaternion.identity;
+        connection.From = from;
+
+        from.Connections.Add(connection);
 
         return connection;
     }
     public static Connection Create(Structure from, PlantDNA.Connection dna)
     {
-
-        var connection = Create(from, Structure.Create(from.Plant, dna.Structure), dna.Position, dna.Rotation);
-
-        return connection;
+        return Create(from, Structure.Create(from.Plant, dna.Structure), dna.Position, dna.Rotation);
     }
+
     public void Break()
     {
         To.BaseConnection = null;
         To.transform.parent = null;
         To.Plant = null;
-        To.Fall();
 
         From.Connections.Remove(this);
         Destroy(gameObject);
@@ -57,32 +54,6 @@ public class Connection : Interactable
             Rotation = transform.localRotation,
             Structure = To.GetDNA()
         };
-    }
-
-    public void SetPosition(Vector3 position)
-    {
-        transform.position = position;
-
-        From.Length = Vector3.Distance(transform.position, From.transform.position);
-        From.transform.LookAt(transform);
-        transform.rotation = From.transform.rotation;
-    }
-    public override bool IsInteractable(FirstPersonController player)
-    {
-        return false;
-    }
-
-    private IEnumerator Fall()
-    {
-        var rigidbody = gameObject.AddComponent<Rigidbody>();
-        rigidbody.angularDrag *= 10;
-        rigidbody.drag *= 5;
-        yield return new WaitForSeconds(1);
-        while (rigidbody.velocity.magnitude > 0.0001f)
-        {
-            yield return new WaitForEndOfFrame();
-        }
-        Destroy(rigidbody);
     }
 
 }
