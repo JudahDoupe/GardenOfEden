@@ -9,20 +9,26 @@ public class Plant : MonoBehaviour
 {
     public const float RootRadius = 5;
     public const float SpreadRadius = 10;
-    public const float MaxOffspring = 5;
+    public const float MaxOffspring = 3;
+    public const float MaxLifespan = 13;
 
     public string Name;
     public float DaysOld;
     public bool IsAlive;
     public Structure Trunk;
 
-    private float _reproductionCooldown = 2;
+    private float _reproductionCooldown = 5;
 
     public void Update()
     {
         if (IsAlive)
         {
             Grow(Time.smoothDeltaTime / 3f);
+        }
+
+        if (DaysOld > MaxLifespan)
+        {
+            Die();
         }
     }
     
@@ -79,6 +85,12 @@ public class Plant : MonoBehaviour
 
             yield return new WaitForSeconds(Random.Range(0f,1f));
         }
+    }
+
+    public void Die()
+    {
+        IsAlive = false;
+        Destroy(gameObject);
     }
 
     public PlantDNA GetDNA()

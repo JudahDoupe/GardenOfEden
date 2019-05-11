@@ -8,8 +8,8 @@ using UnityEngine;
 
 public class Structure : MonoBehaviour
 {
-    private const float SecondaryGrowthSpeed = 20;
     private const float DaysToMaturity = 1;
+    private const float DaysToDouble = 50;
 
     public float DaysOld;
     public Plant Plant;
@@ -49,49 +49,44 @@ public class Structure : MonoBehaviour
         var position = Vector3.Scale(localPosition, new Vector3(0, 0, 1));
         var rotation = Quaternion.LookRotation(localPosition.normalized, Vector3.up);
         var connection = Connection.Create(this, structure, position, rotation);
-        Connections.Add(connection);
         return connection;
     }
 
     public IEnumerator Grow()
     {
         var startTime = Time.time;
-        var deltaTime = 0f; 
         while (_isAlive)
         {
             _isAlive = Plant.IsAlive;
-            DaysOld += (deltaTime) / 3f;
+            DaysOld += (Time.time - startTime) / 3f;
+            startTime = Time.time;
 
             UpdateModel();
 
-            if (!_hasSprouted)
-            {
-                foreach (var connection in DNA.Connections)
-                {
-                    Connection.Create(this, connection);
-                }
-
-                _hasSprouted = true;
-            }
-
-            if (DaysOld > DaysToMaturity)
-            {
-                yield return new WaitForSeconds(10);
-            }
-            else
+            if (DaysOld < DaysToMaturity)
             {
                 yield return new WaitForEndOfFrame();
             }
+            else
+            {
+                if (!_hasSprouted)
+                {
+                    foreach (var connection in DNA.Connections)
+                    {
+                        Connection.Create(this, connection);
+                    }
 
-            deltaTime = Time.time - startTime;
-            startTime = Time.time;
+                    _hasSprouted = true;
+                }
+                yield return new WaitForSeconds(10);
+            }
         }
     }
 
     public void UpdateModel()
     {
         var primaryGrowth = 1 / (1 + Mathf.Exp(5 - 10 / DaysToMaturity * DaysOld));
-        var secondaryGrowth = 1 + DaysOld / SecondaryGrowthSpeed;
+        var secondaryGrowth = 1 + DaysOld / DaysToDouble;
 
         transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
         _model.transform.localScale = new Vector3(DNA.Girth * secondaryGrowth, DNA.Girth * secondaryGrowth, DNA.Length);
@@ -106,7 +101,6 @@ public class Structure : MonoBehaviour
             _isAlive = false;
         }
     }
-
 
     public PlantDNA.Structure GetDNA()
     {
