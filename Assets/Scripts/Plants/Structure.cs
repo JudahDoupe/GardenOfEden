@@ -17,7 +17,7 @@ public class Structure : MonoBehaviour
     public Connection BaseConnection { get; set; }
     public List<Connection> Connections { get; set; } = new List<Connection>();
 
-    private GameObject _model;
+    public GameObject Model { get; set; }
     private Rigidbody _rigidbody;
     private bool _hasSprouted = false;
     private bool _isAlive = true;
@@ -26,14 +26,14 @@ public class Structure : MonoBehaviour
     {
         var structure = Instantiate(dna.Prefab).GetComponent<Structure>();
         if (structure == null)
-            Debug.Log("You forgot to add a Structure component to your prefab DUMBASS!!!");
+            Debug.Log("You forgot to add a SelectedStructure component to your prefab DUMBASS!!!");
 
         structure.transform.localPosition = Vector3.zero;
         structure.DaysOld = plant.IsAlive ? 0 : DaysToMaturity;
         structure.Plant = plant;
         structure.DNA = dna;
 
-        structure._model = structure.transform.Find("Model").gameObject;
+        structure.Model = structure.transform.Find("Model").gameObject;
         structure._rigidbody = structure.gameObject.AddComponent<Rigidbody>();
         structure._rigidbody.constraints = RigidbodyConstraints.FreezeAll;
         structure._isAlive = plant.IsAlive;
@@ -89,7 +89,7 @@ public class Structure : MonoBehaviour
         var secondaryGrowth = 1 + DaysOld / DaysToDouble;
 
         transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
-        _model.transform.localScale = new Vector3(DNA.Girth * secondaryGrowth, DNA.Girth * secondaryGrowth, DNA.Length);
+        Model.transform.localScale = new Vector3(DNA.Girth * secondaryGrowth, DNA.Girth * secondaryGrowth, DNA.Length);
     }
 
     void OnCollisionEnter(Collision collision)
@@ -111,16 +111,6 @@ public class Structure : MonoBehaviour
             Girth = DNA.Girth,
             Connections = Connections.Select(c => c.GetDNA()).ToList()
         };
-    }
-
-    public void Clicked(Vector3 hitPosition)
-    {
-        var pedestal = transform.ParentWithComponent<PlantCreationPedestal>()?.GetComponent<PlantCreationPedestal>();
-        if (pedestal != null && pedestal.SelectedDna != null)
-        {
-            var structure = Create(Plant, pedestal.SelectedDna);
-            Connect(structure, transform.InverseTransformPoint(hitPosition));
-        }
     }
 }
 

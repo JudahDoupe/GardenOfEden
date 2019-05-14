@@ -12,6 +12,7 @@ public class PlantCreationPedestal : Interactable
     public Vector3 CameraMoveSpeed = new Vector3(1,0.1f,0.5f);
 
     public PlantDNA.Structure SelectedDna { get; set; }
+    public StructureSelector SelectedStructure { get; set; }
     public Plant Plant { get; set; }
 
     public override void Interact(FirstPersonController player)

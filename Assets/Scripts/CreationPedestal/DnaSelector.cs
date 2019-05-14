@@ -8,6 +8,7 @@ public class DnaSelector : MonoBehaviour
     {
         var pedestal = transform.parent.GetComponent<PlantCreationPedestal>();
         var myDna = GetComponent<DnaContainer>().Dna;
+
         pedestal.SelectedDna = pedestal.SelectedDna == myDna ? null : myDna;
     }
 }
