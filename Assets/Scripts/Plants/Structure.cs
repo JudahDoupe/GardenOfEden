@@ -31,7 +31,14 @@ public class Structure : MonoBehaviour
         structure.transform.localPosition = Vector3.zero;
         structure.DaysOld = plant.IsAlive ? 0 : DaysToMaturity;
         structure.Plant = plant;
-        structure.DNA = dna;
+        structure.DNA = new PlantDNA.Structure
+        {
+            Connections = dna.Connections,
+            Girth = dna.Girth,
+            Length = dna.Length,
+            Prefab = dna.Prefab,
+            Type = dna.Type
+        };
 
         structure.Model = structure.transform.Find("Model").gameObject;
         structure._rigidbody = structure.gameObject.AddComponent<Rigidbody>();
