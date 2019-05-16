@@ -37,11 +37,12 @@ public class LengthPuller : MonoBehaviour
             var localPosition = Selector.Selector.transform.InverseTransformPoint(position) - offset;
             localPosition.Scale(new Vector3(0, 0, 1));
 
-            var newLength = (localPosition.magnitude - Padding);
-
-            //TODO: Updating Length should update connection positions relatively
+            var oldLength = Selector.SelectedStructure.DNA.Length;
+            var newLength = localPosition.magnitude - Padding;
+            var changeRatio = (newLength - oldLength) / oldLength;
 
             Selector.SelectedStructure.DNA.Length = Mathf.Clamp(newLength, minLength, maxLength); 
+            Selector.SelectedStructure.Connections.ForEach(c => c.transform.localPosition = Vector3.Scale(c.transform.localPosition, new Vector3(1,1, 1 + changeRatio)));
             Selector.SelectedStructure.UpdateModel();
 
             yield return new WaitForEndOfFrame();
