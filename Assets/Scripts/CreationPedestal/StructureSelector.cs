@@ -57,7 +57,7 @@ public class StructureSelector : MonoBehaviour
         SelectedStructure.Connect(branchingStructure, transform.InverseTransformPoint(connectionLocation));
     }
 
-    private void ToggleSelect(PlantCreationPedestal pedistal)
+    public void ToggleSelect(PlantCreationPedestal pedistal)
     {
 
         if (pedistal.SelectedStructure == this)

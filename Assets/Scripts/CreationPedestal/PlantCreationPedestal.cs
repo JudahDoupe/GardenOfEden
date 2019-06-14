@@ -42,6 +42,8 @@ public class PlantCreationPedestal : Interactable
     {
         var creator = _creator;
         _creator = null;
+        SelectedDna = null;
+        SelectedStructure?.ToggleSelect(this);
         creator.Camera.transform.parent = creator.transform.RecursiveFind("Head");
         var head = creator.transform.RecursiveFind("HeadModel").position;
 
