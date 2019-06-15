@@ -18,7 +18,7 @@ public class GirthPuller : MonoBehaviour
 
     void Update()
     {
-        transform.localPosition = new Vector3((Selector.SelectedStructure.DNA.Girth / 2 + Padding) * (isRightSide ? 1 : -1), 0, Selector.SelectedStructure.DNA.Length / 2);
+        transform.localPosition = new Vector3((Selector.SelectedStructure.DNA.Diameter / 2 + Padding) * (isRightSide ? 1 : -1), 0, Selector.SelectedStructure.DNA.Length / 2);
     }
 
     public void Clicked(Vector3 hitPosition)
@@ -30,9 +30,9 @@ public class GirthPuller : MonoBehaviour
 
     private IEnumerator Drag(Vector3 offset)
     {
-        var maxGirth = Selector.SelectedStructure.BaseConnection?.From.DNA.Girth ?? 0.5f;
+        var maxGirth = Selector.SelectedStructure.BaseConnection?.From.DNA.Diameter ?? 0.5f;
         var minGirth = Selector.SelectedStructure.Connections.Any()
-            ? Selector.SelectedStructure.Connections.Select(x => x.To.DNA.Girth).Min()
+            ? Selector.SelectedStructure.Connections.Select(x => x.To.DNA.Diameter).Min()
             : 0.05f;
         while (Input.GetMouseButton(0))
         {
@@ -42,7 +42,7 @@ public class GirthPuller : MonoBehaviour
 
             var newGirth = (localPosition.magnitude - Padding) * 2;
 
-            Selector.SelectedStructure.DNA.Girth = Mathf.Clamp(newGirth, minGirth, maxGirth); 
+            Selector.SelectedStructure.DNA.Diameter = Mathf.Clamp(newGirth, minGirth, maxGirth); 
             Selector.SelectedStructure.UpdateModel();
 
             yield return new WaitForEndOfFrame();

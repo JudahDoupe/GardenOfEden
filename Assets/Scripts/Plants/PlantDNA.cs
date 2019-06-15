@@ -15,7 +15,7 @@ public class PlantDNA : MonoBehaviour
         public PlantStructureType Type;
         public GameObject Prefab;
         public float Length;
-        public float Girth;
+        public float Diameter;
         public List<Connection> Connections;
     }
 

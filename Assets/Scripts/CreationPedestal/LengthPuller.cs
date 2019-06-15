@@ -31,6 +31,11 @@ public class LengthPuller : MonoBehaviour
     {
         var maxLength = 2f;
         var minLength = 0.1f;
+        var maxGirth = Selector.SelectedStructure.BaseConnection?.From.DNA.Diameter ?? 0.5f;
+        var minGirth = Selector.SelectedStructure.Connections.Any()
+            ? Selector.SelectedStructure.Connections.Select(x => x.To.DNA.Diameter).Min()
+            : 0.05f;
+
         while (Input.GetMouseButton(0))
         {
             var position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Vector3.Distance(Camera.main.transform.position, transform.position)));
@@ -43,6 +48,11 @@ public class LengthPuller : MonoBehaviour
 
             Selector.SelectedStructure.DNA.Length = Mathf.Clamp(newLength, minLength, maxLength); 
             Selector.SelectedStructure.Connections.ForEach(c => c.transform.localPosition = Vector3.Scale(c.transform.localPosition, new Vector3(1,1, 1 + changeRatio)));
+            Selector.SelectedStructure.UpdateModel();
+
+            var newGirth = (localPosition.magnitude - Padding) / 5;
+
+            Selector.SelectedStructure.DNA.Diameter = Mathf.Clamp(newGirth, minGirth, maxGirth);
             Selector.SelectedStructure.UpdateModel();
 
             yield return new WaitForEndOfFrame();

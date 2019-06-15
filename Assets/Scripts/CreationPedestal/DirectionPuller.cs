@@ -29,12 +29,33 @@ public class DirectionPuller : MonoBehaviour
 
     private IEnumerator Drag(Vector3 offset)
     {
-        var distance = Vector3.Distance(Camera.main.transform.position, transform.position);
+        var maxLength = 2f;
+        var minLength = 0.1f;
+
+        var maxGirth = Selector.SelectedStructure.BaseConnection?.From.DNA.Diameter ?? 0.5f;
+        var minGirth = Selector.SelectedStructure.Connections.Any()
+            ? Selector.SelectedStructure.Connections.Select(x => x.To.DNA.Diameter).Min()
+            : 0.05f;
+
         while (Input.GetMouseButton(0))
         {
-            var position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, distance));
+            var position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Vector3.Distance(Camera.main.transform.position, transform.position)));
+            var localPosition = Selector.Selector.transform.InverseTransformPoint(position) - offset;
+            localPosition.Scale(new Vector3(0, 0, 1));
+            //sclae this vecotor befor doing each calculation
 
             Selector.SelectedStructure.BaseConnection.transform.LookAt(position);
+
+            var oldLength = Selector.SelectedStructure.DNA.Length;
+            var newLength = localPosition.magnitude - Padding;
+            var changeRatio = (newLength - oldLength) / oldLength;
+            Selector.SelectedStructure.DNA.Length = Mathf.Clamp(newLength, minLength, maxLength);
+            Selector.SelectedStructure.Connections.ForEach(c => c.transform.localPosition = Vector3.Scale(c.transform.localPosition, new Vector3(1, 1, 1 + changeRatio)));
+
+
+            var newGirth = (localPosition.magnitude - Padding) / 5;
+            Selector.SelectedStructure.DNA.Diameter = Mathf.Clamp(newGirth, minGirth, maxGirth);
+            Selector.SelectedStructure.UpdateModel();
 
             yield return new WaitForEndOfFrame();
         }

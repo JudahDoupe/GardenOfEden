@@ -34,7 +34,7 @@ public class Structure : MonoBehaviour
         structure.DNA = new PlantDNA.Structure
         {
             Connections = dna.Connections,
-            Girth = dna.Girth,
+            Diameter = dna.Diameter,
             Length = dna.Length,
             Prefab = dna.Prefab,
             Type = dna.Type
@@ -96,7 +96,7 @@ public class Structure : MonoBehaviour
         var secondaryGrowth = 1 + DaysOld / DaysToDouble;
 
         transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
-        Model.transform.localScale = new Vector3(DNA.Girth * secondaryGrowth, DNA.Girth * secondaryGrowth, DNA.Length);
+        Model.transform.localScale = new Vector3(DNA.Diameter * secondaryGrowth, DNA.Diameter * secondaryGrowth, DNA.Length);
     }
 
     void OnCollisionEnter(Collision collision)
@@ -115,7 +115,7 @@ public class Structure : MonoBehaviour
         {
             Prefab = DNA.Prefab,
             Length = DNA.Length,
-            Girth = DNA.Girth,
+            Diameter = DNA.Diameter,
             Connections = Connections.Select(c => c.GetDNA()).ToList()
         };
     }
