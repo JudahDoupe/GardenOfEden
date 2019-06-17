@@ -46,8 +46,6 @@ public class Plant : MonoBehaviour
         plant.Trunk.transform.localPosition = Vector3.zero;
         plant.Trunk.transform.localEulerAngles = Vector3.zero;
 
-        Debug.Log("Plant Created");
-
         return plant;
     }
 

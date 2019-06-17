@@ -52,7 +52,14 @@ public class StructureSelector : MonoBehaviour
 
     private void AddBranch(PlantDNA.Structure dna, Vector3 connectionLocation)
     {
-        var branchingStructure = Structure.Create(SelectedStructure.Plant, dna);
+        var branchingStructure = Structure.Create(SelectedStructure.Plant, new PlantDNA.Structure
+        {
+            Connections = new List<PlantDNA.Connection>(),
+            Length = SelectedStructure.DNA.Length * 0.7f,
+            Diameter = SelectedStructure.DNA.Diameter * 0.83665f,
+            Prefab = dna.Prefab,
+            Type = dna.Type,
+        });
         branchingStructure.gameObject.AddComponent<StructureSelector>();
         SelectedStructure.Connect(branchingStructure, transform.InverseTransformPoint(connectionLocation));
     }
