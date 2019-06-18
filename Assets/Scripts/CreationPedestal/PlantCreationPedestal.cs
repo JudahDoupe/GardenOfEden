@@ -11,7 +11,7 @@ public class PlantCreationPedestal : Interactable
     public Transform _cameraTarget;
     public Vector3 CameraMoveSpeed = new Vector3(1,0.1f,0.5f);
 
-    public PlantDNA.Structure SelectedDna { get; set; }
+    public DnaSelector SelectedDna { get; set; }
     public StructureSelector SelectedStructure { get; set; }
     public Plant Plant { get; set; }
 
@@ -42,7 +42,7 @@ public class PlantCreationPedestal : Interactable
     {
         var creator = _creator;
         _creator = null;
-        SelectedDna = null;
+        SelectedDna?.Deselect();
         SelectedStructure?.ToggleSelect(this);
         creator.Camera.transform.parent = creator.transform.RecursiveFind("Head");
         var head = creator.transform.RecursiveFind("HeadModel").position;

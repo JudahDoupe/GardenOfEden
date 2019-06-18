@@ -42,7 +42,7 @@ public class StructureSelector : MonoBehaviour
 
         if (pedestal.SelectedDna != null)
         {
-            AddBranch(pedestal.SelectedDna, hitPosition);
+            AddBranch(pedestal.SelectedDna.Dna, hitPosition);
         }
         else
         {

@@ -9,7 +9,7 @@ public class Soil : MonoBehaviour
         var pedestal = transform.parent.GetComponent<PlantCreationPedestal>();
         if (pedestal.SelectedDna != null && pedestal.Plant == null)
         {
-            pedestal.Plant = Plant.Create(new PlantDNA {Trunk = pedestal.SelectedDna}, hitPosition, false);
+            pedestal.Plant = Plant.Create(new PlantDNA {Trunk = pedestal.SelectedDna.Dna}, hitPosition, false);
             pedestal.Plant.transform.parent = transform;
             pedestal.Plant.Trunk.gameObject.AddComponent<StructureSelector>();
         }
