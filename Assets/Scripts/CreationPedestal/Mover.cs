@@ -5,19 +5,25 @@ using UnityEngine;
 public class Mover : MonoBehaviour
 {
     public StructureSelector Selector;
-
+    public Structure Structure => Selector.SelectedStructure;
+    public Connection Connection => Structure.BaseConnection;
     public const float Padding = 0.25f;
 
     void Start()
     {
         Selector = transform.ParentWithComponent<StructureSelector>().GetComponent<StructureSelector>();
         transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);
-        gameObject.SetActive(Selector.SelectedStructure.BaseConnection != null);
+        gameObject.SetActive(Connection != null);
     }
 
     void Update()
     {
         transform.localPosition = new Vector3(0, 0, 0);
+
+        if (Connection == null)
+        {
+            Destroy(Structure.gameObject);
+        }
     }
 
     public void Clicked(Vector3 hitPosition)
@@ -29,17 +35,31 @@ public class Mover : MonoBehaviour
 
     private IEnumerator Drag(Vector3 offset)
     {
-        var maxHeight = Selector.SelectedStructure.BaseConnection.From.DNA.Length;
+        var maxHeight = Connection.From.DNA.Length;
         var minHeight = 0;
+
+        var distanceToCamera = Vector3.Distance(Camera.main.transform.position, transform.position);
+
+        var attached = true;
+
         while (Input.GetMouseButton(0))
         {
-            var position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Vector3.Distance(Camera.main.transform.position, transform.position)));
-            var localPosition = Selector.SelectedStructure.BaseConnection.From.transform.InverseTransformPoint(position) - offset;
-            var height = Mathf.Clamp(localPosition.z, minHeight, maxHeight);
+            var mousePosition = new Vector3(Input.mousePosition.x, Input.mousePosition.y, distanceToCamera);
+            var position = Camera.main.ScreenToWorldPoint(mousePosition);
+            var localPosition = Connection.From.transform.InverseTransformPoint(position) - offset;
+            var clampedHeight = Mathf.Clamp(localPosition.z, minHeight, maxHeight);
+            var clampedLocalPosition = new Vector3(0, 0, clampedHeight);
 
-            Selector.SelectedStructure.BaseConnection.transform.localPosition = new Vector3(0,0,height);
+            attached = Vector3.Distance(localPosition, clampedLocalPosition) < Structure.DNA.Diameter;
+
+            Connection.transform.localPosition = attached ? clampedLocalPosition : localPosition;
 
             yield return new WaitForEndOfFrame();
+        }
+
+        if (!attached)
+        {
+            Connection.Break();
         }
     }
 }
