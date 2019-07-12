@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Bender : MonoBehaviour
+public class Bender : Manipulator
 {
-    public StructureSelector Selector;
-
     public const float Padding = 0.125f;
 
     void Start()
@@ -20,16 +18,10 @@ public class Bender : MonoBehaviour
         transform.localPosition = new Vector3(0, 0, Selector.SelectedStructure.DNA.Length + Padding);
     }
 
-    public void Clicked(Vector3 hitPosition)
+    public override IEnumerator Drag(Vector3 hitPosition)
     {
-        var clickLocalPos = Selector.transform.InverseTransformPoint(hitPosition);
-        var pullerLocalPos = Selector.transform.InverseTransformPoint(transform.position);
-        StartCoroutine(Drag(clickLocalPos - pullerLocalPos));
-    }
-
-    private IEnumerator Drag(Vector3 offset)
-    {
-        var distance = Vector3.Distance(Camera.main.transform.position, transform.position);
+        var offset = transform.position - hitPosition;
+        var distance = Vector3.Distance(Camera.main.transform.position, hitPosition);
 
         var maxLength = 1f;
         var minLength = 0.1f;
@@ -41,8 +33,8 @@ public class Bender : MonoBehaviour
 
         while (Input.GetMouseButton(0))
         {
-            var position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, distance));
-            var localPosition = Selector.Selector.transform.InverseTransformPoint(position) - offset;
+            var position = ComputeWorldPositionFromMousePosition(offset, distance);
+            var localPosition = Selector.Selector.transform.InverseTransformPoint(position);
 
             baseConnection?.transform.LookAt(position);
 

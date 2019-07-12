@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Mover : MonoBehaviour
+public class Mover : Manipulator
 {
-    public StructureSelector Selector;
     public Structure Structure => Selector.SelectedStructure;
     public Connection Connection => Structure.BaseConnection;
-    public const float Padding = 0.25f;
 
     void Start()
     {
@@ -26,27 +24,21 @@ public class Mover : MonoBehaviour
         }
     }
 
-    public void Clicked(Vector3 hitPosition)
+    public override IEnumerator Drag(Vector3 hitPosition)
     {
-        var clickLocalPos = Selector.transform.InverseTransformPoint(hitPosition);
-        var pullerLocalPos = Selector.transform.InverseTransformPoint(transform.position);
-        StartCoroutine(Drag(clickLocalPos - pullerLocalPos));
-    }
+        var offset = transform.position - hitPosition;
+        var distance = Vector3.Distance(Camera.main.transform.position, hitPosition);
 
-    private IEnumerator Drag(Vector3 offset)
-    {
         var maxHeight = Connection.From.DNA.Length;
         var minHeight = 0;
-
-        var distanceToCamera = Vector3.Distance(Camera.main.transform.position, transform.position);
 
         var attached = true;
 
         while (Input.GetMouseButton(0))
         {
-            var mousePosition = new Vector3(Input.mousePosition.x, Input.mousePosition.y, distanceToCamera);
-            var position = Camera.main.ScreenToWorldPoint(mousePosition);
-            var localPosition = Connection.From.transform.InverseTransformPoint(position) - offset;
+            var position = ComputeWorldPositionFromMousePosition(offset, distance);
+            var localPosition = Connection.From.transform.InverseTransformPoint(position);
+
             var clampedHeight = Mathf.Clamp(localPosition.z, minHeight, maxHeight);
             var clampedLocalPosition = new Vector3(0, 0, clampedHeight);
 
