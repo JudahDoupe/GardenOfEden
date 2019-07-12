@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -97,10 +98,16 @@ public class PlantCreationPedestal : Interactable
         if (Input.GetMouseButtonDown(0))
         {
             var ray = _creator.Camera.ScreenPointToRay(Input.mousePosition);
+            var hits = Physics.RaycastAll(ray).ToList();
             RaycastHit hit;
 
             if (Physics.Raycast(ray, out hit, Mathf.Infinity))
             {
+                if (hits.Any(x => x.transform.GetComponent<Bender>() != null || x.transform.GetComponent<Mover>() != null))
+                {
+                    hit = hits.Last(x => x.transform.GetComponent<Bender>() != null || x.transform.GetComponent<Mover>() != null);
+                }
+
                 hit.transform.gameObject.SendMessage("Clicked", hit.point, SendMessageOptions.DontRequireReceiver);
             }
         }
