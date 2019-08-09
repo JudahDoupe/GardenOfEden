@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
+using UnityEditor;
 using UnityEngine;
 
 public class VoxelSystem : MonoBehaviour
@@ -24,51 +26,73 @@ public class VoxelSystem : MonoBehaviour
 public class Voxel
 {
     public const float Size = 1;
-    public readonly VoxelCoord Coord;
-    public Vector3 Center => new Vector3(Coord.X + Size/2, Coord.Y + Size / 2, Coord.Z + Size / 2);
 
-    public float Light { get; private set; }
+    public VoxelCoord Coord { get; }
+    public Structure Occupant { get; private set; }
+    public float LightPercentage { get; private set; }
+
+    public Vector3 Center => new Vector3(Coord.X + Size/2, Coord.Y + Size / 2, Coord.Z + Size / 2);
+    public float AbsoluteLight => Size * LightPercentage;
+
+    private DateTime _lastUpdated;
+
 
     public Voxel(VoxelCoord coord)
     {
         Coord = coord;
-        Light = VoxelSystem.GetVoxel(new VoxelCoord(new Vector3(coord.X, coord.Y + 1, coord.Z)))?.Light ?? 1;
+        LightPercentage = VoxelSystem.GetVoxel(new VoxelCoord(new Vector3(coord.X, coord.Y + 1, coord.Z)))?.LightPercentage ?? 1;
     }
 
-    public void Update(GameObject occupant)
+    public List<Voxel> Fill(Structure structure, List<Voxel> filledVoxels = null)
     {
-        var collider = occupant.GetComponent<Collider>();
-        if (collider?.bounds.Contains(Center) ?? false)
-        {
-            Light = 0;
-            //Figure out a way to feed this light to the leaf
-            UpdateNeighbors(occupant);
-        }
-    }
+        if (filledVoxels == null)
+            filledVoxels = new List<Voxel>();
 
-    public void UpdateNeighbors(GameObject occupant)
-    {
-        for (int x = -1; x <= 1; x++)
+        if (!filledVoxels.Contains(this) &&
+            IsStructureOccupyingVoxel(structure))
         {
-            for (int y = -1; y <= 1; y++)
+            Occupant = structure;
+            filledVoxels.Add(this);
+
+            for (int x = -1; x <= 1; x++)
             {
-                for (int z = -1; z <= 1; z++)
+                for (int y = -1; y <= 1; y++)
                 {
-                    var neighborCoord = new VoxelCoord(new Vector3(Coord.X + x, Coord.Y + y, Coord.Z + z));
-                    if (neighborCoord != Coord)
+                    for (int z = -1; z <= 1; z++)
                     {
-                        VoxelSystem.GetVoxel(neighborCoord)?.Update(occupant);
+                        var neighbor = VoxelSystem.GetVoxel(new VoxelCoord(new Vector3(Coord.X + x, Coord.Y + y, Coord.Z + z)));
+                        if (!filledVoxels.Contains(neighbor))
+                        {
+                            neighbor.Fill(structure, filledVoxels);
+                        }
                     }
                 }
             }
+
+            Update();
         }
+
+        return filledVoxels;
     }
 
-    public void UpdateDown(GameObject occupant)
+    public void Update()
     {
-        var neighborCoord = new VoxelCoord(new Vector3(Coord.X, Coord.Y - 1, Coord.Z));
-        Update(occupant);
-        VoxelSystem.GetVoxel(neighborCoord)?.UpdateDown(occupant);
+        if ((_lastUpdated - DateTime.Now).TotalSeconds < 1) return;
+        else _lastUpdated = DateTime.Now;
+
+        Occupant = IsStructureOccupyingVoxel(Occupant) ? Occupant : null;
+
+        var top = VoxelSystem.GetVoxel(new VoxelCoord(new Vector3(Coord.X, Coord.Y + 1, Coord.Z)));
+        top?.Update();
+
+        var topLight = top?.LightPercentage ?? 1;
+        var lightObsorbtion = Occupant == null ? 0 : 0.3f;
+        LightPercentage = Mathf.Clamp(topLight - lightObsorbtion, 0, 1);
+    }
+
+    private bool IsStructureOccupyingVoxel(Structure structure)
+    {
+        return structure.Model.GetComponentInChildren<Collider>()?.bounds.Contains(Center) ?? false;
     }
 }
 
