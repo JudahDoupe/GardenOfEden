@@ -70,7 +70,7 @@ public class Structure : MonoBehaviour
             }
             else
             {
-                _occupiedVoxels = VoxelSystem.GetVoxel(new VoxelCoord(transform.position)).Fill(this);
+                _occupiedVoxels = VoxelSystem.GetVoxel(new VoxelCoord(transform.position))?.Fill(this) ?? new List<Voxel>();
 
                 if (!_hasSprouted)
                 {

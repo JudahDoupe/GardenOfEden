@@ -7,14 +7,13 @@ using Random = UnityEngine.Random;
 
 public class Plant : MonoBehaviour
 {
-    public const float RootRadius = 2.5f;
-    public const float SpreadRadius = 25;
-    public const float MaxOffspring = 5;
-    public const float MaxLifespan = 5;
+    public const float GestationPeriod = 2;
+    public const float Lifespan = 13;
 
+    //TODO: population per spicies
     public static int Population = 0;
 
-    private float _reproductionCooldown = 3;
+    private float _reproductionCooldown = 2;
 
     public string Name;
     public float DaysOld;
@@ -28,7 +27,7 @@ public class Plant : MonoBehaviour
             Grow(Time.smoothDeltaTime / 3f);
         }
 
-        if (DaysOld > MaxLifespan)
+        if (DaysOld > Lifespan)
         {
             Die();
         }
@@ -61,7 +60,7 @@ public class Plant : MonoBehaviour
         if (_reproductionCooldown < 0)
         {
             Reproduce();
-            _reproductionCooldown = 5;
+            _reproductionCooldown = GestationPeriod;
         }
     }
 
@@ -72,25 +71,27 @@ public class Plant : MonoBehaviour
     }
     private IEnumerator _Reproduce()
     {
-        for (int i = 0; i < MaxOffspring; i++)
+        for (int i = 0; i < GestationPeriod / Lifespan * 5; i++)
         {
-            var randomLocation = Random.insideUnitSphere * SpreadRadius;
+            var rootRadius = GetRootRadius();
+            var randomLocation = Random.insideUnitSphere * rootRadius * 4;
             var worldPosition = transform.position + randomLocation;
             var ray = new Ray(worldPosition, Vector3.down);
 
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
+                var result = Physics.OverlapSphere(hit.point, rootRadius);
                 if (hit.transform.gameObject.layer != LayerMask.NameToLayer("Soil"))
                 {
                     Debug.Log($"No Suitable soil was found to plant {Name ?? "your plant"}.");
                 }
-                else if(Physics.OverlapSphere(hit.point, RootRadius).Any(x => x.gameObject.GetComponent<Plant>() != null))
+                else if(result.Any(x => x.gameObject.transform.ParentWithComponent<Plant>() != null))
                 {
                     Debug.Log($"There was not enough root space to plant {Name ?? "your plant"}.");
                 }
                 else
                 {
-                    Debug.Log($"Successfully planted {Population}th {Name ?? "your plant"}.");
+                    //Debug.Log($"Successfully planted {Population}th {Name ?? "your plant"}."); 
                     Create(GetDNA(), hit.point);
                 }
             }
@@ -117,5 +118,10 @@ public class Plant : MonoBehaviour
             Name = Name,
             Trunk = Trunk.GetDNA()
         };
+    }
+
+    public float GetRootRadius()
+    {
+        return transform.GetComponentsInChildren<Structure>()?.Length * 2.5f ?? 0;
     }
 }

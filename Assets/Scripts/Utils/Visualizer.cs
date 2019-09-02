@@ -8,5 +8,6 @@ public class Visualizer : MonoBehaviour
     {
         var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         marker.transform.localScale = new Vector3(0.25f,0.25f,0.25f);
+        marker.transform.position = position;
     }
 }

@@ -11,7 +11,7 @@ public class VoxelSystem : MonoBehaviour
 
     public static Voxel GetVoxel(VoxelCoord coord)
     {
-        if (coord.Y > 10) return null;
+        if (coord.Y > 20) return null;
 
         _voxels.TryGetValue(coord, out var voxel);
         if (voxel == null)
@@ -39,13 +39,15 @@ public class Voxel
 
     public Voxel(VoxelCoord coord)
     {
-        Coord = coord;
-        LightPercentage = VoxelSystem.GetVoxel(new VoxelCoord(new Vector3(coord.X, coord.Y + 1, coord.Z)))?.LightPercentage ?? 1;
         Visualizer.MarkPosition(coord.ToVector3());
+        Coord = coord;
+        LightPercentage =
+            1; //VoxelSystem.GetVoxel(new VoxelCoord(new Vector3(coord.X, coord.Y + 1, coord.Z)))?.LightPercentage ?? 1;
     }
 
     public List<Voxel> Fill(Structure structure, List<Voxel> filledVoxels = null)
     {
+        return new List<Voxel>();
         if (filledVoxels == null)
             filledVoxels = new List<Voxel>();
 
@@ -78,6 +80,7 @@ public class Voxel
 
     public void Update()
     {
+        return;
         if ((_lastUpdated - DateTime.Now).TotalSeconds < 1) return;
         else _lastUpdated = DateTime.Now;
 
