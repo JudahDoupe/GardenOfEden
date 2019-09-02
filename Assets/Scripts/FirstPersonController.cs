@@ -163,11 +163,11 @@ public class FirstPersonController : MonoBehaviour {
                         Focus.Find("LeftHandFocusModel").gameObject.SetActive(interactable.IsInteractable(this));
                         Focus.transform.position = interactable.InteractionPosition();
                         Focus.LookAt(Camera.transform);
-                    }
 
-                    if (Input.GetMouseButtonDown(0))
-                    {
-                        interactable.Interact(this);
+                        if (Input.GetMouseButtonDown(0))
+                        {
+                            interactable.Interact(this);
+                        }
                     }
                 }
             }

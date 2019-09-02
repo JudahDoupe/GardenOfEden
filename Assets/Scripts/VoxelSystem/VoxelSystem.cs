@@ -11,7 +11,7 @@ public class VoxelSystem : MonoBehaviour
 
     public static Voxel GetVoxel(VoxelCoord coord)
     {
-        if (coord.Y > 100) return null;
+        if (coord.Y > 10) return null;
 
         _voxels.TryGetValue(coord, out var voxel);
         if (voxel == null)
@@ -41,6 +41,7 @@ public class Voxel
     {
         Coord = coord;
         LightPercentage = VoxelSystem.GetVoxel(new VoxelCoord(new Vector3(coord.X, coord.Y + 1, coord.Z)))?.LightPercentage ?? 1;
+        Visualizer.MarkPosition(coord.ToVector3());
     }
 
     public List<Voxel> Fill(Structure structure, List<Voxel> filledVoxels = null)
@@ -115,5 +116,10 @@ public class VoxelCoord : IEquatable<VoxelCoord>
         return X == other.X &&
                Y == other.Y &&
                Z == other.Z;
+    }
+
+    public Vector3 ToVector3()
+    {
+        return new Vector3(X,Y,Z);
     }
 }

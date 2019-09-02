@@ -7,17 +7,19 @@ using Random = UnityEngine.Random;
 
 public class Plant : MonoBehaviour
 {
-    public const float RootRadius = 5;
-    public const float SpreadRadius = 10;
-    public const float MaxOffspring = 3;
-    public const float MaxLifespan = 13;
+    public const float RootRadius = 2.5f;
+    public const float SpreadRadius = 25;
+    public const float MaxOffspring = 5;
+    public const float MaxLifespan = 5;
+
+    public static int Population = 0;
+
+    private float _reproductionCooldown = 3;
 
     public string Name;
     public float DaysOld;
     public bool IsAlive;
     public Structure Trunk;
-
-    private float _reproductionCooldown = 5;
 
     public void Update()
     {
@@ -34,6 +36,8 @@ public class Plant : MonoBehaviour
     
     public static Plant Create(PlantDNA dna, Vector3 worldPosition, bool isAlive = true)
     {
+        Population++;
+
         var plant = new GameObject().AddComponent<Plant>().GetComponent<Plant>();
         plant.transform.position = worldPosition;
         plant.transform.localEulerAngles = new Vector3(-90, Random.Range(0, 365), 0);
@@ -74,11 +78,25 @@ public class Plant : MonoBehaviour
             var worldPosition = transform.position + randomLocation;
             var ray = new Ray(worldPosition, Vector3.down);
 
-            if (Physics.Raycast(ray, out RaycastHit hit) &&
-                hit.transform.gameObject.layer == LayerMask.NameToLayer("Soil") && 
-                Physics.OverlapSphere(hit.point, RootRadius).All(x => x.gameObject.GetComponent<Plant>() == null))
+            if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                Create(GetDNA(), hit.point);
+                if (hit.transform.gameObject.layer != LayerMask.NameToLayer("Soil"))
+                {
+                    Debug.Log($"No Suitable soil was found to plant {Name ?? "your plant"}.");
+                }
+                else if(Physics.OverlapSphere(hit.point, RootRadius).Any(x => x.gameObject.GetComponent<Plant>() != null))
+                {
+                    Debug.Log($"There was not enough root space to plant {Name ?? "your plant"}.");
+                }
+                else
+                {
+                    Debug.Log($"Successfully planted {Population}th {Name ?? "your plant"}.");
+                    Create(GetDNA(), hit.point);
+                }
+            }
+            else
+            {
+                    Debug.Log($"There was no terrain to plant {Name ?? "your plant"}.");
             }
 
             yield return new WaitForSeconds(Random.Range(0f,1f));
@@ -87,6 +105,7 @@ public class Plant : MonoBehaviour
 
     public void Die()
     {
+        Population--;
         IsAlive = false;
         Destroy(gameObject);
     }

@@ -77,7 +77,7 @@ public class PlantCreationPedestal : Interactable
         _cameraTarget.position = _cameraTarget.position.Clamp(new Vector3(0, InteractionPosition().y, 0), new Vector3(0, InteractionPosition().y + 3, 0));
 
         _cameraOffset += new Vector3(0, 0, Input.mouseScrollDelta.y * CameraMoveSpeed.z);
-        _cameraOffset = _cameraOffset.Clamp(new Vector3(0,0,-5), new Vector3(0,5,-1));
+        _cameraOffset = _cameraOffset.Clamp(new Vector3(0,0,-10), new Vector3(0,15,-2.5f));
         _creator.Camera.transform.localPosition = Vector3.Lerp(_creator.Camera.transform.localPosition,
                                                               _cameraOffset, 
                                                               Time.unscaledDeltaTime * 5);

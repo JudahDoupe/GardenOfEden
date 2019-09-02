@@ -52,11 +52,12 @@ public class StructureSelector : MonoBehaviour
 
     private void AddBranch(PlantDNA.Structure dna, Vector3 connectionLocation)
     {
+        var recursiveDepth = SelectedStructure.GetRecursiveDepth();
         var branchingStructure = Structure.Create(SelectedStructure.Plant, new PlantDNA.Structure
         {
             Connections = new List<PlantDNA.Connection>(),
-            Length = SelectedStructure.DNA.Length * 0.7f,
-            Diameter = SelectedStructure.DNA.Diameter * 0.83665f,
+            Length = dna.Length * Mathf.Pow(0.7f, recursiveDepth),
+            Diameter = dna.Diameter * Mathf.Pow(0.83665f, recursiveDepth),
             Prefab = dna.Prefab,
             Type = dna.Type,
         });

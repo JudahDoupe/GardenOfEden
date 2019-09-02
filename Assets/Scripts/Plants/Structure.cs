@@ -32,14 +32,7 @@ public class Structure : MonoBehaviour
         structure.transform.localPosition = Vector3.zero;
         structure.DaysOld = plant.IsAlive ? 0 : DaysToMaturity;
         structure.Plant = plant;
-        structure.DNA = new PlantDNA.Structure
-        {
-            Connections = dna.Connections,
-            Diameter = dna.Diameter,
-            Length = dna.Length,
-            Prefab = dna.Prefab,
-            Type = dna.Type
-        };
+        structure.DNA = dna;
 
         structure.Model = structure.transform.Find("Model").gameObject;
         structure._rigidbody = structure.gameObject.AddComponent<Rigidbody>();
@@ -103,6 +96,18 @@ public class Structure : MonoBehaviour
         Model.transform.localScale = new Vector3(DNA.Diameter * secondaryGrowth, DNA.Diameter * secondaryGrowth, DNA.Length);
     }
 
+    public int GetRecursiveDepth()
+    {
+        if (BaseConnection?.From == null)
+        {
+            return 1;
+        }
+        else
+        {
+            return BaseConnection.From.GetRecursiveDepth();
+        }
+    }
+
     void OnCollisionEnter(Collision collision)
     {
         Plant plant = collision.collider.transform.ParentWithComponent<Plant>()?.GetComponent<Plant>();
@@ -117,6 +122,7 @@ public class Structure : MonoBehaviour
     {
         return new PlantDNA.Structure
         {
+            Type = DNA.Type,
             Prefab = DNA.Prefab,
             Length = DNA.Length,
             Diameter = DNA.Diameter,
