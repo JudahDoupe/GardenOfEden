@@ -21,7 +21,6 @@ public class Structure : MonoBehaviour
     private Rigidbody _rigidbody;
     private bool _hasSprouted = false;
     private bool _isAlive = true;
-    private List<Voxel> _occupiedVoxels;
 
     public static Structure Create(Plant plant, PlantDNA.Structure dna)
     {
@@ -70,8 +69,6 @@ public class Structure : MonoBehaviour
             }
             else
             {
-                _occupiedVoxels = VoxelSystem.GetVoxel(new VoxelCoord(transform.position))?.Fill(this) ?? new List<Voxel>();
-
                 if (!_hasSprouted)
                 {
                     foreach (var connection in DNA.Connections)

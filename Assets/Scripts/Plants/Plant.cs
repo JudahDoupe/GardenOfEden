@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 public class Plant : MonoBehaviour
 {
     public const float GestationPeriod = 2;
-    public const float Lifespan = 13;
+    public const float Lifespan = 25;
 
     //TODO: population per spicies
     public static int Population = 0;
@@ -81,7 +81,7 @@ public class Plant : MonoBehaviour
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 var result = Physics.OverlapSphere(hit.point, rootRadius);
-                if (hit.transform.gameObject.layer != LayerMask.NameToLayer("Soil"))
+                if (EnvironmentAPI.GetSoil(hit.point) > 0)
                 {
                     Debug.Log($"No Suitable soil was found to plant {Name ?? "your plant"}.");
                 }
@@ -91,7 +91,7 @@ public class Plant : MonoBehaviour
                 }
                 else
                 {
-                    //Debug.Log($"Successfully planted {Population}th {Name ?? "your plant"}."); 
+                    Debug.Log($"Successfully planted {Population}th {Name ?? "your plant"}."); 
                     Create(GetDNA(), hit.point);
                 }
             }
