@@ -33,7 +33,7 @@ public class Voxel
                 break;
         }
 
-        if (EnvironmentAPI.Instance.ShowVoxels)
+        if (EnvironmentService.Instance.ShowVoxels)
         {
             Debug.DrawRay(Coord.CenterTop, Vector3.down * VoxelCoord.Size, debugColor);
         }

@@ -6,8 +6,11 @@ using UnityEngine;
 [Serializable]
 public class PlantDNA : MonoBehaviour
 {
+    public Guid SpeciesId;
     public Structure Trunk;
     public string Name;
+    public float GestationPeriod;
+    public int MaxOffspring;
 
     [Serializable]
     public class Structure
