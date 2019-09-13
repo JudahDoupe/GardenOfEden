@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class PlantDNA : MonoBehaviour
+public class PlantDNA
 {
     public Guid SpeciesId;
     public Structure Trunk;

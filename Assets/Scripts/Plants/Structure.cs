@@ -23,7 +23,7 @@ public class Structure : MonoBehaviour
     {
         var structure = Instantiate(dna.Prefab).GetComponent<Structure>();
         if (structure == null)
-            Debug.Log("You forgot to add a SelectedStructure component to your prefab DUMBASS!!!");
+            Debug.LogError("You forgot to add a SelectedStructure component to your prefab DUMBASS!!!");
 
         structure.transform.localPosition = Vector3.zero;
         structure.DaysOld = plant.IsAlive ? 0 : DaysToMaturity;
@@ -76,7 +76,7 @@ public class Structure : MonoBehaviour
                     _hasSprouted = true;
                 }
 
-                yield return new WaitForSeconds(10);
+                yield return new WaitForSeconds(Vector3.Distance(Camera.main.transform.position, transform.position));
             }
         }
     }
@@ -92,14 +92,7 @@ public class Structure : MonoBehaviour
 
     public int GetRecursiveDepth()
     {
-        if (BaseConnection?.From == null)
-        {
-            return 1;
-        }
-        else
-        {
-            return BaseConnection.From.GetRecursiveDepth();
-        }
+        return BaseConnection?.From == null ? 1 : BaseConnection.From.GetRecursiveDepth();
     }
 
     void OnCollisionEnter(Collision collision)
