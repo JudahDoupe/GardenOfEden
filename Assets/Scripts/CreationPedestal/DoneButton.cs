@@ -6,7 +6,7 @@ public class DoneButton : MonoBehaviour
     {
         var pedestal = transform.parent.GetComponent<PlantCreationPedestal>();
 
-        PlantService.SpawnSpecies(pedestal.Plant.GetDNA());
+        PlantService.SpawnSpecies(pedestal.Plant.GenerateDNA());
 
         pedestal.EndCreation();
     }

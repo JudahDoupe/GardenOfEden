@@ -41,13 +41,13 @@ public class Connection : Interactable
         Destroy(gameObject);
     }
 
-    public PlantDNA.Connection GetDNA()
+    public PlantDNA.Connection GenerateDNA()
     {
         return new PlantDNA.Connection
         {
             Position = transform.localPosition,
             Rotation = transform.localRotation,
-            Structure = To.GetDNA()
+            Structure = To.GenerateDNA()
         };
     }
 

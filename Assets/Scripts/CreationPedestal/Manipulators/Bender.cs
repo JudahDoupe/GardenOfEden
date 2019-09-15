@@ -13,7 +13,7 @@ public class Bender : Manipulator
     void Start()
     {
         Selector = transform.ParentWithComponent<StructureSelector>().GetComponent<StructureSelector>();
-        _originalDNA = Selector.SelectedStructure.GetDNA();
+        _originalDNA = Selector.SelectedStructure.GenerateDNA();
     }
 
     void Update()

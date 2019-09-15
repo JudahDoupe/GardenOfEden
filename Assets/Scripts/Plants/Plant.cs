@@ -1,23 +1,42 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class Plant : MonoBehaviour
 {
-    public float DaysOld;
-    public bool IsAlive;
-    public Structure Trunk;
     public PlantDNA DNA;
+
+    public float PlantedDate;
+    public float LastUpdatedDate;
+    public float AgeInDay => LastUpdatedDate - PlantedDate;
+
+    public bool IsAlive;
+    public bool IsFullyGrown => Trunk.IsFullyGrown;
+    public Structure Trunk;
 
     private float _reproductionCooldown = 2;
 
     public void Grow(float days)
     {
-        DaysOld += days;
+        if (!IsAlive || _isGrowing) return;
+
+        LastUpdatedDate = EnvironmentService.GetDate();
         _reproductionCooldown -= days;
 
-        if (!(_reproductionCooldown < 0)) return;
-        Reproduce();
-        _reproductionCooldown = DNA.GestationPeriod;
+        if (_reproductionCooldown < 0)
+        {
+            Reproduce();
+            _reproductionCooldown = DNA.GestationPeriod;
+        }
+
+        if (IsFullyGrown)
+        {
+            Trunk.Grow(days);
+        }
+        else
+        {
+            StartCoroutine(SmoothGrowStructures(days));
+        }
     }
 
     public void Reproduce()
@@ -28,7 +47,7 @@ public class Plant : MonoBehaviour
             var randomLocation = Random.insideUnitSphere * rootRadius * 5;
             var worldPosition = transform.position + randomLocation;
 
-            PlantService.TryPlantSeed(GetDNA(), worldPosition);
+            PlantService.TryPlantSeed(DNA, worldPosition);
         }
     }
 
@@ -38,29 +57,40 @@ public class Plant : MonoBehaviour
         Destroy(gameObject);
     }
 
-    public PlantDNA GetDNA()
+    public PlantDNA GenerateDNA()
     {
         return new PlantDNA
         {
             Name = DNA.Name,
-            Trunk = Trunk.GetDNA(),
+            Trunk = Trunk.GenerateDNA(),
             GestationPeriod = DNA.GestationPeriod,
             MaxOffspring = DNA.MaxOffspring,
             SpeciesId = DNA.SpeciesId,
+            RootRadius = GetRootRadius()
         };
     }
 
-    public float GetRootRadius()
+    private float GetRootRadius()
     {
         var structures = transform.GetComponentsInChildren<Structure>()?.Length ?? 1;
         return Mathf.Sqrt(10 * structures / Mathf.PI);
     }
 
-    public void Update()
+    private bool _isGrowing = false;
+    private IEnumerator SmoothGrowStructures(float totalDays)
     {
-        if (IsAlive)
+        _isGrowing = true;
+        var distance = Vector3.Distance(Camera.main.transform.position, transform.position);
+        var speed = 0.5f + (distance / 75);
+
+        var step = 0f;
+        for (var t = 0f; t < totalDays; t += step)
         {
-            Grow(Time.smoothDeltaTime / 3f);
+            step = Mathf.Clamp(Time.smoothDeltaTime * speed, 0, totalDays - t);
+            Trunk.Grow(step);
+            yield return new WaitForEndOfFrame();
         }
+
+        _isGrowing = false;
     }
 }

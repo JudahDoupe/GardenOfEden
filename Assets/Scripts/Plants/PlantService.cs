@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,7 @@ public class PlantService : MonoBehaviour
     }
     public static int GetSpeciesPopulation(Guid speciesId)
     {
-        return FindObjectsOfType<Plant>().Count(p => p.GetDNA().SpeciesId == speciesId);
+        return FindObjectsOfType<Plant>().Count(p => p.DNA.SpeciesId == speciesId);
     }
 
     /* INNER MECHINATIONS */
@@ -37,7 +38,10 @@ public class PlantService : MonoBehaviour
     public static PlantService Instance;
 
     private readonly Queue<Tuple<PlantDNA, Vector3>> _seedQueue = new Queue<Tuple<PlantDNA, Vector3>>();
-    private bool _isQueueBeingProcessed;
+    private bool _isSeedQueueBeingProcessed;
+
+    private readonly Queue<Plant> _plantUpdateQueue = new Queue<Plant>();
+    private bool _isPlantUpdateQueueBeingProcessed;
 
     void Awake()
     {
@@ -46,15 +50,20 @@ public class PlantService : MonoBehaviour
 
     void Update()
     {
-        if (_seedQueue.Any() && !_isQueueBeingProcessed)
+        if (_seedQueue.Any() && !_isSeedQueueBeingProcessed)
         {
             StartCoroutine(ProcessSeedQueue());
+        }
+
+        if (_plantUpdateQueue.Any() && !_isPlantUpdateQueueBeingProcessed)
+        {
+            StartCoroutine(ProcessPlantUpdateQueue());
         }
     }
 
     private IEnumerator ProcessSeedQueue()
     {
-        _isQueueBeingProcessed = true;
+        _isSeedQueueBeingProcessed = true;
         while (_seedQueue.Any())
         {
             yield return new WaitForSeconds(0.1f);
@@ -65,20 +74,27 @@ public class PlantService : MonoBehaviour
                 SpawnPlant(dna, plantLocation.Value);
             }
         }
-        _isQueueBeingProcessed = false;
+        _isSeedQueueBeingProcessed = false;
     }
-
     private Vector3? GetPlantableLocation(PlantDNA dna, Vector3 worldPosition)
     {
         var ray = new Ray(worldPosition + Vector3.up * 10, Vector3.down);
 
         if (Physics.Raycast(ray, out RaycastHit hit, 50))
         {
+            var result = Physics.OverlapSphere(hit.point, dna.RootRadius);
             if (EnvironmentService.GetSoil(hit.point) > 0)
             {
                 if (Instance.LogReproductionFailures)
                 {
                     Debug.Log($"No Suitable soil was found to plant {dna.Name ?? "your plant"}.");
+                }
+            }
+            else if (result.Any(x => x.gameObject.transform.ParentWithComponent<Plant>() != null))
+            {
+                if (Instance.LogReproductionFailures)
+                {
+                    Debug.Log($"There was not enough root space to plant {dna.Name ?? "your plant"}.");
                 }
             }
             else
@@ -101,7 +117,6 @@ public class PlantService : MonoBehaviour
 
         return null;
     }
-
     private Plant SpawnPlant(PlantDNA dna, Vector3 worldPosition)
     {
         var plant = new GameObject().AddComponent<Plant>().GetComponent<Plant>();
@@ -110,13 +125,30 @@ public class PlantService : MonoBehaviour
 
         plant.DNA = dna;
         plant.IsAlive = true;
+        plant.PlantedDate = EnvironmentService.GetDate();
+        plant.LastUpdatedDate = plant.PlantedDate;
 
         plant.Trunk = Structure.Create(plant, dna.Trunk);
         plant.Trunk.transform.parent = plant.transform;
         plant.Trunk.transform.localPosition = Vector3.zero;
         plant.Trunk.transform.localEulerAngles = Vector3.zero;
 
+        _plantUpdateQueue.Enqueue(plant);
+
         return plant;
     }
 
+    private IEnumerator ProcessPlantUpdateQueue()
+    {
+        _isPlantUpdateQueueBeingProcessed = true;
+        while (_plantUpdateQueue.Any())
+        {
+            yield return new WaitForSeconds(0.1f);
+            var plant = _plantUpdateQueue.Dequeue();
+            var growthInDays = EnvironmentService.GetDate() - plant.LastUpdatedDate;
+            plant.Grow(growthInDays);
+            _plantUpdateQueue.Enqueue(plant);
+        }
+        _isPlantUpdateQueueBeingProcessed = false;
+    }
 }

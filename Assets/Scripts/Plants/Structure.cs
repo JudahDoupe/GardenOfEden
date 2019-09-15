@@ -6,13 +6,15 @@ using UnityEngine;
 public class Structure : MonoBehaviour
 {
     private const float DaysToMaturity = 1;
-    private const float DaysToDouble = 50;
+    private const float DaysToDouble = 100;
+    public float AgeInDays;
 
-    public float DaysOld;
     public Plant Plant;
     public PlantDNA.Structure DNA;
     public Connection BaseConnection { get; set; }
     public List<Connection> Connections { get; set; } = new List<Connection>();
+
+    public bool IsFullyGrown => _hasSprouted && Connections.All(c => c.To.IsFullyGrown);
 
     public GameObject Model { get; set; }
     private Rigidbody _rigidbody;
@@ -26,7 +28,6 @@ public class Structure : MonoBehaviour
             Debug.LogError("You forgot to add a SelectedStructure component to your prefab DUMBASS!!!");
 
         structure.transform.localPosition = Vector3.zero;
-        structure.DaysOld = plant.IsAlive ? 0 : DaysToMaturity;
         structure.Plant = plant;
         structure.DNA = dna;
 
@@ -34,9 +35,8 @@ public class Structure : MonoBehaviour
         structure._rigidbody = structure.gameObject.AddComponent<Rigidbody>();
         structure._rigidbody.constraints = RigidbodyConstraints.FreezeAll;
         structure._isAlive = plant.IsAlive;
-
+        structure.AgeInDays = plant.IsAlive ? 0 : DaysToMaturity;
         structure.UpdateModel();
-        structure.StartCoroutine(structure.Grow());
 
         return structure;
     }
@@ -49,42 +49,34 @@ public class Structure : MonoBehaviour
         return connection;
     }
 
-    public IEnumerator Grow()
+    public void Grow(float days)
     {
-        var startTime = Time.time;
-        while (_isAlive)
+        if(!_isAlive) return;
+
+        AgeInDays += days;
+
+        UpdateModel();
+
+        if (AgeInDays > DaysToMaturity && !_hasSprouted)
         {
-            _isAlive = Plant.IsAlive;
-            DaysOld += (Time.time - startTime) / 3f;
-            startTime = Time.time;
-
-            UpdateModel();
-
-            if (DaysOld < DaysToMaturity)
+            foreach (var connection in DNA.Connections)
             {
-                yield return new WaitForEndOfFrame();
+                Connection.Create(this, connection);
             }
-            else
-            {
-                if (!_hasSprouted)
-                {
-                    foreach (var connection in DNA.Connections)
-                    {
-                        Connection.Create(this, connection);
-                    }
 
-                    _hasSprouted = true;
-                }
+            _hasSprouted = true;
+        }
 
-                yield return new WaitForSeconds(Vector3.Distance(Camera.main.transform.position, transform.position));
-            }
+        foreach (var connection in Connections)
+        {
+            connection.To.Grow(days);
         }
     }
 
     public void UpdateModel()
     {
-        var primaryGrowth = 1 / (1 + Mathf.Exp(5 - 10 / DaysToMaturity * DaysOld));
-        var secondaryGrowth = 1 + DaysOld / DaysToDouble;
+        var primaryGrowth = 1 / (1 + Mathf.Exp(5 - 10 / DaysToMaturity * AgeInDays));
+        var secondaryGrowth = 1 + AgeInDays / DaysToDouble;
 
         transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
         Model.transform.localScale = new Vector3(DNA.Diameter * secondaryGrowth, DNA.Diameter * secondaryGrowth, DNA.Length);
@@ -105,7 +97,7 @@ public class Structure : MonoBehaviour
         }
     }
 
-    public PlantDNA.Structure GetDNA()
+    public PlantDNA.Structure GenerateDNA()
     {
         return new PlantDNA.Structure
         {
@@ -113,7 +105,7 @@ public class Structure : MonoBehaviour
             Prefab = DNA.Prefab,
             Length = DNA.Length,
             Diameter = DNA.Diameter,
-            Connections = Connections.Select(c => c.GetDNA()).ToList()
+            Connections = Connections.Select(c => c.GenerateDNA()).ToList()
         };
     }
 }

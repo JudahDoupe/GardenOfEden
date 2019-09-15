@@ -11,6 +11,7 @@ public class PlantDNA
     public string Name;
     public float GestationPeriod;
     public int MaxOffspring;
+    public float RootRadius;
 
     [Serializable]
     public class Structure

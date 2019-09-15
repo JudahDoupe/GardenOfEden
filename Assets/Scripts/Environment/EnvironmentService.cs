@@ -8,6 +8,11 @@ public class EnvironmentService : MonoBehaviour
 
     /* API */
 
+    public static float GetDate()
+    {
+        return Instance._date;
+    }
+
     /*
     public static float GetLight(Vector3 location)
     {
@@ -62,10 +67,18 @@ public class EnvironmentService : MonoBehaviour
     public static EnvironmentService Instance;
     private Dictionary<VoxelCoord, Voxel> _voxels;
 
+    private float _date;
+
     void Awake()
     {
         Instance = this;
         _voxels = new Dictionary<VoxelCoord, Voxel>();
+        _date = 0;
+    }
+
+    void Update()
+    {
+        _date += Time.deltaTime;
     }
 
     private Voxel GetVoxel(VoxelCoord coord)
