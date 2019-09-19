@@ -43,11 +43,11 @@ float4 Soak(uint2 texCoord) {
 
 float4 RunOff(uint2 texCoord) {
 	float Offsets[3] = { -1, 0, 1, };
-	float Weights[3][3] =
+	float3 Weights[3][3] =
 	{
-		{0.077847,	0.123317,	0.077847},
-		{0.123317,	0.195346,	0.123317},
-		{0.077847,	0.123317,	0.077847}
+		{float3(0.357,0,-0.357),	float3(0,0,-1),	float3(-0.357,0,-0.357)},
+		{float3(1,0,0),				float3(0,1,0),	float3(-1,0,0)},
+		{float3(0.357,0,0.357),		float3(0,0,1),	float3(-0.357,0,0.357)}
 	};
 
 	float Depth = 0;
@@ -59,12 +59,11 @@ float4 RunOff(uint2 texCoord) {
 	{
 		SamplePos.x = texCoord.x + Offsets[x] % width;
 		for (int y = 0; y < 3; y++)
-		{
+		{ 
 			SamplePos.y = texCoord.y + Offsets[y] % height;
+			float3 weight = Weights[SamplePos.x][SamplePos.y];
 			float4 normal = NormalMap[SamplePos.xy];
-			float2 slope = float2(normal.x, normal.z);
-			float weight = -slope.x * Offsets[x] * -slope.y * Offsets[y];
-			Depth += WaterMap[SamplePos.xy].x * weight;
+			Depth += normal.x * weight.x + normal.y * weight.y + normal.z * weight.z *  WaterMap[SamplePos.xy].x;
 		}
 	}
 
