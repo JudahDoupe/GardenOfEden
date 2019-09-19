@@ -6,6 +6,10 @@ Texture2D<float4> RiverMap;
 Texture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
 
+float SampleWater(uint2 texCoord) {
+	return WaterMap[texCoord.xy].x + WaterMap[texCoord.xy].y + WaterMap[texCoord.xy].z;
+}
+
 float4 Soak(uint2 texCoord) {
 	float Offsets[11] = { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, };
 	float Weights[11][11] =
@@ -34,20 +38,20 @@ float4 Soak(uint2 texCoord) {
 		for (int y = 0; y < 11; y++)
 		{
 			SamplePos.y = texCoord.y + Offsets[y] % height;
-			Depth += WaterMap[SamplePos.xy].x * Weights[x][y];
+			Depth += SampleWater(SamplePos) * Weights[x][y];
 		}
 	}
 
-	return float4(Depth, Depth, Depth, 1);
+	return float4(0, Depth, 0, 1);
 } 
 
 float4 RunOff(uint2 texCoord) {
 	float Offsets[3] = { -1, 0, 1, };
 	float3 Weights[3][3] =
 	{
-		{float3(0.357,0,-0.357),	float3(0,0,-1),	float3(-0.357,0,-0.357)},
-		{float3(1,0,0),				float3(0,1,0),	float3(-1,0,0)},
-		{float3(0.357,0,0.357),		float3(0,0,1),	float3(-0.357,0,0.357)}
+		{float3(-0.357,0,0.357),	float3(0,0,1),	float3(0.357,0,0.357)},
+		{float3(-1,0,0),			float3(0,-1,0),	float3(1,0,0)},
+		{float3(-0.357,0,-0.357),	float3(0,0,-1),	float3(0.357,0,-0.357)}
 	};
 
 	float Depth = 0;
@@ -61,18 +65,20 @@ float4 RunOff(uint2 texCoord) {
 		for (int y = 0; y < 3; y++)
 		{ 
 			SamplePos.y = texCoord.y + Offsets[y] % height;
-			float3 weight = Weights[SamplePos.x][SamplePos.y];
-			float4 normal = NormalMap[SamplePos.xy];
-			Depth += normal.x * weight.x + normal.y * weight.y + normal.z * weight.z *  WaterMap[SamplePos.xy].x;
+
+			float3 weight = Weights[x][y];
+			float4 normal = (NormalMap[SamplePos.xy] - 0.5f) * 2;
+			float ratio = (normal.x * weight.x + normal.y * weight.y + normal.z * weight.z);
+			Depth += SampleWater(SamplePos) * ratio;
 		}
 	}
 
-	return float4(Depth, Depth, Depth, 1);
+	return float4(Depth, 0, 0, 1);
 }
 
 float4 Source(uint2 texCoord) {
 	float Depth = ceil(RiverMap[texCoord].x);
-	return float4(Depth, Depth, Depth, 1);
+	return float4(0, 0, Depth, 1);
 }
 
 [numthreads(8,8,1)]
