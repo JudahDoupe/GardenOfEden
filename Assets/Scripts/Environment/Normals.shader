@@ -15,7 +15,7 @@
 			{
 				v2f o;
 				o.pos = UnityObjectToClipPos(v.vertex);
-				o.color = v.normal * 0.5 + 0.5;
+				o.color = normalize(mul((float3x3)UNITY_MATRIX_MV, v.normal)) * 0.5 + 0.5;
 				return o;
 			}
 

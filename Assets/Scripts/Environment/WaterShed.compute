@@ -46,12 +46,12 @@ float4 Soak(uint2 texCoord) {
 } 
 
 float4 RunOff(uint2 texCoord) {
-	float Offsets[3] = { -1, 0, 1, };
+	float Offsets[3] = { -1, 0, 1 };
 	float3 Weights[3][3] =
 	{
-		{float3(-0.357,0,0.357),	float3(0,0,1),	float3(0.357,0,0.357)},
-		{float3(-1,0,0),			float3(0,-1,0),	float3(1,0,0)},
-		{float3(-0.357,0,-0.357),	float3(0,0,-1),	float3(0.357,0,-0.357)}
+		{float3(0.357,0.357,0),		float3(1,0,0),	float3(0.357,-0.357,0)},
+		{float3(0,1,0),				float3(0,0,-1),	float3(0,-1,0)},
+		{float3(-0.357,0.357,0),	float3(-1,0,0),	float3(-0.357,-0.357,0)}
 	};
 
 	float Depth = 0;
@@ -61,14 +61,14 @@ float4 RunOff(uint2 texCoord) {
 
 	for (int x = 0; x < 3; x++)
 	{
-		SamplePos.x = texCoord.x + Offsets[x] % width;
 		for (int y = 0; y < 3; y++)
 		{ 
+			SamplePos.x = texCoord.x + Offsets[x] % width;
 			SamplePos.y = texCoord.y + Offsets[y] % height;
-
 			float3 weight = Weights[x][y];
+
 			float4 normal = (NormalMap[SamplePos.xy] - 0.5f) * 2;
-			float ratio = (normal.x * weight.x + normal.y * weight.y + normal.z * weight.z);
+			float ratio = (normal.x * weight.x + normal.y * weight.y + normal.z * weight.z) * normal.a;
 			Depth += SampleWater(SamplePos) * ratio;
 		}
 	}
@@ -84,5 +84,5 @@ float4 Source(uint2 texCoord) {
 [numthreads(8,8,1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-	Result[id.xy] = Source(id.xy) + RunOff(id.xy) + Soak(id.xy);
+	Result[id.xy] = (Source(id.xy) + RunOff(id.xy) + Soak(id.xy)) * NormalMap[id.xy].a;
 }
