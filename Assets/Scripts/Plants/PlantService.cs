@@ -83,6 +83,7 @@ public class PlantService : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, 50))
         {
             var result = Physics.OverlapSphere(hit.point, dna.RootRadius);
+            var waterAmount = EnvironmentService.GetWater(hit.point);
             if (EnvironmentService.GetSoil(hit.point) > 0)
             {
                 if (Instance.LogReproductionFailures)
@@ -95,6 +96,13 @@ public class PlantService : MonoBehaviour
                 if (Instance.LogReproductionFailures)
                 {
                     Debug.Log($"There was not enough root space to plant {dna.Name ?? "your plant"}.");
+                }
+            }
+            else if (waterAmount < 0.25f)
+            {
+                if (Instance.LogReproductionFailures)
+                {
+                    Debug.Log($"There was not enough water to plant {dna.Name ?? "your plant"}. Found {waterAmount}; At least 0.25 is needed.");
                 }
             }
             else
@@ -147,6 +155,7 @@ public class PlantService : MonoBehaviour
             var plant = _plantUpdateQueue.Dequeue();
             var growthInDays = EnvironmentService.GetDate() - plant.LastUpdatedDate;
             plant.Grow(growthInDays);
+            ComputeShaderService.SpreadRoots(null,plant.transform.position, plant.DNA.RootRadius, growthInDays);
             _plantUpdateQueue.Enqueue(plant);
         }
         _isPlantUpdateQueueBeingProcessed = false;

@@ -1,0 +1,26 @@
+﻿#pragma kernel CSMain
+
+float4 RootData;
+
+RWTexture2D<float4> RootMap;
+RWTexture2D<float4> Result;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	float width, height;
+	RootMap.GetDimensions(width, height);
+
+	float2 uv = RootData.xy;
+	float2 xy = uv * width;
+	float dist = distance(id.xy, xy);
+	float radius = RootData.z;
+	float depth = RootData.a; 
+	float growth = smoothstep(radius, 0, dist) * depth;
+
+	float4 oldVal = RootMap[id.xy];
+	float4 newVal = clamp(0,1,RootMap[id.xy] += growth);
+	RootMap[id.xy] = newVal;
+
+    Result[id.xy] += newVal - oldVal;
+}

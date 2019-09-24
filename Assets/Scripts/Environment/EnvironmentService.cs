@@ -6,6 +6,8 @@ public class EnvironmentService : MonoBehaviour
     [Header("Debug Settings")]
     public bool ShowVoxels = false;
 
+    public Camera TerrainCamera;
+
     /* API */
 
     public static float GetDate()
@@ -22,20 +24,17 @@ public class EnvironmentService : MonoBehaviour
     {
 
     }
+    */
 
     public static float GetWater(Vector3 location)
     {
+        var waterMap = ComputeShaderService.GetWaterMap();
+        var uv = ComputeShaderService.LocationToUV(location);
+        var color = waterMap.GetPixelBilinear(uv.x, uv.y);
 
+        return Mathf.Clamp(color.r + color.g + color.b, 0, 1);
     }
-    public static float AbsorbWater(Vector3 location, float requestedAmount)
-    {
 
-    }
-    public static float AbsorbWater(Vector3 location, float amount)
-    {
-
-    }
-    */
 
     public static float GetSoil(Vector3 location)
     {

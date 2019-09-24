@@ -2,7 +2,6 @@
 
 Texture2D<float4> HeightMap;
 Texture2D<float4> NormalMap;
-Texture2D<float4> RiverMap;
 Texture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
 
@@ -30,7 +29,7 @@ float4 Soak(uint2 texCoord) {
 	float Depth = 0;
 	float2 SamplePos;
 	float width, height;
-	RiverMap.GetDimensions(width, height);
+	WaterMap.GetDimensions(width, height);
 
 	for (int x = 0; x < 11; x++)
 	{
@@ -42,7 +41,7 @@ float4 Soak(uint2 texCoord) {
 		}
 	}
 
-	return float4(0, Depth, 0, 1);
+	return float4(0, 0, Depth, 1);
 } 
 
 float4 RunOff(uint2 texCoord) {
@@ -57,7 +56,7 @@ float4 RunOff(uint2 texCoord) {
 	float Depth = 0;
 	float2 SamplePos;
 	float width, height;
-	NormalMap.GetDimensions(width, height);
+	WaterMap.GetDimensions(width, height);
 
 	for (int x = 0; x < 3; x++)
 	{
@@ -73,16 +72,11 @@ float4 RunOff(uint2 texCoord) {
 		}
 	}
 
-	return float4(Depth, 0, 0, 1);
-}
-
-float4 Source(uint2 texCoord) {
-	float Depth = ceil(RiverMap[texCoord].x);
-	return float4(0, 0, Depth, 1);
+	return float4(0, Depth, 0, 1);
 }
 
 [numthreads(8,8,1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-	Result[id.xy] = (Source(id.xy) + RunOff(id.xy) + Soak(id.xy)) * NormalMap[id.xy].a;
+	Result[id.xy] = (RunOff(id.xy) + Soak(id.xy)) * NormalMap[id.xy].a; 
 }
