@@ -1,0 +1,13 @@
+﻿#pragma kernel CSMain
+
+RWTexture2D<float4> Base;
+RWTexture2D<float4> Mask;
+RWTexture2D<float4> Result;
+float Multiplier;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = clamp(0, 1, Mask[id.xy] * Base[id.xy] * Multiplier);
+	Base[id.xy] -= Result[id.xy];
+}

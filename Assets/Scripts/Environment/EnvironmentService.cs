@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class EnvironmentService : MonoBehaviour
@@ -26,15 +27,23 @@ public class EnvironmentService : MonoBehaviour
     }
     */
 
-    public static float GetWater(Vector3 location)
+    public static float SampleWater(Vector3 location)
     {
-        var waterMap = ComputeShaderService.GetWaterMap();
+        var waterMap = ComputeShaderService.RenderTextureToTexture2D(ComputeShaderService.Instance.WaterMap);
         var uv = ComputeShaderService.LocationToUV(location);
         var color = waterMap.GetPixelBilinear(uv.x, uv.y);
 
         return Mathf.Clamp(color.r + color.g + color.b, 0, 1);
     }
+    public static float AbsorbWater(Texture2D rootMap, Vector3 location, float deltaTimeInDays)
+    {
+        var waterMap = ComputeShaderService.AbsorbWater(rootMap, deltaTimeInDays / 10);
+        var uv = ComputeShaderService.LocationToUV(location);
+        var x = Mathf.FloorToInt(uv.x * 512);
+        var y = Mathf.FloorToInt(uv.y * 512);
 
+        return waterMap.GetPixels(x - 15, y - 15, 30, 30).Sum(color => color.r + color.g + color.b);
+    }
 
     public static float GetSoil(Vector3 location)
     {

@@ -9,10 +9,12 @@ public class Plant : MonoBehaviour
     public float PlantedDate;
     public float LastUpdatedDate;
     public float AgeInDay => LastUpdatedDate - PlantedDate;
+    public float Water;
 
     public bool IsAlive;
     public bool IsFullyGrown => Trunk.IsFullyGrown;
     public Structure Trunk;
+    public Texture2D RootMap;
 
     private float _reproductionCooldown = 2;
 

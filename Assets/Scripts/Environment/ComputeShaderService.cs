@@ -8,12 +8,14 @@ public class ComputeShaderService : MonoBehaviour
     public RenderTexture NormalMap;
     public RenderTexture WaterMap;
     public RenderTexture RootMap;
-    private RenderTexture WaterResult;
-    private RenderTexture RootResult;
+    public RenderTexture Output;
+    private RenderTexture _result;
+    private RenderTexture _input;
 
     public ComputeShader WaterShedShader;
     public ComputeShader RainShader;
     public ComputeShader RootShader;
+    public ComputeShader SubtractShader;
 
     public static ComputeShaderService Instance;
     public const int TextureSize = 512;
@@ -41,54 +43,74 @@ public class ComputeShaderService : MonoBehaviour
         return new Vector2(normalizedUv.x, normalizedUv.z);
     }
 
-    public static Texture2D GetWaterMap()
-    {
-        return RenderTextureToTexture2D(Instance.WaterMap);
-    }
-
     public static Texture2D SpreadRoots(Texture2D currentRoots, Vector3 location, float radius, float depth)
     {
         if (currentRoots == null)
         {
-            Instance.RootResult.Release();
-            Instance.RootResult.enableRandomWrite = true;
-            Instance.RootResult.Create();
+            Instance._result.Release();
+            Instance._result.enableRandomWrite = true;
+            Instance._result.Create();
         }
         else
         {
-            Graphics.Blit(currentRoots, Instance.RootResult);
+            Graphics.Blit(currentRoots, Instance._result);
         }
         var uv = LocationToUV(location);
         int kernelId = Instance.RootShader.FindKernel("CSMain");
         Instance.RootShader.SetVector("RootData", new Vector4(uv.x, uv.y, radius, depth));
         Instance.RootShader.SetTexture(kernelId, "RootMap", Instance.RootMap);
-        Instance.RootShader.SetTexture(kernelId, "Result", Instance.RootResult);
+        Instance.RootShader.SetTexture(kernelId, "Result", Instance._result);
         Instance.RootShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
-        return RenderTextureToTexture2D(Instance.RootResult);
+        return RenderTextureToTexture2D(Instance._result);
+    }
+
+    public static Texture2D AbsorbWater(Texture2D rootmap, float multiplier)
+    {
+        if (rootmap == null)
+        {
+            Instance._input.Release();
+            Instance._input.enableRandomWrite = true;
+            Instance._input.Create();
+        }
+        else
+        {
+            Graphics.Blit(rootmap, Instance._input);
+        }
+
+        int kernelId = Instance.SubtractShader.FindKernel("CSMain");
+        Instance.SubtractShader.SetTexture(kernelId, "Base", Instance.WaterMap);
+        Instance.SubtractShader.SetTexture(kernelId, "Mask", Instance._input);
+        Instance.SubtractShader.SetTexture(kernelId, "Result", Instance._result);
+        Instance.SubtractShader.SetFloat("Multiplier", multiplier);
+        Instance.SubtractShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
+        Graphics.Blit(Instance._result, Instance.Output);
+        return RenderTextureToTexture2D(Instance.WaterMap);
     }
 
     void Start()
     {
         Instance = this;
-        WaterResult = new RenderTexture(512, 512, 24);
-        WaterResult.enableRandomWrite = true;
-        WaterResult.Create();
+        _result = new RenderTexture(512, 512, 24);
+        _result.enableRandomWrite = true;
+        _result.Create();
+
+        _input = new RenderTexture(512, 512, 24);
+        _input.enableRandomWrite = true;
+        _input.Create();
 
         WaterMap.Release();
+        WaterMap.enableRandomWrite = true;
+        WaterMap.Create();
 
         int kernelId = WaterShedShader.FindKernel("CSMain");
         WaterShedShader.SetTexture(kernelId, "HeightMap", HeightMap);
         WaterShedShader.SetTexture(kernelId, "NormalMap", NormalMap);
         WaterShedShader.SetTexture(kernelId, "WaterMap", WaterMap);
-        WaterShedShader.SetTexture(kernelId, "Result", WaterResult);
+        WaterShedShader.SetTexture(kernelId, "Result", _result);
 
         kernelId = RainShader.FindKernel("CSMain");
         RainShader.SetTexture(kernelId, "NormalMap", NormalMap);
-        RainShader.SetTexture(kernelId, "Result", WaterResult);
-
-        RootResult = new RenderTexture(512, 512, 24);
-        RootResult.enableRandomWrite = true;
-        RootResult.Create();
+        RainShader.SetTexture(kernelId, "Result", WaterMap);
 
         RootMap.Release();
         RootMap.enableRandomWrite = true;
@@ -112,13 +134,12 @@ public class ComputeShaderService : MonoBehaviour
     {
         int kernelId = WaterShedShader.FindKernel("CSMain");
         WaterShedShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
-        Graphics.CopyTexture(WaterResult, WaterMap);
+        Graphics.CopyTexture(_result, WaterMap);
     }
 
     public void Rain()
     {
         int kernelId = RainShader.FindKernel("CSMain");
         RainShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
-        Graphics.CopyTexture(WaterResult, WaterMap);
     }
 }

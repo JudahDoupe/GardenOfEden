@@ -83,7 +83,7 @@ public class PlantService : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, 50))
         {
             var result = Physics.OverlapSphere(hit.point, dna.RootRadius);
-            var waterAmount = EnvironmentService.GetWater(hit.point);
+            var waterAmount = EnvironmentService.SampleWater(hit.point);
             if (EnvironmentService.GetSoil(hit.point) > 0)
             {
                 if (Instance.LogReproductionFailures)
@@ -155,7 +155,8 @@ public class PlantService : MonoBehaviour
             var plant = _plantUpdateQueue.Dequeue();
             var growthInDays = EnvironmentService.GetDate() - plant.LastUpdatedDate;
             plant.Grow(growthInDays);
-            ComputeShaderService.SpreadRoots(null,plant.transform.position, plant.DNA.RootRadius, growthInDays);
+            plant.RootMap = ComputeShaderService.SpreadRoots(plant.RootMap, plant.transform.position, plant.DNA.RootRadius, growthInDays);
+            plant.Water += EnvironmentService.AbsorbWater(plant.RootMap, plant.transform.position, growthInDays);
             _plantUpdateQueue.Enqueue(plant);
         }
         _isPlantUpdateQueueBeingProcessed = false;
