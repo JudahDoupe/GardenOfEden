@@ -4,13 +4,6 @@ using UnityEngine;
 
 public class EnvironmentService : MonoBehaviour
 {
-    [Header("Debug Settings")]
-    public bool ShowVoxels = false;
-
-    public Camera TerrainCamera;
-
-    /* API */
-
     public static float GetDate()
     {
         return Instance._date;
@@ -27,25 +20,25 @@ public class EnvironmentService : MonoBehaviour
     }
     */
 
-    public static float SampleWater(Vector3 location)
+    public static UnitsOfWater SampleWater(Vector3 location)
     {
-        var waterMap = ComputeShaderService.RenderTextureToTexture2D(ComputeShaderService.Instance.WaterMap);
-        var uv = ComputeShaderService.LocationToUV(location);
+        var waterMap = _computeShaderService.WaterMap.ToTexture2D();
+        var uv = _computeShaderService.LocationToUv(location);
         var color = waterMap.GetPixelBilinear(uv.x, uv.y);
+        var waterDepth = color.r + color.g + color.b; //This should really be a measurement of the water height relative to the terrain height
 
-        return Mathf.Clamp(color.r + color.g + color.b, 0, 1);
+        return UnitsOfWater.FromPixel(waterDepth);
     }
-    public static float AbsorbWater(Texture2D rootMap, Vector3 location, float deltaTimeInDays)
+    public static UnitsOfWater AbsorbWater(Texture2D rootMap, Vector3 location, float deltaTimeInDays)
     {
-        var waterMap = ComputeShaderService.AbsorbWater(rootMap, deltaTimeInDays / 10);
-        var uv = ComputeShaderService.LocationToUV(location);
-        var x = Mathf.FloorToInt(uv.x * 512);
-        var y = Mathf.FloorToInt(uv.y * 512);
-
-        return waterMap.GetPixels(x - 15, y - 15, 30, 30).Sum(color => color.r + color.g + color.b);
+        var waterMap = _computeShaderService.AbsorbWater(rootMap, deltaTimeInDays / 10);
+        var xy = _computeShaderService.LocationToXy(location);
+        var summedWaterDepth = waterMap.GetPixels(Mathf.FloorToInt(xy.x - 15), Mathf.FloorToInt(xy.y - 15), 30, 30)
+            .Sum(color => color.r + color.g + color.b);
+        return UnitsOfWater.FromPixel(summedWaterDepth);
     }
 
-    public static float GetSoil(Vector3 location)
+    public static float SampleSoil(Vector3 location)
     {
         var coord = new VoxelCoord(location);
         var voxel = Instance.GetVoxel(coord);
@@ -73,18 +66,20 @@ public class EnvironmentService : MonoBehaviour
     /* INNER MECHINATIONS */
 
     public static EnvironmentService Instance;
+    private static ComputeShaderService _computeShaderService;
     private Dictionary<VoxelCoord, Voxel> _voxels;
 
     private float _date;
 
-    void Awake()
+    private void Awake()
     {
         Instance = this;
+        _computeShaderService = GetComponent<ComputeShaderService>();
         _voxels = new Dictionary<VoxelCoord, Voxel>();
         _date = 0;
     }
 
-    void Update()
+    private void Update()
     {
         _date += Time.deltaTime;
     }

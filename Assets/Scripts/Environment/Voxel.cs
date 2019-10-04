@@ -13,7 +13,6 @@ public class Voxel
     {
         Coord = coord;
         Light = Mathf.Pow(VoxelCoord.Size, 3);
-        var debugColor = Color.magenta;
 
         UpdateVoxelType();
 
@@ -22,20 +21,12 @@ public class Voxel
             case VoxelType.Land:
                 Water = Mathf.Pow(VoxelCoord.Size / 4, 3);
                 Soil = Mathf.Pow(VoxelCoord.Size, 3);
-                debugColor = Color.green;
                 break;
             case VoxelType.Water:
                 Water = Mathf.Pow(VoxelCoord.Size, 3);
-                debugColor = Color.blue;
                 break;
             case VoxelType.Air:
-                debugColor = Color.yellow;
                 break;
-        }
-
-        if (EnvironmentService.Instance.ShowVoxels)
-        {
-            Debug.DrawRay(Coord.CenterTop, Vector3.down * VoxelCoord.Size, debugColor);
         }
     }
 

@@ -4,117 +4,112 @@ public class ComputeShaderService : MonoBehaviour
 {
     public Camera TerrainCamera;
 
+    [Header("Render Textures")]
     public RenderTexture HeightMap;
     public RenderTexture NormalMap;
     public RenderTexture WaterMap;
     public RenderTexture RootMap;
     public RenderTexture Output;
-    private RenderTexture _result;
-    private RenderTexture _input;
+    public RenderTexture Input;
 
+    [Header("Compute Shaders")]
     public ComputeShader WaterShedShader;
     public ComputeShader RainShader;
     public ComputeShader RootShader;
     public ComputeShader SubtractShader;
 
-    public static ComputeShaderService Instance;
-    public const int TextureSize = 512;
+    public static int TextureSize = 512;
 
-    public static Texture2D RenderTextureToTexture2D(RenderTexture rt)
+    /*  Utils */
+
+    public Vector2 LocationToUv(Vector3 location)
     {
-        RenderTexture currentRt = RenderTexture.active;
-        Texture2D rtnTex = new Texture2D(TextureSize, TextureSize, TextureFormat.RGBA32, false);
-        RenderTexture.active = rt;
-
-        rtnTex.ReadPixels(new Rect(0, 0, TextureSize, TextureSize), 0, 0);
-        rtnTex.Apply();
-
-        RenderTexture.active = currentRt;
-
-        return rtnTex;
-    }
-
-    public static Vector2 LocationToUV(Vector3 location)
-    {
-        var size = Instance.TerrainCamera.orthographicSize;
-        var relativePosition = location - Instance.TerrainCamera.transform.position;
+        var size = TerrainCamera.orthographicSize;
+        var relativePosition = location - TerrainCamera.transform.position;
         var uvPos = relativePosition / size;
-        var normalizedUv = (uvPos + new Vector3(1, 1, 1)) / 2;
-        return new Vector2(normalizedUv.x, normalizedUv.z);
+        var uv = new Vector2(uvPos.x, uvPos.z);
+        return (uv + new Vector2(1, 1)) / 2;
+    }
+    public Vector2 LocationToXy(Vector3 location)
+    {
+        var uv = LocationToUv(location);
+        return new Vector2(Mathf.FloorToInt(uv.x * 512),Mathf.FloorToInt(uv.y * 512));
     }
 
-    public static Texture2D SpreadRoots(Texture2D currentRoots, Vector3 location, float radius, float depth)
+    /* Shader Methods */
+
+    public Texture2D SpreadRoots(Texture2D currentRoots, Vector3 location, float radius, float depth)
     {
         if (currentRoots == null)
         {
-            Instance._result.Release();
-            Instance._result.enableRandomWrite = true;
-            Instance._result.Create();
+            Output.Release();
+            Output.enableRandomWrite = true;
+            Output.Create();
         }
         else
         {
-            Graphics.Blit(currentRoots, Instance._result);
+            Graphics.Blit(currentRoots, Output);
         }
-        var uv = LocationToUV(location);
-        int kernelId = Instance.RootShader.FindKernel("CSMain");
-        Instance.RootShader.SetVector("RootData", new Vector4(uv.x, uv.y, radius, depth));
-        Instance.RootShader.SetTexture(kernelId, "RootMap", Instance.RootMap);
-        Instance.RootShader.SetTexture(kernelId, "Result", Instance._result);
-        Instance.RootShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
-        return RenderTextureToTexture2D(Instance._result);
+        var uv = LocationToUv(location);
+        int kernelId = RootShader.FindKernel("CSMain");
+        RootShader.SetVector("RootData", new Vector4(uv.x, uv.y, radius, depth));
+        RootShader.SetTexture(kernelId, "RootMap", RootMap);
+        RootShader.SetTexture(kernelId, "Result", Output);
+        RootShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
+        return Output.ToTexture2D();
     }
 
-    public static Texture2D AbsorbWater(Texture2D rootmap, float multiplier)
+    public Texture2D AbsorbWater(Texture2D rootMap, float multiplier)
     {
-        if (rootmap == null)
+        if (rootMap == null)
         {
-            Instance._input.Release();
-            Instance._input.enableRandomWrite = true;
-            Instance._input.Create();
+            Input.Release();
+            Input.enableRandomWrite = true;
+            Input.Create();
         }
         else
         {
-            Graphics.Blit(rootmap, Instance._input);
+            Graphics.Blit(rootMap, Input);
         }
 
-        int kernelId = Instance.SubtractShader.FindKernel("CSMain");
-        Instance.SubtractShader.SetTexture(kernelId, "Base", Instance.WaterMap);
-        Instance.SubtractShader.SetTexture(kernelId, "Mask", Instance._input);
-        Instance.SubtractShader.SetTexture(kernelId, "Result", Instance._result);
-        Instance.SubtractShader.SetFloat("Multiplier", multiplier);
-        Instance.SubtractShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
-        Graphics.Blit(Instance._result, Instance.Output);
-        return RenderTextureToTexture2D(Instance.WaterMap);
+        int kernelId = SubtractShader.FindKernel("CSMain");
+        SubtractShader.SetTexture(kernelId, "Base", WaterMap);
+        SubtractShader.SetTexture(kernelId, "Mask", Input);
+        SubtractShader.SetTexture(kernelId, "Result", Output);
+        SubtractShader.SetFloat("Multiplier", multiplier);
+        SubtractShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
+        return WaterMap.ToTexture2D();
     }
+
+    /* Inner Mechanations */
 
     void Start()
     {
-        Instance = this;
-        _result = new RenderTexture(512, 512, 24);
-        _result.enableRandomWrite = true;
-        _result.Create();
+        Input.Release();
+        Input.enableRandomWrite = true;
+        Input.Create();
 
-        _input = new RenderTexture(512, 512, 24);
-        _input.enableRandomWrite = true;
-        _input.Create();
+        Output.Release();
+        Output.enableRandomWrite = true;
+        Output.Create();
 
         WaterMap.Release();
         WaterMap.enableRandomWrite = true;
         WaterMap.Create();
 
+        RootMap.Release();
+        RootMap.enableRandomWrite = true;
+        RootMap.Create();
+
         int kernelId = WaterShedShader.FindKernel("CSMain");
         WaterShedShader.SetTexture(kernelId, "HeightMap", HeightMap);
         WaterShedShader.SetTexture(kernelId, "NormalMap", NormalMap);
         WaterShedShader.SetTexture(kernelId, "WaterMap", WaterMap);
-        WaterShedShader.SetTexture(kernelId, "Result", _result);
+        WaterShedShader.SetTexture(kernelId, "Result", Output);
 
         kernelId = RainShader.FindKernel("CSMain");
         RainShader.SetTexture(kernelId, "NormalMap", NormalMap);
         RainShader.SetTexture(kernelId, "Result", WaterMap);
-
-        RootMap.Release();
-        RootMap.enableRandomWrite = true;
-        RootMap.Create();
     }
 
     void FixedUpdate()
@@ -124,7 +119,7 @@ public class ComputeShaderService : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
+        if (UnityEngine.Input.GetKeyDown(KeyCode.R))
         {
             Rain();
         }
@@ -134,7 +129,7 @@ public class ComputeShaderService : MonoBehaviour
     {
         int kernelId = WaterShedShader.FindKernel("CSMain");
         WaterShedShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
-        Graphics.CopyTexture(_result, WaterMap);
+        Graphics.CopyTexture(Output, WaterMap);
     }
 
     public void Rain()

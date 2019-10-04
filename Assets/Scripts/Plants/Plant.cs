@@ -9,7 +9,7 @@ public class Plant : MonoBehaviour
     public float PlantedDate;
     public float LastUpdatedDate;
     public float AgeInDay => LastUpdatedDate - PlantedDate;
-    public float Water;
+    public UnitsOfWater StoredWater;
 
     public bool IsAlive;
     public bool IsFullyGrown => Trunk.IsFullyGrown;

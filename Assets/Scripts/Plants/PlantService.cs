@@ -36,6 +36,7 @@ public class PlantService : MonoBehaviour
     /* INNER MECHINATIONS */
 
     public static PlantService Instance;
+    private static ComputeShaderService _computeShaderService;
 
     private readonly Queue<Tuple<PlantDNA, Vector3>> _seedQueue = new Queue<Tuple<PlantDNA, Vector3>>();
     private bool _isSeedQueueBeingProcessed;
@@ -46,6 +47,7 @@ public class PlantService : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        _computeShaderService = GetComponent<ComputeShaderService>();
     }
 
     void Update()
@@ -84,7 +86,7 @@ public class PlantService : MonoBehaviour
         {
             var result = Physics.OverlapSphere(hit.point, dna.RootRadius);
             var waterAmount = EnvironmentService.SampleWater(hit.point);
-            if (EnvironmentService.GetSoil(hit.point) > 0)
+            if (EnvironmentService.SampleSoil(hit.point) > 0)
             {
                 if (Instance.LogReproductionFailures)
                 {
@@ -98,7 +100,7 @@ public class PlantService : MonoBehaviour
                     Debug.Log($"There was not enough root space to plant {dna.Name ?? "your plant"}.");
                 }
             }
-            else if (waterAmount < 0.25f)
+            else if (waterAmount < UnitsOfWater.FromLiters(1))
             {
                 if (Instance.LogReproductionFailures)
                 {
@@ -155,8 +157,8 @@ public class PlantService : MonoBehaviour
             var plant = _plantUpdateQueue.Dequeue();
             var growthInDays = EnvironmentService.GetDate() - plant.LastUpdatedDate;
             plant.Grow(growthInDays);
-            plant.RootMap = ComputeShaderService.SpreadRoots(plant.RootMap, plant.transform.position, plant.DNA.RootRadius, growthInDays);
-            plant.Water += EnvironmentService.AbsorbWater(plant.RootMap, plant.transform.position, growthInDays);
+            plant.RootMap = _computeShaderService.SpreadRoots(plant.RootMap, plant.transform.position, plant.DNA.RootRadius, growthInDays);
+            plant.StoredWater += EnvironmentService.AbsorbWater(plant.RootMap, plant.transform.position, growthInDays);
             _plantUpdateQueue.Enqueue(plant);
         }
         _isPlantUpdateQueueBeingProcessed = false;
