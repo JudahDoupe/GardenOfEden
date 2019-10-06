@@ -13,6 +13,7 @@ public class ComputeShaderService : MonoBehaviour
     public RenderTexture Input;
 
     [Header("Compute Shaders")]
+    public ComputeShader WaterShader;
     public ComputeShader WaterShedShader;
     public ComputeShader RainShader;
     public ComputeShader RootShader;
@@ -110,11 +111,24 @@ public class ComputeShaderService : MonoBehaviour
         kernelId = RainShader.FindKernel("CSMain");
         RainShader.SetTexture(kernelId, "NormalMap", NormalMap);
         RainShader.SetTexture(kernelId, "Result", WaterMap);
+
+        var updateKernel = WaterShader.FindKernel("Update");
+        WaterShader.SetTexture(updateKernel, "TerrainHeightMap", HeightMap);
+        WaterShader.SetTexture(updateKernel, "WaterMap", WaterMap);
+        WaterShader.SetTexture(updateKernel, "Result", Output);
+        WaterShader.SetTexture(updateKernel, "Test", Input);
+        var rainKernel = WaterShader.FindKernel("Rain");
+        WaterShader.SetTexture(rainKernel, "WaterMap", WaterMap);
     }
 
+    private int iiii = 0;
     void FixedUpdate()
     {
-        UpdateWaterShed();
+        if(iiii++ == 1)
+        {
+            iiii = 0;
+            UpdateWaterTable();
+        }
     }
 
     void Update()
@@ -123,18 +137,22 @@ public class ComputeShaderService : MonoBehaviour
         {
             Rain();
         }
+
+        if (UnityEngine.Input.GetKeyDown(KeyCode.U))
+        {
+        }
     }
 
-    public void UpdateWaterShed()
+    public void UpdateWaterTable()
     {
-        int kernelId = WaterShedShader.FindKernel("CSMain");
-        WaterShedShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
+        int kernelId = WaterShader.FindKernel("Update");
+        WaterShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
         Graphics.CopyTexture(Output, WaterMap);
     }
 
     public void Rain()
     {
-        int kernelId = RainShader.FindKernel("CSMain");
-        RainShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
+        int kernelId = WaterShader.FindKernel("Rain");
+        WaterShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
     }
 }

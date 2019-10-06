@@ -65,9 +65,10 @@ float4 RunOff(uint2 texCoord) {
 			SamplePos.x = texCoord.x + Offsets[x] % width;
 			SamplePos.y = texCoord.y + Offsets[y] % height;
 			float3 weight = Weights[x][y];
-
 			float4 normal = (NormalMap[SamplePos.xy] - 0.5f) * 2;
-			float ratio = (normal.x * weight.x + normal.y * weight.y + normal.z * weight.z) * normal.a;
+			float ratio = (normal.x * weight.x + 
+						   normal.y * weight.y + 
+				           normal.z * weight.z) * normal.a;
 			Depth += SampleWater(SamplePos) * ratio;
 		}
 	}

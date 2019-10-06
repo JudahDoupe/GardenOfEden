@@ -1,0 +1,80 @@
+﻿#pragma kernel Update
+#pragma kernel Rain
+
+Texture2D<float4> TerrainHeightMap;
+RWTexture2D<float4> WaterMap;
+RWTexture2D<float4> Result;
+RWTexture2D<float4> Test;
+
+float3 GetWaterNormal(uint2 xy) {
+	//Normal Map will be terraced because the height is stored between 0 and 255
+	float mapHeight = 150;
+
+	float2 size = float2(2.0, 0.0);
+	int3 off = int3(-1, 0, 1);
+
+	float s01 = WaterMap[xy + off.xy % 512].r * mapHeight;
+	float s21 = WaterMap[xy + off.zy % 512].r * mapHeight;
+	float s10 = WaterMap[xy + off.yx % 512].r * mapHeight;
+	float s12 = WaterMap[xy + off.yz % 512].r * mapHeight;
+	float3 va = normalize(float3(size.xy, s21 - s01));
+	float3 vb = normalize(float3(size.yx, s12 - s10));
+	return normalize(cross(va, vb));
+}
+
+float GetDepth(uint2 xy)
+{
+	float Offsets[3] = { -1, 0, 1 };
+	float3 Weights[3][3] =
+	{
+		{float3(0.2083,0.2083,0.0658),		float3(0.5834,0,0.1842),	float3(0.2083,-0.2083, 0.0658)},
+		{float3(0,0.5834,0.1842),			float3(0,0,-1),				float3(0,-0.5834,0.1842)},
+		{float3(-0.2083,0.2083, 0.0658),	float3(-0.5834,0,0.1842),	float3(-0.2083,-0.2083,0.0658)}
+	};
+
+	float Depth = 0;
+	float2 SamplePos;
+	float Resistance = 0.5;
+
+	for (int x = 0; x < 3; x++)
+	{
+		for (int y = 0; y < 3; y++)
+		{
+			SamplePos.x = xy.x + Offsets[x] % 512;
+			SamplePos.y = xy.y + Offsets[y] % 512;
+			float3 weight = Weights[x][y];
+			float3 myNormal = GetWaterNormal(xy);
+			float myRatio = (myNormal.x * weight.x +
+							myNormal.y * weight.y +
+							myNormal.z * weight.z);
+			float3 theirNormal = GetWaterNormal(SamplePos);
+			float theirRatio = (theirNormal.x * weight.x +
+				theirNormal.y * weight.y +
+				theirNormal.z * weight.z);
+			float requestedWater = (WaterMap[SamplePos].r - WaterMap[xy].r);
+			Depth += clamp(requestedWater, -myRatio * WaterMap[xy].b, theirRatio * WaterMap[SamplePos].b);
+		}
+	}
+
+	return WaterMap[xy].b + Depth;
+}
+
+[numthreads(8,8,1)]
+void Update (uint3 id : SV_DispatchThreadID)
+{
+	float depth = GetDepth(id.xy);
+	float height = TerrainHeightMap[id.xy].r + depth;
+
+	depth *= TerrainHeightMap[id.xy].r > 0;
+	Test[id.xy] = float4((GetWaterNormal(id.xy) + 1) / 2, 1);
+
+	Result[id.xy] = float4(height, 0, depth, 1);
+}
+
+[numthreads(8, 8, 1)]
+void Rain (uint3 id : SV_DispatchThreadID)
+{
+	float4 s = WaterMap[id.xy];
+	s.b += 10.0/255;
+	WaterMap[id.xy] = s;
+}
