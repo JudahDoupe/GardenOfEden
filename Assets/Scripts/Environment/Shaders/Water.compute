@@ -24,39 +24,27 @@ float3 GetWaterNormal(uint2 xy) {
 
 float GetDepth(uint2 xy)
 {
-	float Offsets[3] = { -1, 0, 1 };
-	float3 Weights[3][3] =
-	{
-		{float3(0.2083,0.2083,0.0658),		float3(0.5834,0,0.1842),	float3(0.2083,-0.2083, 0.0658)},
-		{float3(0,0.5834,0.1842),			float3(0,0,-1),				float3(0,-0.5834,0.1842)},
-		{float3(-0.2083,0.2083, 0.0658),	float3(-0.5834,0,0.1842),	float3(-0.2083,-0.2083,0.0658)}
-	};
+	float Offsets[2] = { -1, 1 };
 
 	float Depth = 0;
 	float2 SamplePos;
-	float Resistance = 0.5;
+	float diffusionFactor = 1;
 
-	for (int x = 0; x < 3; x++)
+	for (int x = 0; x < 2; x++)
 	{
-		for (int y = 0; y < 3; y++)
+		for (int y = 0; y < 2; y++)
 		{
 			SamplePos.x = xy.x + Offsets[x] % 512;
 			SamplePos.y = xy.y + Offsets[y] % 512;
-			float3 weight = Weights[x][y];
-			float3 myNormal = GetWaterNormal(xy);
-			float myRatio = (myNormal.x * weight.x +
-							myNormal.y * weight.y +
-							myNormal.z * weight.z);
-			float3 theirNormal = GetWaterNormal(SamplePos);
-			float theirRatio = (theirNormal.x * weight.x +
-				theirNormal.y * weight.y +
-				theirNormal.z * weight.z);
-			float requestedWater = (WaterMap[SamplePos].r - WaterMap[xy].r);
-			Depth += clamp(requestedWater, -myRatio * WaterMap[xy].b, theirRatio * WaterMap[SamplePos].b);
+
+			float heightDiff = WaterMap[SamplePos].r - WaterMap[xy].r;
+
+			float waterLevel = WaterMap[SamplePos].b;
+			Depth += heightDiff * waterLevel * diffusionFactor;
 		}
 	}
 
-	return WaterMap[xy].b + Depth;
+	return Depth;
 }
 
 [numthreads(8,8,1)]
