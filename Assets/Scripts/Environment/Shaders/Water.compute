@@ -7,37 +7,52 @@ RWTexture2D<float4> WaterVelocityMap;
 RWTexture2D<float4> Result;
 RWTexture2D<float4> Test;
 
-static float PixelSpacingInMeters = 1; //400 = width of the texture in meters | 512 = width of the texture in pixels
+static float PixelSpacingInMeters = 400.0f/512.0f; //400 = width of the texture in meters | 512 = width of the texture in pixels
+static float Gravity = 9.8f;
+static float Eps = 0.001;
 
+float GetTerrainHeight(uint2 xy)
+{
+	return TerrainHeightMap[xy % 512].r;
+}
 float GetHeight(uint2 xy)
 {
-    return TerrainHeightMap[xy].r + WaterMap[xy].b;
+    return GetTerrainHeight(xy) + WaterMap[xy % 512].b;
 }
 float GetDepth(uint2 xy)
 {
-    return WaterMap[xy].b;
+    return WaterMap[xy % 512].b;
 }
 
+int IsReflective(uint2 xy, int2 offset) 
+{
+	int isReflective = (GetDepth(xy) < Eps && GetTerrainHeight(xy) > GetHeight(xy + offset)) ||
+					   (GetDepth(xy + offset) < Eps && GetTerrainHeight(xy + offset) > GetHeight(xy));
+	return isReflective * 2 - 1;
+}
 void UpdateVelocity(uint2 xy, float deltaSeconds)
 {
-    float Gravity = 9.8f;
-    float4 Velocity = float4(0, 0, 0, 0);
     float4 externalForce = 0;
-    int doesPixelContainWater = GetDepth(xy) > 0;
+    int shouldPerserveVelocity = GetDepth(xy) > Eps &&  //We have some water
+								 xy.x % 512 != 0 &&	    //We are not on the edge of the map
+								 xy.y % 512 != 0;
 
-    float4 heightDiff = float4(GetHeight(xy + uint2(1, 0)) - GetHeight(xy),
-							   GetHeight(xy + uint2(0, 1)) - GetHeight(xy),
-							   GetHeight(xy + uint2(-1, 0)) - GetHeight(xy),
-							   GetHeight(xy + uint2(0, -1)) - GetHeight(xy));
+    float4 heightDiff = float4(GetHeight(xy + int2(1, 0)) - GetHeight(xy),
+							   GetHeight(xy + int2(0, 1)) - GetHeight(xy),
+							   GetHeight(xy + int2(-1, 0)) - GetHeight(xy),
+							   GetHeight(xy + int2(0, -1)) - GetHeight(xy));
+	int4 reflection = int4(IsReflective(xy, int2(1, 0)),
+						   IsReflective(xy, int2(0, 1)),
+						   IsReflective(xy, int2(-1, 0)),
+						   IsReflective(xy, int2(0, -1)));
+	float relativeGravity = -Gravity / PixelSpacingInMeters;
+	float4 changeInVelocity = (relativeGravity * heightDiff + externalForce) * reflection * deltaSeconds;
+	float4 newVelocity = WaterVelocityMap[xy] + changeInVelocity;
 
-    float4 changeInVelocity = (-Gravity / PixelSpacingInMeters) * heightDiff;
-    changeInVelocity += externalForce;
-    changeInVelocity *= deltaSeconds;
-
-    WaterVelocityMap[xy] = (WaterVelocityMap[xy] + changeInVelocity) * doesPixelContainWater;
+    WaterVelocityMap[xy] = clamp(newVelocity * shouldPerserveVelocity, 0, 1);
 }
 
-float Runoff(uint2 xy, uint2 offset, float velocity)
+float Runoff(uint2 xy, int2 offset, float velocity)
 {
     if (velocity <= 0)
         return GetDepth(xy + offset) * velocity;
@@ -47,8 +62,10 @@ float Runoff(uint2 xy, uint2 offset, float velocity)
 
 float GetChangeInDepth(uint2 xy, float deltaSeconds)
 {
-    float xRunoff = (Runoff(xy, uint2(1, 0), WaterVelocityMap[xy].x) - Runoff(xy, uint2(-1, 0), WaterVelocityMap[xy].z)) / PixelSpacingInMeters;
-    float yRunoff = (Runoff(xy, uint2(0, 1), WaterVelocityMap[xy].y) - Runoff(xy, uint2(0, -1), WaterVelocityMap[xy].a)) / PixelSpacingInMeters;
+    float xRunoff = (Runoff(xy, int2(1, 0), WaterVelocityMap[xy].r) 
+				   - Runoff(xy, int2(-1, 0), WaterVelocityMap[xy].b)) / PixelSpacingInMeters;
+    float yRunoff = (Runoff(xy, int2(0, 1), WaterVelocityMap[xy].g) 
+				   - Runoff(xy, int2(0, -1), WaterVelocityMap[xy].a)) / PixelSpacingInMeters;
     return -(xRunoff + yRunoff) * deltaSeconds;
 }
 
@@ -58,10 +75,10 @@ void Update (uint3 id : SV_DispatchThreadID)
     float deltaSeconds = 1.0f/ 30.0f;
     int isOnTerrain = TerrainHeightMap[id.xy].r > 0;
 
-    float depth = (GetDepth(id.xy) + GetChangeInDepth(id.xy, deltaSeconds)) * isOnTerrain;
+    float depth = clamp(GetDepth(id.xy) + GetChangeInDepth(id.xy, deltaSeconds), 0, 1) * isOnTerrain;
 
     UpdateVelocity(id.xy, deltaSeconds);
-
+	 
     Result[id.xy] = float4(0, TerrainHeightMap[id.xy].r + depth, depth, 1);
 }
 
@@ -69,6 +86,6 @@ void Update (uint3 id : SV_DispatchThreadID)
 void Rain (uint3 id : SV_DispatchThreadID)
 {
 	float4 s = WaterMap[id.xy];
-	s.b += 0.1f;
+	s.b += 1.0f/512.0f;
 	WaterMap[id.xy] = s;
 }
