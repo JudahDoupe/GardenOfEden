@@ -3,66 +3,72 @@
 
 Texture2D<float4> TerrainHeightMap;
 RWTexture2D<float4> WaterMap;
+RWTexture2D<float4> WaterVelocityMap;
 RWTexture2D<float4> Result;
 RWTexture2D<float4> Test;
 
-float3 GetWaterNormal(uint2 xy) {
-	//Normal Map will be terraced because the height is stored between 0 and 255
-	float mapHeight = 150;
+static float PixelSpacingInMeters = 1; //400 = width of the texture in meters | 512 = width of the texture in pixels
 
-	float2 size = float2(2.0, 0.0);
-	int3 off = int3(-1, 0, 1);
-
-	float s01 = WaterMap[xy + off.xy % 512].r * mapHeight;
-	float s21 = WaterMap[xy + off.zy % 512].r * mapHeight;
-	float s10 = WaterMap[xy + off.yx % 512].r * mapHeight;
-	float s12 = WaterMap[xy + off.yz % 512].r * mapHeight;
-	float3 va = normalize(float3(size.xy, s21 - s01));
-	float3 vb = normalize(float3(size.yx, s12 - s10));
-	return normalize(cross(va, vb));
+float GetHeight(uint2 xy)
+{
+    return TerrainHeightMap[xy].r + WaterMap[xy].b;
 }
-
 float GetDepth(uint2 xy)
 {
-	float Offsets[2] = { -1, 1 };
+    return WaterMap[xy].b;
+}
 
-	float Depth = 0;
-	float2 SamplePos;
-	float diffusionFactor = 1;
+void UpdateVelocity(uint2 xy, float deltaSeconds)
+{
+    float Gravity = 9.8f;
+    float4 Velocity = float4(0, 0, 0, 0);
+    float4 externalForce = 0;
+    int doesPixelContainWater = GetDepth(xy) > 0;
 
-	for (int x = 0; x < 2; x++)
-	{
-		for (int y = 0; y < 2; y++)
-		{
-			SamplePos.x = xy.x + Offsets[x] % 512;
-			SamplePos.y = xy.y + Offsets[y] % 512;
+    float4 heightDiff = float4(GetHeight(xy + uint2(1, 0)) - GetHeight(xy),
+							   GetHeight(xy + uint2(0, 1)) - GetHeight(xy),
+							   GetHeight(xy + uint2(-1, 0)) - GetHeight(xy),
+							   GetHeight(xy + uint2(0, -1)) - GetHeight(xy));
 
-			float heightDiff = WaterMap[SamplePos].r - WaterMap[xy].r;
+    float4 changeInVelocity = (-Gravity / PixelSpacingInMeters) * heightDiff;
+    changeInVelocity += externalForce;
+    changeInVelocity *= deltaSeconds;
 
-			float waterLevel = WaterMap[SamplePos].b;
-			Depth += heightDiff * waterLevel * diffusionFactor;
-		}
-	}
+    WaterVelocityMap[xy] = (WaterVelocityMap[xy] + changeInVelocity) * doesPixelContainWater;
+}
 
-	return Depth;
+float Runoff(uint2 xy, uint2 offset, float velocity)
+{
+    if (velocity <= 0)
+        return GetDepth(xy + offset) * velocity;
+    else
+        return GetDepth(xy) * velocity;
+}
+
+float GetChangeInDepth(uint2 xy, float deltaSeconds)
+{
+    float xRunoff = (Runoff(xy, uint2(1, 0), WaterVelocityMap[xy].x) - Runoff(xy, uint2(-1, 0), WaterVelocityMap[xy].z)) / PixelSpacingInMeters;
+    float yRunoff = (Runoff(xy, uint2(0, 1), WaterVelocityMap[xy].y) - Runoff(xy, uint2(0, -1), WaterVelocityMap[xy].a)) / PixelSpacingInMeters;
+    return -(xRunoff + yRunoff) * deltaSeconds;
 }
 
 [numthreads(8,8,1)]
 void Update (uint3 id : SV_DispatchThreadID)
 {
-	float depth = GetDepth(id.xy);
-	float height = TerrainHeightMap[id.xy].r + depth;
+    float deltaSeconds = 1.0f/ 30.0f;
+    int isOnTerrain = TerrainHeightMap[id.xy].r > 0;
 
-	depth *= TerrainHeightMap[id.xy].r > 0;
-	Test[id.xy] = float4((GetWaterNormal(id.xy) + 1) / 2, 1);
+    float depth = (GetDepth(id.xy) + GetChangeInDepth(id.xy, deltaSeconds)) * isOnTerrain;
 
-	Result[id.xy] = float4(height, 0, depth, 1);
+    UpdateVelocity(id.xy, deltaSeconds);
+
+    Result[id.xy] = float4(0, TerrainHeightMap[id.xy].r + depth, depth, 1);
 }
 
 [numthreads(8, 8, 1)]
 void Rain (uint3 id : SV_DispatchThreadID)
 {
 	float4 s = WaterMap[id.xy];
-	s.b += 10.0/255;
+	s.b += 0.1f;
 	WaterMap[id.xy] = s;
 }
