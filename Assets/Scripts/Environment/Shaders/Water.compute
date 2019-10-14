@@ -3,12 +3,11 @@
 
 Texture2D<float4> TerrainHeightMap;
 RWTexture2D<float4> WaterMap;
-RWTexture2D<float4> WaterVelocityMap;
 RWTexture2D<float4> Result;
 RWTexture2D<float4> Test;
 
 static float PixelSpacingInMeters = 400.0f/512.0f; //400 = width of the texture in meters | 512 = width of the texture in pixels
-static float Gravity = 9.8f;
+static float Gravity = 90.8f;
 static float Eps = 0.001;
 
 // Accesors
@@ -28,21 +27,21 @@ float GetDepth(int2 xy)
 	uint2 pos = clamp(xy, 0, 511);
     return WaterMap[pos].b;
 }
-float4 GetVelocity(int2 xy) 
+float2 GetVelocity(int2 xy) 
 {
 	uint2 pos = clamp(xy, 0, 511);
-    return WaterVelocityMap[pos];
+    return WaterMap[pos].rg;
 }
 float GetVelocityFace(int2 xy, int2 offset)
 {
 	if (offset.x == 1) {
-		return GetVelocity(xy).r;
+		return GetVelocity(xy).x;
 	}else if (offset.y == 1) {
-		return GetVelocity(xy).g;
+		return GetVelocity(xy).y;
 	}else if (offset.x == -1) {
-		return GetVelocity(xy).b;
+		return GetVelocity(xy + offset).x;
 	}else if (offset.y == -1) {
-		return GetVelocity(xy).a;
+		return GetVelocity(xy + offset).y;
 	}else {
 		return 0;
 	}
@@ -53,29 +52,27 @@ float GetVelocityFace(int2 xy, int2 offset)
 int Reflection(int2 xy, int2 offset) 
 {
 	int isReflective = (GetDepth(xy) < Eps && GetTerrainHeight(xy) > GetHeight(xy + offset)) ||
-					   (GetDepth(xy + offset) < Eps && GetTerrainHeight(xy + offset) > GetHeight(xy));
+					   (GetDepth(xy + offset) < Eps && GetTerrainHeight(xy + offset) > GetHeight(xy)) ||
+					   (xy + offset).x < 0 || (xy + offset).x >= 512 ||
+					   (xy + offset).y < 0 || (xy + offset).y >= 512;
 	return isReflective * 2 - 1;
 }
-void UpdateVelocity(int2 xy, float deltaSeconds)
+float2 GetNewVelocity(int2 xy, float deltaSeconds)
 {
-	float4 externalForce = 0;
+	float2 externalForce = 0;
 	int shouldPerserveVelocity = GetDepth(xy) > Eps;  //We have some water
 
-    float4 neighborHeights = float4(GetHeight(xy + int2(1, 0)),
-									   GetHeight(xy + int2(0, 1)),
-									   GetHeight(xy + int2(-1, 0)),
-									   GetHeight(xy + int2(0, -1)));
-	int4 reflection = int4(Reflection(xy, int2(1, 0)),
-						   Reflection(xy, int2(0, 1)),
-						   Reflection(xy, int2(-1, 0)),
-						   Reflection(xy, int2(0, -1)));
-	float4 heightDiffs = neighborHeights - GetHeight(xy);
+    float2 neighborHeights = float2(GetHeight(xy + int2(1, 0)),
+									GetHeight(xy + int2(0, 1)));
+	int2 reflection = int2(Reflection(xy, int2(1, 0)),
+						   Reflection(xy, int2(0, 1)));
+	float2 heightDiffs = neighborHeights - GetHeight(xy);
 	float relativeGravity = -Gravity / PixelSpacingInMeters;
-	float4 changeInVelocity = (relativeGravity * heightDiffs + externalForce) * reflection * deltaSeconds;
-	float4 newVelocity = (GetVelocity(xy) + changeInVelocity) * shouldPerserveVelocity;
+	float2 changeInVelocity = (relativeGravity * heightDiffs + externalForce) * reflection * deltaSeconds;
+	float2 newVelocity = (GetVelocity(xy) + changeInVelocity) * shouldPerserveVelocity;
 
 	float maxVelocity = 0.5f * PixelSpacingInMeters / deltaSeconds;
-    WaterVelocityMap[xy] = clamp(newVelocity, -maxVelocity, maxVelocity);
+	return clamp(newVelocity, -maxVelocity, maxVelocity);
 }
 
 // Height
@@ -113,7 +110,7 @@ float GetNewDepth(int2 xy, float deltaSeconds)
 {
     int isOnTerrain = GetTerrainHeight(xy) > 0;
 	float newDepth = GetDepth(xy) + GetChangeInDepth(xy, deltaSeconds) * deltaSeconds;
-	return clamp(newDepth, 0, 1) * isOnTerrain;
+	return clamp(newDepth * isOnTerrain, 0, 1);
 }
 
 // Kernels
@@ -123,10 +120,10 @@ void Update (uint3 id : SV_DispatchThreadID)
 { 
     float deltaSeconds = 1.0f/ 30.0f;
 
-    UpdateVelocity(id.xy, deltaSeconds);
     float depth = GetNewDepth(id.xy, deltaSeconds);
+    float2 velocity = GetNewVelocity(id.xy, deltaSeconds);
 
-    Result[id.xy] = float4(0, GetTerrainHeight(id.xy) + depth, depth, 1);
+    Result[id.xy] = float4(velocity, depth, 1);
 }
 
 [numthreads(8, 8, 1)]
