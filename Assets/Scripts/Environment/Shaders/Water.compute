@@ -52,10 +52,10 @@ float GetVelocityFace(int2 xy, int2 offset)
 int Reflection(int2 xy, int2 offset) 
 {
 	int isReflective = (GetDepth(xy) < Eps && GetTerrainHeight(xy) > GetHeight(xy + offset)) ||
-					   (GetDepth(xy + offset) < Eps && GetTerrainHeight(xy + offset) > GetHeight(xy)) ||
-					   (xy + offset).x < 0 || (xy + offset).x >= 512 ||
-					   (xy + offset).y < 0 || (xy + offset).y >= 512;
-	return isReflective * 2 - 1;
+					   (GetDepth(xy + offset) < Eps && GetTerrainHeight(xy + offset) > GetHeight(xy));
+	int isEdge = (xy + offset).x < 0 || (xy + offset).x >= 512 ||
+			     (xy + offset).y < 0 || (xy + offset).y >= 512;
+	return (isReflective || isEdge) * 2 - 1;
 }
 float2 GetNewVelocity(int2 xy, float deltaSeconds)
 {
