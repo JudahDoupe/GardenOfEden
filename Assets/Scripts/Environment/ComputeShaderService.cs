@@ -6,7 +6,6 @@ public class ComputeShaderService : MonoBehaviour
 
     [Header("Render Textures")]
     public RenderTexture HeightMap;
-    public RenderTexture NormalMap;
     public RenderTexture WaterMap;
     public RenderTexture RootMap;
     public RenderTexture Output;
@@ -14,8 +13,6 @@ public class ComputeShaderService : MonoBehaviour
 
     [Header("Compute Shaders")]
     public ComputeShader WaterShader;
-    public ComputeShader WaterShedShader;
-    public ComputeShader RainShader;
     public ComputeShader RootShader;
     public ComputeShader SubtractShader;
 
@@ -101,16 +98,6 @@ public class ComputeShaderService : MonoBehaviour
         RootMap.Release();
         RootMap.enableRandomWrite = true;
         RootMap.Create();
-
-        int kernelId = WaterShedShader.FindKernel("CSMain");
-        WaterShedShader.SetTexture(kernelId, "HeightMap", HeightMap);
-        WaterShedShader.SetTexture(kernelId, "NormalMap", NormalMap);
-        WaterShedShader.SetTexture(kernelId, "WaterMap", WaterMap);
-        WaterShedShader.SetTexture(kernelId, "Result", Output);
-
-        kernelId = RainShader.FindKernel("CSMain");
-        RainShader.SetTexture(kernelId, "NormalMap", NormalMap);
-        RainShader.SetTexture(kernelId, "Result", WaterMap);
 
         var updateKernel = WaterShader.FindKernel("Update");
         WaterShader.SetTexture(updateKernel, "TerrainHeightMap", HeightMap);
