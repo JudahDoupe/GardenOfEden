@@ -2,14 +2,15 @@
 #pragma kernel Rain
 
 Texture2D<float4> TerrainHeightMap;
+RWTexture2D<float4> WaterHeightMap;
 RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
 RWTexture2D<float4> Test;
 
 static float GridSpacing = 400.0f / 512.0f; //spacing in meters per pixel.  400 = width of the texture in meters | 512 = width of the texture in pixels
-static float SimulationSpeed = 1.0f / 10.0f; //speed in seconds per time step. 1 = seconds | 4 = steps
+static float SimulationSpeed = 1.0f / 30.0f; //speed in seconds per time step. 1 = seconds | 4 = steps
 static float Gravity = 9.8 * 9.8f;
-static float Eps = 0.0001;
+static float Eps = 0.00001;
 
 // Accesors
 
@@ -118,9 +119,11 @@ float GetNewDepth(int2 xy)
 void Update (uint3 id : SV_DispatchThreadID)
 { 
     float depth = GetNewDepth(id.xy);
+	float height = GetTerrainHeight(id.xy) + depth;
     float2 velocity = GetNewVelocity(id.xy);
 
-    Result[id.xy] = float4(velocity, depth, GetTerrainHeight(id.xy) + depth);
+    Result[id.xy] = float4(velocity, depth, height);
+	WaterHeightMap[id.xy] = float4(height, height, height, height) * (depth > 0);
 }
 
 [numthreads(8, 8, 1)]
