@@ -7,8 +7,8 @@ Shader "Tessellation/Tess_Standard"
 	    _Tess ("Tessellation", Range(1,32)) = 4
         _maxDist ("Tess Fade Distance", Range(0, 500.0)) = 25.0
         _ShadowLOD ("Shadow Gen LOD", Range(0, 1.0)) = 0
-        _Displacement ("Displacement", Range(0, 300)) = 1
-        _DispOffset ("Disp Offset", Range(0, 1)) = 0.5
+        _Displacement ("Displacement", Range(0, 5.0)) = 0.3
+        _DispOffset ("Disp Offset", Range(-1, 1)) = 0.5
         _Phong  ("Phong Smoothing Factor", Range(0, 0.5)) = 0
         [Enum(Distance Based,0,Edge Length,1)] _TessMode ("Tessellation Mode", Float) = 1
 
