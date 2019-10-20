@@ -7,17 +7,25 @@ RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
 RWTexture2D<float4> Test;
 
-static float GridSpacing = 400.0f / 512.0f; //spacing in meters per pixel.  400 = width of the texture in meters | 512 = width of the texture in pixels
-static float SimulationSpeed = 1.0f / 30.0f; //speed in seconds per time step. 1 = seconds | 4 = steps
-static float Gravity = 9.8 * 9.8f;
-static float Eps = 0.00001;
+static float MaxHeight = 200.0f;
+static float WidthInMeters = 400.0f;
+static float WidthInPixels = 512.0f;
+
+static float GridSpacing = WidthInMeters / WidthInPixels;
+static float SimulationSpeed = 1.0f / 50.0f; //speed in time steps per second. 1 = seconds | 50 = steps.  this is the speed of FixedUpdate
+static float Gravity = 9.8f;
+
+static float AmplitudeDampening = 0.5f;
+static float VelocityDampening = 2.0f;
+
+static float Eps = 0.00001f;
 
 // Accesors
 
 float GetTerrainHeight(int2 xy)
 {
 	uint2 pos = clamp(xy, 0, 511);
-	return TerrainHeightMap[pos].r;
+	return TerrainHeightMap[pos].r * MaxHeight;
 }
 float GetHeight(int2 xy)
 {
@@ -72,7 +80,7 @@ float2 GetNewVelocity(int2 xy)
 	int2 shouldPerserveVelocity = int2(ShouldPerserveVelocity(xy, int2(1, 0)), ShouldPerserveVelocity(xy, int2(0, 1)));
 	float2 newVelocity = (GetVelocity(xy) + changeInVelocity) * shouldPerserveVelocity;
 
-	float maxVelocity = 0.5f * (GridSpacing / SimulationSpeed);
+	float maxVelocity = (GridSpacing / SimulationSpeed) / VelocityDampening;
 	return clamp(newVelocity, -maxVelocity, maxVelocity);
 }
 
@@ -88,29 +96,32 @@ float UpwindDepth(int2 xy, int2 offset)
 }
 float StabilizedUpwind(int2 xy, int2 offset)
 {
-	float averageMaxDepth = 2.0f * GridSpacing / Gravity * SimulationSpeed;
-	float adjacentDepth = max(0, (UpwindDepth(xy, int2(1,  0)) +
-								  UpwindDepth(xy, int2(0,  1)) +
-								  UpwindDepth(xy, int2(-1, 0)) +
-								  UpwindDepth(xy, int2(0, -1))) / 4 - averageMaxDepth);
+	float averageMaxDepth = (GridSpacing / (Gravity * SimulationSpeed)) / AmplitudeDampening;
+	float averageUpwind = (UpwindDepth(xy, int2( 1,  0)) +
+						   UpwindDepth(xy, int2( 0,  1)) +
+						   UpwindDepth(xy, int2(-1,  0)) +
+						   UpwindDepth(xy, int2( 0, -1))) / 4;
+	float adjacentDepth = max(0, (averageUpwind - averageMaxDepth));
 	return UpwindDepth(xy, offset) - adjacentDepth;
 }
 float Runoff(int2 xy, int2 offset)
 {
-	return StabilizedUpwind(xy, offset) * GetVelocityFace(xy, offset);
+	float runoff = StabilizedUpwind(xy, offset) * GetVelocityFace(xy, offset);
+	return runoff;
 }
 float GetChangeInDepth(int2 xy)
 {
 	float xRunoff = (Runoff(xy, int2(1, 0)) - Runoff(xy, int2(-1, 0))) / GridSpacing;
     float yRunoff = (Runoff(xy, int2(0, 1)) - Runoff(xy, int2(0, -1))) / GridSpacing;
 
-    return -(xRunoff + yRunoff);
+    return -(xRunoff + yRunoff) * SimulationSpeed;
 }
 float GetNewDepth(int2 xy)
 {
-    int isOnTerrain = GetTerrainHeight(xy) > 0;
-	float newDepth = GetDepth(xy) + GetChangeInDepth(xy) * SimulationSpeed;
-	return clamp(newDepth * isOnTerrain, 0, 1);
+	float terrainHeight = GetTerrainHeight(xy);
+    int isOnTerrain = terrainHeight > 0;
+	float newDepth = GetDepth(xy) + GetChangeInDepth(xy);
+	return clamp(newDepth * isOnTerrain, 0, MaxHeight - terrainHeight); 
 }
 
 // Kernels
@@ -119,17 +130,18 @@ float GetNewDepth(int2 xy)
 void Update (uint3 id : SV_DispatchThreadID)
 { 
     float depth = GetNewDepth(id.xy);
+	float terrainHeight = GetTerrainHeight(id.xy);
 	float height = GetTerrainHeight(id.xy) + depth;
     float2 velocity = GetNewVelocity(id.xy);
 
     Result[id.xy] = float4(velocity, depth, height);
-	WaterHeightMap[id.xy] = float4(height, height, height, height) * (depth > 0);
+	WaterHeightMap[id.xy] = float4(height, height, height, height);
 }
 
 [numthreads(8, 8, 1)]
 void Rain (uint3 id : SV_DispatchThreadID)
 {
 	float4 s = WaterMap[id.xy];
-	s.b += 1.0f/150.0f;
+	s.b += 1.0f;
 	WaterMap[id.xy] = s;
 }
