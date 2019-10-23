@@ -1,11 +1,11 @@
 ﻿#pragma kernel Update
 #pragma kernel Rain
+#pragma kernel SuppressHighFrequencies
 
 Texture2D<float4> TerrainHeightMap;
 RWTexture2D<float4> WaterHeightMap;
 RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
-RWTexture2D<float4> Test;
 
 static float MaxHeight = 200.0f;
 static float WidthInMeters = 400.0f;
@@ -121,7 +121,34 @@ float GetNewDepth(int2 xy)
 	float terrainHeight = GetTerrainHeight(xy);
     int isOnTerrain = terrainHeight > 0;
 	float newDepth = GetDepth(xy) + GetChangeInDepth(xy);
-	return clamp(newDepth * isOnTerrain, 0, MaxHeight - terrainHeight); 
+	return clamp(newDepth * isOnTerrain, 0, MaxHeight - terrainHeight);
+}
+
+// High Frequency Suppression
+
+float EdgeSuppression(int2 xy, int2 offset) {
+	float maxEdge = 0.5f * GridSpacing;
+	float suppressionRation = 0.25f;
+
+	float myHeight = GetHeight(xy);
+	float edgeHeight = GetHeight(xy + offset);
+	float oppositeEdgeHeight = GetHeight(xy + (offset * -1));
+
+	float myDepth = GetDepth(xy);
+	float edgeDepth = GetDepth(xy + offset);
+
+	if (myHeight - oppositeEdgeHeight > maxEdge && myHeight > edgeHeight) {
+		float avgDepth = (myDepth + edgeDepth) / 2.0f;
+		return suppressionRation * (max(0,avgDepth) - myDepth);
+	}
+	else {
+		return 0.0f;
+	}
+}
+float HighFrequencySuppression(int2 xy) {
+
+	return EdgeSuppression(xy, int2(-1, 0)) + EdgeSuppression(xy, int2(1, 0)) +
+		EdgeSuppression(xy, int2(0, -1)) + EdgeSuppression(xy, int2(0, 1));
 }
 
 // Kernels
@@ -136,6 +163,17 @@ void Update (uint3 id : SV_DispatchThreadID)
 
     Result[id.xy] = float4(velocity, depth, height);
 	WaterHeightMap[id.xy] = float4(height, height, height, height);
+}
+
+[numthreads(8, 8, 1)]
+void SuppressHighFrequencies(uint3 id : SV_DispatchThreadID)
+{
+	float4 rtn = WaterMap[id.xy];
+	float hfs = HighFrequencySuppression(id.xy);
+	rtn.b += hfs;
+	rtn.a += hfs;
+	WaterMap[id.xy] = rtn;
+	WaterHeightMap[id.xy] = float4(rtn.a, rtn.a, rtn.a, rtn.a);
 }
 
 [numthreads(8, 8, 1)]

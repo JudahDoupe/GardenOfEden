@@ -112,6 +112,10 @@ public class ComputeShaderService : MonoBehaviour
         WaterShader.SetTexture(updateKernel, "Test", Input);
         var rainKernel = WaterShader.FindKernel("Rain");
         WaterShader.SetTexture(rainKernel, "WaterMap", WaterMap);
+        var hfsKernel = WaterShader.FindKernel("SuppressHighFrequencies");
+        WaterShader.SetTexture(hfsKernel, "WaterMap", WaterMap);
+        WaterShader.SetTexture(hfsKernel, "WaterHeightMap", WaterHeightMap);
+        WaterShader.SetTexture(hfsKernel, "TerrainHeightMap", HeightMap);
     }
 
     void FixedUpdate()
@@ -133,9 +137,12 @@ public class ComputeShaderService : MonoBehaviour
 
     public void UpdateWaterTable()
     {
-        int kernelId = WaterShader.FindKernel("Update");
-        WaterShader.Dispatch(kernelId, 512 / 8, 512 / 8, 1);
+        int updateKernel = WaterShader.FindKernel("Update");
+        WaterShader.Dispatch(updateKernel, 512 / 8, 512 / 8, 1);
         Graphics.CopyTexture(Output, WaterMap);
+
+        var hfsKernel = WaterShader.FindKernel("SuppressHighFrequencies");
+        WaterShader.Dispatch(hfsKernel, 512 / 8, 512 / 8, 1);
     }
 
     public void Rain()
