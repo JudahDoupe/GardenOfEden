@@ -7,6 +7,7 @@ public class ComputeShaderService : MonoBehaviour
     [Header("Render Textures")]
     public RenderTexture HeightMap;
     public RenderTexture WaterMap;
+    public RenderTexture WaterSourceMap;
     public RenderTexture WaterHeightMap;
     public RenderTexture RootMap;
     public RenderTexture Output;
@@ -95,7 +96,7 @@ public class ComputeShaderService : MonoBehaviour
         WaterMap.Release();
         WaterMap.enableRandomWrite = true;
         WaterMap.Create();
-
+        
         WaterHeightMap.Release();
         WaterHeightMap.enableRandomWrite = true;
         WaterHeightMap.Create();
@@ -107,6 +108,7 @@ public class ComputeShaderService : MonoBehaviour
         var updateKernel = WaterShader.FindKernel("Update");
         WaterShader.SetTexture(updateKernel, "TerrainHeightMap", HeightMap);
         WaterShader.SetTexture(updateKernel, "WaterMap", WaterMap);
+        WaterShader.SetTexture(updateKernel, "WaterSourceMap", WaterSourceMap);
         WaterShader.SetTexture(updateKernel, "WaterHeightMap", WaterHeightMap);
         WaterShader.SetTexture(updateKernel, "Result", Output);
         WaterShader.SetTexture(updateKernel, "Test", Input);
@@ -114,6 +116,7 @@ public class ComputeShaderService : MonoBehaviour
         WaterShader.SetTexture(rainKernel, "WaterMap", WaterMap);
         var hfsKernel = WaterShader.FindKernel("SuppressHighFrequencies");
         WaterShader.SetTexture(hfsKernel, "WaterMap", WaterMap);
+        WaterShader.SetTexture(hfsKernel, "WaterSourceMap", WaterSourceMap);
         WaterShader.SetTexture(hfsKernel, "WaterHeightMap", WaterHeightMap);
         WaterShader.SetTexture(hfsKernel, "TerrainHeightMap", HeightMap);
     }

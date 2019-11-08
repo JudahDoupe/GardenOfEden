@@ -3,6 +3,7 @@
 #pragma kernel SuppressHighFrequencies
 
 Texture2D<float4> TerrainHeightMap;
+Texture2D<float4> WaterSourceMap;
 RWTexture2D<float4> WaterHeightMap;
 RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
@@ -26,6 +27,12 @@ float GetTerrainHeight(int2 xy)
 {
 	uint2 pos = clamp(xy, 0, 511);
 	return TerrainHeightMap[pos].r * MaxHeight;
+}
+float GetWaterSouceDepth(int2 xy)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	float height = WaterSourceMap[pos].r * MaxHeight;
+	return clamp(height - GetTerrainHeight(xy), 0, MaxHeight);
 }
 float GetHeight(int2 xy)
 {
@@ -121,7 +128,8 @@ float GetNewDepth(int2 xy)
 	float terrainHeight = GetTerrainHeight(xy);
     int isOnTerrain = terrainHeight > 0;
 	float newDepth = GetDepth(xy) + GetChangeInDepth(xy);
-	return clamp(newDepth * isOnTerrain, 0, MaxHeight - terrainHeight);
+	float clampedDepth = clamp(newDepth * isOnTerrain, GetWaterSouceDepth(xy), MaxHeight - terrainHeight);
+	return clampedDepth;
 }
 
 // High Frequency Suppression
