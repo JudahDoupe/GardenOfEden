@@ -4,7 +4,6 @@
 
 Texture2D<float4> TerrainHeightMap;
 Texture2D<float4> WaterSourceMap;
-RWTexture2D<float4> WaterHeightMap;
 RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
 
@@ -170,7 +169,6 @@ void Update (uint3 id : SV_DispatchThreadID)
     float2 velocity = GetNewVelocity(id.xy);
 
     Result[id.xy] = float4(velocity, depth, height);
-	WaterHeightMap[id.xy] = float4(height, height, height, height);
 }
 
 [numthreads(8, 8, 1)]
@@ -181,7 +179,6 @@ void SuppressHighFrequencies(uint3 id : SV_DispatchThreadID)
 	rtn.b += hfs;
 	rtn.a += hfs;
 	WaterMap[id.xy] = rtn;
-	WaterHeightMap[id.xy] = float4(rtn.a, rtn.a, rtn.a, rtn.a);
 }
 
 [numthreads(8, 8, 1)]
