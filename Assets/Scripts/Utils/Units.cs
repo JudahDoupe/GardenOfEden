@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public readonly struct UnitsOfWater
+﻿public readonly struct UnitsOfWater
 {
     private readonly float _liters;
 
@@ -12,13 +7,10 @@ public readonly struct UnitsOfWater
         _liters = liters;
     }
 
-    public static UnitsOfWater FromPixel(float pixelDepth_0to1)
+    public static UnitsOfWater FromPixel(float depth)
     {
-        var textureWidthInMeters = 400f;
-        var textureDepthInMeters = 150f;
-        var textureWidthInPixels = 512f;
-        var metersPerPixel = textureWidthInMeters / textureWidthInPixels;
-        var cubicMeters = metersPerPixel * metersPerPixel * (textureDepthInMeters * pixelDepth_0to1);
+        var metersPerPixel = ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
+        var cubicMeters = metersPerPixel * metersPerPixel * depth;
         return  new UnitsOfWater(cubicMeters/1000f);
     }
     public static UnitsOfWater FromLiters(float liters)

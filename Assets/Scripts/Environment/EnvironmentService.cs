@@ -22,17 +22,12 @@ public class EnvironmentService : MonoBehaviour
 
     public static UnitsOfWater SampleWater(Vector3 location)
     {
-        var waterMap = _computeShaderService.WaterMap.ToTexture2D();
-        var uv = _computeShaderService.LocationToUv(location);
-        var color = waterMap.GetPixelBilinear(uv.x, uv.y);
-        var waterDepth = color.r + color.g + color.b; //This should really be a measurement of the water height relative to the terrain height
-
-        return UnitsOfWater.FromPixel(waterDepth);
+        return _waterShaderService.SampleWater(location);
     }
     public static UnitsOfWater AbsorbWater(Texture2D rootMap, Vector3 location, float deltaTimeInDays)
     {
-        var waterMap = _computeShaderService.AbsorbWater(rootMap, deltaTimeInDays / 10);
-        var xy = _computeShaderService.LocationToXy(location);
+        var waterMap = _waterShaderService.AbsorbWater(rootMap, deltaTimeInDays / 10);
+        var xy = ComputeShaderUtils.LocationToXy(location);
         var summedWaterDepth = waterMap.GetPixels(Mathf.FloorToInt(xy.x - 15), Mathf.FloorToInt(xy.y - 15), 30, 30)
             .Sum(color => color.r + color.g + color.b);
         return UnitsOfWater.FromPixel(summedWaterDepth);
@@ -67,6 +62,7 @@ public class EnvironmentService : MonoBehaviour
 
     public static EnvironmentService Instance;
     private static ComputeShaderService _computeShaderService;
+    private static WaterService _waterShaderService;
     private Dictionary<VoxelCoord, Voxel> _voxels;
 
     private float _date;
@@ -75,6 +71,7 @@ public class EnvironmentService : MonoBehaviour
     {
         Instance = this;
         _computeShaderService = GetComponent<ComputeShaderService>();
+        _waterShaderService = GetComponent<WaterService>();
         _voxels = new Dictionary<VoxelCoord, Voxel>();
         _date = 0;
     }
