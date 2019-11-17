@@ -17,6 +17,8 @@ public class WaterService : MonoBehaviour
     public ComputeShader WaterShader;
     public ComputeShader SubtractShader;
 
+    /* Pubically Accessable Methods */
+
     public Texture2D AbsorbWater(Texture2D rootMap, float multiplier)
     {
         if (rootMap == null)
@@ -56,7 +58,10 @@ public class WaterService : MonoBehaviour
     {
         ComputeShaderUtils.ResetTexture(Input);
         ComputeShaderUtils.ResetTexture(Output);
-        if (ResetWaterOnStart) ComputeShaderUtils.ResetTexture(WaterMap);
+        if (ResetWaterOnStart)
+        {
+            ComputeShaderUtils.ResetTexture(WaterMap);
+        }
 
         var updateKernel = WaterShader.FindKernel("Update");
         WaterShader.SetTexture(updateKernel, "TerrainHeightMap", TerrainHeightMap);

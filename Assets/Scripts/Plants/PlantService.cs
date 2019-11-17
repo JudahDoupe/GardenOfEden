@@ -36,7 +36,7 @@ public class PlantService : MonoBehaviour
     /* INNER MECHINATIONS */
 
     public static PlantService Instance;
-    private static ComputeShaderService _computeShaderService;
+    private static SoilService _soilService;
 
     private readonly Queue<Tuple<PlantDNA, Vector3>> _seedQueue = new Queue<Tuple<PlantDNA, Vector3>>();
     private bool _isSeedQueueBeingProcessed;
@@ -47,7 +47,7 @@ public class PlantService : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        _computeShaderService = GetComponent<ComputeShaderService>();
+        _soilService = GetComponent<SoilService>();
     }
 
     void Update()
@@ -157,7 +157,7 @@ public class PlantService : MonoBehaviour
             var plant = _plantUpdateQueue.Dequeue();
             var growthInDays = EnvironmentService.GetDate() - plant.LastUpdatedDate;
             plant.Grow(growthInDays);
-            plant.RootMap = _computeShaderService.SpreadRoots(plant.RootMap, plant.transform.position, plant.DNA.RootRadius, growthInDays);
+            plant.RootMap = _soilService.SpreadRoots(plant.RootMap, plant.transform.position, plant.DNA.RootRadius, growthInDays);
             plant.StoredWater += EnvironmentService.AbsorbWater(plant.RootMap, plant.transform.position, growthInDays);
             _plantUpdateQueue.Enqueue(plant);
         }

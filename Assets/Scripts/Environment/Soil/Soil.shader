@@ -2,10 +2,11 @@
 {
     Properties
     {
-        _Color ("Color", Color) = (1,1,1,1)
-        _MainTex ("Albedo (RGB)", 2D) = "white" {}
+		H("Hue", Range(0.0, 1.0)) = 0
+        _SoilMap ("Soil Map", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
+		_CameraPosition("CameraPosition", Vector) = (.0, .0, .0)
     }
     SubShader
     {
@@ -13,39 +14,64 @@
         LOD 200
 
         CGPROGRAM
-        // Physically based Standard lighting model, and enable shadows on all light types
-        #pragma surface surf Standard fullforwardshadows
-
-        // Use shader model 3.0 target, to get nicer looking lighting
+        #pragma surface surf Standard fullforwardshadows vertex:vert
         #pragma target 3.0
 
-        sampler2D _MainTex;
+		sampler2D_float _SoilMap;
 
+		struct appdata 
+		{
+			float4 vertex : POSITION;
+			float3 normal : NORMAL;
+			float2 worldPos : TEXCOORD0;
+		};
         struct Input
         {
-            float2 uv_MainTex;
+			float3 worldPos : TEXCOORD0;
         };
 
         half _Glossiness;
         half _Metallic;
-        fixed4 _Color;
+		float3 _CameraPosition;
 
-        // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
-        // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
-        // #pragma instancing_options assumeuniformscaling
-        UNITY_INSTANCING_BUFFER_START(Props)
-            // put more per-instance properties here
-        UNITY_INSTANCING_BUFFER_END(Props)
+		float H;
 
-        void surf (Input IN, inout SurfaceOutputStandard o)
+
+		float3 HUEtoRGB(in float H)
+		{
+			float R = abs(H * 6 - 3) - 1;
+			float G = 2 - abs(H * 6 - 2);
+			float B = 2 - abs(H * 6 - 4);
+			return saturate(float3(R, G, B));
+		}
+		float3 HSLtoRGB(in float3 HSL)
+		{
+			float3 RGB = HUEtoRGB(HSL.x);
+			float C = (1 - abs(2 * HSL.z - 1)) * HSL.y;
+			return (RGB - 0.5) * C + HSL.z;
+		}
+
+		Input vert(inout appdata v)
+		{
+			Input o;
+			o.worldPos = mul(unity_ObjectToWorld, v.vertex);
+			return o;
+		}
+
+        void surf (Input i, inout SurfaceOutputStandard o)
         {
-            // Albedo comes from a texture tinted by color
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-            o.Albedo = c.rgb;
-            // Metallic and smoothness come from slider variables
+			float2 relativePosition = i.worldPos.xz - _CameraPosition.xz;
+			float2 uv = relativePosition / 200;
+			float2 normUv = (uv + 1) / 2;
+			uint2 xy = floor(normUv * 512) % 511;
+
+			float soilDepth = tex2Dlod(_SoilMap, float4(normUv.x, normUv.y, 0, 0)).r;
+			float S = clamp(soilDepth / 10, 0.25, 1);
+
+            o.Albedo = HSLtoRGB(float3(H, S, 0.5));
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
-            o.Alpha = c.a;
+            o.Alpha = 255;
         }
         ENDCG
     }

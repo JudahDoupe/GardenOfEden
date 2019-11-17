@@ -1,0 +1,61 @@
+﻿#pragma kernel SpreadRoots
+#pragma kernel UpdateSoilDepth
+
+float4 RootData;
+
+Texture2D<float4> BedrockHeightMap;
+Texture2D<float4> SoilHeightMap;
+RWTexture2D<float4> SoilMap;
+RWTexture2D<float4> RootGrowth;
+
+static float MaxHeight = 200.0f; 
+static float WidthInMeters = 400.0f;
+static float WidthInPixels = 512.0f;
+
+float GetBedrockHeight(int2 xy)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	return BedrockHeightMap[pos].r * MaxHeight;
+}
+float GetSoilHeight(int2 xy)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	return SoilHeightMap[pos].r * MaxHeight;
+}
+float GetSoilDepth(int2 xy)
+{
+	float diff = GetSoilHeight(xy) - GetBedrockHeight(xy);
+	return clamp(diff, 0, MaxHeight);
+}
+float GetRootDepth(int2 xy)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	return SoilMap[pos].g;
+}
+
+[numthreads(8,8,1)]
+void SpreadRoots(uint3 id : SV_DispatchThreadID)
+{
+	float2 uv = RootData.xy;
+	float2 xy = uv * WidthInPixels;
+	float dist = distance(id.xy, xy);
+	float radius = RootData.z;
+	float depth = RootData.a; 
+	float soilDepth = GetSoilDepth(id.xy);
+	float growth = smoothstep(radius, 0, dist) * depth;
+	growth = clamp(growth, 0, soilDepth);
+
+	float oldRootDepth = GetRootDepth(id.xy);
+	float rootDepth = oldRootDepth + growth;
+	
+	SoilMap[id.xy] = float4(soilDepth, rootDepth, 0, 0);
+	RootGrowth[id.xy] += rootDepth - oldRootDepth;
+}
+
+[numthreads(8, 8, 1)]
+void UpdateSoilDepth(uint3 id : SV_DispatchThreadID)
+{
+	float4 soilMap = SoilMap[id.xy];
+	soilMap.r = GetSoilDepth(id.xy);
+	SoilMap[id.xy] = soilMap;
+}

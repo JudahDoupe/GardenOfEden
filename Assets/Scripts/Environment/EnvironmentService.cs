@@ -61,7 +61,7 @@ public class EnvironmentService : MonoBehaviour
     /* INNER MECHINATIONS */
 
     public static EnvironmentService Instance;
-    private static ComputeShaderService _computeShaderService;
+    private static SoilService _soilService;
     private static WaterService _waterShaderService;
     private Dictionary<VoxelCoord, Voxel> _voxels;
 
@@ -70,7 +70,7 @@ public class EnvironmentService : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        _computeShaderService = GetComponent<ComputeShaderService>();
+        _soilService = GetComponent<SoilService>();
         _waterShaderService = GetComponent<WaterService>();
         _voxels = new Dictionary<VoxelCoord, Voxel>();
         _date = 0;
