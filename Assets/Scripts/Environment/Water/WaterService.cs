@@ -2,9 +2,6 @@
 
 public class WaterService : MonoBehaviour
 {
-    [Header("Debug")]
-    public bool ResetWaterOnStart;
-
     [Header("Render Textures")]
     public RenderTexture Input;
     public RenderTexture Output;
@@ -58,10 +55,7 @@ public class WaterService : MonoBehaviour
     {
         ComputeShaderUtils.ResetTexture(Input);
         ComputeShaderUtils.ResetTexture(Output);
-        if (ResetWaterOnStart)
-        {
-            ComputeShaderUtils.ResetTexture(WaterMap);
-        }
+        ComputeShaderUtils.ResetTexture(WaterMap);
 
         var updateKernel = WaterShader.FindKernel("Update");
         WaterShader.SetTexture(updateKernel, "TerrainHeightMap", TerrainHeightMap);

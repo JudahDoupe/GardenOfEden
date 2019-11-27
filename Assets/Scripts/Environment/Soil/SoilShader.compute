@@ -1,16 +1,18 @@
 ﻿#pragma kernel SpreadRoots
-#pragma kernel UpdateSoilDepth
+#pragma kernel UpdateSoil
 
 float4 RootData;
 
 Texture2D<float4> BedrockHeightMap;
 Texture2D<float4> SoilHeightMap;
 RWTexture2D<float4> SoilMap;
+RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> RootGrowth;
 
 static float MaxHeight = 200.0f; 
 static float WidthInMeters = 400.0f;
 static float WidthInPixels = 512.0f;
+static float WaterAbsorbsionRate = 0.05f;
 
 float GetBedrockHeight(int2 xy)
 {
@@ -31,6 +33,21 @@ float GetRootDepth(int2 xy)
 {
 	uint2 pos = clamp(xy, 0, 511);
 	return SoilMap[pos].g;
+}
+float GetWaterDepth(int2 xy)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	return SoilMap[pos].b;
+}
+float AbsorbWater(int2 xy, float amount)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	float availableWater = min(WaterMap[pos].b, WaterAbsorbsionRate);
+	float absorbedWater = min(amount, availableWater);
+	
+	WaterMap[pos] = float4(WaterMap[pos].r, WaterMap[pos].g, WaterMap[pos].b - absorbedWater, WaterMap[pos].a - absorbedWater);
+	
+	return absorbedWater;
 }
 
 [numthreads(8,8,1)]
@@ -53,9 +70,14 @@ void SpreadRoots(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(8, 8, 1)]
-void UpdateSoilDepth(uint3 id : SV_DispatchThreadID)
+void UpdateSoil(uint3 id : SV_DispatchThreadID)
 {
-	float4 soilMap = SoilMap[id.xy];
-	soilMap.r = GetSoilDepth(id.xy);
-	SoilMap[id.xy] = soilMap;
+	float soilDepth = GetSoilDepth(id.xy);
+	float rootDepth = GetRootDepth(id.xy);
+	float waterDepth = GetWaterDepth(id.xy);
+
+	float requestedWater = clamp(soilDepth - waterDepth, 0, WaterAbsorbsionRate);
+	waterDepth += AbsorbWater(id.xy, requestedWater);
+
+	SoilMap[id.xy] = float4(soilDepth, rootDepth, waterDepth, 0);
 }

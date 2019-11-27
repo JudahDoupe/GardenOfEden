@@ -65,10 +65,14 @@
 			float2 normUv = (uv + 1) / 2;
 			uint2 xy = floor(normUv * 512) % 511;
 
-			float soilDepth = tex2Dlod(_SoilMap, float4(normUv.x, normUv.y, 0, 0)).r;
-			float S = clamp(soilDepth / 10, 0.25, 1);
+			float4 soil = tex2Dlod(_SoilMap, float4(normUv.x, normUv.y, 0, 0));
+			float soilDepth = soil.r;
+			float waterDepth = soil.b;
 
-            o.Albedo = HSLtoRGB(float3(H, S, 0.5));
+			float S = clamp(soilDepth / 10, 0.25, 0.75);
+			float L = lerp(0.5,0.25, waterDepth / (soilDepth + 0.0000000001));
+
+            o.Albedo = HSLtoRGB(float3(H, S, L));
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
             o.Alpha = 255;
