@@ -8,6 +8,7 @@ public class SoilService : MonoBehaviour
     public RenderTexture SoilMap;
     public RenderTexture WaterMap;
     public RenderTexture RootGrowth;
+    public RenderTexture SoilOutput;
 
     [Header("Compute Shaders")]
     public ComputeShader SoilShader;
@@ -15,6 +16,7 @@ public class SoilService : MonoBehaviour
 
     /* Pubically Accessable Methods */
 
+    //TODO: Move this into the Soil Service
     public Texture2D SpreadRoots(Texture2D currentRoots, Vector3 location, float radius, float depth)
     {
         if (currentRoots != null)
@@ -35,6 +37,7 @@ public class SoilService : MonoBehaviour
     {
         ComputeShaderUtils.ResetTexture(SoilMap);
         ComputeShaderUtils.ResetTexture(RootGrowth);
+        ComputeShaderUtils.ResetTexture(SoilOutput);
 
         int kernelId = SoilShader.FindKernel("SpreadRoots");
         SoilShader.SetTexture(kernelId, "SoilMap", SoilMap);
@@ -47,11 +50,13 @@ public class SoilService : MonoBehaviour
         SoilShader.SetTexture(kernelId, "WaterMap", WaterMap);
         SoilShader.SetTexture(kernelId, "BedrockHeightMap", BedrockHeightMap);
         SoilShader.SetTexture(kernelId, "SoilHeightMap", SoilHeightMap);
+        SoilShader.SetTexture(kernelId, "Result", SoilOutput);
     }
 
     void FixedUpdate()
     {
         int kernelId = SoilShader.FindKernel("UpdateSoil");
         SoilShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+        Graphics.CopyTexture(SoilOutput, SoilMap);
     }
 }

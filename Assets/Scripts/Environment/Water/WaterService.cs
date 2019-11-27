@@ -3,12 +3,12 @@
 public class WaterService : MonoBehaviour
 {
     [Header("Render Textures")]
-    public RenderTexture Input;
-    public RenderTexture Output;
 
     public RenderTexture TerrainHeightMap;
     public RenderTexture WaterSourceHeightMap;
     public RenderTexture WaterMap;
+    public RenderTexture WaterOutput;
+    public RenderTexture RootInput;
 
     [Header("Compute Shader")]
     public ComputeShader WaterShader;
@@ -20,17 +20,17 @@ public class WaterService : MonoBehaviour
     {
         if (rootMap == null)
         {
-            ComputeShaderUtils.ResetTexture(Input);
+            ComputeShaderUtils.ResetTexture(RootInput);
         }
         else
         {
-            Graphics.Blit(rootMap, Input);
+            Graphics.Blit(rootMap, RootInput);
         }
 
         int kernelId = SubtractShader.FindKernel("CSMain");
         SubtractShader.SetTexture(kernelId, "Base", WaterMap);
-        SubtractShader.SetTexture(kernelId, "Mask", Input);
-        SubtractShader.SetTexture(kernelId, "Result", Output);
+        SubtractShader.SetTexture(kernelId, "Mask", RootInput);
+        SubtractShader.SetTexture(kernelId, "Result", WaterOutput);
         SubtractShader.SetFloat("Multiplier", multiplier);
         SubtractShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
         return WaterMap.ToTexture2D();
@@ -53,16 +53,15 @@ public class WaterService : MonoBehaviour
 
     void Start()
     {
-        ComputeShaderUtils.ResetTexture(Input);
-        ComputeShaderUtils.ResetTexture(Output);
+        ComputeShaderUtils.ResetTexture(RootInput);
+        ComputeShaderUtils.ResetTexture(WaterOutput);
         ComputeShaderUtils.ResetTexture(WaterMap);
 
         var updateKernel = WaterShader.FindKernel("Update");
         WaterShader.SetTexture(updateKernel, "TerrainHeightMap", TerrainHeightMap);
         WaterShader.SetTexture(updateKernel, "WaterMap", WaterMap);
         WaterShader.SetTexture(updateKernel, "WaterSourceMap", WaterSourceHeightMap);
-        WaterShader.SetTexture(updateKernel, "Result", Output);
-        WaterShader.SetTexture(updateKernel, "Test", Input);
+        WaterShader.SetTexture(updateKernel, "Result", WaterOutput);
 
         var rainKernel = WaterShader.FindKernel("Rain");
         WaterShader.SetTexture(rainKernel, "WaterMap", WaterMap);
@@ -95,7 +94,7 @@ public class WaterService : MonoBehaviour
     {
         int updateKernel = WaterShader.FindKernel("Update");
         WaterShader.Dispatch(updateKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
-        Graphics.CopyTexture(Output, WaterMap);
+        Graphics.CopyTexture(WaterOutput, WaterMap);
 
         var hfsKernel = WaterShader.FindKernel("SuppressHighFrequencies");
         WaterShader.Dispatch(hfsKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);

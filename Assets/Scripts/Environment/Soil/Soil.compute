@@ -8,6 +8,7 @@ Texture2D<float4> SoilHeightMap;
 RWTexture2D<float4> SoilMap;
 RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> RootGrowth;
+RWTexture2D<float4> Result;
 
 static float MaxHeight = 200.0f; 
 static float WidthInMeters = 400.0f;
@@ -39,6 +40,25 @@ float GetWaterDepth(int2 xy)
 	uint2 pos = clamp(xy, 0, 511);
 	return SoilMap[pos].b;
 }
+
+float GetSoakedWaterDepth(int2 xy)
+{
+	float currentWaterDepth = GetWaterDepth(xy);
+	float newWaterDepth = currentWaterDepth * 0.4;
+	int2 offsets[4] = { int2(1, 0), int2(-1, 0), int2(0, 1), int2(0, -1) };
+	
+	for (int i = 0; i < 4; i++) {
+		int2 pos = xy + offsets[i];
+		if (GetSoilDepth(pos) > currentWaterDepth * 0.1) {
+			newWaterDepth += GetWaterDepth(pos) * 0.15;
+		}
+		else {
+			newWaterDepth += GetWaterDepth(xy) * 0.15;
+		}
+	}
+
+	return newWaterDepth;
+}
 float AbsorbWater(int2 xy, float amount)
 {
 	uint2 pos = clamp(xy, 0, 511);
@@ -48,6 +68,12 @@ float AbsorbWater(int2 xy, float amount)
 	WaterMap[pos] = float4(WaterMap[pos].r, WaterMap[pos].g, WaterMap[pos].b - absorbedWater, WaterMap[pos].a - absorbedWater);
 	
 	return absorbedWater;
+}
+float ExpelWater(int2 xy, float amount)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	WaterMap[pos] = float4(WaterMap[pos].r, WaterMap[pos].g, WaterMap[pos].b + amount, WaterMap[pos].a + amount);
+	return amount;
 }
 
 [numthreads(8,8,1)]
@@ -74,10 +100,12 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
 {
 	float soilDepth = GetSoilDepth(id.xy);
 	float rootDepth = GetRootDepth(id.xy);
-	float waterDepth = GetWaterDepth(id.xy);
+	float waterDepth = GetSoakedWaterDepth(id.xy);
 
+	float excessWater = max(waterDepth - soilDepth, 0);
+	waterDepth -= ExpelWater(id.xy, excessWater);
 	float requestedWater = clamp(soilDepth - waterDepth, 0, WaterAbsorbsionRate);
 	waterDepth += AbsorbWater(id.xy, requestedWater);
 
-	SoilMap[id.xy] = float4(soilDepth, rootDepth, waterDepth, 0);
+	Result[id.xy] = float4(soilDepth, rootDepth, waterDepth, 0);
 }
