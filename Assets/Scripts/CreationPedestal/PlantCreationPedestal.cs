@@ -73,8 +73,10 @@ public class PlantCreationPedestal : Interactable
     }
     public void UpdateCamera()
     {
+
+
         _cameraTarget.Translate(0, Input.GetAxis("Vertical") * CameraMoveSpeed.y, 0);
-        _cameraTarget.position = _cameraTarget.position.Clamp(new Vector3(0, InteractionPosition().y, 0), new Vector3(0, InteractionPosition().y + 3, 0));
+        _cameraTarget.position = _cameraTarget.position.Clamp(InteractionPosition(), InteractionPosition() + new Vector3(0,3,0));
 
         _cameraOffset += new Vector3(0, 0, Input.mouseScrollDelta.y * CameraMoveSpeed.z);
         _cameraOffset = _cameraOffset.Clamp(new Vector3(0,0,-15), new Vector3(0,25,-2.5f));

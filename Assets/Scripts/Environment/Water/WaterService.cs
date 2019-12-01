@@ -12,39 +12,17 @@ public class WaterService : MonoBehaviour
     public RenderTexture WaterSourceHeightMap;
     public RenderTexture WaterMap;
     public RenderTexture WaterOutput;
-    public RenderTexture RootInput;
 
     [Header("Compute Shader")]
     public ComputeShader WaterShader;
-    public ComputeShader SubtractShader;
 
     /* Pubically Accessable Methods */
 
-    public Texture2D AbsorbWater(Texture2D rootMap, float multiplier)
-    {
-        if (rootMap == null)
-        {
-            ComputeShaderUtils.ResetTexture(RootInput);
-        }
-        else
-        {
-            Graphics.Blit(rootMap, RootInput);
-        }
-
-        int kernelId = SubtractShader.FindKernel("CSMain");
-        SubtractShader.SetTexture(kernelId, "Base", WaterMap);
-        SubtractShader.SetTexture(kernelId, "Mask", RootInput);
-        SubtractShader.SetTexture(kernelId, "Result", WaterOutput);
-        SubtractShader.SetFloat("Multiplier", multiplier);
-        SubtractShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
-        return WaterMap.ToTexture2D();
-    }
-
-    public UnitsOfWater SampleWater(Vector3 location)
+    public float SampleWaterDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
         var color = WaterMap.ToTexture2D().GetPixelBilinear(uv.x, uv.y);
-        return UnitsOfWater.FromPixel(color.b);
+        return color.b;
     }
 
     public void Rain(float meters)
@@ -58,7 +36,6 @@ public class WaterService : MonoBehaviour
 
     void Start()
     {
-        ComputeShaderUtils.ResetTexture(RootInput);
         ComputeShaderUtils.ResetTexture(WaterOutput);
         ComputeShaderUtils.ResetTexture(WaterMap);
 

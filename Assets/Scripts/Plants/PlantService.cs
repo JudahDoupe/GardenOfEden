@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class PlantService : MonoBehaviour
 {
@@ -85,8 +84,8 @@ public class PlantService : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, 50))
         {
             var result = Physics.OverlapSphere(hit.point, dna.RootRadius);
-            var waterAmount = EnvironmentService.SampleWater(hit.point);
-            if (EnvironmentService.SampleSoil(hit.point) > 0)
+            var waterDepth = EnvironmentService.SampleWaterDepth(hit.point);
+            if (EnvironmentService.SampleSoilDepth(hit.point) > 0)
             {
                 if (Instance.LogReproductionFailures)
                 {
@@ -100,11 +99,11 @@ public class PlantService : MonoBehaviour
                     Debug.Log($"There was not enough root space to plant {dna.Name ?? "your plant"}.");
                 }
             }
-            else if (waterAmount < UnitsOfWater.FromLiters(1))
+            else if (waterDepth < 0.1f)
             {
                 if (Instance.LogReproductionFailures)
                 {
-                    Debug.Log($"There was not enough water to plant {dna.Name ?? "your plant"}. Found {waterAmount}; At least 0.25 is needed.");
+                    Debug.Log($"The water was not deep enough to plant {dna.Name ?? "your plant"}. Found {waterDepth}; At least 0.1 is needed.");
                 }
             }
             else
