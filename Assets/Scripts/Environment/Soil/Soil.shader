@@ -69,7 +69,7 @@
 			float soilDepth = soil.r;
 			float waterDepth = soil.b;
 
-			float S = clamp(soilDepth / 10, 0.25, 0.75);
+			float S = lerp(0.25, 0.75, soilDepth / 15);
 			float L = lerp(0.5,0.25, waterDepth / (soilDepth + 0.0000000001));
 
             o.Albedo = HSLtoRGB(float3(H, S, L));

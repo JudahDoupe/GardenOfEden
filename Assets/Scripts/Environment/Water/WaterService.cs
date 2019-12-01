@@ -2,6 +2,10 @@
 
 public class WaterService : MonoBehaviour
 {
+    [Header("Variables")]
+    public float Rain_MetersPerSecond = 0.1f;
+
+
     [Header("Render Textures")]
 
     public RenderTexture TerrainHeightMap;
@@ -43,9 +47,10 @@ public class WaterService : MonoBehaviour
         return UnitsOfWater.FromPixel(color.b);
     }
 
-    public void Rain(float meters) //TODO: wire this up
+    public void Rain(float meters)
     {
         int kernelId = WaterShader.FindKernel("Rain");
+        WaterShader.SetFloat("RainDepthInMeters", meters);
         WaterShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
     }
 
@@ -75,15 +80,15 @@ public class WaterService : MonoBehaviour
     void FixedUpdate()
     {
         UpdateWaterTable();
+
+        if (Input.GetKey(KeyCode.R))
+        {
+            Rain(Rain_MetersPerSecond / 60.0f);
+        }
     }
 
     void Update()
     {
-        if (UnityEngine.Input.GetKeyDown(KeyCode.R))
-        {
-            Rain(0.25f);
-        }
-
         if (UnityEngine.Input.GetKeyDown(KeyCode.U))
         {
             ComputeShaderUtils.ResetTexture(WaterMap);

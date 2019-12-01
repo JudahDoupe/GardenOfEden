@@ -175,17 +175,20 @@ void Update (uint3 id : SV_DispatchThreadID)
 void SuppressHighFrequencies(uint3 id : SV_DispatchThreadID)
 {
 	//This does not conserve mass :(
-	float4 rtn = WaterMap[id.xy];
+	float4 rtn = WaterMap[id.xy]; 
 	float hfs = HighFrequencySuppression(id.xy);
 	rtn.b += hfs;
 	rtn.a += hfs;
 	WaterMap[id.xy] = rtn;
 }
 
+
+float RainDepthInMeters;
+
 [numthreads(8, 8, 1)]
 void Rain (uint3 id : SV_DispatchThreadID)
 {
 	float4 s = WaterMap[id.xy];
-	s.b += 1.0f;
+	s.b += RainDepthInMeters;
 	WaterMap[id.xy] = s;
 }
