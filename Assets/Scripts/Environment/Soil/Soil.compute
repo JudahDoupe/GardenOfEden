@@ -82,17 +82,18 @@ void SpreadRoots(uint3 id : SV_DispatchThreadID)
 	float2 uv = RootData.xy;
 	float2 xy = uv * WidthInPixels;
 	float dist = distance(id.xy, xy);
-	float radius = RootData.z;
-	float depth = RootData.a; 
+	float roorRadius = RootData.z;
+	float rootDepth = RootData.a; 
 	float soilDepth = GetSoilDepth(id.xy);
-	float growth = smoothstep(radius, 0, dist) * depth;
-	growth = clamp(growth, 0, soilDepth);
+	float waterDepth = GetWaterDepth(id.xy);
 
 	float oldRootDepth = GetRootDepth(id.xy);
-	float rootDepth = oldRootDepth + growth;
+	float desiredGrowth = smoothstep(roorRadius, 0, dist) * rootDepth;
+	float actualgrowth = clamp(desiredGrowth, 0, soilDepth - oldRootDepth);
+	float newRootDepth = oldRootDepth + actualgrowth;
 	
-	SoilMap[id.xy] = float4(soilDepth, rootDepth, 0, 0);
-	RootGrowth[id.xy] += rootDepth - oldRootDepth;
+	SoilMap[id.xy] = float4(soilDepth, newRootDepth, waterDepth, 0);
+	RootGrowth[id.xy] += actualgrowth;
 }
 
 [numthreads(8, 8, 1)]

@@ -2,7 +2,8 @@
 {
     Properties
     {
-		H("Hue", Range(0.0, 1.0)) = 0
+		_DeadSoilHue("Dead Soil Hue", Range(0.0, 1.0)) = 0.115
+		_LiveSoilHue("Live Soil Hue", Range(0.0, 1.0)) = 0.325
         _SoilMap ("Soil Map", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
@@ -34,7 +35,8 @@
         half _Metallic;
 		float3 _CameraPosition;
 
-		float H;
+		float _DeadSoilHue;
+		float _LiveSoilHue;
 
 
 		float3 HUEtoRGB(in float H)
@@ -67,12 +69,14 @@
 
 			float4 soil = tex2Dlod(_SoilMap, float4(normUv.x, normUv.y, 0, 0));
 			float soilDepth = soil.r;
+			float rootDepth = soil.g;
 			float waterDepth = soil.b;
 
+			float h = lerp(_DeadSoilHue, _LiveSoilHue, rootDepth / soilDepth);
 			float S = lerp(0.25, 0.75, soilDepth / 15);
 			float L = lerp(0.5,0.25, waterDepth / (soilDepth + 0.0000000001));
 
-            o.Albedo = HSLtoRGB(float3(H, S, L));
+            o.Albedo = HSLtoRGB(float3(h, S, L));
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
             o.Alpha = 255;

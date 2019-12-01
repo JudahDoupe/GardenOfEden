@@ -35,7 +35,6 @@ public class PlantService : MonoBehaviour
     /* INNER MECHINATIONS */
 
     public static PlantService Instance;
-    private static SoilService _soilService;
 
     private readonly Queue<Tuple<PlantDNA, Vector3>> _seedQueue = new Queue<Tuple<PlantDNA, Vector3>>();
     private bool _isSeedQueueBeingProcessed;
@@ -46,7 +45,6 @@ public class PlantService : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        _soilService = GetComponent<SoilService>();
     }
 
     void Update()
@@ -62,6 +60,21 @@ public class PlantService : MonoBehaviour
         }
     }
 
+    private IEnumerator ProcessPlantUpdateQueue()
+    {
+        _isPlantUpdateQueueBeingProcessed = true;
+        while (_plantUpdateQueue.Any())
+        {
+            yield return new WaitForSeconds(0.1f);
+            var plant = _plantUpdateQueue.Dequeue();
+            var growthInDays = EnvironmentAdapter.GetDate() - plant.LastUpdatedDate;
+            plant.Grow(growthInDays);
+            plant.RootMap = EnvironmentAdapter.SpreadRoots(plant.RootMap, plant.transform.position, plant.DNA.RootRadius, growthInDays);
+            plant.StoredWater += EnvironmentAdapter.AbsorbWater(plant.RootMap, plant.transform.position, growthInDays);
+            _plantUpdateQueue.Enqueue(plant);
+        }
+        _isPlantUpdateQueueBeingProcessed = false;
+    }
     private IEnumerator ProcessSeedQueue()
     {
         _isSeedQueueBeingProcessed = true;
@@ -77,6 +90,7 @@ public class PlantService : MonoBehaviour
         }
         _isSeedQueueBeingProcessed = false;
     }
+
     private Vector3? GetPlantableLocation(PlantDNA dna, Vector3 worldPosition)
     {
         var ray = new Ray(worldPosition + Vector3.up * 10, Vector3.down);
@@ -84,27 +98,21 @@ public class PlantService : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, 50))
         {
             var result = Physics.OverlapSphere(hit.point, dna.RootRadius);
-            var waterDepth = EnvironmentService.SampleWaterDepth(hit.point);
-            if (EnvironmentService.SampleSoilDepth(hit.point) > 0)
+            var waterDepth = EnvironmentAdapter.SampleWaterDepth(hit.point);
+            var soilDepth = EnvironmentAdapter.SampleSoilDepth(hit.point);
+            var rootDepth = EnvironmentAdapter.SampleRootDepth(hit.point);
+
+            if (soilDepth < 0.05f)
             {
-                if (Instance.LogReproductionFailures)
-                {
-                    Debug.Log($"No Suitable soil was found to plant {dna.Name ?? "your plant"}.");
-                }
+                DebugLackOfReources("soil", dna.Name);
             }
-            else if (result.Any(x => x.gameObject.transform.ParentWithComponent<Plant>() != null))
+            else if (soilDepth - rootDepth  < 0.05f)
             {
-                if (Instance.LogReproductionFailures)
-                {
-                    Debug.Log($"There was not enough root space to plant {dna.Name ?? "your plant"}.");
-                }
+                DebugLackOfReources("root", dna.Name);
             }
             else if (waterDepth < 0.1f)
             {
-                if (Instance.LogReproductionFailures)
-                {
-                    Debug.Log($"The water was not deep enough to plant {dna.Name ?? "your plant"}. Found {waterDepth}; At least 0.1 is needed.");
-                }
+                DebugLackOfReources("water", dna.Name);
             }
             else
             {
@@ -128,13 +136,13 @@ public class PlantService : MonoBehaviour
     }
     private Plant SpawnPlant(PlantDNA dna, Vector3 worldPosition)
     {
-        var plant = new GameObject().AddComponent<Plant>().GetComponent<Plant>();
+        var plant = new GameObject().AddComponent<Plant>();
         plant.transform.position = worldPosition;
         plant.transform.localEulerAngles = new Vector3(-90, UnityEngine.Random.Range(0, 365), 0);
 
         plant.DNA = dna;
         plant.IsAlive = true;
-        plant.PlantedDate = EnvironmentService.GetDate();
+        plant.PlantedDate = EnvironmentAdapter.GetDate();
         plant.LastUpdatedDate = plant.PlantedDate;
 
         plant.Trunk = Structure.Create(plant, dna.Trunk);
@@ -147,19 +155,13 @@ public class PlantService : MonoBehaviour
         return plant;
     }
 
-    private IEnumerator ProcessPlantUpdateQueue()
+    // Helper Methods
+
+    private void DebugLackOfReources(string resource, string plantName)
     {
-        _isPlantUpdateQueueBeingProcessed = true;
-        while (_plantUpdateQueue.Any())
+        if (Instance.LogReproductionFailures)
         {
-            yield return new WaitForSeconds(0.1f);
-            var plant = _plantUpdateQueue.Dequeue();
-            var growthInDays = EnvironmentService.GetDate() - plant.LastUpdatedDate;
-            plant.Grow(growthInDays);
-            plant.RootMap = _soilService.SpreadRoots(plant.RootMap, plant.transform.position, plant.DNA.RootRadius, growthInDays);
-            plant.StoredWater += EnvironmentService.AbsorbWater(plant.RootMap, plant.transform.position, growthInDays);
-            _plantUpdateQueue.Enqueue(plant);
+            Debug.Log($"Not enough {resource} to plant {plantName ?? "your plant"}.");
         }
-        _isPlantUpdateQueueBeingProcessed = false;
     }
 }

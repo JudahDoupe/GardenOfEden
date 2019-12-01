@@ -22,6 +22,13 @@ public class SoilService : MonoBehaviour
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
         var color = SoilMap.ToTexture2D().GetPixelBilinear(uv.x, uv.y);
+        return color.r;
+    }
+
+    public float SampleRootDepth(Vector3 location)
+    {
+        var uv = ComputeShaderUtils.LocationToUv(location);
+        var color = SoilMap.ToTexture2D().GetPixelBilinear(uv.x, uv.y);
         return color.g;
     }
 

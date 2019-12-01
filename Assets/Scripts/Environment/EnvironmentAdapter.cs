@@ -1,29 +1,32 @@
 ﻿using System.Linq;
 using UnityEngine;
 
-public class EnvironmentService : MonoBehaviour
+public class EnvironmentAdapter : MonoBehaviour
 {
     public static float GetDate()
     {
         return Instance._date;
     }
 
-    /*
-    public static float GetLight(Vector3 location)
+
+    public static float SampleLight(Vector3 location)
     {
-
+        return 1;
     }
-    public static float AbsorbLight(Vector3 location, float requestedAmount)
-    {
-
-    }
-    */
-
     public static float SampleWaterDepth(Vector3 location)
     {
         return _waterService.SampleWaterDepth(location) 
                + _soilService.SampleWaterDepth(location);
     }
+    public static float SampleSoilDepth(Vector3 location)
+    {
+        return _soilService.SampleSoilDepth(location);
+    }
+    public static float SampleRootDepth(Vector3 location)
+    {
+        return _soilService.SampleRootDepth(location);
+    }
+
     public static UnitsOfWater AbsorbWater(Texture2D rootMap, Vector3 location, float deltaTimeInDays)
     {
         var waterMap = _soilService.AbsorbWater(rootMap, deltaTimeInDays / 10);
@@ -33,14 +36,14 @@ public class EnvironmentService : MonoBehaviour
         return UnitsOfWater.FromPixel(summedWaterDepth);
     }
 
-    public static float SampleSoilDepth(Vector3 location)
+    public static Texture2D SpreadRoots(Texture2D currentRoots, Vector3 location, float radius, float depth)
     {
-        return _soilService.SampleSoilDepth(location);
+        return _soilService.SpreadRoots(currentRoots, location, radius, depth);
     }
 
     /* INNER MECHINATIONS */
 
-    public static EnvironmentService Instance;
+    public static EnvironmentAdapter Instance;
     private static SoilService _soilService;
     private static WaterService _waterService;
 

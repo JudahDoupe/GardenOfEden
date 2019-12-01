@@ -22,7 +22,7 @@ public class Plant : MonoBehaviour
     {
         if (!IsAlive || _isGrowing) return;
 
-        LastUpdatedDate = EnvironmentService.GetDate();
+        LastUpdatedDate = EnvironmentAdapter.GetDate();
         _reproductionCooldown -= days;
 
         if (_reproductionCooldown < 0)
