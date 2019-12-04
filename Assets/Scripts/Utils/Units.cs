@@ -11,7 +11,7 @@
     {
         var metersPerPixel = ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
         var cubicMeters = metersPerPixel * metersPerPixel * depth;
-        return  new UnitsOfWater(cubicMeters/1000f);
+        return new UnitsOfWater(cubicMeters/1000f);
     }
     public static UnitsOfWater FromLiters(float liters)
     {

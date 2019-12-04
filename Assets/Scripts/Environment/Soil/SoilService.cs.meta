@@ -3,7 +3,14 @@ guid: 5980f06c4c8d90247a2da467f8f514e8
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - BedrockHeightMap: {fileID: 8600000, guid: 6a53416f66fa4ea4599debf9c0bd1646, type: 2}
+  - SoilHeightMap: {fileID: 8600000, guid: ec0e497330065604e8a4faed7eca1192, type: 2}
+  - SoilMap: {fileID: 8600000, guid: c81425690323c0e47be8a8230e97a08f, type: 2}
+  - WaterMap: {fileID: 8600000, guid: 99838628972da224696fe5b851b90a7e, type: 2}
+  - SoilOutput: {fileID: 8600000, guid: b26cc25da08c8544d94440a5926c5c37, type: 2}
+  - SoilShader: {fileID: 7200000, guid: f35ffca30ac7dde4d963737b2726dc17, type: 3}
+  - SubtractShader: {fileID: 7200000, guid: 24a57de22a2e4294aa8b1d98ac66d3b9, type: 3}
   executionOrder: 100
   icon: {instanceID: 0}
   userData: 

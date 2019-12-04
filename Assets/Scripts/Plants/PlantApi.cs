@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class PlantService : MonoBehaviour
+public class PlantApi : MonoBehaviour
 {
     public List<Transform> SpawnLocations;
 
@@ -34,7 +34,8 @@ public class PlantService : MonoBehaviour
 
     /* INNER MECHINATIONS */
 
-    public static PlantService Instance;
+    public static PlantApi Instance;
+    private static RootService _rootService;
 
     private readonly Queue<Tuple<PlantDNA, Vector3>> _seedQueue = new Queue<Tuple<PlantDNA, Vector3>>();
     private bool _isSeedQueueBeingProcessed;
@@ -45,6 +46,7 @@ public class PlantService : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        _rootService = GetComponent<RootService>();
     }
 
     void Update()
@@ -67,10 +69,10 @@ public class PlantService : MonoBehaviour
         {
             yield return new WaitForSeconds(0.1f);
             var plant = _plantUpdateQueue.Dequeue();
-            var growthInDays = EnvironmentAdapter.GetDate() - plant.LastUpdatedDate;
+            var growthInDays = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
             plant.Grow(growthInDays);
-            plant.RootMap = EnvironmentAdapter.SpreadRoots(plant.RootMap, plant.transform.position, plant.DNA.RootRadius, growthInDays);
-            plant.StoredWater += EnvironmentAdapter.AbsorbWater(plant.RootMap, plant.transform.position, growthInDays);
+            _rootService.SpreadRoots(plant, plant.DNA.RootRadius, growthInDays);
+            plant.StoredWater += _rootService.AbsorbWater(plant, growthInDays);
             _plantUpdateQueue.Enqueue(plant);
         }
         _isPlantUpdateQueueBeingProcessed = false;
@@ -98,17 +100,12 @@ public class PlantService : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, 50))
         {
             var result = Physics.OverlapSphere(hit.point, dna.RootRadius);
-            var waterDepth = EnvironmentAdapter.SampleWaterDepth(hit.point);
-            var soilDepth = EnvironmentAdapter.SampleSoilDepth(hit.point);
-            var rootDepth = EnvironmentAdapter.SampleRootDepth(hit.point);
+            var waterDepth = EnvironmentApi.SampleWaterDepth(hit.point);
+            var soilDepth = EnvironmentApi.SampleAvalableSoilDepth(hit.point);
 
             if (soilDepth < 0.05f)
             {
                 DebugLackOfReources("soil", dna.Name);
-            }
-            else if (soilDepth - rootDepth  < 0.05f)
-            {
-                DebugLackOfReources("root", dna.Name);
             }
             else if (waterDepth < 0.1f)
             {
@@ -142,7 +139,7 @@ public class PlantService : MonoBehaviour
 
         plant.DNA = dna;
         plant.IsAlive = true;
-        plant.PlantedDate = EnvironmentAdapter.GetDate();
+        plant.PlantedDate = EnvironmentApi.GetDate();
         plant.LastUpdatedDate = plant.PlantedDate;
 
         plant.Trunk = Structure.Create(plant, dna.Trunk);

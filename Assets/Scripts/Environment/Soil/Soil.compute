@@ -1,13 +1,9 @@
-﻿#pragma kernel SpreadRoots
-#pragma kernel UpdateSoil
-
-float4 RootData;
+﻿#pragma kernel UpdateSoil
 
 Texture2D<float4> BedrockHeightMap;
 Texture2D<float4> SoilHeightMap;
 RWTexture2D<float4> SoilMap;
 RWTexture2D<float4> WaterMap;
-RWTexture2D<float4> RootGrowth;
 RWTexture2D<float4> Result;
 
 static float MaxHeight = 200.0f; 
@@ -29,11 +25,6 @@ float GetSoilDepth(int2 xy)
 {
 	float diff = GetSoilHeight(xy) - GetBedrockHeight(xy);
 	return clamp(diff, 0, MaxHeight);
-}
-float GetRootDepth(int2 xy)
-{
-	uint2 pos = clamp(xy, 0, 511);
-	return SoilMap[pos].g;
 }
 float GetWaterDepth(int2 xy)
 {
@@ -76,31 +67,10 @@ float ExpelWater(int2 xy, float amount)
 	return amount;
 }
 
-[numthreads(8,8,1)]
-void SpreadRoots(uint3 id : SV_DispatchThreadID)
-{
-	float2 uv = RootData.xy;
-	float2 xy = uv * WidthInPixels;
-	float dist = distance(id.xy, xy);
-	float roorRadius = RootData.z;
-	float rootDepth = RootData.a; 
-	float soilDepth = GetSoilDepth(id.xy);
-	float waterDepth = GetWaterDepth(id.xy);
-
-	float oldRootDepth = GetRootDepth(id.xy);
-	float desiredGrowth = smoothstep(roorRadius, 0, dist) * rootDepth;
-	float actualgrowth = clamp(desiredGrowth, 0, soilDepth - oldRootDepth);
-	float newRootDepth = oldRootDepth + actualgrowth;
-	
-	SoilMap[id.xy] = float4(soilDepth, newRootDepth, waterDepth, 0);
-	RootGrowth[id.xy] += actualgrowth;
-}
-
 [numthreads(8, 8, 1)]
 void UpdateSoil(uint3 id : SV_DispatchThreadID)
 {
 	float soilDepth = GetSoilDepth(id.xy);
-	float rootDepth = GetRootDepth(id.xy);
 	float waterDepth = GetSoakedWaterDepth(id.xy);
 
 	float excessWater = max(waterDepth - soilDepth, 0);
@@ -108,5 +78,5 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
 	float requestedWater = clamp(soilDepth - waterDepth, 0, WaterAbsorbsionRate);
 	waterDepth += AbsorbWater(id.xy, requestedWater);
 
-	Result[id.xy] = float4(soilDepth, rootDepth, waterDepth, 0);
+	Result[id.xy] = float4(soilDepth, 0, waterDepth, 0);
 }

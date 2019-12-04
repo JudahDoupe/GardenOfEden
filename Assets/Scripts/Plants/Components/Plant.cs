@@ -14,7 +14,6 @@ public class Plant : MonoBehaviour
     public bool IsAlive;
     public bool IsFullyGrown => Trunk.IsFullyGrown;
     public Structure Trunk;
-    public Texture2D RootMap;
 
     private float _reproductionCooldown = 2;
 
@@ -22,7 +21,7 @@ public class Plant : MonoBehaviour
     {
         if (!IsAlive || _isGrowing) return;
 
-        LastUpdatedDate = EnvironmentAdapter.GetDate();
+        LastUpdatedDate = EnvironmentApi.GetDate();
         _reproductionCooldown -= days;
 
         if (_reproductionCooldown < 0)
@@ -49,7 +48,7 @@ public class Plant : MonoBehaviour
             var randomLocation = Random.insideUnitSphere * rootRadius * 5;
             var worldPosition = transform.position + randomLocation;
 
-            PlantService.TryPlantSeed(DNA, worldPosition);
+            PlantApi.TryPlantSeed(DNA, worldPosition);
         }
     }
 

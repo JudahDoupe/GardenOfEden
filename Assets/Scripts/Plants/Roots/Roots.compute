@@ -1,0 +1,47 @@
+﻿#pragma kernel SpreadRoots
+
+float4 RootData;
+
+RWTexture2D<float4> SoilMap;
+RWTexture2D<float4> RootMap;
+RWTexture2D<float4> IndividualRootMap;
+
+static float MaxHeight = 200.0f; 
+static float WidthInMeters = 400.0f;
+static float WidthInPixels = 512.0f;
+
+float GetSoilDepth(int2 xy)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	return SoilMap[pos].r;
+}
+float GetRootDepth(int2 xy)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	return RootMap[pos].r;
+}
+float GetWaterDepth(int2 xy)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	return SoilMap[pos].b; 
+}
+
+[numthreads(8,8,1)]
+void SpreadRoots(uint3 id : SV_DispatchThreadID)
+{
+	float2 uv = RootData.xy;
+	float2 xy = uv * WidthInPixels;
+	float dist = distance(id.xy, xy);
+	float roorRadius = RootData.z;
+	float rootDepth = RootData.a; 
+	float soilDepth = GetSoilDepth(id.xy);
+	float waterDepth = GetWaterDepth(id.xy);
+
+	float oldRootDepth = GetRootDepth(id.xy);
+	float desiredGrowth = smoothstep(roorRadius, 0, dist) * rootDepth;
+	float actualgrowth = clamp(desiredGrowth, 0, soilDepth - oldRootDepth);
+	float newRootDepth = oldRootDepth + actualgrowth;
+	
+	RootMap[id.xy] = newRootDepth;
+	IndividualRootMap[id.xy] += actualgrowth;
+}

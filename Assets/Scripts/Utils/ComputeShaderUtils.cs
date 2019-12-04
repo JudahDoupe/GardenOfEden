@@ -32,7 +32,7 @@ public static class RenderTextureExtentions
     public static Texture2D ToTexture2D(this RenderTexture rt)
     {
         RenderTexture currentRt = RenderTexture.active;
-        Texture2D rtnTex = new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, TextureFormat.RGBA32, false);
+        Texture2D rtnTex = new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, TextureFormat.RGBAFloat, false);
         RenderTexture.active = rt;
 
         rtnTex.ReadPixels(new Rect(0, 0, ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize), 0, 0);
