@@ -67,7 +67,7 @@ public class PlantApi : MonoBehaviour
         _isPlantUpdateQueueBeingProcessed = true;
         while (_plantUpdateQueue.Any())
         {
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(1f);
             var plant = _plantUpdateQueue.Dequeue();
             var growthInDays = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
             plant.Grow(growthInDays);

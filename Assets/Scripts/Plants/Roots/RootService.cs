@@ -7,8 +7,7 @@ public class RootService : MonoBehaviour
 {
     [Header("Render Textures")]
     public RenderTexture RootMap;
-    public RenderTexture RootInput;
-    public RenderTexture RootOutput;
+    public RenderTexture IndividualRootMap;
     public RenderTexture SoilMap;
     public RenderTexture WaterOutput;
 
@@ -24,11 +23,34 @@ public class RootService : MonoBehaviour
         return color.r;
     }
 
+    public void SpreadRoots(Plant plant, float radius, float depth)
+    {
+        var location = plant.transform.position;
+        var uv = ComputeShaderUtils.LocationToUv(location);
+        int kernelId = RootShader.FindKernel("SpreadRoots");
+        Graphics.Blit(GetRootMap(plant), IndividualRootMap);
+
+        RootShader.SetVector("RootData", new Vector4(uv.x, uv.y, radius, depth));
+        RootShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+
+        UpdateRootMap(plant, IndividualRootMap.ToTexture2D());
+    }
+
+    public void RemoveRoots(Plant plant)
+    {
+        int kernelId = RootShader.FindKernel("RemoveRoots");
+        RootShader.SetTexture(kernelId, "IndividualRootInput", GetRootMap(plant));
+        RootShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+
+        DeleteRootMap(plant);
+    }
+
     public UnitsOfWater AbsorbWater(Plant plant, float multiplier)
     {
-        //TODO: Add this method to the root compute shader
-        return UnitsOfWater.FromPixel(1);
-        Graphics.Blit(GetRootMap(plant), RootInput);
+        int kernelId = RootShader.FindKernel("AbsorbWater");
+        RootShader.SetTexture(kernelId, "IndividualRootInput", GetRootMap(plant));
+        RootShader.SetFloat("AbsorbtionMultiplier", multiplier);
+        RootShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
 
         var waterMap = WaterOutput.ToTexture2D();
         var xy = ComputeShaderUtils.LocationToXy(plant.transform.position);
@@ -36,33 +58,25 @@ public class RootService : MonoBehaviour
         return UnitsOfWater.FromPixel(summedWaterDepth);
     }
 
-    public void SpreadRoots(Plant plant, float radius, float depth)
-    {
-        var location = plant.transform.position;
-        var uv = ComputeShaderUtils.LocationToUv(location);
-        int kernelId = RootShader.FindKernel("SpreadRoots");
-
-        RootShader.SetVector("RootData", new Vector4(uv.x, uv.y, radius, depth));
-        Graphics.Blit(GetRootMap(plant), RootOutput);
-
-        RootShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
-
-        UpdateRootMap(plant, RootOutput.ToTexture2D());
-    }
-
     /* Inner Mechinations */
 
     void Start()
     {
         ComputeShaderUtils.ResetTexture(RootMap);
-        ComputeShaderUtils.ResetTexture(RootInput);
-        ComputeShaderUtils.ResetTexture(RootOutput);
+        ComputeShaderUtils.ResetTexture(IndividualRootMap);
         ComputeShaderUtils.ResetTexture(WaterOutput);
 
         var kernelId = RootShader.FindKernel("SpreadRoots");
         RootShader.SetTexture(kernelId, "SoilMap", SoilMap);
         RootShader.SetTexture(kernelId, "RootMap", RootMap);
-        RootShader.SetTexture(kernelId, "IndividualRootMap", RootOutput);
+        RootShader.SetTexture(kernelId, "IndividualRootMap", IndividualRootMap);
+
+        kernelId = RootShader.FindKernel("RemoveRoots");
+        RootShader.SetTexture(kernelId, "RootMap", RootMap);
+
+        kernelId = RootShader.FindKernel("AbsorbWater");
+        RootShader.SetTexture(kernelId, "SoilMap", SoilMap);
+        RootShader.SetTexture(kernelId, "WaterOutput", WaterOutput);
     }
 
     private Dictionary<Plant, Texture2D> _roots = new Dictionary<Plant, Texture2D>();
@@ -80,5 +94,9 @@ public class RootService : MonoBehaviour
     private void UpdateRootMap(Plant plant, Texture2D map)
     {
         _roots[plant] = map;
+    }
+    private void DeleteRootMap(Plant plant)
+    {
+        _roots.Remove(plant);
     }
 }

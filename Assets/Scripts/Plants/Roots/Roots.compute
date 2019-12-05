@@ -1,10 +1,16 @@
 ﻿#pragma kernel SpreadRoots
+#pragma kernel RemoveRoots
+#pragma kernel AbsorbWater
 
 float4 RootData;
 
 RWTexture2D<float4> SoilMap;
 RWTexture2D<float4> RootMap;
 RWTexture2D<float4> IndividualRootMap;
+Texture2D<float4> IndividualRootInput;
+RWTexture2D<float4> WaterOutput;
+
+float AbsorbtionMultiplier;
 
 static float MaxHeight = 200.0f; 
 static float WidthInMeters = 400.0f;
@@ -45,3 +51,24 @@ void SpreadRoots(uint3 id : SV_DispatchThreadID)
 	RootMap[id.xy] = newRootDepth;
 	IndividualRootMap[id.xy] += actualgrowth;
 }
+
+[numthreads(8, 8, 1)]
+void RemoveRoots(uint3 id : SV_DispatchThreadID)
+{
+	RootMap[id.xy] -= IndividualRootInput[id.xy];
+}
+
+[numthreads(8, 8, 1)]
+void AbsorbWater(uint3 id : SV_DispatchThreadID)
+{
+	float rootDepth = max(IndividualRootInput[id.xy], 0);
+	float desiredWater = rootDepth * AbsorbtionMultiplier;
+	float4 soil = SoilMap[id.xy];
+	float actualWater = min(desiredWater, soil.b);
+
+	soil.b -= actualWater;
+	SoilMap[id.xy] = soil;
+	
+	WaterOutput[id.xy] = actualWater;
+}
+
