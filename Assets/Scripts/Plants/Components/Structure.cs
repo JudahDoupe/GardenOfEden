@@ -23,7 +23,7 @@ public class Structure : MonoBehaviour
 
     public static Structure Create(Plant plant, PlantDNA.Structure dna)
     {
-        var structure = Instantiate(dna.Prefab).GetComponent<Structure>();
+        var structure = Instantiate(Resources.Load<GameObject>(dna.Resource).GetComponent<Structure>());
         if (structure == null)
             Debug.LogError("You forgot to add a SelectedStructure component to your prefab DUMBASS!!!");
 
@@ -102,7 +102,7 @@ public class Structure : MonoBehaviour
         return new PlantDNA.Structure
         {
             Type = DNA.Type,
-            Prefab = DNA.Prefab,
+            Resource = DNA.Resource,
             Length = DNA.Length,
             Diameter = DNA.Diameter,
             Connections = Connections.Select(c => c.GenerateDNA()).ToList()

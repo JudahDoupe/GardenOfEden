@@ -21,7 +21,7 @@ public class WaterService : MonoBehaviour
     public float SampleWaterDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = WaterMap.ToTexture2D().GetPixelBilinear(uv.x, uv.y);
+        var color = ComputeShaderUtils.GetCachedTexture(WaterMap).GetPixelBilinear(uv.x, uv.y);
         return color.b;
     }
 
@@ -66,7 +66,7 @@ public class WaterService : MonoBehaviour
 
     void Update()
     {
-        if (UnityEngine.Input.GetKeyDown(KeyCode.U))
+        if (Input.GetKeyDown(KeyCode.U))
         {
             ComputeShaderUtils.ResetTexture(WaterMap);
         }
@@ -80,5 +80,6 @@ public class WaterService : MonoBehaviour
 
         var hfsKernel = WaterShader.FindKernel("SuppressHighFrequencies");
         WaterShader.Dispatch(hfsKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+        ComputeShaderUtils.InvalidateCache(WaterMap);
     }
 }

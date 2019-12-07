@@ -18,14 +18,14 @@ public class SoilService : MonoBehaviour
     public float SampleSoilDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = SoilMap.ToTexture2D().GetPixelBilinear(uv.x, uv.y);
+        var color = ComputeShaderUtils.GetCachedTexture(SoilMap).GetPixelBilinear(uv.x, uv.y);
         return color.r;
     }
 
     public float SampleWaterDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = SoilMap.ToTexture2D().GetPixelBilinear(uv.x, uv.y);
+        var color = ComputeShaderUtils.GetCachedTexture(SoilMap).GetPixelBilinear(uv.x, uv.y);
         return color.b;
     }
 
@@ -49,5 +49,6 @@ public class SoilService : MonoBehaviour
         int kernelId = SoilShader.FindKernel("UpdateSoil");
         SoilShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
         Graphics.CopyTexture(SoilOutput, SoilMap);
+        ComputeShaderUtils.InvalidateCache(SoilMap);
     }
 }

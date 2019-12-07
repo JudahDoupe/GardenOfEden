@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class ComputeShaderUtils : MonoBehaviour
 {
@@ -24,6 +25,27 @@ public class ComputeShaderUtils : MonoBehaviour
     {
         var uv = LocationToUv(location);
         return new Vector2(Mathf.FloorToInt(uv.x * 512), Mathf.FloorToInt(uv.y * 512));
+    }
+
+
+    public static Dictionary<RenderTexture, Texture2D> RTCache = new Dictionary<RenderTexture, Texture2D>();
+    public static Texture2D GetCachedTexture(RenderTexture rt)
+    {
+        Texture2D tex;
+        if (!RTCache.TryGetValue(rt, out tex))
+        {
+            tex = rt.ToTexture2D();
+            RTCache.Add(rt, tex);
+        }
+        return tex;
+    }
+    public static void InvalidateCache(RenderTexture rt)
+    {
+        if (RTCache.ContainsKey(rt))
+        {
+            Destroy(RTCache[rt]);
+        }
+        RTCache.Remove(rt);
     }
 }
 

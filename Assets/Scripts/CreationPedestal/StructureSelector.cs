@@ -58,7 +58,7 @@ public class StructureSelector : MonoBehaviour
             Connections = new List<PlantDNA.Connection>(),
             Length = dna.Length * Mathf.Pow(0.7f, recursiveDepth),
             Diameter = dna.Diameter * Mathf.Pow(0.83665f, recursiveDepth),
-            Prefab = dna.Prefab,
+            Resource = dna.Resource,
             Type = dna.Type,
         });
         branchingStructure.gameObject.AddComponent<StructureSelector>();

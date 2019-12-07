@@ -24,7 +24,7 @@ public class RootService : MonoBehaviour
     public float SampleRootDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = _rootMapTexture.GetPixelBilinear(uv.x, uv.y);
+        var color = ComputeShaderUtils.GetCachedTexture(RootMap).GetPixelBilinear(uv.x, uv.y);
         return color.r;
     }
 
@@ -76,7 +76,6 @@ public class RootService : MonoBehaviour
     };
     private List<RootData> _roots = new List<RootData>();
     private Dictionary<int, float> _absorbedWater = new Dictionary<int, float>();
-    private Texture2D _rootMapTexture;
 
     private Stopwatch updateTimer = new Stopwatch();
     private Stopwatch deltaTimer = new Stopwatch();
@@ -94,8 +93,6 @@ public class RootService : MonoBehaviour
         RootShader.SetTexture(kernelId, "WaterOutput", WaterOutput);
 
         deltaTimer.Start();
-
-        _rootMapTexture = new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, TextureFormat.RGBAFloat, false);
     }
 
     void Update()
@@ -114,6 +111,8 @@ public class RootService : MonoBehaviour
             deltaTimer.Restart();
 
             RootShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+            ComputeShaderUtils.InvalidateCache(RootMap);
+            ComputeShaderUtils.InvalidateCache(WaterOutput);
 
             buffer.Release();
             StartCoroutine(ComputeAbsorbedWater());
@@ -130,9 +129,7 @@ public class RootService : MonoBehaviour
             updateTimer.Restart();
         }
 
-        _rootMapTexture = RootMap.ToTexture2D();
-        var waterMap = WaterOutput.ToTexture2D();
-        var pixels = waterMap.GetPixels();
+        var pixels = ComputeShaderUtils.GetCachedTexture(WaterOutput).GetPixels();
 
         foreach (var pixel in pixels)
         {

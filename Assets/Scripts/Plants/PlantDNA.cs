@@ -17,7 +17,7 @@ public class PlantDNA
     public class Structure
     {
         public PlantStructureType Type;
-        public GameObject Prefab;
+        public string Resource;
         public float Length;
         public float Diameter;
         public List<Connection> Connections;
