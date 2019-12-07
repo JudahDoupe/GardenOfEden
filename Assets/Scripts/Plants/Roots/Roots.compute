@@ -10,6 +10,8 @@ struct RootData
 StructuredBuffer<RootData> RootBuffer;
 int NumRoots;
 
+float DeltaTime;
+
 RWTexture2D<float4> SoilMap;
 RWTexture2D<float4> RootMap;
 RWTexture2D<float4> WaterOutput;
@@ -34,12 +36,12 @@ void UpdateRoots(uint3 id : SV_DispatchThreadID)
 		float actualGrowth = min(soilDepth, desiredGrowth);
 
 		if (desiredGrowth > rootDepth) {
-			rootDepth = desiredGrowth;
+			rootDepth = actualGrowth;
 			rootId = RootBuffer[i].id + 0.5;
 		}
 	}
 	
-	float absorbedWater = min(rootDepth * AbsorbtionRate, soil.b);
+	float absorbedWater = min(rootDepth * AbsorbtionRate * DeltaTime, soil.b);
 	soil.b -= absorbedWater;
 
 	SoilMap[id.xy] = soil;

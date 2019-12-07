@@ -1,10 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 
 public class RootService : MonoBehaviour
 {
+    [Header("Settings")]
+    [Range(1,10)]
+    public int UpdateMilliseconds = 5;
+
     [Header("Render Textures")]
     public RenderTexture RootMap;
     public RenderTexture SoilMap;
@@ -71,6 +77,9 @@ public class RootService : MonoBehaviour
     private List<RootData> _roots = new List<RootData>();
     private Dictionary<int, float> _absorbedWater = new Dictionary<int, float>();
     private Texture2D _rootMapTexture;
+
+    private Stopwatch updateTimer = new Stopwatch();
+    private Stopwatch deltaTimer = new Stopwatch();
     private bool isCalculatingAbsorbedWater = false;
 
     void Start()
@@ -84,15 +93,16 @@ public class RootService : MonoBehaviour
         RootShader.SetTexture(kernelId, "RootMap", RootMap);
         RootShader.SetTexture(kernelId, "WaterOutput", WaterOutput);
 
+        deltaTimer.Start();
+
         _rootMapTexture = new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, TextureFormat.RGBAFloat, false);
     }
 
     void Update()
     {
-        if (_roots.Count > 0 && !isCalculatingAbsorbedWater)
+        if (!isCalculatingAbsorbedWater && _roots.Count > 0)
         {
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
+            updateTimer.Restart();
 
             var kernelId = RootShader.FindKernel("UpdateRoots");
 
@@ -100,20 +110,25 @@ public class RootService : MonoBehaviour
             buffer.SetData(_roots);
             RootShader.SetBuffer(kernelId, "RootBuffer", buffer);
             RootShader.SetInt("NumRoots", _roots.Count);
+            RootShader.SetFloat("DeltaTime", (float) deltaTimer.Elapsed.TotalSeconds);
+            deltaTimer.Restart();
 
             RootShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
 
             buffer.Release();
-
-            ComputeAbsorbedWater();
-            UnityEngine.Debug.Log($"Root MS {stopWatch.Elapsed.TotalMilliseconds}");
-            stopWatch.Stop();
+            StartCoroutine(ComputeAbsorbedWater());
         }
     }
 
-    private void ComputeAbsorbedWater()
+    private IEnumerator ComputeAbsorbedWater()
     {
         isCalculatingAbsorbedWater = true;
+
+        if (updateTimer.ElapsedMilliseconds > UpdateMilliseconds)
+        {
+            yield return new WaitForEndOfFrame();
+            updateTimer.Restart();
+        }
 
         _rootMapTexture = RootMap.ToTexture2D();
         var waterMap = WaterOutput.ToTexture2D();
@@ -124,11 +139,18 @@ public class RootService : MonoBehaviour
             var id = Mathf.FloorToInt(pixel.r);
             if (_absorbedWater.ContainsKey(id))
                 _absorbedWater[id] += pixel.g;
-            else
+            else 
                 _absorbedWater.Add(id, pixel.g);
+
+            if (updateTimer.ElapsedMilliseconds > UpdateMilliseconds)
+            {
+                yield return new WaitForEndOfFrame();
+                updateTimer.Restart();
+            }
         }
 
         isCalculatingAbsorbedWater = false;
     }
+
 
 }
