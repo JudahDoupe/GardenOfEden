@@ -21,10 +21,6 @@ public class EnvironmentApi : MonoBehaviour
     {
         return _soilService.SampleSoilDepth(location);
     }
-    public static float SampleAvalableSoilDepth(Vector3 location)
-    {
-        return SampleSoilDepth(location) - _rootService.SampleRootDepth(location);
-    }
 
     /* INNER MECHINATIONS */
 

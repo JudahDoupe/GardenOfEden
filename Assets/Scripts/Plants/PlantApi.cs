@@ -31,6 +31,10 @@ public class PlantApi : MonoBehaviour
     {
         return FindObjectsOfType<Plant>().Count(p => p.DNA.SpeciesId == speciesId);
     }
+    public static int GetPlantPopulation()
+    {
+        return FindObjectsOfType<Plant>().Count();
+    }
 
     /* INNER MECHINATIONS */
 
@@ -42,6 +46,7 @@ public class PlantApi : MonoBehaviour
 
     private readonly Queue<Plant> _plantUpdateQueue = new Queue<Plant>();
     private bool _isPlantUpdateQueueBeingProcessed;
+    private int lastPlantId = 1;
 
     void Awake()
     {
@@ -72,7 +77,7 @@ public class PlantApi : MonoBehaviour
             var growthInDays = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
             plant.Grow(growthInDays);
             _rootService.SpreadRoots(plant, plant.DNA.RootRadius, growthInDays);
-            plant.StoredWater += _rootService.AbsorbWater(plant, growthInDays);
+            plant.StoredWater += _rootService.AbsorbWater(plant);
             _plantUpdateQueue.Enqueue(plant);
         }
         _isPlantUpdateQueueBeingProcessed = false;
@@ -101,11 +106,16 @@ public class PlantApi : MonoBehaviour
         {
             var result = Physics.OverlapSphere(hit.point, dna.RootRadius);
             var waterDepth = EnvironmentApi.SampleWaterDepth(hit.point);
-            var soilDepth = EnvironmentApi.SampleAvalableSoilDepth(hit.point);
+            var soilDepth = EnvironmentApi.SampleSoilDepth(hit.point);
+            var rootDepth = _rootService.SampleRootDepth(hit.point);
 
             if (soilDepth < 0.05f)
             {
                 DebugLackOfReources("soil", dna.Name);
+            }
+            else if (rootDepth > 0.01f)
+            {
+                DebugLackOfReources("root space", dna.Name);
             }
             else if (waterDepth < 0.1f)
             {
@@ -134,6 +144,7 @@ public class PlantApi : MonoBehaviour
     private Plant SpawnPlant(PlantDNA dna, Vector3 worldPosition)
     {
         var plant = new GameObject().AddComponent<Plant>();
+        plant.Id = lastPlantId++;
         plant.transform.position = worldPosition;
         plant.transform.localEulerAngles = new Vector3(-90, UnityEngine.Random.Range(0, 365), 0);
 

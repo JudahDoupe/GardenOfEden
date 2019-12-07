@@ -6,6 +6,7 @@ public class Plant : MonoBehaviour
 {
     public PlantDNA DNA;
 
+    public int Id;
     public float PlantedDate;
     public float LastUpdatedDate;
     public float AgeInDay => LastUpdatedDate - PlantedDate;

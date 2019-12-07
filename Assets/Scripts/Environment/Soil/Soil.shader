@@ -72,7 +72,7 @@
 			float4 soil = tex2Dlod(_SoilMap, float4(normUv.x, normUv.y, 0, 0));
 			float4 root = tex2Dlod(_RootMap, float4(normUv.x, normUv.y, 0, 0));
 			float soilDepth = soil.r;
-			float rootDepth = root.r;
+			float rootDepth = root.g;
 			float waterDepth = soil.b;
 
 			float h = lerp(_DeadSoilHue, _LiveSoilHue, rootDepth / soilDepth);
