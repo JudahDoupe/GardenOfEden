@@ -14,7 +14,7 @@ public class Plant : MonoBehaviour
     public bool IsAlive;
     public bool IsGrowing;
     public bool IsMature => Trunk.IsFullyGrown;
-    public float RootRadius => Mathf.Sqrt(10 * (transform.GetComponentsInChildren<Structure>()?.Length ?? 1)) / Mathf.PI;
+    public float RootRadius => 10 * Mathf.Sqrt(transform.GetComponentsInChildren<Structure>()?.Length ?? 1) / Mathf.PI;
 
     public Structure Trunk;
 

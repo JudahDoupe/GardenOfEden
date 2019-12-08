@@ -65,6 +65,7 @@ public class Structure : MonoBehaviour
             }
 
             _hasSprouted = true;
+            Destroy(_rigidbody);
         }
 
         foreach (var connection in Connections)

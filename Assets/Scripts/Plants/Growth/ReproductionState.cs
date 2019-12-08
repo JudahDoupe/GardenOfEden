@@ -8,7 +8,7 @@ public class ReproductionState : IGrowthState
 
         for (int i = 0; i < plant.DNA.MaxOffspring; i++)
         {
-            var randomLocation = Random.insideUnitSphere * rootRadius * 10;
+            var randomLocation = Random.insideUnitSphere * rootRadius * 5;
             var worldPosition = plant.transform.position + randomLocation;
 
             PlantApi.DropSeed(plant.DNA, worldPosition);
