@@ -27,7 +27,6 @@ public class EnvironmentApi : MonoBehaviour
     public static EnvironmentApi Instance;
     private static SoilService _soilService;
     private static WaterService _waterService;
-    private static RootService _rootService;
 
     private float _date;
 
@@ -36,7 +35,6 @@ public class EnvironmentApi : MonoBehaviour
         Instance = this;
         _soilService = GetComponent<SoilService>();
         _waterService = GetComponent<WaterService>();
-        _rootService = GetComponent<RootService>();
         _date = 0;
     }
 

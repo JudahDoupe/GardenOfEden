@@ -23,7 +23,7 @@ public class PrimaryGrowthState : IGrowthState
             yield return new WaitForEndOfFrame();
         }
 
-        if (plant.Trunk.IsFullyGrown)
+        if (plant.IsMature)
         {
             plant.GrowthState = new ReproductionState();
         }

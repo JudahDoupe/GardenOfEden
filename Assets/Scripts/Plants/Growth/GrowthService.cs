@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -11,7 +10,7 @@ public class GrowthService : MonoBehaviour
 
     /* Pubically Accessable Methods */
 
-    public void GrowPlant(Plant plant)
+    public void StartPlantGrowth(Plant plant)
     {
         _livingPlants.Add(plant);
     }
@@ -24,14 +23,8 @@ public class GrowthService : MonoBehaviour
     /* Inner Mechinations */
 
     private List<Plant> _livingPlants = new List<Plant>();
-    private RootService _rootService;
 
     private int _currentFrame = 0;
-
-    void Awake()
-    {
-        _rootService = GetComponent<RootService>();
-    }
 
     void Update()
     {
@@ -47,20 +40,18 @@ public class GrowthService : MonoBehaviour
             _livingPlants.Remove(plant);
             _livingPlants.Add(plant);
 
-            plant.StoredWater += _rootService.AbsorbWater(plant);
-            //TODO: get energy
+            PlantApi.UpdateWater(plant);
+            //TODO: update energy
 
             if (SustainLife(plant))
             {
-                var growthInDays = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
-                _rootService.SpreadRoots(plant, plant.DNA.RootRadius, growthInDays);
+                PlantApi.UpdateRoots(plant);
                 plant.GrowthState.Grow(plant);
                 plant.LastUpdatedDate = EnvironmentApi.GetDate();
             }
             else
             {
-                StopPlantGrowth(plant);
-                plant.Die();
+                PlantApi.KillPlant(plant);
             }
         }
     }

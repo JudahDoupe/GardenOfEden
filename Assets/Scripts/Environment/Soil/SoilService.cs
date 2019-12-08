@@ -11,7 +11,6 @@ public class SoilService : MonoBehaviour
 
     [Header("Compute Shaders")]
     public ComputeShader SoilShader;
-    public ComputeShader SubtractShader;
 
     /* Pubically Accessable Methods */
 

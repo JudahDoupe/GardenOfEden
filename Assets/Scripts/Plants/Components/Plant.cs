@@ -13,14 +13,10 @@ public class Plant : MonoBehaviour
 
     public bool IsAlive;
     public bool IsGrowing;
+    public bool IsMature => Trunk.IsFullyGrown;
+    public float RootRadius => Mathf.Sqrt(10 * (transform.GetComponentsInChildren<Structure>()?.Length ?? 1)) / Mathf.PI;
 
     public Structure Trunk;
-
-    public void Die()
-    {
-        IsAlive = false;
-        Destroy(gameObject);
-    }
 
     public PlantDNA GenerateDNA()
     {
@@ -31,13 +27,8 @@ public class Plant : MonoBehaviour
             GestationPeriod = DNA.GestationPeriod,
             MaxOffspring = DNA.MaxOffspring,
             SpeciesId = DNA.SpeciesId,
-            RootRadius = GetRootRadius()
+            RootRadius = RootRadius
         };
     }
 
-    public float GetRootRadius()
-    {
-        var structures = transform.GetComponentsInChildren<Structure>()?.Length ?? 1;
-        return Mathf.Sqrt(10 * structures / Mathf.PI);
-    }
 }

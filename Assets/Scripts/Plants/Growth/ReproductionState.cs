@@ -4,13 +4,14 @@ public class ReproductionState : IGrowthState
 {
     public void Grow(Plant plant)
     {
-        var rootRadius = plant.GetRootRadius();
+        var rootRadius = plant.RootRadius;
+
         for (int i = 0; i < plant.DNA.MaxOffspring; i++)
         {
-            var randomLocation = Random.insideUnitSphere * rootRadius * 5;
+            var randomLocation = Random.insideUnitSphere * rootRadius * 10;
             var worldPosition = plant.transform.position + randomLocation;
 
-            PlantApi.TryPlantSeed(plant.DNA, worldPosition);
+            PlantApi.DropSeed(plant.DNA, worldPosition);
         }
 
         plant.GrowthState = new SecondaryGrowthState();

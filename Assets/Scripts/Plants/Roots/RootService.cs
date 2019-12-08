@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -32,21 +31,19 @@ public class RootService : MonoBehaviour
     {
         if (!_roots.Any(x => x.id == plant.Id))
         {
-            _roots.Add(new RootData
-            {
-                id = plant.Id,
-                uv = ComputeShaderUtils.LocationToUv(plant.transform.position),
-                radius = radius,
-                depth = depth
-            });
             _absorbedWater.Add(plant.Id, 0);
         }
         else
         {
-            var rootData = _roots.Single(x => x.id == plant.Id);
-            rootData.radius = radius;
-            rootData.depth = depth;
+            _roots.Remove(_roots.Single(x => x.id == plant.Id));
         }
+        _roots.Add(new RootData
+        {
+            id = plant.Id,
+            uv = ComputeShaderUtils.LocationToUv(plant.transform.position),
+            radius = radius,
+            depth = depth
+        });
     }
 
     public void RemoveRoots(Plant plant)
