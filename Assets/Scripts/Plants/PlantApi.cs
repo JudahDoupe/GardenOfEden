@@ -40,18 +40,18 @@ public class PlantApi : MonoBehaviour
 
     public static PlantApi Instance;
     private static RootService _rootService;
+    private static GrowthService _growthService;
 
     private readonly Queue<Tuple<PlantDNA, Vector3>> _seedQueue = new Queue<Tuple<PlantDNA, Vector3>>();
     private bool _isSeedQueueBeingProcessed;
 
-    private readonly Queue<Plant> _plantUpdateQueue = new Queue<Plant>();
-    private bool _isPlantUpdateQueueBeingProcessed;
     private int lastPlantId = 1;
 
     void Awake()
     {
         Instance = this;
         _rootService = GetComponent<RootService>();
+        _growthService = GetComponent<GrowthService>();
     }
 
     void Update()
@@ -60,28 +60,8 @@ public class PlantApi : MonoBehaviour
         {
             StartCoroutine(ProcessSeedQueue());
         }
-
-        if (_plantUpdateQueue.Any() && !_isPlantUpdateQueueBeingProcessed)
-        {
-            StartCoroutine(ProcessPlantUpdateQueue());
-        }
     }
 
-    private IEnumerator ProcessPlantUpdateQueue()
-    {
-        _isPlantUpdateQueueBeingProcessed = true;
-        while (_plantUpdateQueue.Any())
-        {
-            yield return new WaitForSeconds(1f);
-            var plant = _plantUpdateQueue.Dequeue();
-            var growthInDays = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
-            plant.Grow(growthInDays);
-            _rootService.SpreadRoots(plant, plant.DNA.RootRadius, growthInDays);
-            plant.StoredWater += _rootService.AbsorbWater(plant);
-            _plantUpdateQueue.Enqueue(plant);
-        }
-        _isPlantUpdateQueueBeingProcessed = false;
-    }
     private IEnumerator ProcessSeedQueue()
     {
         _isSeedQueueBeingProcessed = true;
@@ -158,7 +138,9 @@ public class PlantApi : MonoBehaviour
         plant.Trunk.transform.localPosition = Vector3.zero;
         plant.Trunk.transform.localEulerAngles = Vector3.zero;
 
-        _plantUpdateQueue.Enqueue(plant);
+        plant.GrowthState = new PrimaryGrowthState();
+
+        _growthService.GrowPlant(plant);
 
         return plant;
     }
