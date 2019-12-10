@@ -38,6 +38,11 @@ public class Structure : MonoBehaviour
         structure.AgeInDays = plant.IsAlive ? 0 : DaysToMaturity;
         structure.UpdateModel();
 
+        foreach (var renderer in structure.GetComponentsInChildren<Renderer>())
+        {
+            renderer.material.SetFloat("_LightAbsorbtionId", plant.Id + 0.5f);
+        }
+
         return structure;
     }
 

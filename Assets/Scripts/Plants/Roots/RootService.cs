@@ -7,8 +7,8 @@ using UnityEngine;
 public class RootService : MonoBehaviour
 {
     [Header("Settings")]
-    [Range(1,10)]
-    public int UpdateMilliseconds = 5;
+    [Range(1,5)]
+    public float UpdateMilliseconds = 5;
 
     [Header("Render Textures")]
     public RenderTexture RootMap;
