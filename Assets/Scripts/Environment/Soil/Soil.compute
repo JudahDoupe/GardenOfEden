@@ -9,7 +9,7 @@ RWTexture2D<float4> Result;
 static float MaxHeight = 200.0f; 
 static float WidthInMeters = 400.0f;
 static float WidthInPixels = 512.0f;
-static float WaterAbsorbsionRate = 0.05f;
+static float WaterAbsorpsionRate = 0.05f;
 
 float GetBedrockHeight(int2 xy)
 {
@@ -50,15 +50,15 @@ float GetSoakedWaterDepth(int2 xy)
 
 	return newWaterDepth;
 }
-float AbsorbWater(int2 xy, float amount)
+float AbsorpWater(int2 xy, float amount)
 {
 	uint2 pos = clamp(xy, 0, 511);
-	float availableWater = min(WaterMap[pos].b, WaterAbsorbsionRate);
-	float absorbedWater = min(amount, availableWater);
+	float availableWater = min(WaterMap[pos].b, WaterAbsorpsionRate);
+	float absorpedWater = min(amount, availableWater);
 	
-	WaterMap[pos] = float4(WaterMap[pos].r, WaterMap[pos].g, WaterMap[pos].b - absorbedWater, WaterMap[pos].a - absorbedWater);
+	WaterMap[pos] = float4(WaterMap[pos].r, WaterMap[pos].g, WaterMap[pos].b - absorpedWater, WaterMap[pos].a - absorpedWater);
 	
-	return absorbedWater;
+	return absorpedWater;
 }
 float ExpelWater(int2 xy, float amount)
 {
@@ -75,8 +75,8 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
 
 	float excessWater = max(waterDepth - soilDepth, 0);
 	waterDepth -= ExpelWater(id.xy, excessWater);
-	float requestedWater = clamp(soilDepth - waterDepth, 0, WaterAbsorbsionRate);
-	waterDepth += AbsorbWater(id.xy, requestedWater);
+	float requestedWater = clamp(soilDepth - waterDepth, 0, WaterAbsorpsionRate);
+	waterDepth += AbsorpWater(id.xy, requestedWater);
 
 	Result[id.xy] = float4(soilDepth, 0, waterDepth, 0);
 }

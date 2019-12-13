@@ -18,7 +18,7 @@ public class RootService : MonoBehaviour
     [Header("Compute Shaders")]
     public ComputeShader RootShader;
 
-    /* Pubically Accessable Methods */
+    /* Publicly Accessible Methods */
 
     public float SampleRootDepth(Vector3 location)
     {
@@ -31,7 +31,7 @@ public class RootService : MonoBehaviour
     {
         if (!_roots.Any(x => x.id == plant.Id))
         {
-            _absorbedWater.Add(plant.Id, 0);
+            _absorpedWater.Add(plant.Id, 0);
         }
         else
         {
@@ -49,17 +49,16 @@ public class RootService : MonoBehaviour
     public void RemoveRoots(Plant plant)
     {
         _roots = _roots.Where(x => x.id != plant.Id).ToList();
-        _absorbedWater.Remove(plant.Id);
+        _absorpedWater.Remove(plant.Id);
     }
 
-    public UnitsOfWater AbsorbWater(Plant plant)
+    public Volume AbsorpWater(Plant plant)
     {
-        float water = 0;
-        if (_absorbedWater.TryGetValue(plant.Id, out water))
+        if (_absorpedWater.TryGetValue(plant.Id, out float water))
         {
-            _absorbedWater[plant.Id] = 0;
+            _absorpedWater[plant.Id] = 0;
         }
-        return UnitsOfWater.FromPixel(water);
+        return Volume.FromPixel(water);
     }
 
     /* Inner Mechinations */
@@ -72,11 +71,11 @@ public class RootService : MonoBehaviour
         public int id;
     };
     private List<RootData> _roots = new List<RootData>();
-    private Dictionary<int, float> _absorbedWater = new Dictionary<int, float>();
+    private Dictionary<int, float> _absorpedWater = new Dictionary<int, float>();
 
     private Stopwatch updateTimer = new Stopwatch();
     private Stopwatch deltaTimer = new Stopwatch();
-    private bool isCalculatingAbsorbedWater = false;
+    private bool isCalculatingAbsorpedWater = false;
 
     void Start()
     {
@@ -94,7 +93,7 @@ public class RootService : MonoBehaviour
 
     void Update()
     {
-        if (!isCalculatingAbsorbedWater && _roots.Count > 0)
+        if (!isCalculatingAbsorpedWater && _roots.Count > 0)
         {
             updateTimer.Restart();
 
@@ -112,13 +111,13 @@ public class RootService : MonoBehaviour
             ComputeShaderUtils.InvalidateCache(WaterOutput);
 
             buffer.Release();
-            StartCoroutine(ComputeAbsorbedWater());
+            StartCoroutine(ComputeAbsorpedWater());
         }
     }
 
-    private IEnumerator ComputeAbsorbedWater()
+    private IEnumerator ComputeAbsorpedWater()
     {
-        isCalculatingAbsorbedWater = true;
+        isCalculatingAbsorpedWater = true;
 
         if (updateTimer.ElapsedMilliseconds > UpdateMilliseconds)
         {
@@ -131,10 +130,10 @@ public class RootService : MonoBehaviour
         foreach (var pixel in pixels)
         {
             var id = Mathf.FloorToInt(pixel.r);
-            if (_absorbedWater.ContainsKey(id))
-                _absorbedWater[id] += pixel.g;
+            if (_absorpedWater.ContainsKey(id))
+                _absorpedWater[id] += pixel.g;
             else 
-                _absorbedWater.Add(id, pixel.g);
+                _absorpedWater.Add(id, pixel.g);
 
             if (updateTimer.ElapsedMilliseconds > UpdateMilliseconds)
             {
@@ -143,7 +142,7 @@ public class RootService : MonoBehaviour
             }
         }
 
-        isCalculatingAbsorbedWater = false;
+        isCalculatingAbsorpedWater = false;
     }
 
 

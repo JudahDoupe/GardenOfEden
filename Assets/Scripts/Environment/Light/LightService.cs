@@ -12,18 +12,24 @@ public class LightService : MonoBehaviour
     [Header("Render Textures")]
     public RenderTexture LightMap;
 
-    public void GetAbsorbedLight(int plantId)
-    {
+    /* Publicly Accessible Variables */
 
+    public Area GetAbsorpedLight(int plantId)
+    {
+        if (_absorpedLight.TryGetValue(plantId, out float light))
+        {
+            _absorpedLight[plantId] = 0;
+        }
+        return Area.FromPixel(light);
     }
 
     /* Inner Mechanations */
 
-    private Dictionary<int, float> _absorbedLight = new Dictionary<int, float>();
+    private Dictionary<int, float> _absorpedLight = new Dictionary<int, float>();
 
     private Stopwatch updateTimer = new Stopwatch();
     private Stopwatch deltaTimer = new Stopwatch();
-    private bool isCalculatingAbsorbedLight = false;
+    private bool isCalculatingAbsorpedLight = false;
 
     void Start()
     {
@@ -32,16 +38,17 @@ public class LightService : MonoBehaviour
 
     void Update()
     {
-        if (!isCalculatingAbsorbedLight)
+        if (!isCalculatingAbsorpedLight)
         {
             updateTimer.Restart();
-            StartCoroutine(ComputeAbsorbedLight());
+            ComputeShaderUtils.InvalidateCache(LightMap);
+            StartCoroutine(ComputeAbsorpedLight());
         }
     }
 
-    private IEnumerator ComputeAbsorbedLight()
+    private IEnumerator ComputeAbsorpedLight()
     {
-        isCalculatingAbsorbedLight = true;
+        isCalculatingAbsorpedLight = true;
         var deltaTime = (float) deltaTimer.Elapsed.TotalSeconds;
         deltaTimer.Restart();
 
@@ -51,14 +58,10 @@ public class LightService : MonoBehaviour
         {
             var id = Mathf.FloorToInt(pixel.r);
 
-            if(pixel.r + pixel.g + pixel.b + pixel.a > 0)
-            {
-                var tt = 1;
-            }
-            if (_absorbedLight.ContainsKey(id))
-                _absorbedLight[id] += deltaTime;
+            if (_absorpedLight.ContainsKey(id))
+                _absorpedLight[id] += deltaTime;
             else
-                _absorbedLight.Add(id, deltaTime);
+                _absorpedLight.Add(id, deltaTime);
 
             if (updateTimer.ElapsedMilliseconds > UpdateMilliseconds)
             {
@@ -67,6 +70,6 @@ public class LightService : MonoBehaviour
             }
         }
 
-        isCalculatingAbsorbedLight = false;
+        isCalculatingAbsorpedLight = false;
     }
 }

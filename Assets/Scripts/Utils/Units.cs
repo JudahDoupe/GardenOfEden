@@ -1,29 +1,63 @@
-﻿public readonly struct UnitsOfWater
+﻿public readonly struct Volume
 {
-    private readonly float _liters;
+    private readonly float _cubicMeters;
 
-    public UnitsOfWater(float liters)
+    public Volume(float value)
     {
-        _liters = liters;
+        _cubicMeters = value;
     }
 
-    public static UnitsOfWater FromPixel(float depth)
+    public static Volume FromPixel(float depth)
     {
         var metersPerPixel = ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
         var cubicMeters = metersPerPixel * metersPerPixel * depth;
-        return new UnitsOfWater(cubicMeters/1000f);
+        return new Volume(cubicMeters);
     }
-    public static UnitsOfWater FromLiters(float liters)
+
+    public static Volume FromCubicMeters(float volume)
     {
-        return new UnitsOfWater(liters);
+        return new Volume(volume);
     }
 
-    public static UnitsOfWater operator + (UnitsOfWater a) => a;
-    public static UnitsOfWater operator - (UnitsOfWater a) => new UnitsOfWater(-a._liters);
-    public static UnitsOfWater operator + (UnitsOfWater a, UnitsOfWater b) => new UnitsOfWater(a._liters + b._liters);
-    public static UnitsOfWater operator - (UnitsOfWater a, UnitsOfWater b) => new UnitsOfWater(a._liters - b._liters);
-    public static bool operator < (UnitsOfWater a, UnitsOfWater b) => a._liters < b._liters;
-    public static bool operator > (UnitsOfWater a, UnitsOfWater b) => a._liters > b._liters;
+    public static Volume operator + (Volume a) => a;
+    public static Volume operator - (Volume a) => new Volume(-a._cubicMeters);
+    public static Volume operator + (Volume a, Volume b) => new Volume(a._cubicMeters + b._cubicMeters);
+    public static Volume operator - (Volume a, Volume b) => new Volume(a._cubicMeters - b._cubicMeters);
+    public static bool operator < (Volume a, Volume b) => a._cubicMeters < b._cubicMeters;
+    public static bool operator > (Volume a, Volume b) => a._cubicMeters > b._cubicMeters;
 
-    public override string ToString() => $"{_liters} liters";
+    public override string ToString() => $"{_cubicMeters} cubic meters";
 }
+
+public readonly struct Area
+{
+    private readonly float _value;
+
+    public Area(float value)
+    {
+        _value = value;
+    }
+
+    public static Area FromPixel(float pixels)
+    {
+        var metersPerPixel = ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
+        var SquareMeters = metersPerPixel * metersPerPixel;
+        return new Area(SquareMeters);
+    }
+
+    public static Area FromSquareMeters(float area)
+    {
+        return new Area(area);
+    }
+
+    public static Area operator + (Area a) => a;
+    public static Area operator - (Area a) => new Area(-a._value);
+    public static Area operator + (Area a, Area b) => new Area(a._value + b._value);
+    public static Area operator - (Area a, Area b) => new Area(a._value - b._value);
+    public static bool operator < (Area a, Area b) => a._value < b._value;
+    public static bool operator > (Area a, Area b) => a._value > b._value;
+
+    public override string ToString() => $"{_value} square meters";
+}
+
+

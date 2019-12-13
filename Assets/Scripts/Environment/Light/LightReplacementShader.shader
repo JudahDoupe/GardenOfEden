@@ -2,7 +2,7 @@
 {
     Properties
     {
-		_LightAbsorbtionId ("Light Absorbtion Id", float) = 1000
+		_LightAbsorptionId ("Light Absorption Id", float) = 1
     }
     SubShader
     {
@@ -27,10 +27,10 @@
                 float4 vertex : SV_POSITION;
             };
 			struct fragOutput {
-				float id : SV_Depth;
+				float4 id : SV_Target;
 			};            
 
-			uniform float _LightAbsorbtionId;
+			float _LightAbsorptionId;
 
             v2f vert (appdata v)
             {
@@ -42,7 +42,7 @@
 			fragOutput frag (v2f i)
 			{
 				fragOutput o;
-				o.id = _LightAbsorbtionId;
+				o.id = _LightAbsorptionId;
 				return o;
 			}
             ENDCG

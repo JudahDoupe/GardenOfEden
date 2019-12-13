@@ -19,7 +19,7 @@ RWTexture2D<float4> WaterOutput;
 static float MaxHeight = 200.0f; 
 static float WidthInMeters = 400.0f;
 static float WidthInPixels = 512.0f;
-static float AbsorbtionRate = 0.02f; 
+static float AbsorptionRate = 0.02f; 
 
 [numthreads(8,8,1)]
 void UpdateRoots(uint3 id : SV_DispatchThreadID)
@@ -41,11 +41,11 @@ void UpdateRoots(uint3 id : SV_DispatchThreadID)
 		}
 	}
 	
-	float absorbedWater = min(rootDepth * AbsorbtionRate * DeltaTime, soil.b);
-	soil.b -= absorbedWater;
+	float absorpedWater = min(rootDepth * AbsorptionRate * DeltaTime, soil.b);
+	soil.b -= absorpedWater;
 
 	SoilMap[id.xy] = soil;
 	RootMap[id.xy] = float4(rootId, rootDepth, 0, 0);
-	WaterOutput[id.xy] = float4(rootId, absorbedWater, 0, 0);
+	WaterOutput[id.xy] = float4(rootId, absorpedWater, 0, 0);
 }
 

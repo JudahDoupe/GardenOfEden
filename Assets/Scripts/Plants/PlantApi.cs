@@ -8,7 +8,7 @@ public class PlantApi : MonoBehaviour
 
     public static void UpdateWater(Plant plant)
     {
-        plant.StoredWater += _rootService.AbsorbWater(plant);
+        plant.StoredWater += _rootService.AbsorpWater(plant);
     }
     public static void UpdateRoots(Plant plant)
     {

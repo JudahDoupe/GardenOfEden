@@ -5,7 +5,7 @@ public class Plant : MonoBehaviour
     public int Id;
     public PlantDNA DNA;
     public IGrowthState GrowthState;
-    public UnitsOfWater StoredWater;
+    public Volume StoredWater;
 
     public float PlantedDate;
     public float LastUpdatedDate;
