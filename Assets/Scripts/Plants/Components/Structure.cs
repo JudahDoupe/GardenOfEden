@@ -81,6 +81,7 @@ public class Structure : MonoBehaviour
 
     public void UpdateModel()
     {
+        //TODO: Move this logic into the state machines
         var primaryGrowth = 1 / (1 + Mathf.Exp(5 - 10 / DaysToMaturity * AgeInDays));
         var secondaryGrowth = 1 + AgeInDays / DaysToDouble;
 

@@ -19,7 +19,12 @@ public class PrimaryGrowthState : IGrowthState
         for (var t = 0f; t < totalDays; t += step)
         {
             step = Mathf.Clamp(Time.smoothDeltaTime * speed, 0, totalDays - t);
-            plant.Trunk.Grow(step);
+            var requiredSugar = Volume.FromCubicMeters(step);//TODO: this value should be calculated from the actual volume that the structures are being increased.
+            if (plant.StoredSugar > requiredSugar)
+            {
+                plant.Trunk.Grow(step);
+                plant.StoredSugar -= requiredSugar;
+            }
             yield return new WaitForEndOfFrame();
         }
 
