@@ -6,6 +6,7 @@ public class Plant : MonoBehaviour
     public PlantDNA DNA;
     public IGrowthState GrowthState;
     public Volume StoredWater;
+    public Volume StoredSugar;
 
     public float PlantedDate;
     public float LastUpdatedDate;
@@ -14,7 +15,9 @@ public class Plant : MonoBehaviour
     public bool IsAlive;
     public bool IsGrowing;
     public bool IsMature => Trunk.IsFullyGrown;
-    public float RootRadius => 10 * Mathf.Sqrt(transform.GetComponentsInChildren<Structure>()?.Length ?? 1) / Mathf.PI;
+
+    public int TotalStructures => transform.GetComponentsInChildren<Structure>()?.Length ?? 1;
+    public float RootRadius => 10 * Mathf.Sqrt(TotalStructures) / Mathf.PI;
 
     public Structure Trunk;
 

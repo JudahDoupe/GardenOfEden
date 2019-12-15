@@ -38,6 +38,7 @@ public class ReproductionService : MonoBehaviour
         plant.Trunk.transform.localEulerAngles = Vector3.zero;
 
         plant.GrowthState = new PrimaryGrowthState();
+        plant.StoredSugar = Volume.FromCubicMeters(1);
         PlantApi.StartPlantGrowth(plant);
 
         if (LogReproductionSuccesses)

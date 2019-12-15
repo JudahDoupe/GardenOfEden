@@ -8,9 +8,9 @@ public class EnvironmentApi : MonoBehaviour
     }
 
 
-    public static float SampleLight(Vector3 location)
+    public static Area GetAbsorpedLight(int Id)
     {
-        return 1;
+        return _lightService.GetAbsorpedLight(Id);
     }
     public static float SampleWaterDepth(Vector3 location)
     {
@@ -27,6 +27,7 @@ public class EnvironmentApi : MonoBehaviour
     public static EnvironmentApi Instance;
     private static SoilService _soilService;
     private static WaterService _waterService;
+    private static LightService _lightService;
 
     private float _date;
 
@@ -35,6 +36,7 @@ public class EnvironmentApi : MonoBehaviour
         Instance = this;
         _soilService = GetComponent<SoilService>();
         _waterService = GetComponent<WaterService>();
+        _lightService = GetComponent<LightService>();
         _date = 0;
     }
 

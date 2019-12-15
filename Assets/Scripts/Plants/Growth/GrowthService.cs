@@ -41,7 +41,7 @@ public class GrowthService : MonoBehaviour
             _livingPlants.Add(plant);
 
             PlantApi.UpdateWater(plant);
-            //TODO: update energy
+            GenerateSugar(plant);
 
             if (SustainLife(plant))
             {
@@ -58,7 +58,28 @@ public class GrowthService : MonoBehaviour
 
     private bool SustainLife(Plant plant)
     {
-        //TODO: Use energy to sustain life based on number of structures
-        return true;
+        var delatTime = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
+        var sugarPerStructure = 0.01f; //TODO: store this in the structure
+        var usedSugar = sugarPerStructure * plant.TotalStructures * delatTime;
+        plant.StoredSugar -= Volume.FromCubicMeters(usedSugar);
+        return plant.StoredSugar > Volume.FromCubicMeters(0);
+    }
+
+    private void GenerateSugar(Plant plant)
+    {
+        var waterPerSugar = 3.0f; //TODO: store this value in the leaves
+
+        var availableLight = EnvironmentApi.GetAbsorpedLight(plant.Id);
+        var availableWater = plant.StoredWater;
+
+        var requestedLight = availableWater / waterPerSugar;
+
+        var usedLight = requestedLight;
+        if (availableLight < requestedLight)
+            usedLight = availableLight;
+        var usedWater = usedLight * waterPerSugar;
+
+        plant.StoredWater -= usedWater;
+        plant.StoredSugar += usedWater / waterPerSugar * 1;
     }
 }

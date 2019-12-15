@@ -23,6 +23,7 @@
     public static Volume operator - (Volume a) => new Volume(-a._cubicMeters);
     public static Volume operator + (Volume a, Volume b) => new Volume(a._cubicMeters + b._cubicMeters);
     public static Volume operator - (Volume a, Volume b) => new Volume(a._cubicMeters - b._cubicMeters);
+    public static Area operator / (Volume a, float b) => new Area(a._cubicMeters / b);
     public static bool operator < (Volume a, Volume b) => a._cubicMeters < b._cubicMeters;
     public static bool operator > (Volume a, Volume b) => a._cubicMeters > b._cubicMeters;
 
@@ -31,11 +32,11 @@
 
 public readonly struct Area
 {
-    private readonly float _value;
+    private readonly float _squareMeters;
 
-    public Area(float value)
+    public Area(float squareMeters)
     {
-        _value = value;
+        _squareMeters = squareMeters;
     }
 
     public static Area FromPixel(float pixels)
@@ -51,13 +52,16 @@ public readonly struct Area
     }
 
     public static Area operator + (Area a) => a;
-    public static Area operator - (Area a) => new Area(-a._value);
-    public static Area operator + (Area a, Area b) => new Area(a._value + b._value);
-    public static Area operator - (Area a, Area b) => new Area(a._value - b._value);
-    public static bool operator < (Area a, Area b) => a._value < b._value;
-    public static bool operator > (Area a, Area b) => a._value > b._value;
+    public static Area operator - (Area a) => new Area(-a._squareMeters);
+    public static Area operator + (Area a, Area b) => new Area(a._squareMeters + b._squareMeters);
+    public static Area operator - (Area a, Area b) => new Area(a._squareMeters - b._squareMeters);
+    public static Volume operator * (Area a, float b) => new Volume(a._squareMeters * b);
+    public static Volume operator * (float a, Area b) => new Volume(a * b._squareMeters);
+    public static float operator / (Area a, float b) => a._squareMeters / b;
+    public static bool operator < (Area a, Area b) => a._squareMeters < b._squareMeters;
+    public static bool operator > (Area a, Area b) => a._squareMeters > b._squareMeters;
 
-    public override string ToString() => $"{_value} square meters";
+    public override string ToString() => $"{_squareMeters} square meters";
 }
 
 
