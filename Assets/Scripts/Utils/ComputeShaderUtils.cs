@@ -16,7 +16,7 @@ public class ComputeShaderUtils : MonoBehaviour
     public static Vector2 LocationToUv(Vector3 location)
     {
         var relativePosition = location - GameObject.FindGameObjectWithTag("Renderers").transform.position;
-        var uvPos = relativePosition / (WorldSizeInMeters / 2);
+        var uvPos = relativePosition / (WorldSizeInMeters / 2.0f);
         var uv = new Vector2(uvPos.x, uvPos.z);
         return (uv + new Vector2(1, 1)) / 2;
     }

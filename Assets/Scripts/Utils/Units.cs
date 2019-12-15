@@ -1,6 +1,10 @@
-﻿public readonly struct Volume
+﻿using System;
+using UnityEngine;
+
+[Serializable]
+public struct Volume
 {
-    private readonly float _cubicMeters;
+    public float _cubicMeters;
 
     public Volume(float value)
     {
@@ -9,7 +13,7 @@
 
     public static Volume FromPixel(float depth)
     {
-        var metersPerPixel = ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
+        var metersPerPixel = (float)ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
         var cubicMeters = metersPerPixel * metersPerPixel * depth;
         return new Volume(cubicMeters);
     }
@@ -30,9 +34,10 @@
     public override string ToString() => $"{_cubicMeters} cubic meters";
 }
 
-public readonly struct Area
+[Serializable]
+public struct Area
 {
-    private readonly float _squareMeters;
+    public float _squareMeters;
 
     public Area(float squareMeters)
     {
@@ -41,7 +46,7 @@ public readonly struct Area
 
     public static Area FromPixel(float pixels)
     {
-        var metersPerPixel = ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
+        var metersPerPixel = (float)ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
         var SquareMeters = metersPerPixel * metersPerPixel;
         return new Area(SquareMeters);
     }

@@ -59,8 +59,7 @@ public class GrowthService : MonoBehaviour
     private bool SustainLife(Plant plant)
     {
         var delatTime = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
-        var sugarPerStructure = 0.01f; //TODO: store this in the structure
-        var usedSugar = sugarPerStructure * plant.TotalStructures * delatTime;
+        var usedSugar = plant.SustainingSugar._cubicMeters * delatTime;
         plant.StoredSugar -= Volume.FromCubicMeters(usedSugar);
         return plant.StoredSugar > Volume.FromCubicMeters(0);
     }

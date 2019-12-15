@@ -25,7 +25,7 @@ public class PrimaryGrowthState : IGrowthState
 
         if (plant.IsMature)
         {
-            plant.GrowthState = new ReproductionState();
+            plant.GrowthState = new SecondaryGrowthState();
         }
 
         plant.IsGrowing = false;

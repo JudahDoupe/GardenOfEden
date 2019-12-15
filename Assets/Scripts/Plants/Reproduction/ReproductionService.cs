@@ -92,7 +92,7 @@ public class ReproductionService : MonoBehaviour
         }
         else
         {
-            DebugLackOfReources("soil");
+            DebugLackOfReources("fertile soil");
         }
 
         return null;

@@ -18,6 +18,7 @@ public class Plant : MonoBehaviour
 
     public int TotalStructures => transform.GetComponentsInChildren<Structure>()?.Length ?? 1;
     public float RootRadius => 10 * Mathf.Sqrt(TotalStructures) / Mathf.PI;
+    public Volume SustainingSugar => Volume.FromCubicMeters(0.01f * TotalStructures); //TODO: store this in the structure
 
     public Structure Trunk;
 
