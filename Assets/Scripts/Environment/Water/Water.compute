@@ -1,11 +1,9 @@
 ﻿#pragma kernel Update
 #pragma kernel Rain
-#pragma kernel SuppressHighFrequencies
 
 Texture2D<float4> TerrainHeightMap;
 Texture2D<float4> WaterSourceMap;
 RWTexture2D<float4> WaterMap;
-RWTexture2D<float4> Result;
 
 static float MaxHeight = 200.0f;
 static float WidthInMeters = 400.0f;
@@ -168,20 +166,15 @@ void Update (uint3 id : SV_DispatchThreadID)
 	float height = GetTerrainHeight(id.xy) + depth;
     float2 velocity = GetNewVelocity(id.xy);
 
-    Result[id.xy] = float4(velocity, depth, height);
+    
+    AllMemoryBarrierWithGroupSync();
+    WaterMap[id.xy] = float4(velocity, depth, height);
+    AllMemoryBarrierWithGroupSync();
+    
+    //This does not conserve mass :(
+    float hfs = HighFrequencySuppression(id.xy);
+    WaterMap[id.xy] = float4(velocity, depth + hfs, height + hfs);
 }
-
-[numthreads(8, 8, 1)]
-void SuppressHighFrequencies(uint3 id : SV_DispatchThreadID)
-{
-	//This does not conserve mass :(
-	float4 rtn = WaterMap[id.xy]; 
-	float hfs = HighFrequencySuppression(id.xy);
-	rtn.b += hfs;
-	rtn.a += hfs;
-	WaterMap[id.xy] = rtn;
-}
-
 
 float RainDepthInMeters;
 

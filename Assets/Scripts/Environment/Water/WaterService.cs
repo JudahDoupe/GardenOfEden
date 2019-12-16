@@ -11,12 +11,11 @@ public class WaterService : MonoBehaviour
     public RenderTexture TerrainHeightMap;
     public RenderTexture WaterSourceHeightMap;
     public RenderTexture WaterMap;
-    public RenderTexture WaterOutput;
 
     [Header("Compute Shader")]
     public ComputeShader WaterShader;
 
-    /* Pubically Accessable Methods */
+    /* Publicly Accessible Methods */
 
     public float SampleWaterDepth(Vector3 location)
     {
@@ -36,22 +35,15 @@ public class WaterService : MonoBehaviour
 
     void Start()
     {
-        ComputeShaderUtils.ResetTexture(WaterOutput);
         ComputeShaderUtils.ResetTexture(WaterMap);
 
         var updateKernel = WaterShader.FindKernel("Update");
         WaterShader.SetTexture(updateKernel, "TerrainHeightMap", TerrainHeightMap);
         WaterShader.SetTexture(updateKernel, "WaterMap", WaterMap);
         WaterShader.SetTexture(updateKernel, "WaterSourceMap", WaterSourceHeightMap);
-        WaterShader.SetTexture(updateKernel, "Result", WaterOutput);
 
         var rainKernel = WaterShader.FindKernel("Rain");
         WaterShader.SetTexture(rainKernel, "WaterMap", WaterMap);
-
-        var hfsKernel = WaterShader.FindKernel("SuppressHighFrequencies");
-        WaterShader.SetTexture(hfsKernel, "WaterMap", WaterMap);
-        WaterShader.SetTexture(hfsKernel, "WaterSourceMap", WaterSourceHeightMap);
-        WaterShader.SetTexture(hfsKernel, "TerrainHeightMap", TerrainHeightMap);
     }
 
     void FixedUpdate()
@@ -76,10 +68,6 @@ public class WaterService : MonoBehaviour
     {
         int updateKernel = WaterShader.FindKernel("Update");
         WaterShader.Dispatch(updateKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
-        Graphics.CopyTexture(WaterOutput, WaterMap);
-
-        var hfsKernel = WaterShader.FindKernel("SuppressHighFrequencies");
-        WaterShader.Dispatch(hfsKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
         ComputeShaderUtils.InvalidateCache(WaterMap);
     }
 }

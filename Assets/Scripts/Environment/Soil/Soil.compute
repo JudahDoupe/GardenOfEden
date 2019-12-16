@@ -77,6 +77,8 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
 	waterDepth -= ExpelWater(id.xy, excessWater);
 	float requestedWater = clamp(soilDepth - waterDepth, 0, WaterAbsorpsionRate);
 	waterDepth += AbsorpWater(id.xy, requestedWater);
+    
+    AllMemoryBarrierWithGroupSync();
 
-	Result[id.xy] = float4(soilDepth, 0, waterDepth, 0);
+	SoilMap[id.xy] = float4(soilDepth, 0, waterDepth, 0);
 }
