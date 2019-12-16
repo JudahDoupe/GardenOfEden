@@ -24,10 +24,10 @@ static float AbsorptionRate = 0.02f;
 [numthreads(8,8,1)]
 void UpdateRoots(uint3 id : SV_DispatchThreadID)
 {
-	float4 soil = SoilMap[id.xy];
 	float rootId = 0.0f;
 	float rootDepth = 0.0f;
-	float soilDepth = soil.r;
+    float soilDepth = SoilMap[id.xy].r;
+    float waterDepth = SoilMap[id.xy].b;
 
 	for (int i = 0; i < NumRoots; i++) {
 		float2 xy = RootBuffer[i].uv * WidthInPixels;
@@ -41,10 +41,9 @@ void UpdateRoots(uint3 id : SV_DispatchThreadID)
 		}
 	}
 	
-	float absorpedWater = min(rootDepth * AbsorptionRate * DeltaTime, soil.b);
-	soil.b -= absorpedWater;
-
-	SoilMap[id.xy] = soil;
+    float absorpedWater = min(rootDepth * AbsorptionRate * DeltaTime, waterDepth);
+    
+    SoilMap[id.xy] = float4(soilDepth, SoilMap[id.xy].g, waterDepth - absorpedWater, SoilMap[id.xy].a);
 	RootMap[id.xy] = float4(rootId, rootDepth, 0, 0);
 	WaterOutput[id.xy] = float4(rootId, absorpedWater, 0, 0);
 }
