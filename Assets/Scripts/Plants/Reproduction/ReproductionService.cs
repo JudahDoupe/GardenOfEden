@@ -6,14 +6,11 @@ using Random = UnityEngine.Random;
 
 public class ReproductionService : MonoBehaviour
 {
-    [Header("Settings")]
-    public List<Transform> SpawnLocations;
-
     [Header("Debug Settings")]
     public bool LogReproductionFailures;
     public bool LogReproductionSuccesses;
 
-    /* Pubically Accessable Methods */
+    /* Publicly Accessible Methods */
 
     public void DropSeed(PlantDNA dna, Vector3 location)
     {

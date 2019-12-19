@@ -31,13 +31,6 @@ public class PlantApi : MonoBehaviour
     {
         _reproductionService.DropSeed(dna, location);
     }
-    public static void SpawnSpecies(PlantDNA dna)
-    {
-        foreach (var location in _reproductionService.SpawnLocations)
-        {
-            _reproductionService.PlantSeed(dna, location.position);
-        }
-    }
     public static void StartPlantGrowth(Plant plant)
     {
         _growthService.StartPlantGrowth(plant);
