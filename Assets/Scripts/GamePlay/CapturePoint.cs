@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class CapturePoint : MonoBehaviour
 {
+    public float CaptureRadius = 20;
     public bool IsCaptured;
 
     public Material CapturedStem;
@@ -14,7 +15,7 @@ public class CapturePoint : MonoBehaviour
 
     private void Update()
     {
-        if(!IsCaptured && PlantApi.SampleRootDepth(transform.position + Random.insideUnitSphere * 20) > 0)
+        if(!IsCaptured && PlantApi.SampleRootDepth(transform.position + Random.insideUnitSphere * CaptureRadius) > 0)
         {
             Capture();
         }
