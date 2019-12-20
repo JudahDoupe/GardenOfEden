@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
-
     private List<CapturePoint> _capturePoints;
     private bool _isGameInProgress;
 
@@ -19,17 +18,25 @@ public class GameController : MonoBehaviour
     {
         if(_capturePoints.All(x => x.IsCaptured) && _isGameInProgress)
         {
-            StartCoroutine(EndGame());
+            EndGame();
         }
     }
 
-    private IEnumerator EndGame()
+    private void EndGame()
     {
         _isGameInProgress = false;
 
-        yield return new WaitForSeconds(5);
-
-        QuitGame();
+        var player = FindObjectOfType<FirstPersonController>();
+        player.IsCameraMovable = false;
+        player.IsPlayerMovable = false;
+        player.IsFocusEnabled = false;
+        player.IsMouseHidden = false;
+        var camera = FindObjectOfType<CameraController>();
+        var mapCeneter = GameObject.Find("MapCenter");
+        camera.IsInUse = true;
+        camera.RotateAround(mapCeneter.transform.position, new Vector3(0, 50, -100));
+        var ui = FindObjectOfType<UIController>();
+        ui.ShowStatsMenu();
     }
 
     public void QuitGame()
