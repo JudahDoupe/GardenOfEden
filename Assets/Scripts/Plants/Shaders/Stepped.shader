@@ -1,9 +1,9 @@
 ﻿Shader "Custom/Stepped"
 {
     Properties {
-		_MainTex ("Texture", 2D) = "white" {}
+		[HideInInspector] _MainTex ("Texture", 2D) = "white" {}
+		_GridSize ("Voronoi Density", int) = 10
         _PrimaryColor ("Primary Color", Color) = (0, 0, 0, 1)
-        _SecondaryColor ("Secondary Color", Color) = (0, 0, 0, 1)
     }
     SubShader {
         Tags{ "RenderType"="Opaque" "Queue"="Geometry"}
@@ -14,7 +14,7 @@
         #pragma target 3.0
 
         fixed4 _PrimaryColor;
-        fixed4 _SecondaryColor;
+		int _GridSize;
 		sampler2D _MainTex;
 
 		float2 RandomPoint(float2 p) {
@@ -34,7 +34,7 @@
 
         void Surface (Input input, inout SurfaceOutput o) {
 			float2 uv = input.uv_MainTex;
-			float gridSize = 10;
+			float gridSize = _GridSize;
 			float minDist = 1;
 			float2 minId;
 
@@ -45,7 +45,7 @@
 			for(float x = -1; x <= 1; x += 1) {
 				for(float y = -1; y <= 1; y += 1) {
 					float2 offset = float2(x,y);
-					float2 offsetId = (id + offset) % gridSize;
+					float2 offsetId = (id + offset) % _GridSize;
 					float2 pointUv = offset + RandomPoint(offsetId) * 0.5;
 					float dist = distance(gv, pointUv);
 
