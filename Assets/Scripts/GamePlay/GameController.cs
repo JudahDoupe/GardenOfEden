@@ -26,14 +26,8 @@ public class GameController : MonoBehaviour
     {
         _isGameInProgress = false;
 
-        var player = FindObjectOfType<FirstPersonController>();
-        player.IsCameraMovable = false;
-        player.IsPlayerMovable = false;
-        player.IsFocusEnabled = false;
-        player.IsMouseHidden = false;
         var camera = FindObjectOfType<CameraController>();
         var mapCeneter = GameObject.Find("MapCenter");
-        camera.IsInUse = true;
         camera.RotateAround(mapCeneter.transform.position, new Vector3(0, 50, -100));
         var ui = FindObjectOfType<UIController>();
         ui.ShowStatsMenu();

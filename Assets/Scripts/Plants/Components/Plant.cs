@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class Plant : MonoBehaviour
+public class Plant : Interactable
 {
     public int Id;
     public PlantDNA DNA;
@@ -33,6 +33,14 @@ public class Plant : MonoBehaviour
             SpeciesId = DNA.SpeciesId,
             RootRadius = RootRadius
         };
+    }
+
+    public override void Interact(FirstPersonController player)
+    {
+        var camera = FindObjectOfType<CameraController>();
+        camera.RotateAround(transform.position + new Vector3(0,.5f,0), new Vector3(0, 1, -3));
+        var ui = FindObjectOfType<UIController>();
+        ui.ShowEvolutionMenu();
     }
 
 }
