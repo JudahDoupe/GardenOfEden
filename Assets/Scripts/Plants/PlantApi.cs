@@ -27,7 +27,7 @@ public class PlantApi : MonoBehaviour
     {
         return _rootService.SampleRootDepth(location);
     }
-    public static void DropSeed(PlantDNA dna, Vector3 location)
+    public static void DropSeed(PlantDna dna, Vector3 location)
     {
         _reproductionService.DropSeed(dna, location);
     }
@@ -36,9 +36,9 @@ public class PlantApi : MonoBehaviour
         _growthService.StartPlantGrowth(plant);
     }
 
-    public static int GetSpeciesPopulation(Guid speciesId)
+    public static int GetSpeciesPopulation(int speciesId)
     {
-        return FindObjectsOfType<Plant>().Count(p => p.DNA.SpeciesId == speciesId);
+        return FindObjectsOfType<Plant>().Count(p => p.Dna.SpeciesId == speciesId);
     }
     public static int GetTotalPlantPopulation()
     {

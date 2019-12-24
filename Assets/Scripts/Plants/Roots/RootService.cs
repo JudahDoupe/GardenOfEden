@@ -29,17 +29,17 @@ public class RootService : MonoBehaviour
 
     public void SpreadRoots(Plant plant, float radius, float depth)
     {
-        if (!_roots.Any(x => x.id == plant.Id))
+        if (!_roots.Any(x => x.id == plant.PlantId))
         {
-            _absorpedWater.Add(plant.Id, 0);
+            _absorpedWater.Add(plant.PlantId, 0);
         }
         else
         {
-            _roots.Remove(_roots.Single(x => x.id == plant.Id));
+            _roots.Remove(_roots.Single(x => x.id == plant.PlantId));
         }
         _roots.Add(new RootData
         {
-            id = plant.Id,
+            id = plant.PlantId,
             uv = ComputeShaderUtils.LocationToUv(plant.transform.position),
             radius = radius,
             depth = depth
@@ -48,15 +48,15 @@ public class RootService : MonoBehaviour
 
     public void RemoveRoots(Plant plant)
     {
-        _roots = _roots.Where(x => x.id != plant.Id).ToList();
-        _absorpedWater.Remove(plant.Id);
+        _roots = _roots.Where(x => x.id != plant.PlantId).ToList();
+        _absorpedWater.Remove(plant.PlantId);
     }
 
     public Volume AbsorpWater(Plant plant)
     {
-        if (_absorpedWater.TryGetValue(plant.Id, out float water))
+        if (_absorpedWater.TryGetValue(plant.PlantId, out float water))
         {
-            _absorpedWater[plant.Id] = 0;
+            _absorpedWater[plant.PlantId] = 0;
         }
         return Volume.FromPixel(water);
     }

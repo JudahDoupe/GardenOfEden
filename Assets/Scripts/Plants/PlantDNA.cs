@@ -1,33 +1,11 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class PlantDNA
+public class PlantDna
 {
-    public Guid SpeciesId;
-    public Structure Trunk;
     public string Name;
-    public float GestationPeriod;
-    public int MaxOffspring;
-    public float RootRadius;
+    public int SpeciesId;
 
-    [Serializable]
-    public class Structure
-    {
-        public PlantStructureType Type;
-        public string Resource;
-        public float Length;
-        public float Diameter;
-        public List<Connection> Connections;
-    }
-
-    [Serializable]
-    public class Connection
-    {
-        public Vector3 Position;
-        public Quaternion Rotation;
-        public Structure Structure;
-    }
+    public string[] Resources;
 }

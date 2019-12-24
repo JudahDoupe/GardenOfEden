@@ -12,27 +12,19 @@ public class ReproductionService : MonoBehaviour
 
     /* Publicly Accessible Methods */
 
-    public void DropSeed(PlantDNA dna, Vector3 location)
+    public void DropSeed(PlantDna dna, Vector3 location)
     {
-        _seedQueue.Enqueue(new Tuple<PlantDNA, Vector3>(dna, location));
+        _seedQueue.Enqueue(new Tuple<PlantDna, Vector3>(dna, location));
     }
 
-    public Plant PlantSeed(PlantDNA dna, Vector3 location)
+    public Plant PlantSeed(PlantDna dna, Vector3 location)
     {
         var plant = new GameObject().AddComponent<Plant>();
-        plant.Id = lastPlantId++;
+        plant.PlantId = lastPlantId++;
         plant.transform.position = location;
         plant.transform.localEulerAngles = new Vector3(-90, Random.Range(0, 365), 0);
 
-        plant.DNA = dna;
-        plant.IsAlive = true;
-        plant.PlantedDate = EnvironmentApi.GetDate();
-        plant.LastUpdatedDate = plant.PlantedDate;
-
-        plant.Trunk = Structure.Create(plant, dna.Trunk);
-        plant.Trunk.transform.parent = plant.transform;
-        plant.Trunk.transform.localPosition = Vector3.zero;
-        plant.Trunk.transform.localEulerAngles = Vector3.zero;
+        plant.Dna = dna;
 
         plant.GrowthState = new PrimaryGrowthState();
         plant.StoredSugar = Volume.FromCubicMeters(3);
@@ -49,7 +41,7 @@ public class ReproductionService : MonoBehaviour
     /* Inner Mechinations */
 
     private int lastPlantId = 1;
-    private Queue<Tuple<PlantDNA, Vector3>> _seedQueue = new Queue<Tuple<PlantDNA, Vector3>>();
+    private Queue<Tuple<PlantDna, Vector3>> _seedQueue = new Queue<Tuple<PlantDna, Vector3>>();
 
     public void Update()
     {

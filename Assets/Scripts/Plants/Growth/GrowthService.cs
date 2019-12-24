@@ -68,7 +68,7 @@ public class GrowthService : MonoBehaviour
     {
         var waterPerSugar = 3.0f; //TODO: store this value in the leaves
 
-        var availableLight = EnvironmentApi.GetAbsorpedLight(plant.Id);
+        var availableLight = EnvironmentApi.GetAbsorpedLight(plant.PlantId);
         var availableWater = plant.StoredWater;
 
         var requestedLight = availableWater / waterPerSugar;
