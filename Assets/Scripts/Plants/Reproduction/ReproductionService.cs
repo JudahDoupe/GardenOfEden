@@ -28,7 +28,6 @@ public class ReproductionService : MonoBehaviour
 
         plant.GrowthState = new PrimaryGrowthState();
         plant.StoredSugar = Volume.FromCubicMeters(3);
-        PlantApi.StartPlantGrowth(plant);
 
         if (LogReproductionSuccesses)
         {

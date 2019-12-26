@@ -4,22 +4,22 @@ using UnityEngine;
 
 public class Structure : MonoBehaviour
 {
-    public float Diameter;
-    public float Length;
-
+    [Header("Growth Properties")]
     public float AgeInDays = 0;
     public float DaysToSprout = 2;
     public float DaysToFullyGrown = 3;
     public float DaysToDouble = 100;
-
     public bool IsMature => _hasSprouted && Branches.All(x => x._hasSprouted);
 
-    public Plant Plant;
-    public List<Transform> Connections;
+    [Header("Physical Properties")]
+    public float Diameter;
+    public float Length;
+    public List<Connection> Connections;
     public List<Structure> Branches { get; set; } = new List<Structure>();
+    public Plant Plant { get; set; }
 
-    private GameObject _model;
     private Rigidbody _rigidbody;
+    private GameObject _model;
     private int _resourceIndex;
     private bool _hasSprouted = false;
     private bool _isFullyGrown = false;
@@ -77,7 +77,7 @@ public class Structure : MonoBehaviour
         foreach (var connection in Connections)
         {
             var structure = Create(Plant, _resourceIndex + 1);
-            structure.transform.parent = connection;
+            structure.transform.parent = connection.transform;
             structure.transform.localPosition = Vector3.zero;
             structure.transform.localRotation = Quaternion.identity;
             Branches.Add(structure);
@@ -92,7 +92,13 @@ public class Structure : MonoBehaviour
         var secondaryGrowth = 1 + AgeInDays / DaysToDouble;
 
         transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
-        _model.transform.localScale = new Vector3(Diameter * secondaryGrowth, Diameter * secondaryGrowth, Length);
+        var modelScale = new Vector3(Diameter * secondaryGrowth, Diameter * secondaryGrowth, Length);
+        _model.transform.localScale = modelScale;
+
+        foreach (var connection in Connections)
+        {
+            connection.UpdatePosition(_model.transform.localScale);
+        }
     }
 
     void OnCollisionEnter(Collision collision)

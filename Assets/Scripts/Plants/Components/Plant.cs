@@ -29,6 +29,8 @@ public class Plant : Interactable
         Trunk.transform.localRotation = Quaternion.identity;
         PlantedDate = EnvironmentApi.GetDate();
         LastUpdatedDate = PlantedDate;
+        GrowthState = new PrimaryGrowthState();
+        PlantApi.StartPlantGrowth(this);
     }
 
     public override void Interact(FirstPersonController player)
