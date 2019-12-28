@@ -21,12 +21,10 @@ public class UIController : MonoBehaviour
             if (_pauseMenu.activeSelf)
             {
                 HidePauseMenu();
-                FindObjectOfType<CameraController>().DisablePlayerControlls();
             }
             else
             {
                 ShowPauseMenu();
-                FindObjectOfType<CameraController>().EnablePlayerControlls();
             }
         }
     }
@@ -50,12 +48,14 @@ public class UIController : MonoBehaviour
         _statsMenu.SetActive(false);
     }
 
-    public void ShowEvolutionMenu()
+    public void ShowEvolutionMenu(Plant plant)
     {
         _evolutionMenu.SetActive(true);
+        _evolutionMenu.GetComponent<EvolutionUI>().Enable(plant);
     }
     public void HideEvolutionMenu()
     {
         _evolutionMenu.SetActive(false);
+        _evolutionMenu.GetComponent<EvolutionUI>().Disable();
     }
 }

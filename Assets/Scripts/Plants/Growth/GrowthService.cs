@@ -8,11 +8,11 @@ public class GrowthService : MonoBehaviour
     [Range(1, 60)]
     public int FramesPerPlantGrowth = 1;
 
-    /* Pubically Accessable Methods */
+    /* Publicly Accessible Methods */
 
     public void StartPlantGrowth(Plant plant)
     {
-        _livingPlants.Add(plant);
+        _livingPlants.AddLast(plant);
     }
 
     public void StopPlantGrowth(Plant plant)
@@ -20,9 +20,15 @@ public class GrowthService : MonoBehaviour
         _livingPlants.Remove(plant);
     }
 
+    public void PrioritizePlant(Plant plant)
+    {
+        _livingPlants.Remove(plant);
+        _livingPlants.AddFirst(plant);
+    }
+
     /* Inner Mechinations */
 
-    private List<Plant> _livingPlants = new List<Plant>();
+    private LinkedList<Plant> _livingPlants = new LinkedList<Plant>();
 
     private int _currentFrame = 0;
 
@@ -38,7 +44,7 @@ public class GrowthService : MonoBehaviour
         {
             var plant = _livingPlants.First(x => !x.IsGrowing);
             _livingPlants.Remove(plant);
-            _livingPlants.Add(plant);
+            _livingPlants.AddLast(plant);
 
             PlantApi.UpdateWater(plant);
             GenerateSugar(plant);

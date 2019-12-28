@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class Plant : Interactable
+public class Plant : MonoBehaviour
 {
     public int PlantId;
     public PlantDna Dna;
@@ -31,14 +31,6 @@ public class Plant : Interactable
         LastUpdatedDate = PlantedDate;
         GrowthState = new PrimaryGrowthState();
         PlantApi.StartPlantGrowth(this);
-    }
-
-    public override void Interact(FirstPersonController player)
-    {
-        var camera = FindObjectOfType<CameraController>();
-        camera.RotateAround(transform.position + new Vector3(0,.5f,0), new Vector3(0, 1, -3));
-        var ui = FindObjectOfType<UIController>();
-        ui.ShowEvolutionMenu();
     }
 
 }

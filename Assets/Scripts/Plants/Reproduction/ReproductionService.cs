@@ -34,15 +34,30 @@ public class ReproductionService : MonoBehaviour
             Debug.Log($"Successfully planted {PlantApi.GetSpeciesPopulation(dna.SpeciesId)}th {dna.Name ?? "your plant"}.");
         }
 
+        if (_camera.FocusedPlant.Dna.Generation < dna.Generation)
+        {
+            _camera.FocusPlant(plant);
+        }
+        else if (!_camera.FocusedPlant.IsAlive)
+        {
+            _camera.FocusPlant(plant);
+        }
+
         return plant;
     }
 
     /* Inner Mechinations */
 
+    private CameraController _camera;
+
     private int lastPlantId = 1;
     private Queue<Tuple<PlantDna, Vector3>> _seedQueue = new Queue<Tuple<PlantDna, Vector3>>();
 
-    public void Update()
+    void Start()
+    {
+        _camera = FindObjectOfType<CameraController>();
+    }
+    void Update()
     {
         if (_seedQueue.Any())
         {

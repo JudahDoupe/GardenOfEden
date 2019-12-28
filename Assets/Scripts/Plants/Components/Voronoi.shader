@@ -1,4 +1,4 @@
-﻿Shader "Custom/Stepped"
+﻿Shader "Custom/Cell Shaded Voronoi"
 {
     Properties {
 		[HideInInspector] _MainTex ("Texture", 2D) = "white" {}
