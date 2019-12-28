@@ -7,11 +7,15 @@ public class UIController : MonoBehaviour
     private GameObject _statsMenu;
     private GameObject _evolutionMenu;
 
+    private CameraController _camera;
+
     private void Start()
     {
         _pauseMenu = transform.Find("Pause Menu").gameObject;
         _statsMenu = transform.Find("Stats").gameObject;
         _evolutionMenu = transform.Find("Evolution").gameObject;
+
+        _camera = FindObjectOfType<CameraController>();
     }
 
     void Update()
@@ -25,6 +29,18 @@ public class UIController : MonoBehaviour
             else
             {
                 ShowPauseMenu();
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (_evolutionMenu.activeSelf)
+            {
+                HideEvolutionMenu();
+            }
+            else
+            {
+                ShowEvolutionMenu(_camera.FocusedPlant);
             }
         }
     }
