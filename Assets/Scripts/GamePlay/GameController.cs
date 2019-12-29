@@ -27,8 +27,7 @@ public class GameController : MonoBehaviour
         _isGameInProgress = false;
 
         var camera = FindObjectOfType<CameraController>();
-        var mapCeneter = GameObject.Find("MapCenter");
-        camera.RotateAround(mapCeneter.transform.position, new Vector3(0, 50, -100));
+        camera.Distance = 50;
         var ui = FindObjectOfType<UIController>();
         ui.ShowStatsMenu();
     }

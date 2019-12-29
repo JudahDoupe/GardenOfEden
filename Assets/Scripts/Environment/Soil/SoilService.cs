@@ -30,9 +30,8 @@ public class SoilService : MonoBehaviour
     public float SampleTerrainHeight(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var bedrock = ComputeShaderUtils.GetCachedTexture(BedrockHeightMap).GetPixelBilinear(uv.x, uv.y);
-        var soil = ComputeShaderUtils.GetCachedTexture(SoilHeightMap).GetPixelBilinear(uv.x, uv.y);
-        return Mathf.Max(bedrock.r, soil.r);
+        var color = ComputeShaderUtils.GetCachedTexture(SoilMap).GetPixelBilinear(uv.x, uv.y);
+        return color.a;
     }
 
 

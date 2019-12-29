@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using UnityEngine;
+﻿using UnityEngine;
 
 public static class TransformExtentions
 {
@@ -31,5 +28,15 @@ public static class TransformExtentions
     {
         transform.localScale = Vector3.one;
         transform.localScale = new Vector3(globalScale.x / transform.lossyScale.x, globalScale.y / transform.lossyScale.y, globalScale.z / transform.lossyScale.z);
+    }
+
+    public static Bounds GetBounds(this Transform transform)
+    {
+        var b = new Bounds(transform.position, Vector3.zero);
+        foreach (var renderer in transform.GetComponentsInChildren<Renderer>())
+        {
+            b.Encapsulate(renderer.bounds);
+        }
+        return b;
     }
 }

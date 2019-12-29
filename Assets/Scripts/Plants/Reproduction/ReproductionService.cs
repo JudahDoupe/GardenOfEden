@@ -36,11 +36,11 @@ public class ReproductionService : MonoBehaviour
 
         if (_camera.FocusedPlant.Dna.Generation < dna.Generation)
         {
-            _camera.FocusPlant(plant);
+            _camera.FocusOnPlant(plant);
         }
         else if (!_camera.FocusedPlant.IsAlive)
         {
-            _camera.FocusPlant(plant);
+            _camera.FocusOnPlant(plant);
         }
 
         return plant;

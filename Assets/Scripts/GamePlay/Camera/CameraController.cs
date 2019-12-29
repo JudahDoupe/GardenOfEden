@@ -3,53 +3,39 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public float MoveSpeed;
-    public float LookSpeed;
+    public float MoveSpeed = 0.3f;
+    public float LookSpeed = 1;
     public float Distance = 5;
-    public Plant FocusedPlant;
 
-    public void MoveTo(Vector3 position)
-    {
-        _target = position;
-        _rotateAroundPoint = null;
-        _rotateAroundOffset = null;
-    }
-
-    public void LookAt(Vector3 position)
-    {
-        _targetLook = position;
-    }
-
-    public void RotateAround(Vector3 position, Vector3 offset)
-    {
-        _rotateAroundPoint = position;
-        _rotateAroundOffset = offset;
-        _targetLook = position;
-    }
-
-    public void FocusPlant(Plant plant)
+    public void FocusOnPlant(Plant plant)
     {
         FocusedPlant = plant;
-        RotateAround(plant.transform.position + new Vector3(0, .5f, 0), new Vector3(0, 2, -5));
+        FocusedGoal = FindObjectsOfType<CapturePoint>().Aggregate((curMin, x) =>
+                curMin == null || 
+                Vector3.Distance(x.transform.position, plant.transform.position) < Vector3.Distance(curMin.transform.position, plant.transform.position) ? x : curMin);
+
+        UpdateHorizontalRatio();
+        UpdateCinematicTargets();
     }
+
 
     /* INNER MECHINATIONS */
 
+    public Plant FocusedPlant { get; set; }
+    public CapturePoint FocusedGoal { get; set; }
+
     private Vector3 _target;
     private Vector3 _targetLook;
-
-    private Vector3? _rotateAroundPoint;
-    private Vector3? _rotateAroundOffset;
+    private float _horizontalRatio;
 
     private GrowthService _growthService;
     private SoilService _soilService;
 
-    private Vector3 direction;
     private void Start()
     {
         _growthService = FindObjectOfType<GrowthService>();
         _soilService = FindObjectOfType<SoilService>();
-        FocusPlant(FindObjectsOfType<Plant>().First());
+        FocusOnPlant(FindObjectsOfType<Plant>().First());
     }
     private void Update()
     {
@@ -60,11 +46,7 @@ public class CameraController : MonoBehaviour
         if (FocusedPlant.IsAlive)
         {
             _growthService.PrioritizePlant(FocusedPlant);
-        }
-
-        if (_rotateAroundPoint.HasValue)
-        {
-            RotateTargetAroundPoint();
+            UpdateCinematicTargets();
         }
 
         var targetPosition = Vector3.Lerp(transform.position, _target, MoveSpeed * Time.deltaTime);
@@ -75,16 +57,18 @@ public class CameraController : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, LookSpeed * Time.deltaTime);
     }
 
-    private float currentAngle = 0;
-    private void RotateTargetAroundPoint()
+    private void UpdateCinematicTargets()
     {
-        var circumfrance = _rotateAroundOffset.Value.z * _rotateAroundOffset.Value.z * Mathf.PI;
-        var angleChange = (MoveSpeed / circumfrance) * 360;
-        var clampedAngleChange = Mathf.Min(angleChange, Time.deltaTime * 10);
-        currentAngle = (currentAngle  + clampedAngleChange) % 360;
-        var offset = Quaternion.AngleAxis(currentAngle, Vector3.up) * _rotateAroundOffset.Value;
+        var plantPosition = FocusedPlant.transform.GetBounds().center;
+        var direction = (plantPosition - FocusedGoal.transform.position).normalized;
+        var horizontalOffset = new Vector3(Distance * _horizontalRatio, 0, 0);
 
-        _target = _rotateAroundPoint.Value + offset;
-        _rotateAroundOffset = _rotateAroundOffset.Value.normalized * Distance;
+        _target = plantPosition + (direction * Distance) + horizontalOffset;
+        _targetLook = plantPosition + horizontalOffset / 2;
+    }
+    private float UpdateHorizontalRatio()
+    {
+        var horizontalRatios = new[] { -0.66f, -0.5f, 0, 0.5f, 0.66f };
+        return horizontalRatios[Mathf.RoundToInt(Random.Range(0, 4))];
     }
 }

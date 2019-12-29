@@ -72,6 +72,7 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
 {
 	float soilDepth = GetSoilDepth(id.xy);
 	float waterDepth = GetSoakedWaterDepth(id.xy);
+	float terrainHeight = max(GetBedrockHeight(id.xy), GetSoilHeight(id.xy));
 
 	float excessWater = max(waterDepth - soilDepth, 0);
 	waterDepth -= ExpelWater(id.xy, excessWater);
@@ -81,5 +82,5 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
     
     AllMemoryBarrierWithGroupSync();
 
-    SoilMap[id.xy] = float4(soilDepth, 0, GetWaterDepth(id.xy) + waterDiff, 0);
+    SoilMap[id.xy] = float4(soilDepth, 0, GetWaterDepth(id.xy) + waterDiff, terrainHeight);
 }
