@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class CapturePoint : MonoBehaviour
@@ -13,6 +12,13 @@ public class CapturePoint : MonoBehaviour
     public List<GameObject> Stems;
     public List<GameObject> Leaves;
 
+    private GameService _gameService;
+
+    private void Start()
+    {
+        _gameService = FindObjectOfType<GameService>();
+    }
+
     private void Update()
     {
         if(!IsCaptured && PlantApi.SampleRootDepth(transform.position + Random.insideUnitSphere * CaptureRadius) > 0)
@@ -24,7 +30,8 @@ public class CapturePoint : MonoBehaviour
     private void Capture()
     {
         IsCaptured = true;
-        foreach(var stem in Stems)
+        _gameService.PointCapturedSubject.Publish(this);
+        foreach (var stem in Stems)
         {
             stem.GetComponent<Renderer>().material = CapturedStem;
         }

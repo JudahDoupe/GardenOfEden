@@ -9,7 +9,7 @@ MonoImporter:
   - SoilMap: {fileID: 8600000, guid: c81425690323c0e47be8a8230e97a08f, type: 2}
   - WaterOutput: {fileID: 8600000, guid: 89e68b9d3c44ec84d9841ef031b76adb, type: 2}
   - RootShader: {fileID: 7200000, guid: 2cbf1b176ccf09a4582849efa791783d, type: 3}
-  executionOrder: 0
+  executionOrder: -7
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 

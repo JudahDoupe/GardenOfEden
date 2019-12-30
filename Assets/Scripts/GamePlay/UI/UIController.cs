@@ -7,7 +7,7 @@ public class UIController : MonoBehaviour
     private GameObject _statsMenu;
     private GameObject _evolutionMenu;
 
-    private CameraController _camera;
+    private GameService _gameService;
 
     private void Start()
     {
@@ -15,7 +15,7 @@ public class UIController : MonoBehaviour
         _statsMenu = transform.Find("Stats").gameObject;
         _evolutionMenu = transform.Find("Evolution").gameObject;
 
-        _camera = FindObjectOfType<CameraController>();
+        _gameService = FindObjectOfType<GameService>();
     }
 
     void Update()
@@ -40,7 +40,7 @@ public class UIController : MonoBehaviour
             }
             else
             {
-                ShowEvolutionMenu(_camera.FocusedPlant);
+                ShowEvolutionMenu(_gameService.FocusedPlant);
             }
         }
     }

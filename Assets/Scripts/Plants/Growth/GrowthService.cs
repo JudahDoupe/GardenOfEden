@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Utils;
 using UnityEngine;
 
 public class GrowthService : MonoBehaviour
@@ -10,28 +11,32 @@ public class GrowthService : MonoBehaviour
 
     /* Publicly Accessible Methods */
 
+    public Subject<Plant> NewPlantSubject = new Subject<Plant>();
+    public Subject<Plant> PlantDeathSubject = new Subject<Plant>();
+
     public void StartPlantGrowth(Plant plant)
     {
+        NewPlantSubject.Publish(plant);
         _livingPlants.AddLast(plant);
     }
 
     public void StopPlantGrowth(Plant plant)
     {
+        PlantDeathSubject.Publish(plant);
         _livingPlants.Remove(plant);
-    }
-
-    public void PrioritizePlant(Plant plant)
-    {
-        _livingPlants.Remove(plant);
-        _livingPlants.AddFirst(plant);
     }
 
     /* Inner Mechinations */
 
     private LinkedList<Plant> _livingPlants = new LinkedList<Plant>();
-
     private int _currentFrame = 0;
 
+    private GameService _gameService;
+
+    void Start()
+    {
+        _gameService = FindObjectOfType<GameService>();
+    }
     void Update()
     {
         if(_currentFrame++ % FramesPerPlantGrowth == 0)
@@ -44,7 +49,11 @@ public class GrowthService : MonoBehaviour
         {
             var plant = _livingPlants.First(x => !x.IsGrowing);
             _livingPlants.Remove(plant);
-            _livingPlants.AddLast(plant);
+
+            if (_gameService.FocusedPlant == plant && !plant.IsMature)
+                _livingPlants.AddFirst(plant);
+            else
+                _livingPlants.AddLast(plant);
 
             PlantApi.UpdateWater(plant);
             GenerateSugar(plant);

@@ -10,7 +10,7 @@ MonoImporter:
   - WaterMap: {fileID: 8600000, guid: 99838628972da224696fe5b851b90a7e, type: 2}
   - WaterOutput: {fileID: 8600000, guid: a4024d353c61ca747b8f43e1ec1a6324, type: 2}
   - WaterShader: {fileID: 7200000, guid: 64b336648617fb44697d012cd17ff071, type: 3}
-  executionOrder: 50
+  executionOrder: -50
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 

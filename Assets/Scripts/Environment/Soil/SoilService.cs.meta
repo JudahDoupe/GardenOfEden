@@ -11,7 +11,7 @@ MonoImporter:
   - SoilOutput: {fileID: 8600000, guid: b26cc25da08c8544d94440a5926c5c37, type: 2}
   - SoilShader: {fileID: 7200000, guid: f35ffca30ac7dde4d963737b2726dc17, type: 3}
   - SubtractShader: {fileID: 7200000, guid: 24a57de22a2e4294aa8b1d98ac66d3b9, type: 3}
-  executionOrder: 100
+  executionOrder: -20
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 
