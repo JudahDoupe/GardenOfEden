@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class ComputeShaderUtils : MonoBehaviour
@@ -63,5 +64,20 @@ public static class RenderTextureExtentions
         RenderTexture.active = currentRt;
 
         return rtnTex;
+    }
+
+    public static void LoadFromFile(this RenderTexture rt, string path)
+    {
+        var tex = new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, TextureFormat.RGBAFloat, false);
+        tex.LoadRawTextureData(File.ReadAllBytes(path));
+        tex.Apply();
+        Graphics.Blit(tex, rt);
+    }
+
+    public static void SaveToFile(this RenderTexture rt, string path)
+    {
+        var tex = rt.ToTexture2D();
+        var bytes = tex.GetRawTextureData();
+        File.WriteAllBytes(path, bytes);
     }
 }

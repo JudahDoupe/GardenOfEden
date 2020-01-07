@@ -80,7 +80,6 @@ public class RootService : MonoBehaviour
     void Start()
     {
         ComputeShaderUtils.ResetTexture(RootMap);
-        ComputeShaderUtils.ResetTexture(SoilMap);
         ComputeShaderUtils.ResetTexture(WaterOutput);
 
         var kernelId = RootShader.FindKernel("UpdateRoots");

@@ -56,14 +56,6 @@ public class WaterService : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.U))
-        {
-            ComputeShaderUtils.ResetTexture(WaterMap);
-        }
-    }
-
     private void UpdateWaterTable()
     {
         int updateKernel = WaterShader.FindKernel("Update");
