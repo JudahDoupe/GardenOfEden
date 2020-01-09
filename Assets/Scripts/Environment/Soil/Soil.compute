@@ -1,8 +1,7 @@
 ﻿#pragma kernel UpdateSoil
 
-Texture2D<float4> BedrockHeightMap;
-Texture2D<float4> SoilHeightMap;
 RWTexture2D<float4> SoilMap;
+Texture2D<float4> SoilWaterMap;
 RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
 
@@ -11,26 +10,30 @@ static float WidthInMeters = 400.0f;
 static float WidthInPixels = 512.0f;
 static float WaterAbsorpsionRate = 0.05f;
 
-float GetBedrockHeight(int2 xy)
-{
-	uint2 pos = clamp(xy, 0, 511);
-	return BedrockHeightMap[pos].r * MaxHeight;
-}
-float GetSoilHeight(int2 xy)
-{
-	uint2 pos = clamp(xy, 0, 511);
-	return SoilHeightMap[pos].r * MaxHeight;
-}
+
 float GetSoilDepth(int2 xy)
 {
-	float diff = GetSoilHeight(xy) - GetBedrockHeight(xy);
-	return clamp(diff, 0, MaxHeight);
+	uint2 pos = clamp(xy, 0, 511);
+	return SoilMap[pos].r;
 }
 float GetWaterDepth(int2 xy)
 {
 	uint2 pos = clamp(xy, 0, 511);
 	return SoilMap[pos].b;
 }
+float GetLandHeight(int2 xy)
+{
+	uint2 pos = clamp(xy, 0, 511);
+	return SoilMap[pos].a;
+}
+
+/*
+*    Soil Map
+* R = Soil Depth
+* G =
+* B = Water Depth
+* A = Land Height
+*/
 
 float GetSoakedWaterDepth(int2 xy)
 {
@@ -72,7 +75,7 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
 {
 	float soilDepth = GetSoilDepth(id.xy);
 	float waterDepth = GetSoakedWaterDepth(id.xy);
-	float terrainHeight = max(GetBedrockHeight(id.xy), GetSoilHeight(id.xy));
+	float landHeight = GetLandHeight(id.xy);
 
 	float excessWater = max(waterDepth - soilDepth, 0);
 	waterDepth -= ExpelWater(id.xy, excessWater);
@@ -82,5 +85,38 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
     
     AllMemoryBarrierWithGroupSync();
 
-    SoilMap[id.xy] = float4(soilDepth, 0, GetWaterDepth(id.xy) + waterDiff, terrainHeight);
+    SoilMap[id.xy] = float4(soilDepth, 0, GetWaterDepth(id.xy) + waterDiff, landHeight);
+}
+
+
+struct RootData
+{
+	float2 uv;
+	float radius;
+	float depth;
+	int id;
+};
+StructuredBuffer<RootData> RootBuffer;
+int NumRoots;
+float2 GetWaterVelocity(int2 xy)
+{
+	float2 direction = float2(0, 0);
+	float2 sumWaterDirection;
+	float2 cellXy = float2(xy.x, xy.y);
+
+	for (int i = 0; i < NumRoots; i++) {
+		float2 rootXy = RootBuffer[i].uv * WidthInPixels;
+		float dist = distance(cellXy, rootXy);
+		float rootDepth = smoothstep(RootBuffer[i].radius, 0, dist) * RootBuffer[i].depth;
+		sumWaterDirection += ((cellXy - rootXy) / dist) * rootDepth;
+	}
+
+	float2 waterVelocity = sumWaterDirection / NumRoots;
+
+
+
+	float currentWaterDepth = GetWaterDepth(xy);
+	float newWaterDepth = currentWaterDepth;
+
+	return newWaterDepth;
 }
