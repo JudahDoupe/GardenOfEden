@@ -13,7 +13,7 @@ public class LevelLoader : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(LoadStarterLevel());
+        //StartCoroutine(LoadStarterLevel());
     }
 
     public void ExportLevel(string mapName)
@@ -21,12 +21,14 @@ public class LevelLoader : MonoBehaviour
         Directory.CreateDirectory($"Assets/Resources/Map/{mapName}/");
         WaterMap.SaveToFile($"Assets/Resources/Map/{mapName}/water.tex");
         SoilMap.SaveToFile($"Assets/Resources/Map/{mapName}/soil.tex");
+        SoilMap.SaveToFile($"Assets/Resources/Map/{mapName}/soilWater.tex");
     }
 
     public void LoadLevel(string mapName)
     {
         WaterMap.LoadFromFile($"Assets/Resources/Map/{mapName}/water.tex");
         SoilMap.LoadFromFile($"Assets/Resources/Map/{mapName}/soil.tex");
+        SoilMap.LoadFromFile($"Assets/Resources/Map/{mapName}/soilWater.tex");
     }
 
     private IEnumerator LoadStarterLevel()

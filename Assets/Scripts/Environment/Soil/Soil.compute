@@ -1,7 +1,7 @@
 ﻿#pragma kernel UpdateSoil
 
 RWTexture2D<float4> SoilMap;
-Texture2D<float4> SoilWaterMap;
+RWTexture2D<float4> SoilWaterMap;
 RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
 
@@ -30,10 +30,22 @@ float GetLandHeight(int2 xy)
 /*
 *    Soil Map
 * R = Soil Depth
-* G =
-* B = Water Depth
+* G = Root Depth
+* B = 
 * A = Land Height
 */
+
+struct RootData
+{
+	float2 uv;
+	float radius;
+	float depth;
+	int id;
+	float absorbedWater;
+};
+StructuredBuffer<RootData> RootBuffer;
+int NumRoots;
+
 
 float GetSoakedWaterDepth(int2 xy)
 {
@@ -81,42 +93,27 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
 	waterDepth -= ExpelWater(id.xy, excessWater);
 	float requestedWater = clamp(soilDepth - waterDepth, 0, WaterAbsorpsionRate);
 	waterDepth += AbsorpWater(id.xy, requestedWater);
-    float waterDiff = waterDepth - GetWaterDepth(id.xy);
+    float waterDiff = waterDepth - GetWaterDepth(id.xy); 
     
     AllMemoryBarrierWithGroupSync();
 
-    SoilMap[id.xy] = float4(soilDepth, 0, GetWaterDepth(id.xy) + waterDiff, landHeight);
-}
+	//ROOT Stuff
 
-
-struct RootData
-{
-	float2 uv;
-	float radius;
-	float depth;
-	int id;
-};
-StructuredBuffer<RootData> RootBuffer;
-int NumRoots;
-float2 GetWaterVelocity(int2 xy)
-{
-	float2 direction = float2(0, 0);
-	float2 sumWaterDirection;
-	float2 cellXy = float2(xy.x, xy.y);
+	float2 sumWaterDirection = float2(0,0);
+	float sumRootDepth;
+	float2 cellXy = float2(id.xy.x, id.xy.y);
 
 	for (int i = 0; i < NumRoots; i++) {
 		float2 rootXy = RootBuffer[i].uv * WidthInPixels;
 		float dist = distance(cellXy, rootXy);
 		float rootDepth = smoothstep(RootBuffer[i].radius, 0, dist) * RootBuffer[i].depth;
+		sumRootDepth += rootDepth;
 		sumWaterDirection += ((cellXy - rootXy) / dist) * rootDepth;
 	}
 
 	float2 waterVelocity = sumWaterDirection / NumRoots;
+	float waterHeight = landHeight - soilDepth + waterDepth;
 
-
-
-	float currentWaterDepth = GetWaterDepth(xy);
-	float newWaterDepth = currentWaterDepth;
-
-	return newWaterDepth;
+	SoilWaterMap[id.xy] = float4(waterVelocity.x, waterVelocity.y, waterDepth, waterHeight);
+    SoilMap[id.xy] = float4(soilDepth, sumRootDepth, 0, landHeight); 
 }

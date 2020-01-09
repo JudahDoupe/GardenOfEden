@@ -1,12 +1,14 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class SoilService : MonoBehaviour
 {
     [Header("Render Textures")]
-    public RenderTexture BedrockHeightMap;
-    public RenderTexture SoilHeightMap;
     public RenderTexture SoilMap;
+    public RenderTexture SoilWaterMap;
     public RenderTexture WaterMap;
+    //Bring back terrain cameras
 
     [Header("Compute Shaders")]
     public ComputeShader SoilShader;
@@ -23,7 +25,7 @@ public class SoilService : MonoBehaviour
     public float SampleWaterDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(SoilMap).GetPixelBilinear(uv.x, uv.y);
+        var color = ComputeShaderUtils.GetCachedTexture(SoilWaterMap).GetPixelBilinear(uv.x, uv.y);
         return color.b;
     }
 
@@ -34,18 +36,34 @@ public class SoilService : MonoBehaviour
         return color.a;
     }
 
+    public void SetRoots(List<RootData> roots)
+    {
+        var kernelId = SoilShader.FindKernel("UpdateSoil");
+        if (!roots.Any())
+        {
+            roots.Add(new RootData());
+        }
+
+        _rootBuffer?.Release();
+        _rootBuffer = new ComputeBuffer(roots.Count, sizeof(float) * 4 + sizeof(int));
+        _rootBuffer.SetData(roots);
+        SoilShader.SetBuffer(kernelId, "RootBuffer", _rootBuffer);
+        SoilShader.SetInt("NumRoots", roots.Count);
+    }
 
     /* Inner Mechanations */
+
+    private ComputeBuffer _rootBuffer;
 
     void Start()
     {
         ComputeShaderUtils.ResetTexture(SoilMap);
 
         var kernelId = SoilShader.FindKernel("UpdateSoil");
+        SoilShader.SetTexture(kernelId, "SoilWaterMap", SoilWaterMap);
         SoilShader.SetTexture(kernelId, "SoilMap", SoilMap);
         SoilShader.SetTexture(kernelId, "WaterMap", WaterMap);
-        SoilShader.SetTexture(kernelId, "BedrockHeightMap", BedrockHeightMap);
-        SoilShader.SetTexture(kernelId, "SoilHeightMap", SoilHeightMap);
+        SetRoots(new List<RootData>());
     }
 
     void FixedUpdate()

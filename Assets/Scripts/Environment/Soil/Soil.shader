@@ -5,7 +5,7 @@
 		_DeadSoilHue("Dead Soil Hue", Range(0.0, 1.0)) = 0.115
 		_LiveSoilHue("Live Soil Hue", Range(0.0, 1.0)) = 0.325
         _SoilMap ("Soil Map", 2D) = "white" {}
-        _RootMap ("Root Map", 2D) = "white" {}
+        _SoilWaterMap ("Root Map", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
 		_CameraPosition("CameraPosition", Vector) = (.0, .0, .0)
@@ -20,7 +20,7 @@
         #pragma target 3.0
 
 		sampler2D_float _SoilMap;
-		sampler2D_float _RootMap;
+		sampler2D_float _SoilWaterMap;
 
 		struct appdata 
 		{
@@ -70,10 +70,10 @@
 			uint2 xy = floor(normUv * 512) % 511;
 
 			float4 soil = tex2Dlod(_SoilMap, float4(normUv.x, normUv.y, 0, 0));
-			float4 root = tex2Dlod(_RootMap, float4(normUv.x, normUv.y, 0, 0));
+			float4 soilWater = tex2Dlod(_SoilWaterMap, float4(normUv.x, normUv.y, 0, 0));
 			float soilDepth = soil.r;
-			float rootDepth = root.g;
-			float waterDepth = soil.b;
+			float rootDepth = soil.g;
+			float waterDepth = soilWater.b;
 
 			float h = lerp(_DeadSoilHue, _LiveSoilHue, rootDepth / soilDepth);
 			float S = lerp(0.25, 0.75, soilDepth / 15);
