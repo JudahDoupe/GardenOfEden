@@ -45,7 +45,7 @@ public class SoilService : MonoBehaviour
         }
 
         _rootBuffer?.Release();
-        _rootBuffer = new ComputeBuffer(roots.Count, sizeof(float) * 4 + sizeof(int));
+        _rootBuffer = new ComputeBuffer(roots.Count, sizeof(float) * 5 + sizeof(int));
         _rootBuffer.SetData(roots);
         SoilShader.SetBuffer(kernelId, "RootBuffer", _rootBuffer);
         SoilShader.SetInt("NumRoots", roots.Count);
@@ -57,8 +57,6 @@ public class SoilService : MonoBehaviour
 
     void Start()
     {
-        ComputeShaderUtils.ResetTexture(SoilMap);
-
         var kernelId = SoilShader.FindKernel("UpdateSoil");
         SoilShader.SetTexture(kernelId, "SoilWaterMap", SoilWaterMap);
         SoilShader.SetTexture(kernelId, "SoilMap", SoilMap);

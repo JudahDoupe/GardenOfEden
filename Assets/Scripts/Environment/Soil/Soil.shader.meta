@@ -2,7 +2,9 @@ fileFormatVersion: 2
 guid: cd884c14469a06845b75e9b36de00d6d
 ShaderImporter:
   externalObjects: {}
-  defaultTextures: []
+  defaultTextures:
+  - _SoilMap: {fileID: 8600000, guid: c81425690323c0e47be8a8230e97a08f, type: 2}
+  - _SoilWaterMap: {fileID: 8400000, guid: 715fab0585986a9499a557f78d43b9b8, type: 2}
   nonModifiableTextures: []
   userData: 
   assetBundleName: 

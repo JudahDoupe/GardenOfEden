@@ -10,6 +10,19 @@ static float WidthInMeters = 400.0f;
 static float WidthInPixels = 512.0f;
 static float WaterAbsorpsionRate = 0.05f;
 
+/*
+*   Soil Map:
+* R = Soil Depth
+* G = Root Depth
+* B = 
+* A = Land Height
+*
+*   Soil Water Map:
+* R = X Velocity
+* G = Y Velocity
+* B = Water Depth
+* A = Water Height
+*/
 
 float GetSoilDepth(int2 xy)
 {
@@ -19,21 +32,13 @@ float GetSoilDepth(int2 xy)
 float GetWaterDepth(int2 xy)
 {
 	uint2 pos = clamp(xy, 0, 511);
-	return SoilMap[pos].b;
+    return SoilWaterMap[pos].b;
 }
 float GetLandHeight(int2 xy)
 {
 	uint2 pos = clamp(xy, 0, 511);
 	return SoilMap[pos].a;
 }
-
-/*
-*    Soil Map
-* R = Soil Depth
-* G = Root Depth
-* B = 
-* A = Land Height
-*/
 
 struct RootData
 {
@@ -115,5 +120,5 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
 	float waterHeight = landHeight - soilDepth + waterDepth;
 
 	SoilWaterMap[id.xy] = float4(waterVelocity.x, waterVelocity.y, waterDepth, waterHeight);
-    SoilMap[id.xy] = float4(soilDepth, sumRootDepth, 0, landHeight); 
+    SoilMap[id.xy] = float4(soilDepth, min(sumRootDepth, soilDepth), 0, landHeight);
 }

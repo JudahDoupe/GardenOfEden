@@ -4,11 +4,10 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - TerrainHeightMap: {fileID: 8600000, guid: 02b212edd1923694784a5b509fd548e3, type: 2}
+  - LandMap: {fileID: 8600000, guid: c81425690323c0e47be8a8230e97a08f, type: 2}
   - WaterSourceHeightMap: {fileID: 8600000, guid: 09c5e01c29e7340408e6154bcbe022f3,
       type: 2}
   - WaterMap: {fileID: 8600000, guid: 99838628972da224696fe5b851b90a7e, type: 2}
-  - WaterOutput: {fileID: 8600000, guid: a4024d353c61ca747b8f43e1ec1a6324, type: 2}
   - WaterShader: {fileID: 7200000, guid: 64b336648617fb44697d012cd17ff071, type: 3}
   executionOrder: -50
   icon: {instanceID: 0}

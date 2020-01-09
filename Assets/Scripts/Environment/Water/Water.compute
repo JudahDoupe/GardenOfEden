@@ -1,7 +1,7 @@
 ﻿#pragma kernel Update
 #pragma kernel Rain
 
-Texture2D<float4> TerrainHeightMap;
+Texture2D<float4> LandMap;
 Texture2D<float4> WaterSourceMap;
 RWTexture2D<float4> WaterMap;
 
@@ -18,12 +18,10 @@ static float VelocityDampening = 2.0f;
 
 static float Eps = 0.00001f;
 
-// Accesors
-
 float GetTerrainHeight(int2 xy)
 {
 	uint2 pos = clamp(xy, 0, 511);
-	return TerrainHeightMap[pos].r * MaxHeight;
+    return LandMap[pos].a;
 }
 float GetWaterSouceDepth(int2 xy)
 {
