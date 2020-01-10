@@ -5,9 +5,10 @@
 		_DeadSoilColor("Dead Soil Color", color) = (1,1,1,0)
 		_LiveSoilColor("Live Soil Color", color) = (1,1,1,0)
 		_BedRockColor("Bedrock Color", color) = (1,1,1,0)
+        _TopographyWidth ("Topography Line Width", Range(0,1)) = 0.5
+        _TopographyDarkening ("Topography Line Darkening", Range(0,0.5)) = 0.2
         _SoilMap ("Soil Map", 2D) = "white" {}
         _SoilWaterMap ("Soil Water Map", 2D) = "white" {}
-        _Glossiness ("Smoothness", Range(0,1)) = 0.5
 		_EdgeLength("Edge length", Range(2,50)) = 15
     }
     SubShader
@@ -16,7 +17,7 @@
         LOD 200
 
 		CGPROGRAM
-		#pragma surface surf Standard addshadow fullforwardshadows vertex:disp tessellate:tess
+		#pragma surface surf Standard addshadow fullforwardshadows vertex:disp tessellate:tess nolightmap
 		#pragma target 4.6
 		#include "Tessellation.cginc"
 		#include "UnityShaderVariables.cginc"
@@ -36,7 +37,8 @@
 			float4 color : COLOR;
 		};
 
-        half _Glossiness;
+        half _TopographyWidth;
+		half _TopographyDarkening;
 		float _EdgeLength;
 		float Epsilon = 1e-10;
 
@@ -46,6 +48,7 @@
 
 		sampler2D _SoilMap;
 		sampler2D _SoilWaterMap;
+		sampler2D _CameraDepthTexture;
 
 		float3 HUEtoRGB(in float H)
 		{
@@ -120,16 +123,19 @@
 			float3 soilHSL = RGBtoHSL(soilColor.xyz);
 			soilHSL.z = lerp(0.5,0.25, saturate(waterDepth / soilDepth));
 
-			if (landHeight % 5 < 0.1){
-				bedrockHSL.z = 0.2;
-				soilHSL.z = 0.2;
+			float3 normal = FindNormal(float4(i.uv_SoilMap,0,0));
+			float3 angle = float3(0,1,0);
+			float angleDist = length(angle - normal);
+			if (landHeight % 5 < angleDist * _TopographyWidth){
+				bedrockHSL.z -= _TopographyDarkening;
+				soilHSL.z -= _TopographyDarkening;
 			}
 
 			float4 bedrockColor = float4(HSLtoRGB(bedrockHSL),1);
 			soilColor = float4(HSLtoRGB(soilHSL),1);
 
             o.Albedo = lerp(bedrockColor, soilColor, saturate(soilDepth * 10));
-			o.Normal = FindNormal(float4(i.uv_SoilMap,0,0));
+			o.Normal = normal;
         }
         ENDCG
     }
