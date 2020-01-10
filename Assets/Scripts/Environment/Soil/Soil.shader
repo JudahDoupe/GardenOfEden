@@ -27,11 +27,13 @@
 			float4 tangent : TANGENT;
 			float3 normal : NORMAL;
 			float2 texcoord : TEXCOORD0;
+			float4 color : COLOR;
 		};
 		struct Input 
 		{
 			float2 uv_SoilMap : TEXCOORD0;
 			float4 screenPos : TEXCOORD1;
+			float4 color : COLOR;
 		};
 
         half _Glossiness;
@@ -97,36 +99,36 @@
 
 		void disp(inout appdata v)
 		{
-			float4 heightMap = tex2Dlod(_SoilMap, float4(v.texcoord, 0, 0));
+			float4 soil = tex2Dlod(_SoilMap, float4(v.texcoord, 0, 0));
 
 			v.normal = FindNormal(float4(v.texcoord,0,0));
-			v.vertex.y = heightMap.a;
+			v.vertex.y = soil.a;
+			v.color = float4(0,0,0,0);
 		}
 
-        void surf(Input i, inout SurfaceOutputStandard o) {
+        void surf(Input i, inout SurfaceOutputStandard o) { 
 			float4 soil = tex2D(_SoilMap, i.uv_SoilMap);
 			float4 soilWater = tex2D(_SoilWaterMap, i.uv_SoilMap);
 
 			float soilDepth = max(soil.r, Epsilon);
-			float soilHeight = soil.a;
+			float landHeight = soil.a;
 			float rootDepth = soil.g;
 			float waterDepth = soilWater.b;
 
 			float3 bedrockHSL = RGBtoHSL(_BedRockColor.xyz);
-			float3 liveSoilHSL = RGBtoHSL(_LiveSoilColor.xyz);
-			float3 deadSoilHSL = RGBtoHSL(_DeadSoilColor.xyz);
-			float3 soilHSL = lerp(deadSoilHSL, liveSoilHSL, rootDepth / soilDepth);
-			soilHSL.z = lerp(0.5,0.25, waterDepth / (soilDepth));
+			float4 soilColor = lerp(_DeadSoilColor, _LiveSoilColor, saturate(rootDepth / soilDepth));
+			float3 soilHSL = RGBtoHSL(soilColor.xyz);
+			soilHSL.z = lerp(0.5,0.25, saturate(waterDepth / soilDepth));
 
-			if(soilHeight % 5 < 0.1){
-				soilHSL.z = 0.2;
+			if (landHeight % 5 < 0.1){
 				bedrockHSL.z = 0.2;
+				soilHSL.z = 0.2;
 			}
 
-			float4 soilColor = float4(HSLtoRGB(soilHSL),1);
 			float4 bedrockColor = float4(HSLtoRGB(bedrockHSL),1);
+			soilColor = float4(HSLtoRGB(soilHSL),1);
 
-            o.Albedo = lerp(bedrockColor, soilColor, clamp(soilDepth * 10,0,1));
+            o.Albedo = lerp(bedrockColor, soilColor, saturate(soilDepth * 10));
 			o.Normal = FindNormal(float4(i.uv_SoilMap,0,0));
         }
         ENDCG
