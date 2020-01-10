@@ -14,7 +14,7 @@
 			LOD 300
 
 			CGPROGRAM
-			#pragma surface surf BlinnPhong addshadow fullforwardshadows vertex:disp tessellate:tess nolightmap alpha
+			#pragma surface surf Lambert addshadow fullforwardshadows vertex:disp tessellate:tess nolightmap alpha
 			#pragma target 4.6
 			#include "Tessellation.cginc"
 			#include "UnityShaderVariables.cginc"
@@ -26,7 +26,7 @@
 				float2 texcoord : TEXCOORD0;
 			};
 			struct Input {
-				float2 uv_MainTex : TEXCOORD0;
+				float2 uv_WaterMap : TEXCOORD0;
 				float4 screenPos : TEXCOORD1;
 			};
 
@@ -72,13 +72,13 @@
 				float depth = LinearEyeDepth(depthSample).r;
 				float edgeDepth = 1 - saturate((depth - input.screenPos.w) / _Clarity);
 
-				float4 w = tex2D(_WaterMap, input.uv_MainTex);
+				float4 w = tex2D(_WaterMap, input.uv_WaterMap);
 				half4 c = lerp(_DeepColor, _ShallowColor, edgeDepth);
 				o.Albedo = c.rgb;
 				o.Specular = 0.9;
 				o.Gloss = 0.1;
 				o.Alpha = c.a * (w.b > 0);
-				o.Normal = FindNormal(float4(input.uv_MainTex,0,0));
+				o.Normal = FindNormal(float4(input.uv_WaterMap,0,0));
 			}
 			ENDCG
 		}
