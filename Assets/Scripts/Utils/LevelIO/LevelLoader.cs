@@ -19,6 +19,7 @@ public class LevelLoader : MonoBehaviour
 
     void Start()
     {
+        LoadLevel(MapName);
         StartCoroutine(LoadStarterLevel());
     }
 

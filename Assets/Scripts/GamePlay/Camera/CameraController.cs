@@ -31,7 +31,7 @@ public class CameraController : MonoBehaviour
         _gameService.PointCapturedSubject.Subscribe(PointCapturedAction);
 
         _focusedObject = _gameService.FocusedPlant.transform;
-        _focusedGoal = GetNearestGoal().transform;
+        _focusedGoal = GetNearestGoal()?.transform;
     }
     private void LateUpdate()
     {
