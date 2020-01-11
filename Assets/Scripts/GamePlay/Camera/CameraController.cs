@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class CameraController : MonoBehaviour
 {
@@ -21,6 +23,13 @@ public class CameraController : MonoBehaviour
     private SoilService _soilService;
     private GameService _gameService;
 
+    private CameraMode currentMode = CameraMode.Cinematic;
+    private enum CameraMode
+    {
+        Cinematic,
+        BirdsEye,
+    }
+
     private void Start()
     {
         _growthService = FindObjectOfType<GrowthService>();
@@ -35,10 +44,40 @@ public class CameraController : MonoBehaviour
     }
     private void LateUpdate()
     {
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            currentMode = currentMode == CameraMode.Cinematic ? CameraMode.BirdsEye : CameraMode.Cinematic;
+        }
+
+        switch (currentMode)
+        {
+            case CameraMode.Cinematic:
+                UpdateCinematic();
+                break;
+            case CameraMode.BirdsEye:
+                UpdateBirdsEye();
+                break;
+        }
+    }
+
+    private void UpdateCinematic()
+    {
+        MoveSpeed = 0.25f;
+        LookSpeed = 0.75f;
         if (_focusedObject != null)
         {
             UpdateTargets();
         }
+
+        LerpTowardTargets();
+    }
+
+    private void UpdateBirdsEye()
+    {
+        MoveSpeed = 1f;
+        LookSpeed = 10;
+        _target = new Vector3(0, 350, -100);
+        _targetLook = new Vector3(0, 0, -99);
 
         LerpTowardTargets();
     }
