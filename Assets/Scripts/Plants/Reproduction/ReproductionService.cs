@@ -40,6 +40,7 @@ public class ReproductionService : MonoBehaviour
     /* Inner Mechinations */
 
     private CameraController _camera;
+    private LandService _landService;
 
     private int lastPlantId = 10;
     private Queue<Tuple<PlantDna, Vector3>> _seedQueue = new Queue<Tuple<PlantDna, Vector3>>();
@@ -47,6 +48,7 @@ public class ReproductionService : MonoBehaviour
     void Start()
     {
         _camera = FindObjectOfType<CameraController>();
+        _landService = GetComponent<LandService>();
     }
     void Update()
     {
@@ -59,40 +61,34 @@ public class ReproductionService : MonoBehaviour
     private void DropNextSeed()
     {
         var seed = _seedQueue.Dequeue();
-        var fertileLocation = GetFirtileLocation(seed.Item2);
+        var fertileLocation = GetFertileLocation(seed.Item2);
         if (fertileLocation.HasValue)
         {
             PlantSeed(seed.Item1, fertileLocation.Value);
         }
     }
 
-    private Vector3? GetFirtileLocation(Vector3 worldPosition)
+    private Vector3? GetFertileLocation(Vector3 worldPosition)
     {
-        var ray = new Ray(worldPosition + Vector3.up * 10, Vector3.down);
-        if (Physics.Raycast(ray, out RaycastHit hit, 100, LayerMask.GetMask("Land")))
-        {
-            var waterDepth = EnvironmentApi.SampleWaterDepth(hit.point);
-            var soilDepth = EnvironmentApi.SampleSoilDepth(hit.point);
-            var rootDepth = PlantApi.SampleRootDepth(hit.point);
+        var landHeight = _landService.SampleTerrainHeight(worldPosition);
+        worldPosition.y = landHeight;
+        var waterDepth = _landService.SampleWaterDepth(worldPosition);
+        var soilDepth = _landService.SampleSoilDepth(worldPosition);
+        var rootDepth = PlantApi.SampleRootDepth(worldPosition);
 
-            if (soilDepth < 0.05f)
-                DebugLackOfReources("soil");
-            else if (rootDepth > 0.01f)
-                DebugLackOfReources("root space");
-            else if (waterDepth < 0.1f)
-                DebugLackOfReources("water");
-            else
-                return hit.point;
-        }
+        if (soilDepth < 0.05f)
+            DebugLackOfResources("soil");
+        else if (rootDepth > 0.01f)
+            DebugLackOfResources("root space");
+        else if (waterDepth < 0.1f)
+            DebugLackOfResources("water");
         else
-        {
-            DebugLackOfReources("fertile soil");
-        }
+            return worldPosition;
 
         return null;
     }
 
-    private void DebugLackOfReources(string resource)
+    private void DebugLackOfResources(string resource)
     {
         if (LogReproductionFailures)
         {

@@ -32,10 +32,12 @@ public class GrowthService : MonoBehaviour
     private int _currentFrame = 0;
 
     private GameService _gameService;
+    private LightService _lightService;
 
     void Start()
     {
         _gameService = FindObjectOfType<GameService>();
+        _lightService = GetComponent<LightService>();
     }
     void Update()
     {
@@ -83,7 +85,7 @@ public class GrowthService : MonoBehaviour
     {
         var waterPerSugar = 3.0f; //TODO: store this value in the leaves
 
-        var availableLight = EnvironmentApi.GetAbsorpedLight(plant.PlantId);
+        var availableLight = _lightService.GetAbsorbedLight(plant.PlantId);
         var availableWater = plant.StoredWater;
 
         var requestedLight = availableWater / waterPerSugar;

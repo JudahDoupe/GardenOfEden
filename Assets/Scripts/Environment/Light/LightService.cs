@@ -14,7 +14,7 @@ public class LightService : MonoBehaviour
 
     /* Publicly Accessible Variables */
 
-    public Area GetAbsorpedLight(int plantId)
+    public Area GetAbsorbedLight(int plantId)
     {
         if (_absorpedLight.TryGetValue(plantId, out float light))
         {
