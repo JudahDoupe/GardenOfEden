@@ -69,7 +69,7 @@ public class ReproductionService : MonoBehaviour
     private Vector3? GetFirtileLocation(Vector3 worldPosition)
     {
         var ray = new Ray(worldPosition + Vector3.up * 10, Vector3.down);
-        if (Physics.Raycast(ray, out RaycastHit hit, 100, LayerMask.GetMask("Soil")))
+        if (Physics.Raycast(ray, out RaycastHit hit, 100, LayerMask.GetMask("Land")))
         {
             var waterDepth = EnvironmentApi.SampleWaterDepth(hit.point);
             var soilDepth = EnvironmentApi.SampleSoilDepth(hit.point);

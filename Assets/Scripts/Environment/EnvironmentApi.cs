@@ -15,17 +15,17 @@ public class EnvironmentApi : MonoBehaviour
     public static float SampleWaterDepth(Vector3 location)
     {
         return _waterService.SampleWaterDepth(location) 
-               + _soilService.SampleWaterDepth(location);
+               + _landService.SampleWaterDepth(location);
     }
     public static float SampleSoilDepth(Vector3 location)
     {
-        return _soilService.SampleSoilDepth(location);
+        return _landService.SampleSoilDepth(location);
     }
 
     /* INNER MECHINATIONS */
 
     public static EnvironmentApi Instance;
-    private static SoilService _soilService;
+    private static LandService _landService;
     private static WaterService _waterService;
     private static LightService _lightService;
 
@@ -34,7 +34,7 @@ public class EnvironmentApi : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        _soilService = GetComponent<SoilService>();
+        _landService = GetComponent<LandService>();
         _waterService = GetComponent<WaterService>();
         _lightService = GetComponent<LightService>();
         _date = 0;

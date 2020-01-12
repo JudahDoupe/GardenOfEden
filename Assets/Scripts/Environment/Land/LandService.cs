@@ -2,10 +2,10 @@
 using System.Linq;
 using UnityEngine;
 
-public class SoilService : MonoBehaviour
+public class LandService : MonoBehaviour
 {
     [Header("Render Textures")]
-    public RenderTexture SoilMap;
+    public RenderTexture LandMap;
     public RenderTexture SoilWaterMap;
     public RenderTexture WaterMap;
     //Bring back terrain cameras
@@ -22,7 +22,7 @@ public class SoilService : MonoBehaviour
     public float SampleSoilDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(SoilMap).GetPixelBilinear(uv.x, uv.y);
+        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
         return color.r;
     }
 
@@ -36,7 +36,7 @@ public class SoilService : MonoBehaviour
     public float SampleTerrainHeight(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(SoilMap).GetPixelBilinear(uv.x, uv.y);
+        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
         return color.a;
     }
 
@@ -63,7 +63,7 @@ public class SoilService : MonoBehaviour
     {
         var kernelId = SoilShader.FindKernel("UpdateSoil");
         SoilShader.SetTexture(kernelId, "SoilWaterMap", SoilWaterMap);
-        SoilShader.SetTexture(kernelId, "SoilMap", SoilMap);
+        SoilShader.SetTexture(kernelId, "LandMap", LandMap);
         SoilShader.SetTexture(kernelId, "WaterMap", WaterMap);
         SetRoots(new List<RootData>());
     }
@@ -74,6 +74,6 @@ public class SoilService : MonoBehaviour
         SoilShader.SetFloat("RootPullSpeed", RootPullSpeed);
         SoilShader.SetFloat("WaterAbsorptionRate", WaterAbsorptionRate);
         SoilShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
-        ComputeShaderUtils.InvalidateCache(SoilMap);
+        ComputeShaderUtils.InvalidateCache(LandMap);
     }
 }

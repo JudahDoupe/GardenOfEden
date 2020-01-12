@@ -1,6 +1,6 @@
 ﻿#pragma kernel UpdateSoil
 
-RWTexture2D<float4> SoilMap;
+RWTexture2D<float4> LandMap;
 RWTexture2D<float4> SoilWaterMap;
 RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
@@ -27,7 +27,7 @@ StructuredBuffer<RootData> RootBuffer;
 int NumRoots;
 
 /*
-*   Soil Map:
+*   Land Map:
 * R = Soil Depth
 * G = Root Depth
 * B = 
@@ -42,11 +42,11 @@ int NumRoots;
 
 float GetSoilDepth(int2 xy)
 {
-    return SoilMap[xy].r;
+    return LandMap[xy].r;
 }
 float GetLandHeight(int2 xy)
 {
-    return SoilMap[xy].a;
+    return LandMap[xy].a;
 }
 float GetWaterDepth(int2 xy)
 {
@@ -178,5 +178,5 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
     waterDepth = TranferWaterBetweenWaterMap(id.xy, waterDepth);
     
 	SoilWaterMap[id.xy] = float4(waterVelocity.x, waterVelocity.y, waterDepth, waterHeight);
-    SoilMap[id.xy] = float4(soilDepth, min(rootDepth, soilDepth), 0, landHeight);
+    LandMap[id.xy] = float4(soilDepth, min(rootDepth, soilDepth), 0, landHeight);
 }

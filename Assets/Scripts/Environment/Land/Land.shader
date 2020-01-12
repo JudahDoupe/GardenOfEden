@@ -7,7 +7,7 @@
 		_BedRockColor("Bedrock Color", color) = (1,1,1,0)
         _TopographyWidth ("Topography Line Width", Range(0,1)) = 0.5
         _TopographyDarkening ("Topography Line Darkening", Range(0,0.5)) = 0.2
-        _SoilMap ("Soil Map", 2D) = "white" {}
+        _LandMap ("Land Map", 2D) = "white" {}
         _SoilWaterMap ("Soil Water Map", 2D) = "white" {}
 		_EdgeLength("Edge length", Range(2,50)) = 15
     }
@@ -32,7 +32,7 @@
 		};
 		struct Input 
 		{
-			float2 uv_SoilMap : TEXCOORD0;
+			float2 uv_LandMap : TEXCOORD0;
 			float4 screenPos : TEXCOORD1;
 			float4 color : COLOR;
 		};
@@ -46,7 +46,7 @@
 		float4 _LiveSoilColor;
 		float4 _BedRockColor;
 
-		sampler2D _SoilMap;
+		sampler2D _LandMap;
 		sampler2D _SoilWaterMap;
 		sampler2D _CameraDepthTexture;
 
@@ -83,10 +83,10 @@
 		{
 			float4 h;
 			float u = 1.0 / 512.0;
-			h[0] = tex2Dlod(_SoilMap, uv + float4(u * float2(0, -1), 0, 0)).a;
-			h[1] = tex2Dlod(_SoilMap, uv + float4(u * float2(-1, 0), 0, 0)).a;
-			h[2] = tex2Dlod(_SoilMap, uv + float4(u * float2(1, 0), 0, 0)).a;
-			h[3] = tex2Dlod(_SoilMap, uv + float4(u * float2(0, 1), 0, 0)).a;
+			h[0] = tex2Dlod(_LandMap, uv + float4(u * float2(0, -1), 0, 0)).a;
+			h[1] = tex2Dlod(_LandMap, uv + float4(u * float2(-1, 0), 0, 0)).a;
+			h[2] = tex2Dlod(_LandMap, uv + float4(u * float2(1, 0), 0, 0)).a;
+			h[3] = tex2Dlod(_LandMap, uv + float4(u * float2(0, 1), 0, 0)).a;
 			float3 n;
 			n.z = h[0] - h[3];
 			n.x = h[1] - h[2];
@@ -102,7 +102,7 @@
 
 		void disp(inout appdata v)
 		{
-			float4 soil = tex2Dlod(_SoilMap, float4(v.texcoord, 0, 0));
+			float4 soil = tex2Dlod(_LandMap, float4(v.texcoord, 0, 0));
 
 			v.normal = FindNormal(float4(v.texcoord,0,0));
 			v.vertex.y = soil.a;
@@ -110,8 +110,8 @@
 		}
 
         void surf(Input i, inout SurfaceOutputStandard o) { 
-			float4 soil = tex2D(_SoilMap, i.uv_SoilMap);
-			float4 soilWater = tex2D(_SoilWaterMap, i.uv_SoilMap);
+			float4 soil = tex2D(_LandMap, i.uv_LandMap);
+			float4 soilWater = tex2D(_SoilWaterMap, i.uv_LandMap);
 
 			float soilDepth = max(soil.r, Epsilon);
 			float landHeight = soil.a;
@@ -123,7 +123,7 @@
 			float3 soilHSL = RGBtoHSL(soilColor.xyz);
 			soilHSL.z = lerp(0.5,0.25, saturate(waterDepth / soilDepth));
 
-			float3 normal = FindNormal(float4(i.uv_SoilMap,0,0));
+			float3 normal = FindNormal(float4(i.uv_LandMap,0,0));
 			float3 angle = float3(0,1,0);
 			float angleDist = length(angle - normal);
 			if (landHeight % 5 < angleDist * _TopographyWidth){

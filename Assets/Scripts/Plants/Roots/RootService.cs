@@ -8,14 +8,14 @@ public class RootService : MonoBehaviour
 {
     [Header("Render Textures")]
     public RenderTexture SoilWaterMap;
-    public RenderTexture SoilMap;
+    public RenderTexture LandMap;
 
     /* Publicly Accessible Methods */
 
     public float SampleRootDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(SoilMap).GetPixelBilinear(uv.x, uv.y);
+        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
         return color.g;
     }
 
@@ -33,7 +33,7 @@ public class RootService : MonoBehaviour
             radius = radius,
             depth = depth
         });
-        _soilService.SetRoots(_roots);
+        _landService.SetRoots(_roots);
     }
 
     public void RemoveRoots(Plant plant)
@@ -41,7 +41,7 @@ public class RootService : MonoBehaviour
         _roots = _roots.Where(x => x.id != plant.PlantId).ToList();
     }
 
-    public Volume AbsorpWater(Plant plant, float absorbedWater)
+    public Volume AbsorbWater(Plant plant, float absorbedWater)
     {
         var uv = ComputeShaderUtils.LocationToUv(plant.transform.position);
         var color = ComputeShaderUtils.GetCachedTexture(SoilWaterMap).GetPixelBilinear(uv.x, uv.y);
@@ -60,7 +60,7 @@ public class RootService : MonoBehaviour
             depth = roots.depth,
             absorbedWater = absorbedWater,
         });
-        _soilService.SetRoots(_roots);
+        _landService.SetRoots(_roots);
 
         return Volume.FromPixel(absorbedWater);
     }
@@ -69,11 +69,11 @@ public class RootService : MonoBehaviour
 
     private List<RootData> _roots = new List<RootData>();
 
-    private SoilService _soilService;
+    private LandService _landService;
 
     void Start()
     {
-        _soilService = FindObjectOfType<SoilService>();
+        _landService = FindObjectOfType<LandService>();
     }
 }
 

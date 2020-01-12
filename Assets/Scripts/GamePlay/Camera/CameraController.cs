@@ -20,7 +20,7 @@ public class CameraController : MonoBehaviour
     private float _horizontalRatio;
 
     private GrowthService _growthService;
-    private SoilService _soilService;
+    private LandService _landService;
     private GameService _gameService;
 
     private CameraMode currentMode = CameraMode.Cinematic;
@@ -33,7 +33,7 @@ public class CameraController : MonoBehaviour
     private void Start()
     {
         _growthService = FindObjectOfType<GrowthService>();
-        _soilService = FindObjectOfType<SoilService>();
+        _landService = FindObjectOfType<LandService>();
         _gameService = FindObjectOfType<GameService>();
 
         _growthService.NewPlantSubject.Subscribe(NewPlantAction);
@@ -104,7 +104,7 @@ public class CameraController : MonoBehaviour
     private void LerpTowardTargets()
     {
         var targetPosition = Vector3.Lerp(transform.position, _target, MoveSpeed * Time.deltaTime);
-        targetPosition.y = Mathf.Max(targetPosition.y, _soilService.SampleTerrainHeight(targetPosition) + 0.5f);
+        targetPosition.y = Mathf.Max(targetPosition.y, _landService.SampleTerrainHeight(targetPosition) + 0.5f);
         transform.position = targetPosition;
 
         var targetRotation = Quaternion.LookRotation(_targetLook - transform.position);

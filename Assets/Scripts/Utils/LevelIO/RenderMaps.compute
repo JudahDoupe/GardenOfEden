@@ -1,6 +1,6 @@
 ﻿#pragma kernel RenderMaps
 
-RWTexture2D<float4> SoilMap;
+RWTexture2D<float4> LandMap;
 Texture2D<float4> SoilHeightMap;
 Texture2D<float4> BedrockHeightMap;
 
@@ -13,5 +13,5 @@ void RenderMaps(uint3 id : SV_DispatchThreadID)
     float soilHeight = SoilHeightMap[id.xy].r * MaxHeight;
     float landHeight = max(rockHeight, soilHeight);
     float soilDepth = clamp(soilHeight - rockHeight, 0, MaxHeight);
-    SoilMap[id.xy] = float4(soilDepth, 0, 0, landHeight);
+    LandMap[id.xy] = float4(soilDepth, 0, 0, landHeight);
 }
