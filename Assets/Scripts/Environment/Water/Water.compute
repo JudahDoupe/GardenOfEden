@@ -161,17 +161,17 @@ void Update (uint3 id : SV_DispatchThreadID)
 { 
     float depth = GetNewDepth(id.xy);
 	float terrainHeight = GetTerrainHeight(id.xy);
-	float height = GetTerrainHeight(id.xy) + depth;
+	float waterHeight = GetTerrainHeight(id.xy) + depth;
     float2 velocity = GetNewVelocity(id.xy);
 
     
     AllMemoryBarrierWithGroupSync();
-    WaterMap[id.xy] = float4(velocity, depth, height);
+    WaterMap[id.xy] = float4(velocity, depth, waterHeight);
     AllMemoryBarrierWithGroupSync();
     
     //This does not conserve mass :(
     float hfs = HighFrequencySuppression(id.xy);
-    WaterMap[id.xy] = float4(velocity, depth + hfs, height + hfs);
+    WaterMap[id.xy] = float4(velocity, depth + hfs, waterHeight + hfs);
 }
 
 float RainDepthInMeters;

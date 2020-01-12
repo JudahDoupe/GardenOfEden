@@ -12,6 +12,10 @@ public class SoilService : MonoBehaviour
 
     [Header("Compute Shaders")]
     public ComputeShader SoilShader;
+    [Range(0.1f,0.5f)]
+    public float RootPullSpeed = 0.1f;
+    [Range(0.01f, 0.5f)]
+    public float WaterAbsorptionRate = 0.02f;
 
     /* Publicly Accessible Methods */
 
@@ -67,6 +71,8 @@ public class SoilService : MonoBehaviour
     void FixedUpdate()
     {
         int kernelId = SoilShader.FindKernel("UpdateSoil");
+        SoilShader.SetFloat("RootPullSpeed", RootPullSpeed);
+        SoilShader.SetFloat("WaterAbsorptionRate", WaterAbsorptionRate);
         SoilShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
         ComputeShaderUtils.InvalidateCache(SoilMap);
     }

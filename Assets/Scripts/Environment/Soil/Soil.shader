@@ -116,7 +116,7 @@
 			float soilDepth = max(soil.r, Epsilon);
 			float landHeight = soil.a;
 			float rootDepth = soil.g;
-			float waterDepth = soilWater.b;
+			float waterDepth = max(soilWater.b, Epsilon);
 
 			float3 bedrockHSL = RGBtoHSL(_BedRockColor.xyz);
 			float4 soilColor = lerp(_DeadSoilColor, _LiveSoilColor, saturate(rootDepth / soilDepth));
@@ -136,6 +136,8 @@
 
             o.Albedo = lerp(bedrockColor, soilColor, saturate(soilDepth * 10));
 			o.Normal = normal;
+			o.Metallic = 0;
+			o.Smoothness = 0;
         }
         ENDCG
     }

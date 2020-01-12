@@ -5,10 +5,26 @@ RWTexture2D<float4> SoilWaterMap;
 RWTexture2D<float4> WaterMap;
 RWTexture2D<float4> Result;
 
+float RootPullSpeed;
+float WaterAbsorptionRate;
+
 static float MaxHeight = 200.0f; 
 static float WidthInMeters = 400.0f;
 static float WidthInPixels = 512.0f;
-static float WaterAbsorpsionRate = 0.05f;
+
+static float GridSpacing = WidthInMeters / WidthInPixels;
+static float SimulationSpeed = 1.0f / 50.0f; //speed in time steps per second. 1 = seconds | 50 = steps.  this is the speed of FixedUpdate
+
+struct RootData
+{
+    float2 uv;  
+    float radius;
+    float depth;
+    int id;
+    float absorbedWater;
+};
+StructuredBuffer<RootData> RootBuffer;
+int NumRoots;
 
 /*
 *   Soil Map:
@@ -26,33 +42,41 @@ static float WaterAbsorpsionRate = 0.05f;
 
 float GetSoilDepth(int2 xy)
 {
-	uint2 pos = clamp(xy, 0, 511);
-	return SoilMap[pos].r;
-}
-float GetWaterDepth(int2 xy)
-{
-	uint2 pos = clamp(xy, 0, 511);
-    return SoilWaterMap[pos].b;
+    return SoilMap[xy].r;
 }
 float GetLandHeight(int2 xy)
 {
-	uint2 pos = clamp(xy, 0, 511);
-	return SoilMap[pos].a;
+    return SoilMap[xy].a;
+}
+float GetWaterDepth(int2 xy)
+{
+    return SoilWaterMap[xy].b;
+}
+float GeWatertHeight(int2 xy)
+{
+    return SoilWaterMap[xy].a;
+}
+float2 GetWaterVelocity(int2 xy)
+{
+    return SoilWaterMap[xy].rg;
+}
+float GetVelocityFace(int2 xy, int2 offset)
+{
+    if (offset.x == 1){
+        return GetWaterVelocity(xy).x;
+    }else if (offset.y == 1){
+        return GetWaterVelocity(xy).y;
+    }else if (offset.x == -1){
+        return GetWaterVelocity(xy + offset).x;
+    }else if (offset.y == -1){
+        return GetWaterVelocity(xy + offset).y;
+    }else{
+        return 0;
+    }
 }
 
-struct RootData
-{
-	float2 uv;
-	float radius;
-	float depth;
-	int id;
-	float absorbedWater;
-};
-StructuredBuffer<RootData> RootBuffer;
-int NumRoots;
 
-
-float GetSoakedWaterDepth(int2 xy)
+float GetSoakedWaterDepth(int2 xy) //TODO: This should be done through velocity
 {
 	float currentWaterDepth = GetWaterDepth(xy);
 	float newWaterDepth = currentWaterDepth * 0.4;
@@ -70,55 +94,89 @@ float GetSoakedWaterDepth(int2 xy)
 
 	return newWaterDepth;
 }
-float AbsorpWater(int2 xy, float amount)
+float DownwindCapacity(int2 xy, int2 offset)
 {
-	uint2 pos = clamp(xy, 0, 511);
-	float availableWater = min(WaterMap[pos].b, WaterAbsorpsionRate);
-	float absorpedWater = min(amount, availableWater);
-	
-	WaterMap[pos] = float4(WaterMap[pos].r, WaterMap[pos].g, WaterMap[pos].b - absorpedWater, WaterMap[pos].a - absorpedWater);
-	
-	return absorpedWater;
+    int dir = dot(offset, int2(1, 1));
+    if (GetVelocityFace(xy, offset) * dir > 0)
+        return GetSoilDepth(xy + offset) - GetWaterDepth(xy + offset);
+    else
+        return GetSoilDepth(xy) - GetWaterDepth(xy);
 }
-float ExpelWater(int2 xy, float amount)
+float UpwindDepth(int2 xy, int2 offset)
 {
-	uint2 pos = clamp(xy, 0, 511);
-	WaterMap[pos] = float4(WaterMap[pos].r, WaterMap[pos].g, WaterMap[pos].b + amount, WaterMap[pos].a + amount);
-	return amount;
+    int dir = dot(offset, int2(1, 1));
+    if (GetVelocityFace(xy, offset) * dir <= 0)
+        return GetWaterDepth(xy + offset);
+    else
+        return GetWaterDepth(xy);
+}
+float Runoff(int2 xy, int2 offset)
+{
+    float stabilizedUpwindDepth = min(UpwindDepth(xy, offset), DownwindCapacity(xy, offset));
+    float runoff = stabilizedUpwindDepth * GetVelocityFace(xy, offset);
+    return runoff;
+}
+float GetChangeInDepth(int2 xy)
+{
+    float xRunoff = (Runoff(xy, int2(1, 0)) - Runoff(xy, int2(-1, 0))) / GridSpacing;
+    float yRunoff = (Runoff(xy, int2(0, 1)) - Runoff(xy, int2(0, -1))) / GridSpacing;
+
+    return -(xRunoff + yRunoff) * SimulationSpeed;
+}
+
+float TranferWaterBetweenWaterMap(int2 xy, float waterDepth)
+{
+    float excessWater = waterDepth - GetSoilDepth(xy);
+    if (excessWater > 0)
+    {
+        WaterMap[xy] += float4(0, 0, excessWater, excessWater);
+        waterDepth -= excessWater;
+    }
+    else
+    {
+        float requestedWater = min(-excessWater, WaterAbsorptionRate);
+        float availableWater = min(WaterMap[xy].b, requestedWater);
+        float absorpedWater = min(requestedWater, availableWater);
+        WaterMap[xy] -= float4(0, 0, absorpedWater, absorpedWater);
+        waterDepth += absorpedWater;
+    }
+    AllMemoryBarrierWithGroupSync();
+    return waterDepth;
+}
+
+float3 GetRootData(int2 xy)
+{
+    float2 cellXy = float2(xy.x, xy.y);
+    float2 sumWaterDirection = float2(0, 0);
+    float sumRootDepth = 0;
+    
+    for (int i = 0; i < NumRoots; i++)
+    {
+        float2 rootXy = RootBuffer[i].uv * WidthInPixels;
+        float dist = distance(cellXy, rootXy);
+        float rootDepth = smoothstep(RootBuffer[i].radius, 0, dist) * RootBuffer[i].depth;
+        sumRootDepth += rootDepth;
+        sumWaterDirection += ((rootXy - cellXy) / dist) * rootDepth * RootPullSpeed;
+    }
+    
+    float2 waterVelocity = sumWaterDirection / NumRoots;
+    
+    return float3(waterVelocity, sumRootDepth);
 }
 
 [numthreads(8, 8, 1)]
 void UpdateSoil(uint3 id : SV_DispatchThreadID)
 {
+    float3 rootData = GetRootData(id.xy);
 	float soilDepth = GetSoilDepth(id.xy);
-	float waterDepth = GetSoakedWaterDepth(id.xy);
+    float rootDepth = rootData.z;
+    float waterDepth = GetSoakedWaterDepth(id.xy) + GetChangeInDepth(id.xy);
+    float2 waterVelocity = rootData.xy;
 	float landHeight = GetLandHeight(id.xy);
-
-	float excessWater = max(waterDepth - soilDepth, 0);
-	waterDepth -= ExpelWater(id.xy, excessWater);
-	float requestedWater = clamp(soilDepth - waterDepth, 0, WaterAbsorpsionRate);
-	waterDepth += AbsorpWater(id.xy, requestedWater);
-    float waterDiff = waterDepth - GetWaterDepth(id.xy); 
-    
-    AllMemoryBarrierWithGroupSync();
-
-	//ROOT Stuff
-
-	float2 sumWaterDirection = float2(0,0);
-	float sumRootDepth;
-	float2 cellXy = float2(id.xy.x, id.xy.y);
-
-	for (int i = 0; i < NumRoots; i++) {
-		float2 rootXy = RootBuffer[i].uv * WidthInPixels;
-		float dist = distance(cellXy, rootXy);
-		float rootDepth = smoothstep(RootBuffer[i].radius, 0, dist) * RootBuffer[i].depth;
-		sumRootDepth += rootDepth;
-		sumWaterDirection += ((cellXy - rootXy) / dist) * rootDepth;
-	}
-
-	float2 waterVelocity = sumWaterDirection / NumRoots;
 	float waterHeight = landHeight - soilDepth + waterDepth;
 
+    waterDepth = TranferWaterBetweenWaterMap(id.xy, waterDepth);
+    
 	SoilWaterMap[id.xy] = float4(waterVelocity.x, waterVelocity.y, waterDepth, waterHeight);
-    SoilMap[id.xy] = float4(soilDepth, min(sumRootDepth, soilDepth), 0, landHeight);
+    SoilMap[id.xy] = float4(soilDepth, min(rootDepth, soilDepth), 0, landHeight);
 }
