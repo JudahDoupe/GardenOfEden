@@ -2,12 +2,16 @@
 using System.Collections;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 using Random = UnityEngine.Random;
 
 public class CameraController : MonoBehaviour
 {
     public float MoveSpeed = 0.3f;
     public float LookSpeed = 1;
+
+    public CameraMode CurrentMode = CameraMode.Cinematic;
+    public PostProcessProfile PPProfile;
 
     /* INNER MECHINATIONS */
 
@@ -23,8 +27,7 @@ public class CameraController : MonoBehaviour
     private LandService _landService;
     private GameService _gameService;
 
-    private CameraMode currentMode = CameraMode.Cinematic;
-    private enum CameraMode
+    public enum CameraMode
     {
         Cinematic,
         BirdsEye,
@@ -46,10 +49,10 @@ public class CameraController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.C))
         {
-            currentMode = currentMode == CameraMode.Cinematic ? CameraMode.BirdsEye : CameraMode.Cinematic;
+            CurrentMode = CurrentMode == CameraMode.Cinematic ? CameraMode.BirdsEye : CameraMode.Cinematic;
         }
 
-        switch (currentMode)
+        switch (CurrentMode)
         {
             case CameraMode.Cinematic:
                 UpdateCinematic();
@@ -58,6 +61,8 @@ public class CameraController : MonoBehaviour
                 UpdateBirdsEye();
                 break;
         }
+
+        UpdateDepthOfField();
     }
 
     private void UpdateCinematic()
@@ -77,7 +82,7 @@ public class CameraController : MonoBehaviour
         MoveSpeed = 1f;
         LookSpeed = 10;
         _target = new Vector3(0, 350, -100);
-        _targetLook = new Vector3(0, 0, -99);
+        _targetLook = new Vector3(0, _landService.SampleTerrainHeight(_target), -99);
 
         LerpTowardTargets();
     }
@@ -99,6 +104,11 @@ public class CameraController : MonoBehaviour
     {
         var horizontalRatios = new[] { -0.66f, -0.5f, 0, 0.5f, 0.66f };
         _horizontalRatio = horizontalRatios[Mathf.RoundToInt(Random.Range(0, 4))];
+    }
+    private void UpdateDepthOfField()
+    {
+        var dof = PPProfile.GetSetting<DepthOfField>();
+        dof.focusDistance.value = Mathf.Lerp(dof.focusDistance.value, Vector3.Distance(transform.position, _targetLook), Time.deltaTime);
     }
 
     private void LerpTowardTargets()
@@ -140,7 +150,7 @@ public class CameraController : MonoBehaviour
     }
     private IEnumerator FocusOnCapturePoint(CapturePoint cp)
     {
-        _focusedGoal = GetNearestGoal().transform;
+        _focusedGoal = GetNearestGoal()?.transform;
         _focusedObject = cp.transform;
         UpdateHorizontalRatio();
         _isDrifting = false;
