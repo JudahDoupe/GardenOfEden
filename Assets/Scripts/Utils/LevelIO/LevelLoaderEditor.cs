@@ -21,5 +21,9 @@ public class LevelLoaderEditor : Editor
         {
             loader.RenderMaps();
         }
+        if (GUILayout.Button("Disable Mesh"))
+        {
+            loader.SetRenderersEnabled(false);
+        }
     }
 }

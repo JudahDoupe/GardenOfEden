@@ -42,23 +42,28 @@ int NumRoots;
 
 float GetSoilDepth(int2 xy)
 {
-    return LandMap[xy].r;
+    uint2 pos = clamp(xy, 0, 511);
+    return LandMap[pos].r;
 }
 float GetLandHeight(int2 xy)
 {
-    return LandMap[xy].a;
+    uint2 pos = clamp(xy, 0, 511);
+    return LandMap[pos].a;
 }
 float GetWaterDepth(int2 xy)
 {
-    return SoilWaterMap[xy].b;
+    uint2 pos = clamp(xy, 0, 511);
+    return SoilWaterMap[pos].b;
 }
 float GeWatertHeight(int2 xy)
 {
-    return SoilWaterMap[xy].a;
+    uint2 pos = clamp(xy, 0, 511);
+    return SoilWaterMap[pos].a;
 }
 float2 GetWaterVelocity(int2 xy)
 {
-    return SoilWaterMap[xy].rg;
+    uint2 pos = clamp(xy, 0, 511);
+    return SoilWaterMap[pos].rg;
 }
 float GetVelocityFace(int2 xy, int2 offset)
 {

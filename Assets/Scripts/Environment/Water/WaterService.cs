@@ -9,7 +9,7 @@ public class WaterService : MonoBehaviour
     [Header("Render Textures")]
 
     public RenderTexture LandMap;
-    public RenderTexture WaterSourceHeightMap;
+    public RenderTexture WaterSourceMap;
     public RenderTexture WaterMap;
 
     [Header("Compute Shader")]
@@ -38,7 +38,7 @@ public class WaterService : MonoBehaviour
         var updateKernel = WaterShader.FindKernel("Update");
         WaterShader.SetTexture(updateKernel, "LandMap", LandMap);
         WaterShader.SetTexture(updateKernel, "WaterMap", WaterMap);
-        WaterShader.SetTexture(updateKernel, "WaterSourceMap", WaterSourceHeightMap);
+        WaterShader.SetTexture(updateKernel, "WaterSourceMap", WaterSourceMap);
 
         var rainKernel = WaterShader.FindKernel("Rain");
         WaterShader.SetTexture(rainKernel, "WaterMap", WaterMap);

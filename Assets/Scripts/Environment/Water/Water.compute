@@ -2,7 +2,7 @@
 #pragma kernel Rain
 
 Texture2D<float4> LandMap;
-Texture2D<float4> WaterSourceMap;
+Texture2D<float> WaterSourceMap;
 RWTexture2D<float4> WaterMap;
 
 static float MaxHeight = 200.0f;
@@ -26,8 +26,7 @@ float GetTerrainHeight(int2 xy)
 float GetWaterSouceDepth(int2 xy)
 {
 	uint2 pos = clamp(xy, 0, 511);
-	float height = WaterSourceMap[pos].r * MaxHeight;
-	return clamp(height - GetTerrainHeight(xy), 0, MaxHeight);
+	return WaterSourceMap[pos];
 }
 float GetHeight(int2 xy)
 {
@@ -67,7 +66,7 @@ int ShouldPerserveVelocity(int2 xy, int2 offset)
 					   (GetDepth(xy + offset) <= Eps && GetTerrainHeight(xy + offset) > GetHeight(xy));
 	int isEdge = (xy + offset).x < 0 || (xy + offset).x >= 512 ||
 			     (xy + offset).y < 0 || (xy + offset).y >= 512;
-	return !isReflective && !isEdge;
+	return !isReflective;
 }
 float2 GetNewVelocity(int2 xy)
 {
