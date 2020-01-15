@@ -14,6 +14,10 @@ static float WidthInPixels = 512.0f;
 
 static float GridSpacing = WidthInMeters / WidthInPixels;
 static float SimulationSpeed = 1.0f / 50.0f; //speed in time steps per second. 1 = seconds | 50 = steps.  this is the speed of FixedUpdate
+static float Eps = 0.00001f;
+static float Gravity = 3.2f;
+static float AmplitudeDampening = 0.5f;
+static float VelocityDampening = 10.0f;
 
 struct RootData
 {
@@ -50,12 +54,17 @@ float GetLandHeight(int2 xy)
     uint2 pos = clamp(xy, 0, 511);
     return LandMap[pos].a;
 }
+float GetBedrockHeight(int2 xy)
+{
+    uint2 pos = clamp(xy, 0, 511);
+    return LandMap[pos].a - LandMap[pos].r;
+}
 float GetWaterDepth(int2 xy)
 {
     uint2 pos = clamp(xy, 0, 511);
     return SoilWaterMap[pos].b;
 }
-float GeWatertHeight(int2 xy)
+float GetWaterHeight(int2 xy)
 {
     uint2 pos = clamp(xy, 0, 511);
     return SoilWaterMap[pos].a;
@@ -81,24 +90,6 @@ float GetVelocityFace(int2 xy, int2 offset)
 }
 
 
-float GetSoakedWaterDepth(int2 xy) //TODO: This should be done through velocity
-{
-	float currentWaterDepth = GetWaterDepth(xy);
-	float newWaterDepth = currentWaterDepth * 0.4;
-	int2 offsets[4] = { int2(1, 0), int2(-1, 0), int2(0, 1), int2(0, -1) };
-	
-	for (int i = 0; i < 4; i++) {
-		int2 pos = xy + offsets[i];
-		if (GetSoilDepth(pos) > currentWaterDepth * 0.1) {
-			newWaterDepth += GetWaterDepth(pos) * 0.15;
-		}
-		else {
-			newWaterDepth += GetWaterDepth(xy) * 0.15;
-		}
-	}
-
-	return newWaterDepth;
-}
 float DownwindCapacity(int2 xy, int2 offset)
 {
     int dir = dot(offset, int2(1, 1));
@@ -149,6 +140,8 @@ float TranferWaterBetweenWaterMap(int2 xy, float waterDepth)
     return waterDepth;
 }
 
+//Water Velocity
+
 float3 GetRootData(int2 xy)
 {
     float2 cellXy = float2(xy.x, xy.y);
@@ -168,6 +161,62 @@ float3 GetRootData(int2 xy)
     
     return float3(waterVelocity, sumRootDepth);
 }
+int ShouldPerserveVelocity(int2 xy, int2 offset)
+{
+    int isReflective = (GetWaterDepth(xy) <= Eps && GetBedrockHeight(xy) > GetWaterHeight(xy + offset)) ||
+					   (GetWaterDepth(xy + offset) <= Eps && GetBedrockHeight(xy + offset) > GetWaterHeight(xy));
+    return !isReflective;
+}
+float2 GetNewVelocity(int2 xy)
+{
+    float2 externalForce = 0;
+
+    float2 neighborHeights = float2(GetWaterHeight(xy + int2(1, 0)), GetWaterHeight(xy + int2(0, 1)));
+    float2 neighborDepths = float2(GetWaterDepth(xy + int2(1, 0)), GetWaterDepth(xy + int2(0, 1)));
+    float2 heightDiffs = neighborHeights - GetWaterHeight(xy);
+    float2 depthDiffs = neighborDepths - GetWaterDepth(xy);
+    float2 diff = lerp(heightDiffs, depthDiffs, 0.7);
+
+    float relativeGravity = -Gravity / GridSpacing;
+    float2 changeInVelocity = (relativeGravity * diff + externalForce) * SimulationSpeed;
+	
+    int2 shouldPerserveVelocity = int2(ShouldPerserveVelocity(xy, int2(1, 0)), ShouldPerserveVelocity(xy, int2(0, 1)));
+    float2 newVelocity = (GetWaterVelocity(xy) + changeInVelocity) * shouldPerserveVelocity;
+
+    float maxVelocity = (GridSpacing / SimulationSpeed) / VelocityDampening;
+    return clamp(newVelocity, -maxVelocity, maxVelocity);
+}
+
+// High Frequency Suppression
+
+float EdgeSuppression(int2 xy, int2 offset)
+{
+    float maxEdge = 0.5f * GridSpacing;
+    float suppressionRation = 0.25f;
+
+    float myHeight = GetWaterHeight(xy);
+    float edgeHeight = GetWaterHeight(xy + offset);
+    float oppositeEdgeHeight = GetWaterHeight(xy + (offset * -1));
+
+    float myDepth = GetWaterDepth(xy);
+    float edgeDepth = GetWaterDepth(xy + offset);
+
+    if (myHeight - oppositeEdgeHeight > maxEdge && myHeight > edgeHeight)
+    {
+        float avgDepth = (myDepth + edgeDepth) / 2.0f;
+        return suppressionRation * (max(0, avgDepth) - myDepth);
+    }
+    else
+    {
+        return 0.0f;
+    }
+}
+float HighFrequencySuppression(int2 xy)
+{
+
+    return EdgeSuppression(xy, int2(-1, 0)) + EdgeSuppression(xy, int2(1, 0)) +
+		EdgeSuppression(xy, int2(0, -1)) + EdgeSuppression(xy, int2(0, 1));
+}
 
 [numthreads(8, 8, 1)]
 void UpdateSoil(uint3 id : SV_DispatchThreadID)
@@ -175,8 +224,10 @@ void UpdateSoil(uint3 id : SV_DispatchThreadID)
     float3 rootData = GetRootData(id.xy);
 	float soilDepth = GetSoilDepth(id.xy);
     float rootDepth = rootData.z;
-    float waterDepth = GetSoakedWaterDepth(id.xy) + GetChangeInDepth(id.xy);
-    float2 waterVelocity = rootData.xy;
+    float waterDepth = GetWaterDepth(id.xy) + GetChangeInDepth(id.xy);
+    AllMemoryBarrierWithGroupSync();
+    waterDepth += HighFrequencySuppression(id.xy);
+    float2 waterVelocity = rootData.xy + GetNewVelocity(id.xy);
 	float landHeight = GetLandHeight(id.xy);
 	float waterHeight = landHeight - soilDepth + waterDepth;
 
