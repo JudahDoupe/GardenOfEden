@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement name="Canvas" style="align-items: stretch; flex-direction: row; justify-content: space-between; width: 100%; height: 100%;">
+        <Style src="Evolution.uss" />
+        <ui:VisualElement name="StructureTypes" style="align-items: center; justify-content: center; width: 300px; font-size: 30%;">
+            <ui:Button text="Leaves" name="Leaves" class="structure-trype-button structure-type-button" />
+            <ui:Button text="Branch" name="Branch" class="structure-trype-button structure-type-button" />
+            <ui:Button text="Trunk" name="Trunk" class="structure-trype-button structure-type-button" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Structures" />
+        <ui:VisualElement name="Description" />
+    </ui:VisualElement>
+</ui:UXML>
