@@ -1,29 +1,26 @@
-.structure-type-button {
-    width: 150px;
-    height: 150px;
+.evolution-button:hover {
+    background-color: rgba(168, 168, 168, 255);
+}
+
+.evolution-button {
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    flex-direction: row-reverse;
     -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams.ttf');
+    font-size: 24px;
     -unity-text-align: middle-center;
-    white-space: normal;
     border-top-left-radius: 50%;
     border-bottom-left-radius: 50%;
     border-top-right-radius: 50%;
     border-bottom-right-radius: 50%;
-    margin-left: 10%;
-    margin-right: 10%;
-    margin-top: 10%;
-    margin-bottom: 10%;
-    padding-left: 0;
-    padding-right: 0;
     border-left-width: 2px;
     border-right-width: 2px;
     border-top-width: 2px;
     border-bottom-width: 2px;
-    border-left-color: rgb(154, 154, 154);
-    border-right-color: rgb(154, 154, 154);
-    border-top-color: rgb(154, 154, 154);
-    border-bottom-color: rgb(137, 137, 137);
-    font-size: 32px;
-    -unity-font-style: normal;
-    background-color: rgb(255, 255, 255);
-    color: rgb(0, 0, 0);
+    border-left-color: rgba(106, 106, 106, 255);
+    border-right-color: rgba(106, 106, 106, 255);
+    border-top-color: rgba(106, 106, 106, 255);
+    border-bottom-color: rgba(106, 106, 106, 255);
+    background-color: rgba(221, 221, 221, 255);
 }
