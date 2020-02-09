@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public static class TransformExtentions
 {
@@ -38,5 +40,12 @@ public static class TransformExtentions
             b.Encapsulate(renderer.bounds);
         }
         return b;
+    }
+
+    public static T Closest<T>(this IEnumerable<T> options, Vector3 target) where T : MonoBehaviour
+    {
+        return options.Aggregate((curMin, x) =>
+                curMin == null ||
+                Vector3.Distance(x.transform.position, target) < Vector3.Distance(curMin.transform.position, target) ? x : curMin);
     }
 }

@@ -1,31 +1,14 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Rendering.PostProcessing;
-using Random = UnityEngine.Random;
+﻿using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public float MoveSpeed = 0.3f;
-    public float LookSpeed = 1;
 
     public CameraMode CurrentMode = CameraMode.Cinematic;
-    public PostProcessProfile PPProfile;
 
     /* INNER MECHINATIONS */
 
-    private Transform _focusedObject { get; set; }
-    private Transform _focusedGoal { get; set; }
-
-    private bool _isDrifting = true;
-    private Vector3 _target;
-    private Vector3 _targetLook;
-    private float _horizontalRatio;
-
-    private GrowthService _growthService;
-    private LandService _landService;
-    private GameService _gameService;
+    private CameraTransform _transform;
+    private CameraFocus _focus;
 
     public enum CameraMode
     {
@@ -35,15 +18,8 @@ public class CameraController : MonoBehaviour
 
     private void Start()
     {
-        _growthService = FindObjectOfType<GrowthService>();
-        _landService = FindObjectOfType<LandService>();
-        _gameService = FindObjectOfType<GameService>();
-
-        _growthService.NewPlantSubject.Subscribe(NewPlantAction);
-        _gameService.PointCapturedSubject.Subscribe(PointCapturedAction);
-
-        _focusedObject = _gameService.FocusedPlant.transform;
-        _focusedGoal = GetNearestGoal()?.transform;
+        _focus = FindObjectOfType<CameraFocus>();
+        _transform = FindObjectOfType<CameraTransform>();
     }
     private void LateUpdate()
     {
@@ -61,102 +37,43 @@ public class CameraController : MonoBehaviour
                 UpdateBirdsEye();
                 break;
         }
-
-        UpdateDepthOfField();
     }
 
     private void UpdateCinematic()
     {
-        MoveSpeed = 0.25f;
-        LookSpeed = 0.75f;
-        if (_focusedObject != null)
-        {
-            UpdateTargets();
-        }
+        _transform.MoveSpeed = 0.25f;
+        _transform.LookSpeed = 0.75f;
+        _focus.PrimaryFocus.IsDrifting = true;
+        _focus.SecondaryFocus.IsDrifting = true;
 
-        LerpTowardTargets();
+        if (_focus.PrimaryFocus.Object != null)
+        {
+            var focusBounds = _focus.PrimaryFocus.Object.GetBounds();
+            var pDistance = Mathf.Max(focusBounds.extents.x, focusBounds.extents.y, focusBounds.extents.z) * (145f / Camera.main.fieldOfView);
+            var pPosition = _focus.PrimaryFocus.Position(pDistance);
+            var direction = (transform.position - pPosition).normalized;
+
+            if (_focus.SecondaryFocus.Object != null)
+            {
+                var sDistance = Vector3.Distance(_focus.PrimaryFocus.Object.transform.position, _focus.SecondaryFocus.Object.transform.position);
+                var sPosition = _focus.SecondaryFocus?.Position(sDistance) ?? pPosition;
+                direction = (pPosition - sPosition).normalized;
+            }
+
+            _transform.TargetPosition = pPosition + (direction * pDistance);
+            _transform.TargetFocusPosition = pPosition;
+        }
     }
 
     private void UpdateBirdsEye()
     {
-        MoveSpeed = 1f;
-        LookSpeed = 10;
-        _target = new Vector3(0, 350, -100);
-        _targetLook = new Vector3(0, _landService.SampleTerrainHeight(_target), -99);
+        _transform.MoveSpeed = 1f; //These values should only be set on transistion
+        _transform.LookSpeed = 10;
+        _focus.PrimaryFocus.IsDrifting = false;
+        _focus.SecondaryFocus.IsDrifting = false;
 
-        LerpTowardTargets();
+        _transform.TargetPosition = new Vector3(0, 350, -100);
+        _transform.TargetFocusPosition = _focus.PrimaryFocus.Position(0);
     }
 
-    private void UpdateTargets()
-    {
-        var bounds = _focusedObject.GetBounds();
-        var plantPosition = bounds.center;
-        var direction = _focusedGoal != null ?
-            (plantPosition - _focusedGoal.position).normalized :
-            (transform.position - plantPosition).normalized;
-        var distance = Mathf.Max(bounds.extents.x, bounds.extents.y, bounds.extents.z) * (145f / Camera.main.fieldOfView);
-        var horizontalOffset = new Vector3(distance * _horizontalRatio, 0, 0);
-
-        _target = plantPosition + (direction * distance) + horizontalOffset;
-        _targetLook = plantPosition + horizontalOffset / 2;
-    }
-    private void UpdateHorizontalRatio()
-    {
-        var horizontalRatios = new[] { -0.66f, -0.5f, 0, 0.5f, 0.66f };
-        _horizontalRatio = horizontalRatios[Mathf.RoundToInt(Random.Range(0, 4))];
-    }
-    private void UpdateDepthOfField()
-    {
-        var dof = PPProfile.GetSetting<DepthOfField>();
-        dof.focusDistance.value = Mathf.Lerp(dof.focusDistance.value, Vector3.Distance(transform.position, _targetLook), Time.deltaTime);
-    }
-
-    private void LerpTowardTargets()
-    {
-        var targetPosition = Vector3.Lerp(transform.position, _target, MoveSpeed * Time.deltaTime);
-        targetPosition.y = Mathf.Max(targetPosition.y, _landService.SampleTerrainHeight(targetPosition) + 0.5f);
-        transform.position = targetPosition;
-
-        var targetRotation = Quaternion.LookRotation(_targetLook - transform.position);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, LookSpeed * Time.deltaTime);
-    }
-
-    private CapturePoint GetNearestGoal()
-    {
-        var capturePoints = FindObjectsOfType<CapturePoint>().Where(x => !x.IsCaptured);
-        return capturePoints.Any()
-            ? capturePoints.Aggregate((curMin, x) =>
-                curMin == null ||
-                Vector3.Distance(x.transform.position, transform.position) < Vector3.Distance(curMin.transform.position, transform.position) ? x : curMin)
-            : null;
-    }
-
-    private void NewPlantAction(Plant plant)
-    {
-        if (_isDrifting && 
-            ((_focusedGoal != null &&
-            _focusedObject != null &&
-            Vector3.Distance(_focusedGoal.position, plant.transform.position) < Vector3.Distance(_focusedGoal.position, _focusedObject.position)) 
-            || _focusedObject == null))
-        {
-            _focusedObject = plant.transform;
-            UpdateHorizontalRatio();
-        }
-    }
-
-    private void PointCapturedAction(CapturePoint cp)
-    {
-        StartCoroutine(FocusOnCapturePoint(cp));
-    }
-    private IEnumerator FocusOnCapturePoint(CapturePoint cp)
-    {
-        _focusedGoal = GetNearestGoal()?.transform;
-        _focusedObject = cp.transform;
-        UpdateHorizontalRatio();
-        _isDrifting = false;
-
-        yield return new WaitForSeconds(5);
-
-        _isDrifting = true;
-    }
 }
