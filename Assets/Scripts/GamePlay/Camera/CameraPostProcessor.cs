@@ -5,15 +5,9 @@ public class CameraPostProcessor : MonoBehaviour
 {
     public PostProcessProfile PPProfile;
 
-    private CameraFocus _focus;
-
-    private void Start()
-    {
-        _focus = FindObjectOfType<CameraFocus>();
-    }
     void LateUpdate()
     {
-        UpdateDepthOfField(_focus.PrimaryFocus.Position(0));
+        UpdateDepthOfField(DI.CameraFocus.PrimaryFocus.Position(0));
     }
 
     private void UpdateDepthOfField(Vector3 target)

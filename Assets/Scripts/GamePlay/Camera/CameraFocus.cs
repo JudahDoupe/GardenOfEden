@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Linq;
 using UnityEngine;
 
 public class CameraFocus : MonoBehaviour
@@ -40,19 +39,13 @@ public class CameraFocus : MonoBehaviour
     public Focus PrimaryFocus { get; private set; } = new Focus();
     public Focus SecondaryFocus { get; private set; } = new Focus();
 
-    private GameService _gameService;
-    private GrowthService _growthService;
-
     void Start()
     {
-        _gameService = FindObjectOfType<GameService>();
-        _growthService = FindObjectOfType<GrowthService>();
+        PrimaryFocus.Object = DI.GameService.FocusedPlant.transform;
+        SecondaryFocus.Object = DI.GameService.GetNearestGoal()?.transform;
 
-        PrimaryFocus.Object = _gameService.FocusedPlant.transform;
-        SecondaryFocus.Object = GetNearestGoal()?.transform;
-
-        _growthService.NewPlantSubject.Subscribe(NewPlantAction);
-        _gameService.PointCapturedSubject.Subscribe(PointCapturedAction);
+        DI.GrowthService.NewPlantSubject.Subscribe(NewPlantAction);
+        DI.GameService.PointCapturedSubject.Subscribe(PointCapturedAction);
     }
 
     public void HoldFocus(Focus focus, Transform target, TimeSpan time)
@@ -87,12 +80,5 @@ public class CameraFocus : MonoBehaviour
         {
             PrimaryFocus.Object = plant.transform;
         }
-    }
-    private CapturePoint GetNearestGoal()
-    {
-        var capturePoints = FindObjectsOfType<CapturePoint>().Where(x => !x.IsCaptured);
-        return capturePoints.Any()
-            ? capturePoints.Closest(transform.position)
-            : null;
     }
 }

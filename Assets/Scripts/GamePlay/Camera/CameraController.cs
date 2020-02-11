@@ -7,7 +7,8 @@ public class CameraController : MonoBehaviour
     public enum State
     {
         Cinematic,
-        Birdseye
+        Birdseye,
+        Inspection,
     }
 
     public void SetState(State state)
@@ -18,20 +19,16 @@ public class CameraController : MonoBehaviour
 
     /* INNER MECHINATIONS */
 
-    private CameraTransform _transform;
-    private CameraFocus _focus;
-
-    private Dictionary<State, CameraState> _states;
-    private CameraState _currentState;
+    private Dictionary<State, ICameraState> _states;
+    private ICameraState _currentState;
 
     private void Start()
     {
-        _focus = FindObjectOfType<CameraFocus>();
-        _transform = FindObjectOfType<CameraTransform>();
-        _states = new Dictionary<State, CameraState>
+        _states = new Dictionary<State, ICameraState>
         {
-            {State.Cinematic, new Cinematic(_transform, _focus)},
-            {State.Birdseye, new BirdsEye(_transform, _focus)},
+            {State.Cinematic, new Cinematic()},
+            {State.Birdseye, new BirdsEye()},
+            {State.Inspection, new Inspection()},
         };
 
         SetState(State.Cinematic);
@@ -46,6 +43,10 @@ public class CameraController : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.B))
         {
             SetState(State.Birdseye);
+        }
+        else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.D))
+        {
+            SetState(State.Inspection);
         }
     }
 

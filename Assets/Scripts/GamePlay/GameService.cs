@@ -9,11 +9,8 @@ public class GameService : MonoBehaviour
     public Plant FocusedPlant { get; set; }
     public Subject<CapturePoint> PointCapturedSubject = new Subject<CapturePoint>();
 
-    private List<CapturePoint> _capturePoints;
-
     private void Start()
     {
-        _capturePoints = FindObjectsOfType<CapturePoint>().ToList();
         IsGameInProgress = true;
         PointCapturedSubject.Subscribe(PointCapturedAction);
         FocusedPlant = FindObjectsOfType<Plant>().First();
@@ -42,5 +39,13 @@ public class GameService : MonoBehaviour
 #else
         Application.Quit();
 #endif
+    }
+
+    public CapturePoint GetNearestGoal()
+    {
+        var capturePoints = FindObjectsOfType<CapturePoint>().Where(x => !x.IsCaptured);
+        return capturePoints.Any()
+            ? capturePoints.Closest(Camera.main.transform.position)
+            : null;
     }
 }
