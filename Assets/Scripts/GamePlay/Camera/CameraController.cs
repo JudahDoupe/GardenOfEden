@@ -1,60 +1,67 @@
-﻿using System.Collections.Generic;
+﻿using CameraState;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 
 public class CameraController : MonoBehaviour
 {
-    public enum State
-    {
-        Cinematic,
-        Birdseye,
-        Inspection,
-    }
+    public float MoveSpeed = 0.25f;
+    public float LookSpeed = 0.75f;
+    public Vector3 TargetPosition;
+    public Vector3 TargetFocusPosition;
 
-    public void SetState(State state)
-    {
-        if (_currentState != _states[state])
-        {
-            _currentState = _states[state];
-            _currentState.Transition();
-        }
-    }
+    public Focus PrimaryFocus { get; private set; }
+    public Focus SecondaryFocus { get; private set; }
+    public CameraStateMachine State { get; private set; }
 
-    /* INNER MECHINATIONS */
+    public PostProcessProfile PPProfile;
 
-    private Dictionary<State, ICameraState> _states;
-    private ICameraState _currentState;
 
     private void Start()
     {
-        _states = new Dictionary<State, ICameraState>
-        {
-            {State.Cinematic, new Cinematic()},
-            {State.Birdseye, new BirdsEye()},
-            {State.Inspection, new Inspection()},
-        };
-
-        DI.CameraFocus.PrimaryFocus.Object = FindObjectOfType<Plant>().transform;
-        SetState(State.Cinematic);
+        PrimaryFocus = new Focus();
+        SecondaryFocus = new Focus();
+        State = new CameraStateMachine();
+        PrimaryFocus.Object = FindObjectOfType<Plant>().transform;
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.C))
         {
-            SetState(State.Cinematic);
+            State.Set(CameraStateType.Cinematic);
         }
         else if (Input.GetKeyDown(KeyCode.B))
         {
-            SetState(State.Birdseye);
+            State.Set(CameraStateType.Birdseye);
         }
         else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.D))
         {
-            SetState(State.Inspection);
+            State.Set(CameraStateType.Inspection);
         }
     }
 
     private void LateUpdate()
     {
-        _currentState.Update();
+        State.Update();
+        LerpTowardTargets();
+        UpdateDepthOfField();
+    }
+
+    private void LerpTowardTargets()
+    {
+        var targetPosition = Vector3.Lerp(transform.position, TargetPosition, MoveSpeed * Time.deltaTime);
+        targetPosition.y = Mathf.Max(targetPosition.y, DI.LandService.SampleTerrainHeight(targetPosition) + 0.5f);
+        transform.position = targetPosition;
+
+        var targetRotation = Quaternion.LookRotation(TargetFocusPosition - transform.position);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, LookSpeed * Time.deltaTime);
+    }
+
+    private void UpdateDepthOfField()
+    {
+        var dof = PPProfile.GetSetting<DepthOfField>();
+        var focalLength = Vector3.Distance(Camera.main.transform.position, PrimaryFocus.GetPosition());
+        dof.focusDistance.value = Mathf.Lerp(dof.focusDistance.value, focalLength, Time.deltaTime);
     }
 }

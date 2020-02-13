@@ -11,9 +11,6 @@ public class DI : MonoBehaviour
     public static GameService GameService;
 
     public static CameraController CameraController;
-    public static CameraFocus CameraFocus;
-    public static CameraTransform CameraTransform;
-    public static CameraPostProcessor CameraPostProcessor;
 
     private void Start()
     {
@@ -26,8 +23,5 @@ public class DI : MonoBehaviour
         GameService = FindObjectOfType<GameService>();
 
         CameraController = FindObjectOfType<CameraController>();
-        CameraFocus = FindObjectOfType<CameraFocus>();
-        CameraTransform = FindObjectOfType<CameraTransform>();
-        CameraPostProcessor = FindObjectOfType<CameraPostProcessor>();
     }
 }
