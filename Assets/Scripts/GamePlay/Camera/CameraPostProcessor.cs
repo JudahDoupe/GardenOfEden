@@ -7,7 +7,7 @@ public class CameraPostProcessor : MonoBehaviour
 
     void LateUpdate()
     {
-        UpdateDepthOfField(DI.CameraFocus.PrimaryFocus.Position(0));
+        UpdateDepthOfField(DI.CameraFocus.PrimaryFocus.GetPosition(0));
     }
 
     private void UpdateDepthOfField(Vector3 target)

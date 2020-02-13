@@ -6,34 +6,28 @@ public class CameraFocus : MonoBehaviour
 {
     public class Focus
     {
-        private Transform _object;
-        private Vector2 _offsetRatio;
+        public Transform Object;
+        public float HorizontalOffsetRatio = 0;
+        public bool IsDrifting = true;
 
-        public Transform Object
+        public Vector3 GetPosition(float cameraDistance)
         {
-            get => _object;
-            set
-            {
-                var offsetRatios = new[] { -0.66f, -0.5f, 0, 0.5f, 0.66f };
-                var ratio = offsetRatios[Mathf.RoundToInt(UnityEngine.Random.Range(0, 4))];
-                _offsetRatio = new Vector2(ratio, 0);
-                _object = value;
-            }
-        }
-        public Vector3 Position(float cameraDistance)
-        {
-            if (_object == null)
+            if (Object == null)
             {
                 return Camera.main.transform.position;
             }
             else
             {
-                var offset = Camera.main.transform.TransformVector(new Vector3(cameraDistance * _offsetRatio.x, 0, 0));
-                return offset + _object.GetBounds().center;
+                var offset = Camera.main.transform.TransformVector(new Vector3(cameraDistance * HorizontalOffsetRatio, 0, 0));
+                return offset + Object.GetBounds().center;
             }
         }
-        public bool IsDrifting = true;
-
+        public void RandomizeHorizontalOffsetRatio()
+        {
+            var offsetRatios = new[] { -0.66f, -0.5f, 0, 0.5f, 0.66f };
+            var ratio = offsetRatios[Mathf.RoundToInt(UnityEngine.Random.Range(0, 4))];
+            HorizontalOffsetRatio = ratio;
+        }
     }
 
     public Focus PrimaryFocus { get; private set; } = new Focus();

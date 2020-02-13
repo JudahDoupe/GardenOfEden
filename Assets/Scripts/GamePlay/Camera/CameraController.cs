@@ -33,6 +33,7 @@ public class CameraController : MonoBehaviour
             {State.Inspection, new Inspection()},
         };
 
+        DI.CameraFocus.PrimaryFocus.Object = FindObjectOfType<Plant>().transform;
         SetState(State.Cinematic);
     }
 
