@@ -39,15 +39,6 @@ public class CameraFocus : MonoBehaviour
     public Focus PrimaryFocus { get; private set; } = new Focus();
     public Focus SecondaryFocus { get; private set; } = new Focus();
 
-    void Start()
-    {
-        PrimaryFocus.Object = DI.GameService.FocusedPlant.transform;
-        SecondaryFocus.Object = DI.GameService.GetNearestGoal()?.transform;
-
-        DI.GrowthService.NewPlantSubject.Subscribe(NewPlantAction);
-        DI.GameService.PointCapturedSubject.Subscribe(PointCapturedAction);
-    }
-
     public void HoldFocus(Focus focus, Transform target, TimeSpan time)
     {
         StartCoroutine(HoldFocusAsync(focus, target, time));
@@ -61,24 +52,5 @@ public class CameraFocus : MonoBehaviour
         yield return new WaitForSeconds((float) time.TotalSeconds);
 
         focus.IsDrifting = true;
-    }
-
-
-    private void PointCapturedAction(CapturePoint cp)
-    {
-        if (SecondaryFocus.IsDrifting)
-        {
-            HoldFocus(SecondaryFocus, cp.transform, TimeSpan.FromSeconds(5));
-        }
-    }
-    private void NewPlantAction(Plant plant)
-    {
-        var plantPos = plant.transform.position;
-        var primaryPos = PrimaryFocus.Object?.position ?? plantPos;
-        var secondaryPos = SecondaryFocus.Object?.position ?? plantPos;
-        if (PrimaryFocus.IsDrifting && Vector3.Distance(plantPos, secondaryPos) <= Vector3.Distance(primaryPos, secondaryPos))
-        {
-            PrimaryFocus.Object = plant.transform;
-        }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour
@@ -13,8 +12,11 @@ public class CameraController : MonoBehaviour
 
     public void SetState(State state)
     {
-        _currentState = _states[state];
-        _currentState.Transition();
+        if (_currentState != _states[state])
+        {
+            _currentState = _states[state];
+            _currentState.Transition();
+        }
     }
 
     /* INNER MECHINATIONS */

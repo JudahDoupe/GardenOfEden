@@ -26,6 +26,11 @@ public class GrowthService : MonoBehaviour
         _livingPlants.Remove(plant);
     }
 
+    public List<Plant> GetLivingPlants()
+    {
+        return _livingPlants.ToList();
+    }
+
     /* Inner Mechinations */
 
     private LinkedList<Plant> _livingPlants = new LinkedList<Plant>();
