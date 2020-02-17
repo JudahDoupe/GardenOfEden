@@ -11,6 +11,7 @@ public class DI : MonoBehaviour
     public static GameService GameService;
 
     public static CameraController CameraController;
+    public static EvolutionUIController EvolutionUIController;
 
     private void Start()
     {
@@ -23,5 +24,6 @@ public class DI : MonoBehaviour
         GameService = FindObjectOfType<GameService>();
 
         CameraController = FindObjectOfType<CameraController>();
+        EvolutionUIController = FindObjectOfType<EvolutionUIController>();
     }
 }

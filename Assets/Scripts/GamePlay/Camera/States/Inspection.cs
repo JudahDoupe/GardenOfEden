@@ -18,12 +18,16 @@ namespace CameraState
             activityTimer.Start();
         }
 
-        public void TransitionAway() { }
+        public void TransitionAway() 
+        {
+            CloseEvolutionMenu();
+            activityTimer.Stop();
+        }
 
         public void Update()
         {
             var movementVector = Camera.main.transform.TransformVector(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
-            if (movementVector.magnitude > 0.1f)
+            if (movementVector.magnitude > 0.1f && !DI.EvolutionUIController.IsEnabled)
             {
                 var target = GetGroundPosition(DI.CameraController.TargetPosition + movementVector * DI.CameraController.MoveSpeed);
                 target.y = DI.CameraController.PrimaryFocus.GetPosition().y;
@@ -44,7 +48,9 @@ namespace CameraState
                 var focusBounds = DI.CameraController.PrimaryFocus.Object.GetBounds();
                 var focusDistance = Mathf.Max(focusBounds.extents.x, focusBounds.extents.y, focusBounds.extents.z) * (145f / Camera.main.fieldOfView);
                 var focusPosition = DI.CameraController.PrimaryFocus.GetPositionWithOffset(focusDistance);
-                var focusDirection = (Camera.main.transform.position - focusPosition).normalized;
+                var target = GetGroundPosition(Camera.main.transform.position);
+                target.y = focusPosition.y;
+                var focusDirection = (target - focusPosition).normalized;
                 DI.CameraController.TargetPosition = focusPosition + (focusDirection * focusDistance);
                 DI.CameraController.TargetFocusPosition = focusPosition;
 
@@ -54,21 +60,48 @@ namespace CameraState
                     DI.CameraController.State.Set(CameraStateType.Cinematic);
                 }
             }
-        }
 
+            if (Input.GetKeyDown(KeyCode.E) && !DI.EvolutionUIController.IsEnabled)
+            {
+                OpenEvolutionMenu();
+            }
+            if (Input.GetKeyDown(KeyCode.Escape) && DI.EvolutionUIController.IsEnabled)
+            {
+                CloseEvolutionMenu();
+            }
+        }
         private Plant GetNearestPlantInDirection(Vector3 direction)
         {
             var radius = 25;
-            var position = GetGroundPosition(Camera.main.transform.position + direction * radius);
+            var forwardOffset = 2;
+            var position = GetGroundPosition(Camera.main.transform.position + direction * (radius + forwardOffset));
             return Physics.OverlapSphere(position, radius)
                                 .Select(x => x.GetComponentInParent<Plant>())
                                 .Where(x => x != null)
                                 .Distinct()
-                                .Closest(Camera.main.transform.position);
+                                .Aggregate((curMin, x) => curMin == null || PlantDistanceFromCenter(x) < PlantDistanceFromCenter(curMin) ? x : curMin);
+        }
+        private float PlantDistanceFromCenter(Plant plant)
+        {
+            var a = plant.transform.position;
+            var b = Camera.main.transform.position;
+            return Vector3.Distance(a, b) * (Vector3.Angle(Camera.main.transform.forward, (a - b).normalized) / 2);
         }
         private Vector3 GetGroundPosition(Vector3 position)
         {
             return new Vector3(position.x, DI.LandService.SampleTerrainHeight(position), position.z);
+        }
+
+        private void OpenEvolutionMenu()
+        {
+            DI.EvolutionUIController.IsEnabled = true;
+            activityTimer.Stop();
+        }
+
+        private void CloseEvolutionMenu()
+        {
+            DI.EvolutionUIController.IsEnabled = false;
+            activityTimer.Restart();
         }
     }
 }
