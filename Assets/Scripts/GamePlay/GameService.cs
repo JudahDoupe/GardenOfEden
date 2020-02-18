@@ -27,9 +27,6 @@ public class GameService : MonoBehaviour
     private void EndGame()
     {
         IsGameInProgress = false;
-
-        var ui = FindObjectOfType<UIController>();
-        ui.ShowStatsMenu();
     }
 
     public void QuitGame()

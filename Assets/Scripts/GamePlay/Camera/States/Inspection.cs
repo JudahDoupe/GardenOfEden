@@ -27,7 +27,7 @@ namespace CameraState
         public void Update()
         {
             var movementVector = Camera.main.transform.TransformVector(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
-            if (movementVector.magnitude > 0.1f && !DI.EvolutionUIController.IsEnabled)
+            if (movementVector.magnitude > 0.1f && DI.UIController.State != UIController.UIState.Evolution)
             {
                 var target = GetGroundPosition(DI.CameraController.TargetPosition + movementVector * DI.CameraController.MoveSpeed);
                 target.y = DI.CameraController.PrimaryFocus.GetPosition().y;
@@ -61,11 +61,11 @@ namespace CameraState
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.E) && !DI.EvolutionUIController.IsEnabled)
+            if (Input.GetKeyDown(KeyCode.E) && DI.UIController.State != UIController.UIState.Evolution)
             {
                 OpenEvolutionMenu();
             }
-            if (Input.GetKeyDown(KeyCode.Escape) && DI.EvolutionUIController.IsEnabled)
+            if (Input.GetKeyDown(KeyCode.Escape) && DI.UIController.State == UIController.UIState.Evolution)
             {
                 CloseEvolutionMenu();
             }
@@ -94,13 +94,13 @@ namespace CameraState
 
         private void OpenEvolutionMenu()
         {
-            DI.EvolutionUIController.IsEnabled = true;
+            DI.UIController.SetState(UIController.UIState.Evolution);
             activityTimer.Stop();
         }
 
         private void CloseEvolutionMenu()
         {
-            DI.EvolutionUIController.IsEnabled = false;
+            DI.UIController.SetState(UIController.UIState.None);
             activityTimer.Restart();
         }
     }

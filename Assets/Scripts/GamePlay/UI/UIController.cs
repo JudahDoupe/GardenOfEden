@@ -1,77 +1,44 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System.Collections;
+using System.Collections.Generic;
+using Unity.UIElements.Runtime;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 public class UIController : MonoBehaviour
 {
-    private GameObject _pauseMenu;
-    private GameObject _statsMenu;
-    private GameObject _evolutionMenu;
-
-    private GameService _gameService;
+    public enum UIState
+    {
+        None,
+        Evolution
+    }
+    public UIState State = UIState.None;
+    public GameObject EvolutionUI;
 
     private void Start()
     {
-        _pauseMenu = transform.Find("Pause Menu").gameObject;
-        _statsMenu = transform.Find("Stats").gameObject;
-        _evolutionMenu = transform.Find("Evolution").gameObject;
-
-        _gameService = FindObjectOfType<GameService>();
+        SetState(UIState.None);
     }
 
-    void Update()
+    public void SetState(UIState state)
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        SetEnabled(EvolutionUI, false);
+        switch (state)
         {
-            if (_pauseMenu.activeSelf)
-            {
-                HidePauseMenu();
-            }
-            else
-            {
-                ShowPauseMenu();
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (_evolutionMenu.activeSelf)
-            {
-                HideEvolutionMenu();
-            }
-            else
-            {
-                ShowEvolutionMenu(_gameService.FocusedPlant);
-            }
+            case UIState.None:
+                break;
+            case UIState.Evolution:
+                SetEnabled(EvolutionUI, true);
+                break;
         }
     }
 
-    public void ShowPauseMenu()
+    private void SetEnabled(GameObject ui, bool enabled)
     {
-        _pauseMenu.SetActive(true);
-    }
-    public void HidePauseMenu()
-    {
-        _pauseMenu.SetActive(false);
-    }
+        var panel = ui.GetComponent<PanelRenderer>();
+        var eventSystem = ui.GetComponent<UIElementsEventSystem>();
 
-    public void ShowStatsMenu()
-    {
-        _statsMenu.transform.Find("Plants").transform.Find("Text").GetComponent<Text>().text = PlantApi.GetTotalPlantPopulation().ToString();
-        _statsMenu.SetActive(true);
-    }
-    public void HideStatsMenu()
-    {
-        _statsMenu.SetActive(false);
-    }
-
-    public void ShowEvolutionMenu(Plant plant)
-    {
-        _evolutionMenu.SetActive(true);
-        _evolutionMenu.GetComponent<EvolutionUI>().Enable(plant);
-    }
-    public void HideEvolutionMenu()
-    {
-        _evolutionMenu.SetActive(false);
-        _evolutionMenu.GetComponent<EvolutionUI>().Disable();
+        panel.visualTree.style.display = enabled ? DisplayStyle.Flex : DisplayStyle.None;
+        panel.enabled = enabled;
+        eventSystem.enabled = enabled;
     }
 }
