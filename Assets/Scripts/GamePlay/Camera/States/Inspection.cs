@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
@@ -27,7 +28,7 @@ namespace CameraState
         public void Update()
         {
             var movementVector = Camera.main.transform.TransformVector(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
-            if (movementVector.magnitude > 0.1f && DI.UIController.State != UIController.UIState.Evolution)
+            if (movementVector.magnitude > 0.1f && DI.UIController.State.IsState(UIState.StateType.None))
             {
                 var target = GetGroundPosition(DI.CameraController.TargetPosition + movementVector * DI.CameraController.MoveSpeed);
                 target.y = DI.CameraController.PrimaryFocus.GetPosition().y;
@@ -61,25 +62,32 @@ namespace CameraState
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.E) && DI.UIController.State != UIController.UIState.Evolution)
+            if (Input.GetKeyDown(KeyCode.E) && DI.UIController.State.IsState(UIState.StateType.None))
             {
                 OpenEvolutionMenu();
             }
-            if (Input.GetKeyDown(KeyCode.Escape) && DI.UIController.State == UIController.UIState.Evolution)
+            if (Input.GetKeyDown(KeyCode.Escape) && DI.UIController.State.IsState(UIState.StateType.Evolution))
             {
                 CloseEvolutionMenu();
             }
         }
         private Plant GetNearestPlantInDirection(Vector3 direction)
         {
-            var radius = 25;
+            var nearbyPlants = new List<Plant>();
             var forwardOffset = 2;
+            var radius = 25f;
             var position = GetGroundPosition(Camera.main.transform.position + direction * (radius + forwardOffset));
-            return Physics.OverlapSphere(position, radius)
-                                .Select(x => x.GetComponentInParent<Plant>())
-                                .Where(x => x != null)
-                                .Distinct()
-                                .Aggregate((curMin, x) => curMin == null || PlantDistanceFromCenter(x) < PlantDistanceFromCenter(curMin) ? x : curMin);
+            while (!nearbyPlants.Any())
+            {
+                nearbyPlants = Physics.OverlapSphere(position, radius)
+                            .Select(x => x.GetComponentInParent<Plant>())
+                            .Where(x => x != null)
+                            .Distinct()
+                            .ToList();
+                radius *= 1.5f;
+            }
+
+            return nearbyPlants.Aggregate((curMin, x) => curMin == null || PlantDistanceFromCenter(x) < PlantDistanceFromCenter(curMin) ? x : curMin);
         }
         private float PlantDistanceFromCenter(Plant plant)
         {
@@ -94,13 +102,13 @@ namespace CameraState
 
         private void OpenEvolutionMenu()
         {
-            DI.UIController.SetState(UIController.UIState.Evolution);
+            DI.UIController.State.SetState(UIState.StateType.Evolution);
             activityTimer.Stop();
         }
 
         private void CloseEvolutionMenu()
         {
-            DI.UIController.SetState(UIController.UIState.None);
+            DI.UIController.State.SetState(UIState.StateType.None);
             activityTimer.Restart();
         }
     }
