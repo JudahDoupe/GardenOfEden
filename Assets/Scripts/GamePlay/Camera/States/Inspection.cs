@@ -21,7 +21,7 @@ namespace CameraState
 
         public void TransitionAway() 
         {
-            CloseEvolutionMenu();
+            ClosePlantDetailsMenu();
             activityTimer.Stop();
         }
 
@@ -64,11 +64,7 @@ namespace CameraState
 
             if (Input.GetKeyDown(KeyCode.E) && DI.UIController.State.IsState(UIState.StateType.None))
             {
-                OpenEvolutionMenu();
-            }
-            if (Input.GetKeyDown(KeyCode.Escape) && DI.UIController.State.IsState(UIState.StateType.Evolution))
-            {
-                CloseEvolutionMenu();
+                OpenPlantDetailsMenu();
             }
         }
         private Plant GetNearestPlantInDirection(Vector3 direction)
@@ -91,22 +87,22 @@ namespace CameraState
         }
         private float PlantDistanceFromCenter(Plant plant)
         {
-            var a = plant.transform.position;
-            var b = Camera.main.transform.position;
-            return Vector3.Distance(a, b) * (Vector3.Angle(Camera.main.transform.forward, (a - b).normalized) / 2);
+            var a = Vector3.Scale(plant.transform.position, new Vector3(1,0,1));
+            var b = Vector3.Scale(Camera.main.transform.position, new Vector3(1, 0, 1));
+            return Mathf.Pow(Vector3.Distance(a, b), 1.5f) * Vector3.Angle(Camera.main.transform.forward, (a - b).normalized);
         }
         private Vector3 GetGroundPosition(Vector3 position)
         {
             return new Vector3(position.x, DI.LandService.SampleTerrainHeight(position), position.z);
         }
 
-        private void OpenEvolutionMenu()
+        private void OpenPlantDetailsMenu()
         {
-            DI.UIController.State.SetState(UIState.StateType.Evolution);
+            DI.UIController.State.SetState(UIState.StateType.PlantDetails);
             activityTimer.Stop();
         }
 
-        private void CloseEvolutionMenu()
+        private void ClosePlantDetailsMenu()
         {
             DI.UIController.State.SetState(UIState.StateType.None);
             activityTimer.Restart();

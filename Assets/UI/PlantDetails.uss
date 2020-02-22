@@ -1,0 +1,55 @@
+.panel {
+    width: auto;
+    height: auto;
+    background-color: rgba(216, 219, 226, 0.53);
+    border-left-color: rgba(169, 188, 208, 0.83);
+    border-right-color: rgba(169, 188, 208, 0.83);
+    border-top-color: rgba(169, 188, 208, 0.83);
+    border-bottom-color: rgba(169, 188, 208, 0.83);
+    border-left-width: 5px;
+    border-right-width: 5px;
+    border-top-width: 5px;
+    border-bottom-width: 5px;
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+    border-top-right-radius: 25px;
+    border-bottom-right-radius: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.title {
+    -unity-text-align: upper-center;
+    -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams.ttf');
+    font-size: 32px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.button {
+    font-size: 18px;
+    -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams.ttf');
+    padding-top: 5px;
+    padding-bottom: 5px;
+    background-color: rgb(216, 219, 226);
+    border-left-color: rgb(169, 188, 208);
+    border-right-color: rgb(169, 188, 208);
+    border-top-color: rgb(169, 188, 208);
+    border-bottom-color: rgb(169, 188, 208);
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    width: 200px;
+    -unity-text-align: middle-center;
+    padding-left: 5px;
+    padding-right: 5px;
+}

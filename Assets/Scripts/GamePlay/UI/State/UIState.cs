@@ -9,22 +9,13 @@ namespace UIState
     public enum StateType
     {
         None,
-        Evolution
+        Evolution,
+        PlantDetails
     }
 
     public class State: MonoBehaviour
     {
-        public static void RegisterClickedAction(Button element, Action action)
-        {
-            if (element != null)
-            {
-                element.clickable.clicked += action;
-            }
-            else
-            {
-                Debug.Log($"Could not find {element}");
-            }
-        }
+        public virtual void Enable() { }
     }
     
     public class StateMachine
@@ -63,6 +54,10 @@ namespace UIState
             panel.enabled = enabled;
             eventSystem.enabled = enabled;
             ui.enabled = enabled;
+            if (enabled)
+            {
+                ui.Enable();
+            }
         }
     }
 }

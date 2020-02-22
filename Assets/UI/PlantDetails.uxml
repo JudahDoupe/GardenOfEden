@@ -1,0 +1,38 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement name="container" style="justify-content: center; align-items: center; width: 100%; height: 100%;">
+        <Style src="PlantDetails.uss" />
+        <ui:VisualElement name="panel" class="panel" style="width: 1000px; height: 600px;">
+            <ui:VisualElement name="top" style="height: 60%; flex-direction: row; flex-grow: 1; flex-shrink: 0; flex-basis: auto; justify-content: flex-start;">
+                <ui:VisualElement name="morphology" style="width: 40%;">
+                    <ui:Label text="Morphology" name="morphology-title" class="title" />
+                </ui:VisualElement>
+                <ui:VisualElement name="description" style="width: 60%;">
+                    <ui:Label text="Species Name" name="species-name" class="title" />
+                    <ui:Label text="     A description of the species informed by the structures it is made up of.  For example, this plant preferrs direct sunlight and plenty of water.  It's branches break easily, fertilizing nearby soil." name="species-description" style="-unity-text-align: upper-left; -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams.ttf'); font-size: 18px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; white-space: normal; -unity-font-style: normal;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="bottom" style="height: 60%; flex-direction: row; flex-grow: 0; flex-shrink: 1; flex-basis: auto; justify-content: flex-start;">
+                <ui:VisualElement name="stats" style="height: auto; padding-left: 15px; padding-right: 15px; padding-top: 15px; padding-bottom: 15px; max-width: none; width: 40%;">
+                    <ui:Label text="Requirements" name="stats-title" class="title" style="font-size: 32px; -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams.ttf'); width: auto;" />
+                    <ui:VisualElement name="requirements-panel" class="panel" style="width: auto; height: auto; justify-content: center; align-items: flex-start;">
+                        <ui:VisualElement name="required-light" style="flex-direction: row; height: auto; align-items: center; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                            <ui:Label text="Light" name="required-light-title" style="font-size: 18px; -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf'); width: 75px;" />
+                            <ui:Label text="Direct" name="required-light-value" style="-unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf'); font-size: 18px;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="required-soil" style="flex-direction: row; height: auto; align-items: center; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                            <ui:Label text="Soil" name="required-soil-title" style="font-size: 18px; -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf'); width: 75px;" />
+                            <ui:Label text="Deep" name="required-soil-value" style="-unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf'); font-size: 18px;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="required-water" style="flex-direction: row; height: auto; align-items: center; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                            <ui:Label text="Water" name="required-water-title" style="font-size: 18px; -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf'); width: 75px;" />
+                            <ui:Label text="Medium" name="required-water-value" style="-unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf'); font-size: 18px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="buttons" style="flex-grow: 1; flex-direction: column-reverse; padding-left: 20px; padding-right: 20px; padding-top: 20px; padding-bottom: 20px; align-items: center;">
+                    <ui:Button text="Close" name="close-button" class="button" style="justify-content: center; align-items: center;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

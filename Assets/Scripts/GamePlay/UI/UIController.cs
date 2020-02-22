@@ -9,7 +9,7 @@ public class UIController : MonoBehaviour
     {
         State = new StateMachine();
         State.AddState(StateType.None, null);
-        State.AddState(StateType.Evolution, FindObjectOfType<Evolution>());
+        State.AddState(StateType.PlantDetails, FindObjectOfType<PlantDetails>());
         State.SetState(StateType.None);
     }
 }
