@@ -15,7 +15,7 @@ namespace UIState
 
     public class State: MonoBehaviour
     {
-        public virtual void Enable() { }
+        public virtual IEnumerable<UnityEngine.Object> Reload() { return null; }
     }
     
     public class StateMachine
@@ -43,20 +43,20 @@ namespace UIState
             return _states[type] == _currentState;
         }
 
-        private void SetEnabled(State ui, bool enabled)
+        private void SetEnabled(State state, bool enabled)
         {
-            if (ui == null) return;
+            if (state == null) return;
 
-            var panel = ui.GetComponent<PanelRenderer>();
-            var eventSystem = ui.GetComponent<UIElementsEventSystem>();
+            var panel = state.GetComponent<PanelRenderer>();
+            var eventSystem = state.GetComponent<UIElementsEventSystem>();
 
             panel.visualTree.style.display = enabled ? DisplayStyle.Flex : DisplayStyle.None;
             panel.enabled = enabled;
             eventSystem.enabled = enabled;
-            ui.enabled = enabled;
+
             if (enabled)
             {
-                ui.Enable();
+                state.Reload();
             }
         }
     }

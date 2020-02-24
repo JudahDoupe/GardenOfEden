@@ -31,7 +31,7 @@ public struct Volume
     public static bool operator < (Volume a, Volume b) => a._cubicMeters < b._cubicMeters;
     public static bool operator > (Volume a, Volume b) => a._cubicMeters > b._cubicMeters;
 
-    public override string ToString() => $"{_cubicMeters} cubic meters";
+    public override string ToString() => $"{Math.Round(_cubicMeters, 2)} cubic meters";
 }
 
 [Serializable]
@@ -66,7 +66,7 @@ public struct Area
     public static bool operator < (Area a, Area b) => a._squareMeters < b._squareMeters;
     public static bool operator > (Area a, Area b) => a._squareMeters > b._squareMeters;
 
-    public override string ToString() => $"{_squareMeters} square meters";
+    public override string ToString() => $"{Math.Round(_squareMeters, 2)} square meters";
 }
 
 

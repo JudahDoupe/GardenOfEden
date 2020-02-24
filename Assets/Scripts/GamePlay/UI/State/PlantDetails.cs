@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Unity.UIElements.Runtime;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -7,7 +8,7 @@ namespace UIState
 {
     public class PlantDetails : State
     {
-        public override void Enable()
+        public override IEnumerable<UnityEngine.Object> Reload()
         {
             var plant = DI.CameraController.PrimaryFocus.Object?.GetComponent<Plant>();
 
@@ -20,7 +21,11 @@ namespace UIState
                 var root = GetComponent<PanelRenderer>().visualTree;
                 root.Q<Button>(name: "close-button").clickable.clicked += CloseMenu;
                 root.Q<Label>(name: "species-name").text = plant.Dna.Name;
+                root.Q<Label>(name: "required-light-value").text = plant.MinLightRequirement.ToString();
+                root.Q<Label>(name: "required-water-value").text = plant.MinWaterRequirement.ToString();
             }
+
+            return null;
         }
 
         private void CloseMenu()
