@@ -8,15 +8,15 @@
                     <ui:VisualElement name="elements" style="flex-grow: 1; flex-shrink: 0; justify-content: space-around;">
                         <ui:VisualElement name="leaves" style="height: auto; flex-direction: row; flex-wrap: no-wrap; justify-content: center; align-items: center;">
                             <ui:Label text="Leaves" name="leaves-label" class="label" style="width: 150px;" />
-                            <ui:Button name="leaves-button" class="button structure-button" style="width: 75px;" />
+                            <ui:Button name="leaves-button" class="button structure-button" style="width: 75px; background-image: url('/Assets/UI/Icons/white/002-leaf.png'); -unity-slice-left: 0; -unity-slice-top: 0; -unity-slice-right: 0; -unity-slice-bottom: 0; -unity-background-scale-mode: stretch-to-fill;" />
                         </ui:VisualElement>
                         <ui:VisualElement name="stems" style="height: auto; flex-direction: row; flex-wrap: no-wrap; justify-content: center; align-items: center;">
                             <ui:Label text="Stems" name="stems-label" class="label" style="width: 150px;" />
-                            <ui:Button name="stems-button" class="button structure-button" />
+                            <ui:Button name="stems-button" class="button structure-button" style="background-image: url('/Assets/UI/Icons/white/001-log.png'); -unity-slice-left: 0; -unity-slice-top: 0; -unity-slice-right: 0; -unity-slice-bottom: 0;" />
                         </ui:VisualElement>
                         <ui:VisualElement name="roots" style="height: auto; flex-direction: row; flex-wrap: no-wrap; justify-content: center; align-items: center;">
                             <ui:Label text="Roots" name="roots-label" class="label" style="width: 150px;" />
-                            <ui:Button name="roots-button" class="button structure-button" />
+                            <ui:Button name="roots-button" class="button structure-button" style="background-image: url('/Assets/UI/Icons/white/003-sprout.png'); -unity-background-scale-mode: scale-to-fit; -unity-slice-left: 0; -unity-slice-top: 0; -unity-slice-right: 0; -unity-slice-bottom: 0;" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>

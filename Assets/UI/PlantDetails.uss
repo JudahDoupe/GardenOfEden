@@ -78,10 +78,10 @@
 .structure-button {
     width: 75px;
     height: 75px;
-    border-top-left-radius: 50%;
-    border-bottom-left-radius: 50%;
-    border-top-right-radius: 50%;
-    border-bottom-right-radius: 50%;
+    border-top-left-radius: 35%;
+    border-bottom-left-radius: 35%;
+    border-top-right-radius: 35%;
+    border-bottom-right-radius: 35%;
 }
 
 .button:hover {
