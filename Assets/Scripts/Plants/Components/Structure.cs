@@ -38,11 +38,6 @@ public class Structure : MonoBehaviour
         structure._isAlive = plant.IsAlive;
         structure.UpdateModel();
 
-        foreach (var renderer in structure.GetComponentsInChildren<Renderer>())
-        {
-            renderer.material.SetFloat("_LightAbsorptionId", plant.PlantId + 0.5f);
-        }
-
         return structure;
     }
 

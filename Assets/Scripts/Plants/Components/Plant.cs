@@ -5,8 +5,6 @@ public class Plant : MonoBehaviour
     public int PlantId;
     public PlantDna Dna;
     public IGrowthState GrowthState;
-    public Volume StoredWater;
-    public Volume StoredSugar;
     public Structure Trunk { get; set; }
 
     public float PlantedDate;
@@ -21,7 +19,20 @@ public class Plant : MonoBehaviour
     public float RootRadius => 10 * Mathf.Sqrt(TotalStructures) / Mathf.PI;
     public Volume SustainingSugar => Volume.FromCubicMeters(0.01f * TotalStructures); //TODO: store this in the structure
     public Volume MinWaterRequirement => SustainingSugar;
-    public Area MinLightRequirement => MinWaterRequirement / 3;
+
+
+    public Area StoredLight; //TODO: store light in a more useful unit
+    public bool HasLightBeenAbsorbed { get; set; }
+
+    public Volume WaterCapacity => Volume.FromCubicMeters(TotalStructures / 5); //TODO: calulate this based on structures
+    public Volume StoredWater;
+    public bool HasWaterBeenAbsorbed { get; set; }
+
+    public Volume StarchCapacity => Volume.FromCubicMeters(TotalStructures / 5); //TODO: calulate this based on structures
+    public Volume StoredStarch;
+    public bool HasStarchBeenGenerated { get; set; }
+
+
 
     void Start()
     {
@@ -32,7 +43,55 @@ public class Plant : MonoBehaviour
         PlantedDate = EnvironmentApi.GetDate();
         LastUpdatedDate = PlantedDate;
         GrowthState = new PrimaryGrowthState();
+
+        DI.LightService.AddLightAbsorber(this, 
+            (absorbedLight) => {
+                HasLightBeenAbsorbed = true;
+                StoredLight += absorbedLight;
+                Photosynthesize();
+            });
+        DI.RootService.AddRoots(this,
+            (absorbedWater) => {
+                HasWaterBeenAbsorbed = true;
+                StoredWater += absorbedWater;
+                Photosynthesize();
+            });
+
         PlantApi.StartPlantGrowth(this);
+    }
+
+    public void Die()
+    {
+        DI.GrowthService.StopPlantGrowth(this);
+        IsAlive = false;
+        Destroy(gameObject);
+    }
+
+    private void Photosynthesize()
+    {
+        if (HasLightBeenAbsorbed && HasWaterBeenAbsorbed)
+        {
+            if (StoredStarch < StarchCapacity)
+            {
+                Volume producedStarch;
+                if(StoredLight * 1 < StoredWater)
+                {
+                    producedStarch = StoredLight * 1;
+                }
+                else
+                {
+                    producedStarch = StoredWater;
+                }
+
+                StoredStarch += producedStarch;
+                StoredWater -= producedStarch;
+            }
+
+            StoredLight = Area.FromSquareMeters(0);
+            HasWaterBeenAbsorbed = false;
+            HasLightBeenAbsorbed = false;
+            HasStarchBeenGenerated = true;
+        }
     }
 
 }

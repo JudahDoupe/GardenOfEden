@@ -27,7 +27,7 @@ public class ReproductionService : MonoBehaviour
         plant.Dna = dna;
 
         plant.GrowthState = new PrimaryGrowthState();
-        plant.StoredSugar = Volume.FromCubicMeters(3);
+        plant.StoredStarch = Volume.FromCubicMeters(3);
 
         if (LogReproductionSuccesses)
         {

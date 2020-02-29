@@ -6,12 +6,12 @@ public class ReproductionState : IGrowthState
     {
         var rootRadius = plant.RootRadius;
 
-        while (plant.StoredSugar > plant.SustainingSugar + Volume.FromCubicMeters(3))
+        while (plant.StoredStarch > plant.SustainingSugar + Volume.FromCubicMeters(3))
         {
             var randomLocation = Random.insideUnitSphere * rootRadius * 5;
             var worldPosition = plant.transform.position + randomLocation;
 
-            plant.StoredSugar -= Volume.FromCubicMeters(1);
+            plant.StoredStarch -= Volume.FromCubicMeters(1);
             PlantApi.DropSeed(CreateNextGeneration(plant.Dna), worldPosition);
         }
 

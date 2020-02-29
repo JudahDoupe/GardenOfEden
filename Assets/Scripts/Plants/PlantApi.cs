@@ -6,23 +6,6 @@ public class PlantApi : MonoBehaviour
 {
     /* API */
 
-    public static void UpdateWater(Plant plant)
-    {
-        var newWater = _rootService.AbsorbWater(plant, 1);
-        plant.StoredWater += newWater;
-    }
-    public static void UpdateRoots(Plant plant)
-    {
-        _rootService.SpreadRoots(plant, plant.RootRadius, plant.AgeInDay);
-    }
-    public static void KillPlant(Plant plant)
-    {
-        _rootService.RemoveRoots(plant);
-        _growthService.StopPlantGrowth(plant);
-        plant.IsAlive = false;
-        Destroy(plant.gameObject);
-    }
-
     public static float SampleRootDepth(Vector3 location)
     {
         return _rootService.SampleRootDepth(location);

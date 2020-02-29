@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
 
 public class LightService : MonoBehaviour
@@ -14,18 +16,22 @@ public class LightService : MonoBehaviour
 
     /* Publicly Accessible Variables */
 
-    public Area GetAbsorbedLight(int plantId)
+    public void AddLightAbsorber(Plant plant, Action<Area> callback)
     {
-        if (_absorpedLight.TryGetValue(plantId, out float light))
+        int id = _lastId++;
+        _lightAbsorbtionId.Add(plant, id);
+        _lightAbsorbers.Add(id, callback);
+        foreach (var renderer in plant.GetComponentsInChildren<Renderer>())
         {
-            _absorpedLight[plantId] = 0;
+            renderer.material.SetFloat("_LightAbsorptionId", id + 0.5f);
         }
-        return Area.FromPixel(light);
     }
 
     /* Inner Mechanations */
 
-    private Dictionary<int, float> _absorpedLight = new Dictionary<int, float>();
+    private int _lastId = 0;
+    private Dictionary<Plant, int> _lightAbsorbtionId = new Dictionary<Plant, int>();
+    private Dictionary<int, Action<Area>> _lightAbsorbers = new Dictionary<int, Action<Area>>();
 
     private Stopwatch updateTimer = new Stopwatch();
     private Stopwatch deltaTimer = new Stopwatch();
@@ -58,10 +64,8 @@ public class LightService : MonoBehaviour
         {
             var id = Mathf.FloorToInt(pixel.r);
 
-            if (_absorpedLight.ContainsKey(id))
-                _absorpedLight[id] += deltaTime;
-            else
-                _absorpedLight.Add(id, deltaTime);
+            if (_lightAbsorbers.ContainsKey(id))
+                _lightAbsorbers[id].Invoke(Area.FromPixel(deltaTime));
 
             if (updateTimer.ElapsedMilliseconds > UpdateMilliseconds)
             {
@@ -70,6 +74,19 @@ public class LightService : MonoBehaviour
             }
         }
 
+        RemoveDeadLightAbsorbers();
         isCalculatingAbsorpedLight = false;
+    }
+
+    private void RemoveDeadLightAbsorbers()
+    {
+        foreach (var deadPlant in _lightAbsorbtionId.Keys.Where(x => !x.IsAlive).ToArray())
+        {
+            if (_lightAbsorbtionId.TryGetValue(deadPlant, out int id))
+            {
+                _lightAbsorbtionId.Remove(deadPlant);
+                _lightAbsorbers.Remove(id);
+            }
+        }
     }
 }

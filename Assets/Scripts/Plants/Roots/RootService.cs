@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -6,6 +7,10 @@ using UnityEngine;
 
 public class RootService : MonoBehaviour
 {
+    [Header("Settings")]
+    [Range(1, 5)]
+    public float UpdateMilliseconds = 5;
+
     [Header("Render Textures")]
     public RenderTexture SoilWaterMap;
     public RenderTexture LandMap;
@@ -19,61 +24,83 @@ public class RootService : MonoBehaviour
         return color.g;
     }
 
-    public void SpreadRoots(Plant plant, float radius, float depth)
+    public void AddRoots(Plant plant, Action<Volume> callback)
     {
-        var roots = _roots.FirstOrDefault(x => x.id == plant.PlantId);
-        if (_roots.Any(x => x.id == plant.PlantId))
-        {
-            _roots.Remove(roots);
-        }
-        _roots.Add(new RootData
-        {
-            id = plant.PlantId,
-            uv = ComputeShaderUtils.LocationToUv(plant.transform.position),
-            radius = radius,
-            depth = depth
-        });
-        _landService.SetRoots(_roots);
-    }
-
-    public void RemoveRoots(Plant plant)
-    {
-        _roots = _roots.Where(x => x.id != plant.PlantId).ToList();
-    }
-
-    public Volume AbsorbWater(Plant plant, float absorbedWater)
-    {
-        var uv = ComputeShaderUtils.LocationToUv(plant.transform.position);
-        var color = ComputeShaderUtils.GetCachedTexture(SoilWaterMap).GetPixelBilinear(uv.x, uv.y);
-        var roots = _roots.FirstOrDefault(x => x.id == plant.PlantId);
-        absorbedWater = Mathf.Max(color.b, absorbedWater);
-
-        if (_roots.Any(x => x.id == plant.PlantId))
-        {
-            _roots.Remove(roots);
-        }
-        _roots.Add(new RootData
-        {
-            id = plant.PlantId,
-            uv = ComputeShaderUtils.LocationToUv(plant.transform.position),
-            radius = roots.radius,
-            depth = roots.depth,
-            absorbedWater = absorbedWater,
-        });
-        _landService.SetRoots(_roots);
-
-        return Volume.FromPixel(absorbedWater);
+        _waterAbsorbers.Add(plant, callback);
     }
 
     /* Inner Mechinations */
 
-    private List<RootData> _roots = new List<RootData>();
+    private List<RootData> _rootData = new List<RootData>();
 
-    private LandService _landService;
+    private Dictionary<Plant, Action<Volume>> _waterAbsorbers = new Dictionary<Plant, Action<Volume>>();
+
+    private Stopwatch updateTimer = new Stopwatch();
+    private Stopwatch deltaTimer = new Stopwatch();
+    private bool isCalculatingAbsorpedWater = false;
 
     void Start()
     {
-        _landService = FindObjectOfType<LandService>();
+        deltaTimer.Start();
+    }
+
+    void Update()
+    {
+        if (!isCalculatingAbsorpedWater)
+        {
+            updateTimer.Restart();
+            StartCoroutine(ComputeAbsorbedWater());
+        }
+    }
+
+    private IEnumerator ComputeAbsorbedWater()
+    {
+        isCalculatingAbsorpedWater = true;
+        var deltaTime = (float)deltaTimer.Elapsed.TotalSeconds;
+        deltaTimer.Restart();
+
+        foreach (var absorber in _waterAbsorbers.ToArray())
+        {
+            var plant = absorber.Key;
+            if (!plant.IsAlive) continue;
+
+            var uv = ComputeShaderUtils.LocationToUv(plant.transform.position);
+            var color = ComputeShaderUtils.GetCachedTexture(SoilWaterMap).GetPixelBilinear(uv.x, uv.y);
+            var requestedWater = plant.WaterCapacity - plant.StoredWater; //TODO: min of this and 0
+            var absorbedWaterDepth = Mathf.Max(color.b, requestedWater.ToPixel());
+
+            _rootData.RemoveAll(x => x.id == plant.PlantId);
+            _rootData.Add(new RootData
+            {
+                id = plant.PlantId,
+                uv = ComputeShaderUtils.LocationToUv(plant.transform.position),
+                radius = plant.RootRadius,
+                depth = plant.AgeInDay,
+                absorbedWater = absorbedWaterDepth,
+            });
+
+            absorber.Value.Invoke(Volume.FromPixel(absorbedWaterDepth));
+
+            if (updateTimer.ElapsedMilliseconds > UpdateMilliseconds)
+            {
+                DI.LandService.SetRoots(_rootData);
+                yield return new WaitForEndOfFrame();
+                updateTimer.Restart();
+            }
+        }
+
+        RemoveDeadRoots();
+        DI.LandService.SetRoots(_rootData);
+        isCalculatingAbsorpedWater = false;
+    }
+
+    private void RemoveDeadRoots()
+    {
+        foreach(var deadPlant in _waterAbsorbers.Keys.Where(x => !x.IsAlive).ToArray())
+        {
+            _rootData.RemoveAll(x => x.id == deadPlant.PlantId);
+            _waterAbsorbers.Remove(deadPlant);
+        }
     }
 }
 

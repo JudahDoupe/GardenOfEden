@@ -36,14 +36,6 @@ public class GrowthService : MonoBehaviour
     private LinkedList<Plant> _livingPlants = new LinkedList<Plant>();
     private int _currentFrame = 0;
 
-    private GameService _gameService;
-    private LightService _lightService;
-
-    void Start()
-    {
-        _gameService = FindObjectOfType<GameService>();
-        _lightService = GetComponent<LightService>();
-    }
     void Update()
     {
         if(_currentFrame++ % FramesPerPlantGrowth == 0)
@@ -57,23 +49,19 @@ public class GrowthService : MonoBehaviour
             var plant = _livingPlants.First(x => !x.IsGrowing);
             _livingPlants.Remove(plant);
 
-            if (_gameService.FocusedPlant == plant && !plant.IsMature)
+            if (DI.GameService.FocusedPlant == plant && !plant.IsMature)
                 _livingPlants.AddFirst(plant);
             else
                 _livingPlants.AddLast(plant);
 
-            PlantApi.UpdateWater(plant);
-            GenerateSugar(plant);
-
             if (SustainLife(plant))
             {
-                PlantApi.UpdateRoots(plant);
                 plant.GrowthState.Grow(plant);
                 plant.LastUpdatedDate = EnvironmentApi.GetDate();
             }
             else
             {
-                PlantApi.KillPlant(plant);
+                plant.Die();
             }
         }
     }
@@ -82,25 +70,7 @@ public class GrowthService : MonoBehaviour
     {
         var delatTime = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
         var usedSugar = plant.SustainingSugar._cubicMeters * delatTime;
-        plant.StoredSugar -= Volume.FromCubicMeters(usedSugar);
-        return plant.StoredSugar > Volume.FromCubicMeters(0);
-    }
-
-    private void GenerateSugar(Plant plant)
-    {
-        var waterPerSugar = 3.0f; //TODO: store this value in the leaves
-
-        var availableLight = _lightService.GetAbsorbedLight(plant.PlantId);
-        var availableWater = plant.StoredWater;
-
-        var requestedLight = availableWater / waterPerSugar;
-
-        var usedLight = requestedLight;
-        if (availableLight < requestedLight)
-            usedLight = availableLight;
-        var usedWater = usedLight * waterPerSugar;
-
-        plant.StoredWater -= usedWater;
-        plant.StoredSugar += usedWater / waterPerSugar * 1;
+        plant.StoredStarch -= Volume.FromCubicMeters(usedSugar);
+        return plant.StoredStarch > Volume.FromCubicMeters(0);
     }
 }

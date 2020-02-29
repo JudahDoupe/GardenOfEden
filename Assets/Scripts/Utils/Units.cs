@@ -23,6 +23,12 @@ public struct Volume
         return new Volume(volume);
     }
 
+    public float ToPixel()
+    {
+        var metersPerPixel = (float)ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
+        return (_cubicMeters / metersPerPixel) / metersPerPixel;
+    }
+
     public static Volume operator + (Volume a) => a;
     public static Volume operator - (Volume a) => new Volume(-a._cubicMeters);
     public static Volume operator + (Volume a, Volume b) => new Volume(a._cubicMeters + b._cubicMeters);

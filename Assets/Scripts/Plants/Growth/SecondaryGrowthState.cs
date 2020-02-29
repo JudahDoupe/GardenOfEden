@@ -4,13 +4,13 @@
     {
         var growthInDays = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
         var requiredSugar = Volume.FromCubicMeters(growthInDays / 10);
-        if (plant.StoredSugar > requiredSugar)
+        if (plant.StoredStarch > requiredSugar)
         {
             plant.Trunk.Grow(growthInDays);
-            plant.StoredSugar -= requiredSugar;
+            plant.StoredStarch -= requiredSugar;
         }
 
-        if (plant.StoredSugar > plant.SustainingSugar + Volume.FromCubicMeters(3))
+        if (plant.StoredStarch > plant.SustainingSugar + Volume.FromCubicMeters(3))
         {
             plant.GrowthState = new ReproductionState();
         }
