@@ -18,10 +18,12 @@ public class LevelLoader : MonoBehaviour
 
     [Header("")]
     public string MapName = "Hills";
+    public MeshFilter Land;
 
     void Start()
     {
         StartCoroutine(LoadStarterLevel());
+        Land.mesh.bounds = new Bounds(Land.mesh.bounds.center, new Vector3(Land.mesh.bounds.size.x, 500, Land.mesh.bounds.size.z));
     }
 
     public void SaveLevel(string mapName)

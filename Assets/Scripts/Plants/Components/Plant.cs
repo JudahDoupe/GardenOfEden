@@ -6,6 +6,7 @@ public class Plant : MonoBehaviour
     public PlantDna Dna;
     public IGrowthState GrowthState;
     public Structure Trunk { get; set; }
+    public Root Roots { get; set; }
 
     public float PlantedDate;
     public float LastUpdatedDate;
@@ -18,7 +19,6 @@ public class Plant : MonoBehaviour
     public int TotalStructures => transform.GetComponentsInChildren<Structure>()?.Length ?? 1;
     public float RootRadius => 10 * Mathf.Sqrt(TotalStructures) / Mathf.PI;
     public Volume SustainingSugar => Volume.FromCubicMeters(0.01f * TotalStructures); //TODO: store this in the structure
-    public Volume MinWaterRequirement => SustainingSugar;
 
 
     public Area StoredLight; //TODO: store light in a more useful unit
@@ -33,13 +33,17 @@ public class Plant : MonoBehaviour
     public bool HasStarchBeenGenerated { get; set; }
 
 
-
     void Start()
     {
         Trunk = Structure.Create(this, 1);
         Trunk.transform.parent = transform;
         Trunk.transform.localPosition = Vector3.zero;
         Trunk.transform.localRotation = Quaternion.identity;
+        Roots = Structure.Create(this, 0) as Root;
+        Roots.transform.parent = transform;
+        Roots.transform.localPosition = Vector3.zero;
+        Roots.transform.localRotation = Quaternion.identity;
+
         PlantedDate = EnvironmentApi.GetDate();
         LastUpdatedDate = PlantedDate;
         GrowthState = new PrimaryGrowthState();
@@ -48,13 +52,7 @@ public class Plant : MonoBehaviour
             (absorbedLight) => {
                 HasLightBeenAbsorbed = true;
                 StoredLight += absorbedLight;
-                Photosynthesize();
-            });
-        DI.RootService.AddRoots(this,
-            (absorbedWater) => {
-                HasWaterBeenAbsorbed = true;
-                StoredWater += absorbedWater;
-                Photosynthesize();
+                TryPhotosynthesis();
             });
 
         PlantApi.StartPlantGrowth(this);
@@ -67,7 +65,7 @@ public class Plant : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private void Photosynthesize()
+    public void TryPhotosynthesis()
     {
         if (HasLightBeenAbsorbed && HasWaterBeenAbsorbed)
         {

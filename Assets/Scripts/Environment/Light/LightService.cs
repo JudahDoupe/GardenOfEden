@@ -71,10 +71,10 @@ public class LightService : MonoBehaviour
             {
                 yield return new WaitForEndOfFrame();
                 updateTimer.Restart();
+                RemoveDeadLightAbsorbers();
             }
         }
 
-        RemoveDeadLightAbsorbers();
         isCalculatingAbsorpedLight = false;
     }
 
