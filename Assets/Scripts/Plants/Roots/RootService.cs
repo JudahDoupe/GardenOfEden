@@ -24,16 +24,16 @@ public class RootService : MonoBehaviour
         return color.g;
     }
 
-    public void AddRoots(Plant plant, Action<Volume> callback)
+    public void AddRoots(Root root, Action<Volume> callback)
     {
-        _waterAbsorbers.Add(plant, callback);
+        _waterAbsorbers.Add(root, callback);
     }
 
     /* Inner Mechinations */
 
     private List<RootData> _rootData = new List<RootData>();
 
-    private Dictionary<Plant, Action<Volume>> _waterAbsorbers = new Dictionary<Plant, Action<Volume>>();
+    private Dictionary<Root, Action<Volume>> _waterAbsorbers = new Dictionary<Root, Action<Volume>>();
 
     private Stopwatch updateTimer = new Stopwatch();
     private Stopwatch deltaTimer = new Stopwatch();
@@ -61,12 +61,13 @@ public class RootService : MonoBehaviour
 
         foreach (var absorber in _waterAbsorbers.ToArray())
         {
-            var plant = absorber.Key;
+            var root = absorber.Key;
+            var plant = root.Plant;
             if (!plant.IsAlive) continue;
 
             var uv = ComputeShaderUtils.LocationToUv(plant.transform.position);
             var color = ComputeShaderUtils.GetCachedTexture(SoilWaterMap).GetPixelBilinear(uv.x, uv.y);
-            var requestedWater = plant.WaterCapacity - plant.StoredWater; //TODO: min of this and 0
+            var requestedWater = root.WaterCapacity - root.StoredWater;
             var absorbedWaterDepth = Mathf.Max(color.b, requestedWater.ToPixel());
 
             _rootData.RemoveAll(x => x.id == plant.PlantId);
@@ -74,8 +75,8 @@ public class RootService : MonoBehaviour
             {
                 id = plant.PlantId,
                 uv = ComputeShaderUtils.LocationToUv(plant.transform.position),
-                radius = plant.RootRadius,
-                depth = plant.AgeInDay,
+                radius = root.Diameter / 2f,
+                depth = root.Length,
                 absorbedWater = absorbedWaterDepth,
             });
 
@@ -96,10 +97,10 @@ public class RootService : MonoBehaviour
 
     private void RemoveDeadRoots()
     {
-        foreach(var deadPlant in _waterAbsorbers.Keys.Where(x => !x.IsAlive).ToArray())
+        foreach(var deadRoots in _waterAbsorbers.Keys.Where(x => !x.Plant.IsAlive).ToArray())
         {
-            _rootData.RemoveAll(x => x.id == deadPlant.PlantId);
-            _waterAbsorbers.Remove(deadPlant);
+            _rootData.RemoveAll(x => x.id == deadRoots.Plant.PlantId);
+            _waterAbsorbers.Remove(deadRoots);
         }
     }
 }

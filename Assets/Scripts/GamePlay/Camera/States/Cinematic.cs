@@ -62,8 +62,17 @@ namespace CameraState
             if (!isActive) return;
 
             var plantPos = plant.transform.position;
-            var primaryPos = DI.CameraController.PrimaryFocus.Object?.position ?? plantPos;
-            var secondaryPos = DI.CameraController.SecondaryFocus.Object?.position ?? plantPos;
+            var primaryPos = plantPos;
+            if (DI.CameraController.PrimaryFocus.Object != null)
+            {
+                primaryPos = DI.CameraController.PrimaryFocus.Object.position;
+            }
+            var secondaryPos = plantPos;
+            if (DI.CameraController.SecondaryFocus.Object != null)
+            {
+                secondaryPos = DI.CameraController.SecondaryFocus.Object.position;
+            }
+
             if (isPrimaryFocusDrifting && Vector3.Distance(plantPos, secondaryPos) <= Vector3.Distance(primaryPos, secondaryPos))
             {
                 if (isPrimaryFocusDrifting)

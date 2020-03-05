@@ -11,6 +11,12 @@ public class Structure : MonoBehaviour
     public float DaysToDouble = 100;
     public bool IsMature => _hasSprouted && Branches.All(x => x._hasSprouted);
 
+    public Volume Cellulose { get; set; }
+    public Volume StarchCapacity => Volume.FromCubicMeters(Cellulose._cubicMeters / 8);
+    public Volume StoredStarch { get; set; }
+    public Volume WaterCapacity => Volume.FromCubicMeters(Cellulose._cubicMeters / 8);
+    public Volume StoredWater => Volume.FromCubicMeters((Plant.StoredWater._cubicMeters / Plant.WaterCapacity._cubicMeters) * WaterCapacity._cubicMeters);
+
     [Header("Physical Properties")]
     public float Diameter;
     public float Length;
@@ -30,27 +36,31 @@ public class Structure : MonoBehaviour
         var resource = Resources.Load<GameObject>(plant.Dna.Resources[resourceIndex]);
         var structure = Instantiate(resource).GetComponent<Structure>();
 
+        plant.Structures.Add(structure);
         structure.Plant = plant;
         structure._resourceIndex = resourceIndex;
         structure._model = structure.transform.Find("Model").gameObject;
         structure._rigidbody = structure.gameObject.AddComponent<Rigidbody>();
         structure._rigidbody.constraints = RigidbodyConstraints.FreezeAll;
         structure._isAlive = plant.IsAlive;
+        structure.Cellulose = Volume.FromCubicMeters(0.1f);
         structure.UpdateModel();
 
         return structure;
     }
 
-    public void Grow(float days)
+    public virtual void Grow(float days)
     {
         if (!_isAlive) return;
+
+        //TODO: Use stored starch to increase cellulose
 
         AgeInDays += days;
         UpdateModel();
 
         if (AgeInDays > DaysToSprout && !_hasSprouted)
         {
-            Srpout();
+            Sprout();
         }
 
         if (AgeInDays > DaysToFullyGrown || _isFullyGrown)
@@ -65,7 +75,7 @@ public class Structure : MonoBehaviour
         }
     }
 
-    public void Srpout()
+    public void Sprout()
     {
         if (_hasSprouted) return;
 
@@ -82,7 +92,7 @@ public class Structure : MonoBehaviour
 
     public void UpdateModel()
     {
-        //TODO: Move this logic into the state machines
+        //TODO: use volumes to determine length and radius 
         var primaryGrowth = 1 / (1 + Mathf.Exp(5 - 10 / DaysToSprout * AgeInDays));
         var secondaryGrowth = 1 + AgeInDays / DaysToDouble;
 
@@ -90,13 +100,15 @@ public class Structure : MonoBehaviour
         var modelScale = new Vector3(Diameter * secondaryGrowth, Diameter * secondaryGrowth, Length);
         _model.transform.localScale = modelScale;
 
+        Cellulose = Volume.FromCubicMeters(Length * Mathf.PI * Mathf.Pow(Diameter / 2f, 2));
+
         foreach (var connection in Connections)
         {
             connection.UpdatePosition(_model.transform.localScale);
         }
     }
 
-    void OnCollisionEnter(Collision collision)
+    void OnCollisionEnter(Collision collision) //TODO: only apply this to stems
     {
         Plant plant = collision.collider.transform.ParentWithComponent<Plant>()?.GetComponent<Plant>();
 
@@ -105,11 +117,4 @@ public class Structure : MonoBehaviour
             _isAlive = false;
         }
     }
-}
-
-public enum PlantStructureType
-{
-    Stem,
-    Leaf,
-    Root
 }

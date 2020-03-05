@@ -1,12 +1,16 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class Plant : MonoBehaviour
 {
     public int PlantId;
     public PlantDna Dna;
     public IGrowthState GrowthState;
+
     public Structure Trunk { get; set; }
     public Root Roots { get; set; }
+    public List<Structure> Structures { get; } = new List<Structure>();
 
     public float PlantedDate;
     public float LastUpdatedDate;
@@ -17,21 +21,18 @@ public class Plant : MonoBehaviour
     public bool IsMature => Trunk.IsMature;
 
     public int TotalStructures => transform.GetComponentsInChildren<Structure>()?.Length ?? 1;
-    public float RootRadius => 10 * Mathf.Sqrt(TotalStructures) / Mathf.PI;
     public Volume SustainingSugar => Volume.FromCubicMeters(0.01f * TotalStructures); //TODO: store this in the structure
 
 
     public Area StoredLight; //TODO: store light in a more useful unit
     public bool HasLightBeenAbsorbed { get; set; }
 
-    public Volume WaterCapacity => Volume.FromCubicMeters(TotalStructures / 5); //TODO: calulate this based on structures
+    public Volume WaterCapacity => Volume.FromCubicMeters(Structures.Sum(s => s.WaterCapacity._cubicMeters));
     public Volume StoredWater;
     public bool HasWaterBeenAbsorbed { get; set; }
 
-    public Volume StarchCapacity => Volume.FromCubicMeters(TotalStructures / 5); //TODO: calulate this based on structures
+    public Volume StarchCapacity => Volume.FromCubicMeters(Structures.Sum(s => s.StarchCapacity._cubicMeters));
     public Volume StoredStarch;
-    public bool HasStarchBeenGenerated { get; set; }
-
 
     void Start()
     {
@@ -88,7 +89,7 @@ public class Plant : MonoBehaviour
             StoredLight = Area.FromSquareMeters(0);
             HasWaterBeenAbsorbed = false;
             HasLightBeenAbsorbed = false;
-            HasStarchBeenGenerated = true;
+
         }
     }
 

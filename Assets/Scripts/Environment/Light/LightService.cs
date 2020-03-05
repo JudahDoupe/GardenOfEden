@@ -21,10 +21,6 @@ public class LightService : MonoBehaviour
         int id = _lastId++;
         _lightAbsorbtionId.Add(plant, id);
         _lightAbsorbers.Add(id, callback);
-        foreach (var renderer in plant.GetComponentsInChildren<Renderer>())
-        {
-            renderer.material.SetFloat("_LightAbsorptionId", id + 0.5f);
-        }
     }
 
     /* Inner Mechanations */
@@ -75,7 +71,19 @@ public class LightService : MonoBehaviour
             }
         }
 
+        UpdateLightAbsorptionIds();
         isCalculatingAbsorpedLight = false;
+    }
+
+    private void UpdateLightAbsorptionIds()
+    {
+        foreach (var ids in _lightAbsorbtionId)
+        {
+            foreach (var renderer in ids.Key.GetComponentsInChildren<Renderer>())
+            {
+                renderer.material.SetFloat("_LightAbsorptionId", ids.Value + 0.5f);
+            }
+        }
     }
 
     private void RemoveDeadLightAbsorbers()

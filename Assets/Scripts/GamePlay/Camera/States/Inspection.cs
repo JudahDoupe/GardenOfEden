@@ -28,7 +28,7 @@ namespace CameraState
         public void Update()
         {
             var movementVector = Camera.main.transform.TransformVector(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")));
-            if (movementVector.magnitude > 0.1f && DI.UIController.State.IsState(UIState.StateType.None))
+            if ((movementVector.magnitude > 0.1f && DI.UIController.State.IsState(UIState.StateType.None)) || DI.CameraController.PrimaryFocus.Object == null)
             {
                 var target = GetGroundPosition(DI.CameraController.TargetPosition + movementVector * DI.CameraController.MoveSpeed);
                 target.y = DI.CameraController.PrimaryFocus.GetPosition().y;

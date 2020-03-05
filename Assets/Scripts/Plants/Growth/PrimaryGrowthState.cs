@@ -23,6 +23,7 @@ public class PrimaryGrowthState : IGrowthState
             if (plant.StoredStarch > requiredSugar)
             {
                 plant.Trunk.Grow(step);
+                plant.Roots.Grow(step);
                 plant.StoredStarch -= requiredSugar;
             }
             yield return new WaitForEndOfFrame();

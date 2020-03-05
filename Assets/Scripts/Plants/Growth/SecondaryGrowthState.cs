@@ -7,6 +7,7 @@
         if (plant.StoredStarch > requiredSugar)
         {
             plant.Trunk.Grow(growthInDays);
+            plant.Roots.Grow(growthInDays);
             plant.StoredStarch -= requiredSugar;
         }
 
