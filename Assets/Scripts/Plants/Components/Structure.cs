@@ -90,6 +90,15 @@ public class Structure : MonoBehaviour
         _hasSprouted = true;
     }
 
+    public void Kill()
+    {
+        _isAlive = false;
+        foreach(var branch in Branches)
+        {
+            branch.Kill();
+        }
+    }
+
     public void UpdateModel()
     {
         //TODO: use volumes to determine length and radius 
@@ -105,16 +114,6 @@ public class Structure : MonoBehaviour
         foreach (var connection in Connections)
         {
             connection.UpdatePosition(_model.transform.localScale);
-        }
-    }
-
-    void OnCollisionEnter(Collision collision) //TODO: only apply this to stems
-    {
-        Plant plant = collision.collider.transform.ParentWithComponent<Plant>()?.GetComponent<Plant>();
-
-        if (plant != null && plant != Plant)
-        {
-            _isAlive = false;
         }
     }
 }
