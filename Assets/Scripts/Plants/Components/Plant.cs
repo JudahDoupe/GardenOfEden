@@ -43,6 +43,7 @@ public class Plant : MonoBehaviour
         Roots = Structure.Create(this, 0) as Root;
         Roots.transform.parent = transform;
         Roots.transform.localPosition = Vector3.zero;
+        Roots.transform.localScale = new Vector3(1,1,1);
         Roots.transform.localRotation = Quaternion.identity;
 
         PlantedDate = EnvironmentApi.GetDate();

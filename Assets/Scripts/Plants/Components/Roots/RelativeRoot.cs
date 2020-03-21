@@ -12,16 +12,4 @@ public class RelativeRoot : Root
         Diameter = (bounds.extents.x + bounds.extents.y); // twice the width of the plant
         Length = Mathf.Min(bounds.extents.z, DI.LandService.SampleSoilDepth(transform.position));
     }
-
-    private void Start()
-    {
-        DI.RootService.AddRoots(this, AbsorbWater);
-    }
-
-    private void AbsorbWater(Volume water)
-    {
-         Plant.HasWaterBeenAbsorbed = true;
-         Plant.StoredWater += water;
-         Plant.TryPhotosynthesis();
-    }
 }

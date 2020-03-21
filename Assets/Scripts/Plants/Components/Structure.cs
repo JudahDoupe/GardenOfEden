@@ -25,7 +25,7 @@ public class Structure : MonoBehaviour
     public Plant Plant { get; set; }
 
     private Rigidbody _rigidbody;
-    private GameObject _model;
+    public GameObject _model;
     private int _resourceIndex;
     private bool _hasSprouted = false;
     private bool _isFullyGrown = false;
