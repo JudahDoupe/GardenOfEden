@@ -4,28 +4,24 @@ public class WaterSeekingRoot : Root
 {
     public override void Grow(float days)
     {
-        GrowInDirection(Volume.FromCubicMeters(days), GetDirectionOfWater());
-    }
+        var bounds = Plant.transform.GetBounds();
+        Diameter = (bounds.extents.x + bounds.extents.y) / 2;
+        Length = Mathf.Min(bounds.extents.z / 2, DI.LandService.SampleSoilDepth(transform.position));
 
-    public Vector3 GetDirectionOfWater()
-    {
-        var vertices = Mesh.vertices;
-        var numCheckedVerticies = NumPolygonSides + 1;
-        var plantPos = Plant.transform.position;
-        plantPos.y = DI.LandService.SampleTerrainHeight(plantPos);
-        var waterDepth = DI.LandService.SampleWaterDepth(plantPos);
-
-        var directionSum = new Vector3(0, -waterDepth, 0);
-
-        for (int i = 1; i < NumPolygonSides + 1; i++)
+        var sumRootRadius = 0f;
+        foreach (var side in MeshData.Sides)
         {
-            var pos = vertices[i] + transform.position;
-            pos.y = DI.LandService.SampleTerrainHeight(pos);
-            var depth = DI.LandService.SampleWaterDepth(pos);
-
-            directionSum += (pos - plantPos).normalized * depth;
+            sumRootRadius += Vector3.Distance(new Vector3(0, 0, side.Bottom.z), side.Bottom);
         }
+        var rootRadius = sumRootRadius / MeshData.NumSides;
+        var roomToGrowOut = (Diameter / 2) - rootRadius;
+        var outwardGrowth = Mathf.Min(days, roomToGrowOut);
 
-        return transform.InverseTransformDirection(directionSum.normalized);
+        var rootDepth = Vector3.Distance(new Vector3(0, 0, 0), MeshData.Center.Bottom);
+        var roomToGrowDown = Length - rootDepth;
+        var downwardGrowth = Mathf.Min(days, roomToGrowDown);
+
+        GrowOutward(outwardGrowth);
+        GrowDownward(downwardGrowth);
     }
 }
