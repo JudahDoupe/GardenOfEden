@@ -40,6 +40,21 @@ public class LandService : MonoBehaviour
         return color.a;
     }
 
+    public Vector3 ClampAboveTerrain(Vector3 location)
+    {
+        var uv = ComputeShaderUtils.LocationToUv(location);
+        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
+        location.y = Mathf.Max(location.y, color.a);
+        return location;
+    }
+    public Vector3 ClampWithinSoil(Vector3 location)
+    {
+        var uv = ComputeShaderUtils.LocationToUv(location);
+        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
+        location.y = Mathf.Clamp(location.y, color.a - color.r, color.a);
+        return location;
+    }
+
     public void SetRoots(List<RootData> roots)
     {
         var kernelId = SoilShader.FindKernel("UpdateSoil");

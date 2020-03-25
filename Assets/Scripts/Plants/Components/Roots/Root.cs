@@ -46,8 +46,8 @@ public class Root : Structure
         for (int i = 0; i < MeshData.NumSides; i++)
         {
             var direction = MeshData.Sides[i].Direction;
-            MeshData.Sides[i].Top += direction * distance * 1.2f;
-            MeshData.Sides[i].Bottom += direction * distance * 0.8f;
+            MeshData.Sides[i].Top += direction * distance;
+            MeshData.Sides[i].Bottom += direction * distance * 0.7f;
         }
 
         MeshData.UpdateMesh();
@@ -56,13 +56,36 @@ public class Root : Structure
     public void GrowDownward(float distance)
     {
         var direction = MeshData.Center.Direction;
-        MeshData.Center.Bottom += direction * distance * 1.2f;
+        MeshData.Center.Bottom += direction * distance;
         for (int i = 0; i < MeshData.NumSides; i++)
         {
-            MeshData.Sides[i].Bottom += direction * distance * 0.8f;
+            MeshData.Sides[i].Bottom += direction * distance * 0.7f;
         }
 
         MeshData.UpdateMesh();
+    }
+
+    public void ClampRootsWithinSoil()
+    {
+        MeshData.Center = ClampRootSideWithinSoil(MeshData.Center);
+        for (int i = 0; i < MeshData.NumSides; i++)
+        {
+            MeshData.Sides[i] = ClampRootSideWithinSoil(MeshData.Sides[i]);
+        }
+        MeshData.UpdateMesh();
+    }
+    private RootMeshData.Side ClampRootSideWithinSoil(RootMeshData.Side side)
+    {
+        var globalTop = transform.TransformPoint(side.Top);
+        globalTop = DI.LandService.ClampAboveTerrain(globalTop);
+        globalTop = DI.LandService.ClampWithinSoil(globalTop);
+        side.Top = transform.InverseTransformPoint(globalTop);
+        
+        var globalBottom = transform.TransformPoint(side.Bottom);
+        globalBottom = DI.LandService.ClampWithinSoil(globalBottom);
+        side.Bottom = transform.InverseTransformPoint(globalBottom);
+
+        return side;
     }
 }
 public class RootMeshData
