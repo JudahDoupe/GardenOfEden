@@ -24,7 +24,6 @@ public class Structure : MonoBehaviour
     public List<Structure> Branches { get; set; } = new List<Structure>();
     public Plant Plant { get; set; }
 
-    private Rigidbody _rigidbody;
     public GameObject _model;
     private int _resourceIndex;
     private bool _hasSprouted = false;
@@ -40,8 +39,6 @@ public class Structure : MonoBehaviour
         structure.Plant = plant;
         structure._resourceIndex = resourceIndex;
         structure._model = structure.transform.Find("Model").gameObject;
-        structure._rigidbody = structure.gameObject.AddComponent<Rigidbody>();
-        structure._rigidbody.isKinematic = true;
         structure._isAlive = plant.IsAlive;
         structure.Cellulose = Volume.FromCubicMeters(0.1f);
         structure.UpdateModel();
@@ -65,7 +62,6 @@ public class Structure : MonoBehaviour
 
         if (AgeInDays > DaysToFullyGrown || _isFullyGrown)
         {
-            Destroy(_rigidbody);
             _isFullyGrown = true;
         }
 

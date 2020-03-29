@@ -119,7 +119,7 @@
 			float waterDepth = max(soilWater.b, Epsilon);
 
 			float3 bedrockHSL = RGBtoHSL(_BedRockColor.xyz);
-			float4 soilColor = lerp(_DeadSoilColor, _LiveSoilColor, saturate(rootDepth / soilDepth));
+			float4 soilColor = lerp(_DeadSoilColor, _LiveSoilColor, saturate(rootDepth));
 			float3 soilHSL = RGBtoHSL(soilColor.xyz);
 			soilHSL.z = lerp(0.5,0.25, saturate(waterDepth / soilDepth));
 

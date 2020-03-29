@@ -152,7 +152,7 @@ float3 GetRootData(int2 xy)
     {
         float2 rootXy = RootBuffer[i].uv * WidthInPixels;
         float dist = distance(cellXy, rootXy);
-        float rootDepth = smoothstep(RootBuffer[i].radius, 0, dist) * RootBuffer[i].depth;
+        float rootDepth = smoothstep(RootBuffer[i].radius, RootBuffer[i].radius * 0.5, dist) * RootBuffer[i].depth;
         sumRootDepth += rootDepth;
         sumWaterDirection += ((rootXy - cellXy) / dist) * rootDepth * RootPullSpeed;
     }

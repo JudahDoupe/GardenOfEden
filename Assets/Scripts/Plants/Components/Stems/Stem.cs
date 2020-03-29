@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class Stem : Structure
 {
+    void Start()
+    {
+        gameObject.AddComponent<Rigidbody>().isKinematic = true;
+    }
+
     void OnTriggerEnter(Collider collider)
     {
         Plant plant = collider.transform.GetComponentInParent<Plant>();

@@ -17,13 +17,6 @@ public class RootService : MonoBehaviour
 
     /* Publicly Accessible Methods */
 
-    public float SampleRootDepth(Vector3 location)
-    {
-        var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
-        return color.g;
-    }
-
     public void AddRoots(Root root, Action<Volume> callback)
     {
         _waterAbsorbers.Add(root, callback);
