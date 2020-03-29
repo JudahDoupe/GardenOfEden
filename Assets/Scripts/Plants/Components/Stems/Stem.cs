@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class Stem : Structure
 {
-    void OnCollisionEnter(Collision collision)
+    void OnTriggerEnter(Collider collider)
     {
-        Plant plant = collision.collider.transform.ParentWithComponent<Plant>()?.GetComponent<Plant>();
+        Plant plant = collider.transform.GetComponentInParent<Plant>();
 
-        if (plant != null && plant != Plant)
+        if (plant != Plant)
         {
             Kill();
         }

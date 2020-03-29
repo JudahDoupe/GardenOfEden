@@ -41,7 +41,7 @@ public class Structure : MonoBehaviour
         structure._resourceIndex = resourceIndex;
         structure._model = structure.transform.Find("Model").gameObject;
         structure._rigidbody = structure.gameObject.AddComponent<Rigidbody>();
-        structure._rigidbody.constraints = RigidbodyConstraints.FreezeAll;
+        structure._rigidbody.isKinematic = true;
         structure._isAlive = plant.IsAlive;
         structure.Cellulose = Volume.FromCubicMeters(0.1f);
         structure.UpdateModel();
