@@ -57,7 +57,7 @@ public class Plant : MonoBehaviour
                 TryPhotosynthesis();
             });
 
-        PlantApi.StartPlantGrowth(this);
+        DI.GrowthService.StartPlantGrowth(this);
     }
 
     public void Die()

@@ -21,7 +21,7 @@ public class CapturePoint : MonoBehaviour
 
     private void Update()
     {
-        if(!IsCaptured && PlantApi.SampleRootDepth(transform.position + Random.insideUnitSphere * CaptureRadius) > 0)
+        if(!IsCaptured && DI.LandService.SampleRootDepth(transform.position + Random.insideUnitSphere * CaptureRadius) > 0)
         {
             Capture();
         }

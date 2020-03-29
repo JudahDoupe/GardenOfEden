@@ -61,20 +61,19 @@ public class ReproductionService : MonoBehaviour
     private void DropNextSeed()
     {
         var seed = _seedQueue.Dequeue();
-        var fertileLocation = GetFertileLocation(seed.Item2);
-        if (fertileLocation.HasValue)
+        if (IsLocationFertile(seed.Item2))
         {
-            PlantSeed(seed.Item1, fertileLocation.Value);
+            PlantSeed(seed.Item1, DI.LandService.ClampAboveTerrain(seed.Item2));
         }
     }
 
-    private Vector3? GetFertileLocation(Vector3 worldPosition)
+    private bool IsLocationFertile(Vector3 worldPosition)
     {
         var landHeight = _landService.SampleTerrainHeight(worldPosition);
         worldPosition.y = landHeight;
         var waterDepth = _landService.SampleWaterDepth(worldPosition);
         var soilDepth = _landService.SampleSoilDepth(worldPosition);
-        var rootDepth = PlantApi.SampleRootDepth(worldPosition);
+        var rootDepth = _landService.SampleRootDepth(worldPosition);
 
         if (soilDepth < 0.05f)
             DebugLackOfResources("soil");
@@ -83,9 +82,9 @@ public class ReproductionService : MonoBehaviour
         else if (waterDepth < 0.1f)
             DebugLackOfResources("water");
         else
-            return worldPosition;
+            return true;
 
-        return null;
+        return false;
     }
 
     private void DebugLackOfResources(string resource)

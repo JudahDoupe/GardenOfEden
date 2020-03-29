@@ -33,6 +33,13 @@ public class LandService : MonoBehaviour
         return color.b;
     }
 
+    public float SampleRootDepth(Vector3 location)
+    {
+        var uv = ComputeShaderUtils.LocationToUv(location);
+        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
+        return color.g;
+    }
+
     public float SampleTerrainHeight(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
@@ -44,7 +51,7 @@ public class LandService : MonoBehaviour
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
         var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
-        location.y = Mathf.Max(location.y, color.a);
+        location.y = color.a;
         return location;
     }
     public Vector3 ClampWithinSoil(Vector3 location)

@@ -12,7 +12,7 @@ public class ReproductionState : IGrowthState
             var worldPosition = plant.transform.position + randomLocation;
 
             plant.StoredStarch -= Volume.FromCubicMeters(1);
-            PlantApi.DropSeed(CreateNextGeneration(plant.Dna), worldPosition);
+            DI.ReproductionService.DropSeed(CreateNextGeneration(plant.Dna), worldPosition);
         }
 
         plant.GrowthState = new SecondaryGrowthState();

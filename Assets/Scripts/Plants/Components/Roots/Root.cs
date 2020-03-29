@@ -133,6 +133,7 @@ public class RootMeshData
     {
         Mesh.Clear();
         Mesh.vertices = getVertexArray();
+        Mesh.uv = getUvArray();
         Mesh.triangles = getTriangleArray();
         Mesh.RecalculateBounds();
         Mesh.RecalculateNormals();
@@ -148,6 +149,19 @@ public class RootMeshData
             verticies.Add(side.Bottom);
         }
         return verticies.ToArray();
+    }
+    private Vector2[] getUvArray()
+    {
+        var uvs = new List<Vector2>();
+
+        uvs.Add(new Vector2(0, 0));
+        uvs.Add(new Vector2(0, 0));
+        for (float i = 0; i < NumSides; i++)
+        {
+            uvs.Add(new Vector2(i/NumSides,1));
+            uvs.Add(new Vector2(i/NumSides,0.7f));
+        }
+        return uvs.ToArray();
     }
     private int[] getTriangleArray()
     {
