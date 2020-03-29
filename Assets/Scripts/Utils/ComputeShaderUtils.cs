@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class ComputeShaderUtils : MonoBehaviour
 {
@@ -30,6 +31,7 @@ public class ComputeShaderUtils : MonoBehaviour
 
 
     public static Dictionary<RenderTexture, Texture2D> RTCache = new Dictionary<RenderTexture, Texture2D>();
+    public static Dictionary<RenderTexture, AsyncGPUReadbackRequest> RTRequest = new Dictionary<RenderTexture, AsyncGPUReadbackRequest>();
     public static Texture2D GetCachedTexture(RenderTexture rt)
     {
         Texture2D tex;
@@ -40,13 +42,30 @@ public class ComputeShaderUtils : MonoBehaviour
         }
         return tex;
     }
-    public static void InvalidateCache(RenderTexture rt)
+    public static void UpdateTexture(RenderTexture rt)
     {
-        if (RTCache.ContainsKey(rt))
+        if (!RTRequest.TryGetValue(rt, out var req) || req.done)
         {
-            Destroy(RTCache[rt]);
+            RTRequest[rt] = AsyncGPUReadback.Request(rt, 0, request =>
+            {
+                if (request.hasError)
+                {
+                    Debug.Log("GPU readback error detected.");
+                }
+                else if (request.done)
+                {
+                    var buffer = request.GetData<Color>();
+
+                    if (!RTCache.TryGetValue(rt, out Texture2D tex))
+                        tex = new Texture2D(TextureSize, TextureSize, TextureFormat.RGBAFloat, false);
+
+                    tex.SetPixels(0,0, TextureSize, TextureSize, buffer.ToArray());
+                    tex.Apply();
+                    RTCache[rt] = tex;
+                }
+            });
         }
-        RTCache.Remove(rt);
+
     }
 }
 

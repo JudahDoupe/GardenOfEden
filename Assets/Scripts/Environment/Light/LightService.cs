@@ -43,7 +43,7 @@ public class LightService : MonoBehaviour
         if (!isCalculatingAbsorpedLight)
         {
             updateTimer.Restart();
-            ComputeShaderUtils.InvalidateCache(LightMap);
+            ComputeShaderUtils.UpdateTexture(LightMap);
             StartCoroutine(ComputeAbsorpedLight());
         }
     }

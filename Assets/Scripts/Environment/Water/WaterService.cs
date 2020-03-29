@@ -58,6 +58,6 @@ public class WaterService : MonoBehaviour
     {
         int updateKernel = WaterShader.FindKernel("Update");
         WaterShader.Dispatch(updateKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
-        ComputeShaderUtils.InvalidateCache(WaterMap);
+        ComputeShaderUtils.UpdateTexture(WaterMap);
     }
 }

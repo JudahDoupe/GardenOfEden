@@ -96,6 +96,7 @@ public class LandService : MonoBehaviour
         SoilShader.SetFloat("RootPullSpeed", RootPullSpeed);
         SoilShader.SetFloat("WaterAbsorptionRate", WaterAbsorptionRate);
         SoilShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
-        ComputeShaderUtils.InvalidateCache(LandMap);
+        ComputeShaderUtils.UpdateTexture(LandMap);
+        ComputeShaderUtils.UpdateTexture(SoilWaterMap);
     }
 }
