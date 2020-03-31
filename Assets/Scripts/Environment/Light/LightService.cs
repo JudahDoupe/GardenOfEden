@@ -43,7 +43,7 @@ public class LightService : MonoBehaviour
         if (!isCalculatingAbsorpedLight)
         {
             updateTimer.Restart();
-            ComputeShaderUtils.UpdateTexture(LightMap);
+            LightMap.UpdateTextureCache();
             StartCoroutine(ComputeAbsorpedLight());
         }
     }
@@ -54,7 +54,7 @@ public class LightService : MonoBehaviour
         var deltaTime = (float) deltaTimer.Elapsed.TotalSeconds;
         deltaTimer.Restart();
 
-        var pixels = ComputeShaderUtils.GetCachedTexture(LightMap).GetPixels();
+        var pixels = LightMap.CachedTexture().GetPixels();
 
         foreach (var pixel in pixels)
         {

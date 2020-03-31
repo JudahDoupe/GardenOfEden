@@ -20,7 +20,7 @@ public class WaterService : MonoBehaviour
     public float SampleWaterDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(WaterMap).GetPixelBilinear(uv.x, uv.y);
+        var color = WaterMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         return color.b;
     }
 
@@ -58,6 +58,6 @@ public class WaterService : MonoBehaviour
     {
         int updateKernel = WaterShader.FindKernel("Update");
         WaterShader.Dispatch(updateKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
-        ComputeShaderUtils.UpdateTexture(WaterMap);
+        WaterMap.UpdateTextureCache();
     }
 }

@@ -59,9 +59,9 @@ public class RootService : MonoBehaviour
             if (!plant.IsAlive) continue;
 
             var uv = ComputeShaderUtils.LocationToUv(plant.transform.position);
-            var color = ComputeShaderUtils.GetCachedTexture(SoilWaterMap).GetPixelBilinear(uv.x, uv.y);
+            var color = SoilWaterMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
             var requestedWater = root.WaterCapacity - root.StoredWater;
-            var absorbedWaterDepth = Mathf.Max(color.b, requestedWater.ToPixel());
+            var absorbedWaterDepth = Mathf.Clamp(requestedWater.ToPixel(), 0, color.b);
 
             _rootData.RemoveAll(x => x.id == plant.PlantId);
             _rootData.Add(new RootData

@@ -22,42 +22,42 @@ public class LandService : MonoBehaviour
     public float SampleSoilDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
+        var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         return color.r;
     }
 
     public float SampleWaterDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(SoilWaterMap).GetPixelBilinear(uv.x, uv.y);
+        var color = SoilWaterMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         return color.b;
     }
 
     public float SampleRootDepth(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
+        var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         return color.g;
     }
 
     public float SampleTerrainHeight(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
+        var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         return color.a;
     }
 
     public Vector3 ClampAboveTerrain(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
+        var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         location.y = color.a;
         return location;
     }
     public Vector3 ClampWithinSoil(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
-        var color = ComputeShaderUtils.GetCachedTexture(LandMap).GetPixelBilinear(uv.x, uv.y);
+        var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         location.y = Mathf.Clamp(location.y, color.a - color.r, color.a);
         return location;
     }
@@ -96,7 +96,7 @@ public class LandService : MonoBehaviour
         SoilShader.SetFloat("RootPullSpeed", RootPullSpeed);
         SoilShader.SetFloat("WaterAbsorptionRate", WaterAbsorptionRate);
         SoilShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
-        ComputeShaderUtils.UpdateTexture(LandMap);
-        ComputeShaderUtils.UpdateTexture(SoilWaterMap);
+        LandMap.UpdateTextureCache();
+        SoilWaterMap.UpdateTextureCache();
     }
 }

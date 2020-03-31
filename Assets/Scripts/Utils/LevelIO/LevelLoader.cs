@@ -64,10 +64,10 @@ public class LevelLoader : MonoBehaviour
 
     private void ResetMaps()
     {
-        ComputeShaderUtils.ResetTexture(WaterMap);
-        ComputeShaderUtils.ResetTexture(WaterSourceMap);
-        ComputeShaderUtils.ResetTexture(LandMap);
-        ComputeShaderUtils.ResetTexture(SoilWaterMap);
+        WaterMap.ResetTexture();
+        WaterSourceMap.ResetTexture();
+        LandMap.ResetTexture();
+        SoilWaterMap.ResetTexture();
     }
 
     private IEnumerator LoadStarterLevel()

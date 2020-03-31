@@ -71,8 +71,8 @@ public class Plant : MonoBehaviour
     {
         if (HasLightBeenAbsorbed && HasWaterBeenAbsorbed)
         {
-            if (StoredStarch < StarchCapacity)
-            {
+            //if (StoredStarch < StarchCapacity) TODO: this value needs to be scaled with time
+            //{
                 Volume producedStarch;
                 if(StoredLight * 1 < StoredWater)
                 {
@@ -85,7 +85,7 @@ public class Plant : MonoBehaviour
 
                 StoredStarch += producedStarch;
                 StoredWater -= producedStarch;
-            }
+           // }
 
             StoredLight = Area.FromSquareMeters(0);
             HasWaterBeenAbsorbed = false;
