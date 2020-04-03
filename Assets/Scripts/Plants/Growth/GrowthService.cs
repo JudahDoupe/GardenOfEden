@@ -49,10 +49,7 @@ public class GrowthService : MonoBehaviour
             var plant = _livingPlants.First(x => !x.IsGrowing);
             _livingPlants.Remove(plant);
 
-            if (DI.GameService.FocusedPlant == plant && !plant.IsMature)
-                _livingPlants.AddFirst(plant);
-            else
-                _livingPlants.AddLast(plant);
+            _livingPlants.AddLast(plant);
 
             if (SustainLife(plant))
             {

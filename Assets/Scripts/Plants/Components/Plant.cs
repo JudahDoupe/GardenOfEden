@@ -8,9 +8,8 @@ public class Plant : MonoBehaviour
     public PlantDna Dna;
     public IGrowthState GrowthState;
 
-    public Structure Trunk { get; set; }
-    public Root Roots { get; set; }
-    public List<Structure> Structures { get; } = new List<Structure>();
+    public Node Shoot { get; set; }
+    public Root Root { get; set; }
 
     public float PlantedDate;
     public float LastUpdatedDate;
@@ -18,33 +17,26 @@ public class Plant : MonoBehaviour
 
     public bool IsAlive = true;
     public bool IsGrowing = false;
-    public bool IsMature => Trunk.IsMature;
 
-    public int TotalStructures => transform.GetComponentsInChildren<Structure>()?.Length ?? 1;
-    public Volume SustainingSugar => Volume.FromCubicMeters(0.01f * TotalStructures); //TODO: store this in the structure
+    public int TotalNodes => transform.GetComponentsInChildren<Node>()?.Length ?? 1;
+    public Volume SustainingSugar => Volume.FromCubicMeters(0.01f * TotalNodes); //TODO: store this in the structure
 
 
     public Area StoredLight; //TODO: store light in a more useful unit
     public bool HasLightBeenAbsorbed { get; set; }
 
-    public Volume WaterCapacity => Volume.FromCubicMeters(Structures.Sum(s => s.WaterCapacity._cubicMeters));
+    public Volume WaterCapacity = Volume.FromCubicMeters(5);
     public Volume StoredWater;
     public bool HasWaterBeenAbsorbed { get; set; }
 
-    public Volume StarchCapacity => Volume.FromCubicMeters(Structures.Sum(s => s.StarchCapacity._cubicMeters));
     public Volume StoredStarch;
 
     void Start()
     {
-        Trunk = Structure.Create(this, 1);
-        Trunk.transform.parent = transform;
-        Trunk.transform.localPosition = Vector3.zero;
-        Trunk.transform.localRotation = Quaternion.identity;
-        Roots = Structure.Create(this, 0) as Root;
-        Roots.transform.parent = transform;
-        Roots.transform.localPosition = Vector3.zero;
-        Roots.transform.localScale = new Vector3(1,1,1);
-        Roots.transform.localRotation = Quaternion.identity;
+        Shoot = Node.Create(this, null);
+        Root = Root.Create(this);
+
+
 
         PlantedDate = EnvironmentApi.GetDate();
         LastUpdatedDate = PlantedDate;
@@ -62,7 +54,6 @@ public class Plant : MonoBehaviour
 
     public void Die()
     {
-        DI.GrowthService.StopPlantGrowth(this);
         IsAlive = false;
         Destroy(gameObject);
     }

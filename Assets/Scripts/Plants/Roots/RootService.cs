@@ -60,7 +60,7 @@ public class RootService : MonoBehaviour
 
             var uv = ComputeShaderUtils.LocationToUv(plant.transform.position);
             var color = SoilWaterMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
-            var requestedWater = root.WaterCapacity - root.StoredWater;
+            var requestedWater = plant.WaterCapacity - plant.StoredWater;
             var absorbedWaterDepth = Mathf.Clamp(requestedWater.ToPixel(), 0, color.b);
 
             _rootData.RemoveAll(x => x.id == plant.PlantId);
@@ -68,8 +68,8 @@ public class RootService : MonoBehaviour
             {
                 id = plant.PlantId,
                 uv = ComputeShaderUtils.LocationToUv(plant.transform.position),
-                radius = root.Diameter / 2f,
-                depth = root.Length,
+                radius = root.Radius,
+                depth = root.Depth,
                 absorbedWater = absorbedWaterDepth,
             });
 

@@ -6,8 +6,8 @@
         var requiredSugar = Volume.FromCubicMeters(growthInDays / 10);
         if (plant.StoredStarch > requiredSugar)
         {
-            plant.Trunk.Grow(growthInDays);
-            plant.Roots.Grow(growthInDays);
+            //plant.Trunk.Grow(growthInDays);
+            plant.Root.Grow(growthInDays);
             plant.StoredStarch -= requiredSugar;
         }
 

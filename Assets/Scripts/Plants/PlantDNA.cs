@@ -9,4 +9,32 @@ public class PlantDna
     public int Generation;
 
     public string[] Resources;
+
+    public StemDna StemDna;
+    public RootDna RootDna;
+}
+
+[Serializable]
+public struct StemDna
+{
+    public enum StemType
+    {
+        Green,
+        Woody,
+    }
+
+    public StemType Type;
+    public float PrimaryLength;
+    public float PrimaryRadius;
+}
+
+[Serializable]
+public struct RootDna
+{
+    public enum RootType
+    {
+        Relative,
+    }
+
+    public RootType Type;
 }

@@ -4,11 +4,11 @@ public class ReproductionState : IGrowthState
 {
     public void Grow(Plant plant)
     {
-        var rootsDiameter = plant.Roots.Diameter;
+        var rootsDiameter = plant.Root.Radius;
 
         while (plant.StoredStarch > plant.SustainingSugar + Volume.FromCubicMeters(3))
         {
-            var randomLocation = Random.insideUnitSphere * rootsDiameter * 3;
+            var randomLocation = Random.insideUnitSphere * rootsDiameter * 10;
             var worldPosition = plant.transform.position + randomLocation;
 
             plant.StoredStarch -= Volume.FromCubicMeters(1);

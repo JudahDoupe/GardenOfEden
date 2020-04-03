@@ -22,18 +22,18 @@ public class PrimaryGrowthState : IGrowthState
             var requiredSugar = Volume.FromCubicMeters(step);//TODO: this value should be calculated from the actual volume that the structures are being increased.
             if (plant.StoredStarch > requiredSugar)
             {
-                plant.Trunk.Grow(step);
-                plant.Roots.Grow(step);
+                //plant.Trunk.Grow(step);
+                plant.Root.Grow(step);
                 plant.StoredStarch -= requiredSugar;
             }
             yield return new WaitForEndOfFrame();
         }
-
+/*
         if (plant.IsMature)
         {
             plant.GrowthState = new SecondaryGrowthState();
         }
-
+*/
         plant.IsGrowing = false;
     }
 }

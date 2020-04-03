@@ -2,8 +2,31 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Stem : Structure
+public class Stem : MonoBehaviour
 {
+    public Node Node;
+    public Plant Plant;
+    public StemDna Dna;
+
+    public float Length;
+    public float Radius;
+
+    public static Stem Create(Node node)
+    {
+        var dna = node.Plant.Dna.StemDna;
+        var stem = new GameObject(dna.Type.ToString()).AddComponent<Stem>();
+
+        stem.transform.parent = node.transform;
+        stem.transform.localPosition = new Vector3(0, 0, 0);
+        stem.transform.localRotation = Quaternion.identity;
+
+        stem.Node = node;
+        stem.Plant = node.Plant;
+        stem.Dna = dna;
+
+        return stem;
+    }
+
     void Start()
     {
         gameObject.AddComponent<Rigidbody>().isKinematic = true;
@@ -13,9 +36,34 @@ public class Stem : Structure
     {
         Plant plant = collider.transform.GetComponentInParent<Plant>();
 
-        if (plant != Plant)
+        if (plant != Node.Plant)
         {
-            Kill();
+            Node.Kill();
         }
     }
+
+    public Volume Grow(float days, Volume availableSugar)
+    {
+        return availableSugar;
+    }
+
+    /*
+    public void UpdateModel()
+    {
+        //TODO: use volumes to determine length and radius 
+        var primaryGrowth = 1 / (1 + Mathf.Exp(5 - 10 / DaysToSprout * AgeInDays));
+        var secondaryGrowth = 1 + AgeInDays / DaysToDouble;
+
+        transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
+        var modelScale = new Vector3(Diameter * secondaryGrowth, Diameter * secondaryGrowth, Length);
+        _model.transform.localScale = modelScale;
+
+        Cellulose = Volume.FromCubicMeters(Length * Mathf.PI * Mathf.Pow(Diameter / 2f, 2));
+
+        foreach (var connection in Connections)
+        {
+            connection.UpdatePosition(_model.transform.localScale);
+        }
+    }
+    */
 }
