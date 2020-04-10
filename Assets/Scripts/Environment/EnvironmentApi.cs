@@ -18,7 +18,7 @@ public class EnvironmentApi : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        _date = 0;
+        _date = 1;
     }
 
     private void Update()

@@ -19,6 +19,9 @@ public class Node : TimeTracker
     {
         var node = new GameObject("Node").AddComponent<Node>();
 
+        node.CreationDate = CreationDate;
+        node.LastUpdateDate = CreationDate;
+
         node.transform.parent = baseNode == null ? plant.transform : baseNode.transform;
         node.transform.localPosition = new Vector3(0, 0, 0);
         node.transform.localRotation = Quaternion.identity;
@@ -26,9 +29,6 @@ public class Node : TimeTracker
         node.Plant = plant;
         node.BaseNode = baseNode;
         node.Stem = Stem.Create(node);
-
-        node.CreationDate = CreationDate;
-        node.LastUpdateDate = CreationDate;
 
         return node;
     }

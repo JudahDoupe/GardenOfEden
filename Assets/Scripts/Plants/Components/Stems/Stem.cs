@@ -7,6 +7,7 @@ public class Stem : TimeTracker
     public Node Node;
     public Plant Plant;
     public StemDna Dna;
+    public MeshData Mesh;
 
     public float Length;
     public float Radius;
@@ -20,6 +21,8 @@ public class Stem : TimeTracker
         stem.transform.localPosition = new Vector3(0, 0, 0);
         stem.transform.localRotation = Quaternion.identity;
         stem.gameObject.AddComponent<Rigidbody>().isKinematic = true;
+        stem.gameObject.AddComponent<MeshRenderer>().material = dna.Material;
+        stem.Mesh = new MeshData(stem.gameObject.AddComponent<MeshFilter>().mesh, 5);
 
         stem.Node = node;
         stem.Plant = node.Plant;
@@ -41,29 +44,136 @@ public class Stem : TimeTracker
         }
     }
 
-    public Volume Grow(Volume availableSugar)
+    public Volume Grow(Volume availableSugar) //TODO: use sugar
     {
         LastUpdateDate = EnvironmentApi.GetDate();
+
+        var percentGrown = Age / Dna.DaysToMaturity;
+        var primaryGrowth = Mathf.Pow(percentGrown, 2);
+        var secondaryGrowth = Mathf.Pow(percentGrown, 1.2f) / percentGrown;
+        var growth = Mathf.Lerp(primaryGrowth, secondaryGrowth, percentGrown);
+        growth = float.IsNaN(growth) ? 0 : growth;
+
+        Length = Dna.PrimaryLength * growth;
+        Radius = Dna.PrimaryRadius * growth;
+
+        UpdateMesh();
+
         return availableSugar;
     }
 
-    /*
-    public void UpdateModel()
+    public void UpdateMesh()
     {
-        //TODO: use volumes to determine length and radius 
-        var primaryGrowth = 1 / (1 + Mathf.Exp(5 - 10 / DaysToSprout * AgeInDays));
-        var secondaryGrowth = 1 + AgeInDays / DaysToDouble;
+        var baseStem = Node.BaseNode == null ? null : Node.BaseNode.Stem.Mesh;
 
-        transform.localScale = new Vector3(primaryGrowth, primaryGrowth, primaryGrowth);
-        var modelScale = new Vector3(Diameter * secondaryGrowth, Diameter * secondaryGrowth, Length);
-        _model.transform.localScale = modelScale;
-
-        Cellulose = Volume.FromCubicMeters(Length * Mathf.PI * Mathf.Pow(Diameter / 2f, 2));
-
-        foreach (var connection in Connections)
+        Mesh.Center.Bottom = new Vector3(0, 0, -Length);
+        for (int i = 0; i < Mesh.Sides.Length; i++)
         {
-            connection.UpdatePosition(_model.transform.localScale);
+            MeshData.Side side = Mesh.Sides[i];
+            Mesh.Sides[i].Top = Mesh.Sides[i].Direction * Radius;
+            Mesh.Sides[i].Bottom = (baseStem ?? Mesh).Sides[i].Top + Mesh.Center.Bottom;
+        }
+
+        Mesh.UpdateMesh();
+        Node.transform.localPosition = Node.transform.localRotation * Vector3.forward * Length;
+    }
+
+
+    public class MeshData
+    {
+        public Mesh Mesh;
+        public Side Center;
+        public Side[] Sides;
+        public struct Side
+        {
+            public Vector3 Top;
+            public Vector3 Bottom;
+            public Vector3 Direction;
+        }
+
+        public MeshData(Mesh mesh, int numSides)
+        {
+            Mesh = mesh;
+
+            Center = new Side
+            {
+                Top = new Vector3(0, 0, 0),
+                Bottom = new Vector3(0, 0, -0.1f),
+                Direction = new Vector3(0, 0, -1),
+            };
+            Sides = new Side[numSides];
+            for (var i = 0; i < numSides; i++)
+            {
+                var a = ((2 * Mathf.PI) / numSides) * i;
+                var x = Mathf.Cos(a) * 0.1f;
+                var y = Mathf.Sin(a) * 0.1f;
+                Sides[i] = new Side
+                {
+                    Top = new Vector3(x, y, -0.01f),
+                    Bottom = new Vector3(x, y, -0.09f),
+                    Direction = new Vector3(x, y, 0).normalized
+                };
+            }
+
+            UpdateMesh();
+        }
+
+        public void UpdateMesh()
+        {
+            Mesh.Clear();
+            Mesh.vertices = getVertexArray();
+            Mesh.triangles = getTriangleArray();
+            Mesh.uv = getUvArray();
+            Mesh.RecalculateBounds();
+            Mesh.RecalculateNormals();
+        }
+        private Vector3[] getVertexArray()
+        {
+            var verticies = new List<Vector3>
+            {
+                Center.Top,
+                Center.Bottom
+            };
+            foreach (var side in Sides)
+            {
+                verticies.Add(side.Top);
+                verticies.Add(side.Bottom);
+            }
+            return verticies.ToArray();
+        }
+        private Vector2[] getUvArray()
+        {
+            var uvs = new List<Vector2>
+            {
+                new Vector2(0.5f,1),
+                new Vector2(0.5f,0)
+            };
+            for (float i = 0; i < Sides.Length; i++)
+            {
+                var x = Mathf.Abs(((1f / Sides.Length) * i) - 0.5f);
+                uvs.Add(new Vector2(x, 1));
+                uvs.Add(new Vector2(x, 0));
+            }
+            return uvs.ToArray();
+        }
+        private int[] getTriangleArray()
+        {
+            var triangles = new List<int>();
+            var topVertex = 0;
+            var bottomVertex = 1;
+            for (var i = 1; i < Sides.Length + 1; i++)
+            {
+                var topSideVertex = (2 * i);
+                var bottomSideVertex = topSideVertex + 1;
+                var nextTopSideVertex = (2 * ((i % Sides.Length) + 1));
+                var nextBottomSideVertex = nextTopSideVertex + 1;
+
+                triangles.AddRange(new[] { topVertex, topSideVertex, nextTopSideVertex });
+                triangles.AddRange(new[] { topSideVertex, bottomSideVertex, nextBottomSideVertex });
+                triangles.AddRange(new[] { nextBottomSideVertex, nextTopSideVertex, topSideVertex });
+                triangles.AddRange(new[] { bottomSideVertex, bottomVertex, nextBottomSideVertex });
+            }
+            return triangles.ToArray();
         }
     }
-    */
 }
