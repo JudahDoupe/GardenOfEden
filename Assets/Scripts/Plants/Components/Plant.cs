@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-public class Plant : MonoBehaviour
+public class Plant : TimeTracker
 {
     public int PlantId;
     public PlantDna Dna;
@@ -10,10 +10,6 @@ public class Plant : MonoBehaviour
 
     public Node Shoot { get; set; }
     public Root Root { get; set; }
-
-    public float PlantedDate;
-    public float LastUpdatedDate;
-    public float AgeInDay => LastUpdatedDate - PlantedDate;
 
     public bool IsAlive = true;
     public bool IsGrowing = false;
@@ -33,13 +29,12 @@ public class Plant : MonoBehaviour
 
     void Start()
     {
-        Shoot = Node.Create(this, null);
+        CreationDate = EnvironmentApi.GetDate();
+        LastUpdateDate = CreationDate;
+
+        Shoot = Node.Create(this, null, CreationDate);
         Root = Root.Create(this);
 
-
-
-        PlantedDate = EnvironmentApi.GetDate();
-        LastUpdatedDate = PlantedDate;
         GrowthState = new PrimaryGrowthState();
 
         DI.LightService.AddLightAbsorber(this, 
@@ -50,6 +45,11 @@ public class Plant : MonoBehaviour
             });
 
         DI.GrowthService.StartPlantGrowth(this);
+    }
+
+    public void Grow()
+    {
+        StoredStarch = Shoot.Grow(StoredStarch);
     }
 
     public void Die()

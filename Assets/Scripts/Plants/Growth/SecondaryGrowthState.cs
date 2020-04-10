@@ -2,7 +2,7 @@
 {
     public void Grow(Plant plant)
     {
-        var growthInDays = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
+        var growthInDays = EnvironmentApi.GetDate() - plant.LastUpdateDate;
         var requiredSugar = Volume.FromCubicMeters(growthInDays / 10);
         if (plant.StoredStarch > requiredSugar)
         {

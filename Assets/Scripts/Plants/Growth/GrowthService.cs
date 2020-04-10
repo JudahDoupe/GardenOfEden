@@ -51,21 +51,25 @@ public class GrowthService : MonoBehaviour
 
             _livingPlants.AddLast(plant);
 
+            plant.Grow();
+
+            /*
             if (SustainLife(plant))
             {
                 plant.GrowthState.Grow(plant);
-                plant.LastUpdatedDate = EnvironmentApi.GetDate();
+                plant.LastUpdateDate = EnvironmentApi.GetDate();
             }
             else
             {
                 plant.Die();
             }
+            */
         }
     }
 
     private bool SustainLife(Plant plant)
     {
-        var delatTime = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
+        var delatTime = EnvironmentApi.GetDate() - plant.LastUpdateDate;
         var usedSugar = plant.SustainingSugar._cubicMeters * delatTime;
         plant.StoredStarch -= Volume.FromCubicMeters(usedSugar);
         return plant.StoredStarch > Volume.FromCubicMeters(0);

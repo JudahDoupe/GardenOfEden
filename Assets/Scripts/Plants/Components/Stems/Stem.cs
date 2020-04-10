@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Stem : MonoBehaviour
+public class Stem : TimeTracker
 {
     public Node Node;
     public Plant Plant;
@@ -19,17 +19,16 @@ public class Stem : MonoBehaviour
         stem.transform.parent = node.transform;
         stem.transform.localPosition = new Vector3(0, 0, 0);
         stem.transform.localRotation = Quaternion.identity;
+        stem.gameObject.AddComponent<Rigidbody>().isKinematic = true;
 
         stem.Node = node;
         stem.Plant = node.Plant;
         stem.Dna = dna;
 
-        return stem;
-    }
+        stem.CreationDate = node.CreationDate;
+        stem.LastUpdateDate = node.LastUpdateDate;
 
-    void Start()
-    {
-        gameObject.AddComponent<Rigidbody>().isKinematic = true;
+        return stem;
     }
 
     void OnTriggerEnter(Collider collider)
@@ -42,8 +41,9 @@ public class Stem : MonoBehaviour
         }
     }
 
-    public Volume Grow(float days, Volume availableSugar)
+    public Volume Grow(Volume availableSugar)
     {
+        LastUpdateDate = EnvironmentApi.GetDate();
         return availableSugar;
     }
 

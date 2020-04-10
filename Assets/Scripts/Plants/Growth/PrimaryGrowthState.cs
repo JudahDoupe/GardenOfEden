@@ -5,7 +5,7 @@ public class PrimaryGrowthState : IGrowthState
 {
     public void Grow(Plant plant)
     {
-        var growthInDays = EnvironmentApi.GetDate() - plant.LastUpdatedDate;
+        var growthInDays = EnvironmentApi.GetDate() - plant.LastUpdateDate;
         plant.StartCoroutine(SmoothGrowStructures(plant, growthInDays));
     }
 

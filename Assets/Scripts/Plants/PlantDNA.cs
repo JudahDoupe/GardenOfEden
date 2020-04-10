@@ -8,8 +8,7 @@ public class PlantDna
     public int SpeciesId;
     public int Generation;
 
-    public string[] Resources;
-
+    public float NodesPerDay;
     public StemDna StemDna;
     public RootDna RootDna;
 }

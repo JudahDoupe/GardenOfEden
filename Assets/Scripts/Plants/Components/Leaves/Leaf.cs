@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Leaf : MonoBehaviour
+public class Leaf : TimeTracker
 {
     void Start()
     {
         
     }
 
-    public Volume Grow(float days, Volume availableSugar)
+    public Volume Grow(Volume availableSugar)
     {
         return availableSugar;
     }

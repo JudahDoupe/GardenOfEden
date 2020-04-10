@@ -25,7 +25,6 @@ public class ReproductionState : IGrowthState
             SpeciesId = dna.SpeciesId,
             Name = dna.Name,
             Generation = dna.Generation + 1,
-            Resources = dna.Resources
         };
     }
 }

@@ -2,6 +2,8 @@
 
 public class EnvironmentApi : MonoBehaviour
 {
+    public float SecondsPerDay = 150;
+
     public static float GetDate()
     {
         return Instance._date;
@@ -21,6 +23,6 @@ public class EnvironmentApi : MonoBehaviour
 
     private void Update()
     {
-        _date += Time.deltaTime;
+        _date += (Time.deltaTime / SecondsPerDay);
     }
 }
