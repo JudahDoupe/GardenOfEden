@@ -69,7 +69,6 @@ public class Stem : TimeTracker
         Mesh.Center.Bottom = new Vector3(0, 0, -Length);
         for (int i = 0; i < Mesh.Sides.Length; i++)
         {
-            MeshData.Side side = Mesh.Sides[i];
             Mesh.Sides[i].Top = Mesh.Sides[i].Direction * Radius;
             Mesh.Sides[i].Bottom = (baseStem ?? Mesh).Sides[i].Top + Mesh.Center.Bottom;
         }
@@ -124,8 +123,8 @@ public class Stem : TimeTracker
             Mesh.vertices = getVertexArray();
             Mesh.triangles = getTriangleArray();
             Mesh.uv = getUvArray();
+            Mesh.normals = getNormalArray();
             Mesh.RecalculateBounds();
-            Mesh.RecalculateNormals();
         }
         private Vector3[] getVertexArray()
         {
@@ -140,6 +139,20 @@ public class Stem : TimeTracker
                 verticies.Add(side.Bottom);
             }
             return verticies.ToArray();
+        }
+        private Vector3[] getNormalArray()
+        {
+            var normals = new List<Vector3>
+            {
+                new Vector3(0,0,1),
+                new Vector3(0,0,-1)
+            };
+            foreach (var side in Sides)
+            {
+                normals.Add(side.Direction);
+                normals.Add(side.Direction);
+            }
+            return normals.ToArray();
         }
         private Vector2[] getUvArray()
         {
