@@ -29,6 +29,13 @@ public class Node : TimeTracker
         node.Plant = plant;
         node.BaseNode = baseNode;
         node.Stem = Stem.Create(node);
+        node.Leaves = new List<Leaf>
+        {
+            Leaf.Create(node),
+            Leaf.Create(node)
+        };
+        node.Leaves[0].transform.localRotation = Quaternion.AngleAxis(90, node.transform.forward);
+        node.Leaves[1].transform.localRotation = Quaternion.AngleAxis(-90, node.transform.forward);
 
         return node;
     }

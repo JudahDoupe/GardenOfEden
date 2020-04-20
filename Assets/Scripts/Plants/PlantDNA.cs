@@ -10,6 +10,7 @@ public class PlantDna
 
     public float NodesPerDay;
     public StemDna StemDna;
+    public LeafDna LeafDna;
     public RootDna RootDna;
 }
 
@@ -25,6 +26,20 @@ public struct StemDna
     public StemType Type;
     public float PrimaryLength;
     public float PrimaryRadius;
+    public float DaysToMaturity;
+    public Material Material;
+}
+
+[Serializable]
+public struct LeafDna
+{
+    public enum LeafType
+    {
+        Standard,
+    }
+
+    public LeafType Type;
+    public float Size;
     public float DaysToMaturity;
     public Material Material;
 }
