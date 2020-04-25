@@ -24,18 +24,12 @@ public class Node : TimeTracker
 
         node.transform.parent = baseNode == null ? plant.transform : baseNode.transform;
         node.transform.localPosition = new Vector3(0, 0, 0);
-        node.transform.localRotation = Quaternion.identity;
+        node.transform.localRotation = Quaternion.AngleAxis(180, node.transform.forward);
 
         node.Plant = plant;
         node.BaseNode = baseNode;
         node.Stem = Stem.Create(node);
-        node.Leaves = new List<Leaf>
-        {
-            Leaf.Create(node),
-            Leaf.Create(node)
-        };
-        node.Leaves[0].transform.localRotation = Quaternion.AngleAxis(90, node.transform.forward);
-        node.Leaves[1].transform.localRotation = Quaternion.AngleAxis(-90, node.transform.forward);
+        node.SproutLeaves(3);
 
         return node;
     }
@@ -73,6 +67,19 @@ public class Node : TimeTracker
         if (!BaseNode.IsAlive)
         {
             Destroy(gameObject);
+        }
+    }
+
+    private void SproutLeaves(int numLeaves)
+    {
+        for(var i = 0; i < numLeaves; i++)
+        {
+            var leaf = Leaf.Create(this);
+            leaf.transform.localRotation = Quaternion.AngleAxis(90, transform.forward);
+            var angle = i * 360f / numLeaves;
+            angle = angle == float.NaN ? 0 : angle;
+            leaf.transform.Rotate(new Vector3(angle, 0, 0), Space.Self);
+            Leaves.Add(leaf);
         }
     }
 

@@ -1,46 +1,45 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class LeafMesh
 {
     public Mesh Mesh { get; set; }
-    public Side Center { get; set; }
-    public Side[] Sides { get; set; }
+    public Edge[] Edges { get; set; }
 
-    public class Side
+    public class Edge
     {
         public Vector3 Top;
         public Vector3 Bottom;
-        public Vector3 Direction;
+        public Vector3 Vector;
+        public float Theta;
     }
 
-    public LeafMesh(Mesh mesh, int numSides)
+    public LeafMesh(Mesh mesh, int numSides, Length L, Width W, Height H)
     {
         Mesh = mesh;
-
-        Center = new Side
-        {
-            Top = new Vector3(0, 0, 0),
-            Bottom = new Vector3(0, 0, -0.1f),
-            Direction = new Vector3(0, 0, -1),
-        };
-        Sides = new Side[numSides];
+        Edges = new Edge[numSides];
         for (var i = 0; i < numSides; i++)
         {
-            var a = ((2 * Mathf.PI) / numSides) * i;
-            var x = Mathf.Cos(a) * 0.1f;
-            var y = Mathf.Sin(a) * 0.1f;
-            Sides[i] = new Side
+            var theta = 2 * i * Mathf.PI / numSides;
+            var height = H(theta);
+            var width = W(theta);
+            var length = L(theta);
+            Edges[i] = new Edge
             {
-                Top = new Vector3(x, y, -0.01f),
-                Bottom = new Vector3(x, y, -0.09f),
-                Direction = new Vector3(x, y, 0).normalized
+                Theta = theta,
+                Top = new Vector3(height, width, length),
+                Bottom = new Vector3(height, width, length),
+                Vector = new Vector3(height, width, length)
             };
         }
 
         HardUpdateMesh();
     }
+    public delegate float Height(float theta);
+    public delegate float Width(float theta);
+    public delegate float Length(float theta);
 
     public void QuickUpdateMesh()
     {
@@ -65,63 +64,24 @@ public class LeafMesh
 
     private Vector3[] getVertexArray()
     {
-        var verticies = new List<Vector3>
-            {
-                Center.Top,
-                Center.Bottom
-            };
-        foreach (var side in Sides)
-        {
-            verticies.Add(side.Top);
-            verticies.Add(side.Bottom);
-        }
-        return verticies.ToArray();
+        return Edges.SelectMany(x => new[] { x.Top, x.Bottom }).ToArray();
     }
     private Vector3[] getNormalArray()
     {
-        var normals = new List<Vector3>
-            {
-                new Vector3(0,0,1),
-                new Vector3(0,0,-1)
-            };
-        foreach (var side in Sides)
-        {
-            normals.Add(side.Direction);
-            normals.Add(side.Direction);
-        }
-        return normals.ToArray();
+        return Edges.SelectMany(x => new[] { new Vector3(-1, x.Vector.y, 0).normalized, new Vector3(1, x.Vector.y, 0).normalized }).ToArray();
     }
     private Vector2[] getUvArray()
     {
-        var uvs = new List<Vector2>
-            {
-                new Vector2(0.5f,1),
-                new Vector2(0.5f,0)
-            };
-        for (float i = 0; i < Sides.Length; i++)
-        {
-            var x = Mathf.Abs(((1f / Sides.Length) * i) - 0.5f);
-            uvs.Add(new Vector2(x, 1));
-            uvs.Add(new Vector2(x, 0));
-        }
-        return uvs.ToArray();
+        return Edges.SelectMany(x => new[] { new Vector2(Mathf.Sin(x.Theta), Mathf.Cos(x.Theta)), new Vector2(Mathf.Sin(x.Theta), Mathf.Cos(x.Theta)) }).ToArray();
     }
     private int[] getTriangleArray()
     {
         var triangles = new List<int>();
-        var topVertex = 0;
-        var bottomVertex = 1;
-        for (var i = 1; i < Sides.Length + 1; i++)
+        for (var i = 1; i < Edges.Length - 1; i++)
         {
-            var topSideVertex = (2 * i);
-            var bottomSideVertex = topSideVertex + 1;
-            var nextTopSideVertex = (2 * ((i % Sides.Length) + 1));
-            var nextBottomSideVertex = nextTopSideVertex + 1;
-
-            triangles.AddRange(new[] { topVertex, topSideVertex, nextTopSideVertex });
-            triangles.AddRange(new[] { topSideVertex, bottomSideVertex, nextBottomSideVertex });
-            triangles.AddRange(new[] { nextBottomSideVertex, nextTopSideVertex, topSideVertex });
-            triangles.AddRange(new[] { bottomSideVertex, bottomVertex, nextBottomSideVertex });
+            var idx = i * 2;
+            triangles.AddRange(new[] { 0, idx+2, idx });
+            triangles.AddRange(new[] { 1, idx+1, idx+3 });
         }
         return triangles.ToArray();
     }

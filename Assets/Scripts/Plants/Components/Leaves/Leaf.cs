@@ -21,7 +21,7 @@ public class Leaf : TimeTracker
         leaf.transform.localRotation = Quaternion.identity;
         leaf.gameObject.AddComponent<Rigidbody>().isKinematic = true;
         leaf.gameObject.AddComponent<MeshRenderer>().material = dna.Material;
-        leaf.Mesh = new LeafMesh(leaf.gameObject.AddComponent<MeshFilter>().mesh, 5);
+        leaf.Mesh = new LeafMesh(leaf.gameObject.AddComponent<MeshFilter>().mesh, 8, leaf.L, leaf.W, leaf.H);
 
         leaf.Node = node;
         leaf.Plant = node.Plant;
@@ -51,16 +51,41 @@ public class Leaf : TimeTracker
 
     public void UpdateMesh()
     {
-        var baseStem = Node.BaseNode == null ? null : Node.BaseNode.Stem.Mesh;
-
-        Mesh.Center.Bottom = new Vector3(0, 0, -Size);
-        for (int i = 0; i < Mesh.Sides.Length; i++)
+        foreach(var edge in Mesh.Edges)
         {
-            Mesh.Sides[i].Top = Mesh.Sides[i].Direction * Size;
-            Mesh.Sides[i].Bottom = Mesh.Sides[i].Top + Mesh.Center.Bottom;
+            edge.Bottom = edge.Vector * Size;
+            edge.Top = edge.Bottom;
         }
 
         Mesh.QuickUpdateMesh();
-        Node.transform.localPosition = Node.transform.localRotation * Vector3.forward * Size;
+    }
+
+    public float Length = 1;
+    public float Curl = 0.1f;
+    public float Width => 1/Length;
+
+    protected float L(float theta)
+    {
+        var e = 1.2f;
+        if (theta < Mathf.PI)
+        {
+            return Mathf.Pow(theta, e) * Length / 4;
+        }
+        else
+        {
+            var f = Mathf.Abs(theta - 2 * Mathf.PI);
+            return Mathf.Pow(f, e) * Length / 4;
+        }
+    }
+    protected float W(float theta)
+    {
+        return Mathf.Sin(theta) * Width / 4;
+    }
+    protected float H(float theta)
+    {
+        var pi = Mathf.PI / 2;
+        var pi2 = Mathf.Pow(pi, 2);
+        var offset = theta < Mathf.PI ? 1 : 3;
+        return (Mathf.Pow(theta - offset * pi, 2) - pi2) / pi2 * Curl;
     }
 }
