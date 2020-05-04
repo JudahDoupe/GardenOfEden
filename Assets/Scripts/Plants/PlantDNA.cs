@@ -8,10 +8,18 @@ public class PlantDna
     public int SpeciesId;
     public int Generation;
 
-    public float NodesPerDay;
+    public NodeDna NodeDna;
     public StemDna StemDna;
     public LeafDna LeafDna;
     public RootDna RootDna;
+    public FlowerDna FlowerDna;
+}
+
+[Serializable]
+public struct NodeDna
+{
+    public int MaxDepth;
+    public float NodesPerDay;
 }
 
 [Serializable]
@@ -53,4 +61,14 @@ public struct RootDna
     }
 
     public RootType Type;
+}
+
+[Serializable]
+public struct FlowerDna
+{
+    public float Size;
+    public float DaysToMaturity;
+    public float DaysForPolination;
+    public float DaysToSeed;
+    public Material Material;
 }

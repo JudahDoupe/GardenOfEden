@@ -10,10 +10,12 @@ public class Node : TimeTracker
     public Node PrimaryShoot;
     public List<Node> LateralShoots = new List<Node>();
     public List<Node> Shoots => new[] { PrimaryShoot }.Concat(LateralShoots).Where(x => x != null).ToList();
+    public Flower Flowers;
     public Node BaseNode;
     public Plant Plant;
 
     public bool IsAlive = true;
+    public int NodeDepth = 0;
 
     public static Node Create(Plant plant, Node baseNode, float CreationDate)
     {
@@ -29,7 +31,7 @@ public class Node : TimeTracker
         node.Plant = plant;
         node.BaseNode = baseNode;
         node.Stem = Stem.Create(node);
-        node.SproutLeaves(3);
+        node.NodeDepth = baseNode == null ? 1 : baseNode.NodeDepth + 1;
 
         return node;
     }
@@ -40,7 +42,10 @@ public class Node : TimeTracker
             return Volume.FromCubicMeters(0);
 
         TrySprout();
+        TrySproutFlower();
+        TrySproutLeaves(3);
 
+        availableSugar = Flowers?.Grow(availableSugar) ?? availableSugar;
         foreach (var shoot in Shoots.Where(x => x.IsAlive))
         {
             availableSugar = shoot.Grow(availableSugar);
@@ -49,13 +54,12 @@ public class Node : TimeTracker
         {
             availableSugar = leaf.Grow(availableSugar);
         }
-        availableSugar = Stem.Grow(availableSugar);
+        availableSugar = Stem?.Grow(availableSugar) ?? availableSugar;
 
         LastUpdateDate = EnvironmentApi.GetDate();
 
         return availableSugar;
     }
-
     public void Kill()
     {
         IsAlive = false;
@@ -70,9 +74,44 @@ public class Node : TimeTracker
         }
     }
 
-    private void SproutLeaves(int numLeaves)
+    protected bool hasFlowered => Flowers != null;
+    protected bool hasPrimaryShoot => PrimaryShoot != null;
+    protected bool hasLateralShoots => LateralShoots.Count > 0;
+    protected bool hasLeaves => Leaves.Count > 0;
+    protected bool isReadyToSprout => Age > (1f / Plant.Dna.NodeDna.NodesPerDay);
+    protected bool isEndOfStem => NodeDepth >= Plant.Dna.NodeDna.MaxDepth;
+
+    protected bool TrySprout()
     {
-        for(var i = 0; i < numLeaves; i++)
+        if (!isReadyToSprout || isEndOfStem) return false;
+
+        var daysToSprout = 1f / Plant.Dna.NodeDna.NodesPerDay;
+        if (PrimaryShoot == null)
+        {
+            PrimaryShoot = Create(Plant, this, CreationDate + daysToSprout);
+        }
+        else if (!PrimaryShoot.IsAlive && !LateralShoots.Any())
+        {
+            LateralShoots = new List<Node>
+                {
+                    Create(Plant, this, CreationDate + daysToSprout),
+                    Create(Plant, this, CreationDate + daysToSprout)
+                };
+        }
+        return true;
+    }
+    protected bool TrySproutFlower()
+    {
+        if (hasFlowered || !isReadyToSprout || !isEndOfStem) return false;
+
+        Flowers = Flower.Create(this);
+        return true;
+    }
+    protected bool TrySproutLeaves(int numLeaves)
+    {
+        if (hasLeaves) return false;
+
+        for (var i = 0; i < numLeaves; i++)
         {
             var leaf = Leaf.Create(this);
             leaf.transform.localRotation = Quaternion.AngleAxis(90, transform.forward);
@@ -81,25 +120,7 @@ public class Node : TimeTracker
             leaf.transform.Rotate(new Vector3(angle, 0, 0), Space.Self);
             Leaves.Add(leaf);
         }
+        return true;
     }
 
-    private void TrySprout()
-    {
-        var daysToSprout = 1f / Plant.Dna.NodesPerDay;
-        if (Age > daysToSprout)
-        {
-            if (PrimaryShoot == null)
-            {
-                PrimaryShoot = Create(Plant, this, CreationDate + daysToSprout);
-            }
-            else if (!PrimaryShoot.IsAlive && !LateralShoots.Any())
-            {
-                LateralShoots = new List<Node>
-                {
-                    Create(Plant, this, CreationDate + daysToSprout),
-                    Create(Plant, this, CreationDate + daysToSprout)
-                };
-            }
-        }
-    }
 }
