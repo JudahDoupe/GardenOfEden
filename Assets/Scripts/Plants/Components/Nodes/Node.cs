@@ -74,7 +74,7 @@ public class Node : TimeTracker
         }
     }
 
-    protected bool hasFlowered => Flowers != null;
+    protected bool hasFlowered = false;
     protected bool hasPrimaryShoot => PrimaryShoot != null;
     protected bool hasLateralShoots => LateralShoots.Count > 0;
     protected bool hasLeaves => Leaves.Count > 0;
@@ -105,6 +105,7 @@ public class Node : TimeTracker
         if (hasFlowered || !isReadyToSprout || !isEndOfStem) return false;
 
         Flowers = Flower.Create(this);
+        hasFlowered = true;
         return true;
     }
     protected bool TrySproutLeaves(int numLeaves)

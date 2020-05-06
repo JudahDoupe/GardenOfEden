@@ -2,7 +2,7 @@
 using UnityEngine;
 
 [Serializable]
-public class PlantDna
+public struct PlantDna
 {
     public string Name;
     public int SpeciesId;
@@ -70,5 +70,7 @@ public struct FlowerDna
     public float DaysToMaturity;
     public float DaysForPolination;
     public float DaysToSeed;
+
+    public int NumberOfSeeds;
     public Material Material;
 }
