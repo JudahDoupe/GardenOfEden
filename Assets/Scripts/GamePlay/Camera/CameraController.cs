@@ -16,7 +16,6 @@ public class CameraController : MonoBehaviour
 
     public PostProcessProfile PPProfile;
 
-
     private void Start()
     {
         PrimaryFocus = new Focus();
@@ -35,9 +34,9 @@ public class CameraController : MonoBehaviour
         {
             State.Set(CameraStateType.Birdseye);
         }
-        else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.D))
+        else if (Input.GetKeyDown(KeyCode.S))
         {
-            State.Set(CameraStateType.Inspection);
+            State.Set(CameraStateType.Species);
         }
     }
 
@@ -61,7 +60,7 @@ public class CameraController : MonoBehaviour
     private void UpdateDepthOfField()
     {
         var dof = PPProfile.GetSetting<DepthOfField>();
-        var focalLength = Vector3.Distance(Camera.main.transform.position, PrimaryFocus.GetPosition());
+        var focalLength = PrimaryFocus.Object == null ? 10 : Vector3.Distance(Camera.main.transform.position, PrimaryFocus.GetPosition());
         dof.focusDistance.value = Mathf.Lerp(dof.focusDistance.value, focalLength, Time.deltaTime);
     }
 }

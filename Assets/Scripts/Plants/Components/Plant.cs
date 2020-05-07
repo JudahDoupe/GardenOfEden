@@ -6,7 +6,6 @@ public class Plant : TimeTracker
 {
     public int PlantId;
     public PlantDna Dna;
-    public IGrowthState GrowthState;
 
     public Node Shoot { get; set; }
     public Root Root { get; set; }
@@ -15,10 +14,8 @@ public class Plant : TimeTracker
     public bool IsGrowing = false;
 
     public int TotalNodes => transform.GetComponentsInChildren<Node>()?.Length ?? 1;
-    public Volume SustainingSugar => Volume.FromCubicMeters(0.01f * TotalNodes); //TODO: store this in the structure
 
-
-    public Area StoredLight; //TODO: store light in a more useful unit
+    public Area StoredLight { get; set; } //TODO: store light in a more useful unit
     public bool HasLightBeenAbsorbed { get; set; }
 
     public Volume WaterCapacity = Volume.FromCubicMeters(5);
@@ -35,8 +32,6 @@ public class Plant : TimeTracker
         Shoot = Node.Create(this, null, CreationDate);
         Root = Root.Create(this);
 
-        GrowthState = new PrimaryGrowthState();
-
         DI.LightService.AddLightAbsorber(this, 
             (absorbedLight) => {
                 HasLightBeenAbsorbed = true;
@@ -49,12 +44,14 @@ public class Plant : TimeTracker
 
     public void Grow()
     {
+        LastUpdateDate = EnvironmentApi.GetDate();
         StoredStarch = Shoot.Grow(StoredStarch);
     }
 
     public void Die()
     {
         IsAlive = false;
+        DI.GrowthService.StopPlantGrowth(this);
         Destroy(gameObject);
     }
 

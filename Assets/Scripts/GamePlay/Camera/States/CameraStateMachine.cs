@@ -13,6 +13,7 @@ namespace CameraState
         Cinematic,
         Birdseye,
         Inspection,
+        Species,
     }
 
     public class CameraStateMachine
@@ -27,8 +28,9 @@ namespace CameraState
                 {CameraStateType.Cinematic, new Cinematic()},
                 {CameraStateType.Birdseye, new BirdsEye()},
                 {CameraStateType.Inspection, new Inspection()},
+                {CameraStateType.Species, new Species()},
             };
-            Set(CameraStateType.Cinematic);
+            Set(CameraStateType.Species);
         }
 
         public void Set(CameraStateType state)
