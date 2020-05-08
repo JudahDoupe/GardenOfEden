@@ -10,7 +10,7 @@ public class Node : TimeTracker
     public Node PrimaryShoot;
     public List<Node> LateralShoots = new List<Node>();
     public List<Node> Shoots => new[] { PrimaryShoot }.Concat(LateralShoots).Where(x => x != null).ToList();
-    public Flower Flowers;
+    public Flower Flower;
     public Node BaseNode;
     public Plant Plant;
 
@@ -45,7 +45,7 @@ public class Node : TimeTracker
         TrySproutFlower();
         TrySproutLeaves(3);
 
-        availableSugar = Flowers?.Grow(availableSugar) ?? availableSugar;
+        availableSugar = Flower?.Grow(availableSugar) ?? availableSugar;
         foreach (var shoot in Shoots.Where(x => x.IsAlive))
         {
             availableSugar = shoot.Grow(availableSugar);
@@ -63,7 +63,14 @@ public class Node : TimeTracker
     public void Kill()
     {
         IsAlive = false;
-        foreach(var node in Shoots)
+
+        Stem.Kill();
+        Flower.Kill();
+        foreach(var leaf in Leaves)
+        {
+            leaf.Kill();
+        }
+        foreach (var node in Shoots)
         {
             node.Kill();
         }
@@ -104,7 +111,7 @@ public class Node : TimeTracker
     {
         if (hasFlowered || !isReadyToSprout || !isEndOfStem) return false;
 
-        Flowers = Flower.Create(this);
+        Flower = Flower.Create(this);
         hasFlowered = true;
         return true;
     }

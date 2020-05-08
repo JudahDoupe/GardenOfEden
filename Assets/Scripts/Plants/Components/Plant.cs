@@ -48,9 +48,10 @@ public class Plant : TimeTracker
         StoredStarch = Shoot.Grow(StoredStarch);
     }
 
-    public void Die()
+    public void Kill()
     {
         IsAlive = false;
+        Shoot.Kill();
         DI.GrowthService.StopPlantGrowth(this);
         Destroy(gameObject);
     }

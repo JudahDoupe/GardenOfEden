@@ -7,7 +7,7 @@ public class Flower : TimeTracker
     public Node Node;
     public Plant Plant;
     public FlowerDna Dna;
-    public FlowerMesh Mesh;
+    public RenderingInstanceData Mesh;
 
     public float Size;
 
@@ -20,8 +20,7 @@ public class Flower : TimeTracker
         flower.transform.localPosition = new Vector3(0, 0, 0);
         flower.transform.localRotation = Quaternion.identity;
         flower.gameObject.AddComponent<Rigidbody>().isKinematic = true;
-        flower.gameObject.AddComponent<MeshRenderer>().material = dna.Material;
-        flower.Mesh = new FlowerMesh(flower.gameObject.AddComponent<MeshFilter>().mesh, 8, flower.L, flower.W, flower.H);
+        flower.Mesh = InstancedMeshRenderer.AddInstance("Flower");
 
         flower.Node = node;
         flower.Plant = node.Plant;
@@ -44,8 +43,7 @@ public class Flower : TimeTracker
         var flowerGrowth = primaryGrowth * percentGrown;
         flowerGrowth = float.IsNaN(flowerGrowth) ? 0 : flowerGrowth;
         Size = flowerGrowth * Dna.Size;
-
-        UpdateMesh();
+        Mesh.Matrix = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(Size, Size, Size));
 
         TryDropSeeds(Plant.Dna);
 
@@ -74,47 +72,8 @@ public class Flower : TimeTracker
 
     public void Kill()
     {
-        Node.Flowers = null;
+        Node.Flower = null;
+        InstancedMeshRenderer.RemoveInstance(Mesh);
         Destroy(gameObject);
-    }
-
-    public void UpdateMesh()
-    {
-        foreach (var edge in Mesh.Edges)
-        {
-            edge.Bottom = edge.Vector * Size;
-            edge.Top = edge.Bottom;
-        }
-
-        Mesh.QuickUpdateMesh();
-    }
-
-    public float Length = 1;
-    public float Curl = 0.1f;
-    public float Width => 1 / Length;
-
-    protected float L(float theta)
-    {
-        var e = 1.2f;
-        if (theta < Mathf.PI)
-        {
-            return Mathf.Pow(theta, e) * Length / 4;
-        }
-        else
-        {
-            var f = Mathf.Abs(theta - 2 * Mathf.PI);
-            return Mathf.Pow(f, e) * Length / 4;
-        }
-    }
-    protected float W(float theta)
-    {
-        return Mathf.Sin(theta) * Width / 4;
-    }
-    protected float H(float theta)
-    {
-        var pi = Mathf.PI / 2;
-        var pi2 = Mathf.Pow(pi, 2);
-        var offset = theta < Mathf.PI ? 1 : 3;
-        return (Mathf.Pow(theta - offset * pi, 2) - pi2) / pi2 * Curl;
     }
 }
