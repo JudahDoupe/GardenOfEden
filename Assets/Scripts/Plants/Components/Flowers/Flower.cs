@@ -34,7 +34,7 @@ public class Flower : TimeTracker
 
     protected bool IsMature = false;
     protected bool IsPolinated = false;
-    public Volume Grow(Volume availableSugar) //TODO: use sugar
+    public void Grow()
     {
         LastUpdateDate = EnvironmentApi.GetDate();
 
@@ -46,8 +46,6 @@ public class Flower : TimeTracker
         Mesh.Matrix = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(Size, Size, Size));
 
         TryDropSeeds(Plant.Dna);
-
-        return availableSugar;
     }
 
     private void TryDropSeeds(PlantDna dna)

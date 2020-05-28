@@ -44,14 +44,9 @@ public class GrowthService : MonoBehaviour
 
     private void GrowNextPlant()
     {
-        if (_livingPlants.Any(x => !x.IsGrowing))
-        {
-            var plant = _livingPlants.First(x => !x.IsGrowing);
-            _livingPlants.Remove(plant);
-
-            _livingPlants.AddLast(plant);
-
-            plant.Grow();
-        }
+        var plant = _livingPlants.First();
+        _livingPlants.Remove(plant);
+        _livingPlants.AddLast(plant);
+        plant.Grow();
     }
 }

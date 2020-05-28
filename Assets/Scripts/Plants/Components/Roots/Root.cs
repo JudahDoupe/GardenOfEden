@@ -41,9 +41,7 @@ public class Root : MonoBehaviour
     }
     public void AbsorbWater(Volume water)
     {
-        Plant.HasWaterBeenAbsorbed = true;
         Plant.StoredWater += water;
-        Plant.TryPhotosynthesis();
     }
     public virtual void Grow(float days)
     {

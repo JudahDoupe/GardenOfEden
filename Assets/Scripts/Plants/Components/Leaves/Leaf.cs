@@ -32,7 +32,7 @@ public class Leaf : TimeTracker
         return leaf;
     }
 
-    public Volume Grow(Volume availableSugar) //TODO: use sugar
+    public void Grow()
     {
         LastUpdateDate = EnvironmentApi.GetDate();
 
@@ -43,8 +43,6 @@ public class Leaf : TimeTracker
 
         Size = growth * Dna.Size;
         Mesh.Matrix = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(Size, Size, Size));
-
-        return availableSugar;
     }
 
     public void Kill()

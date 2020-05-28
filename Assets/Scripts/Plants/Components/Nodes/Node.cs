@@ -36,29 +36,24 @@ public class Node : TimeTracker
         return node;
     }
 
-    public Volume Grow(Volume availableSugar)
+    public void Grow()
     {
-        if (availableSugar._cubicMeters <= 0)
-            return Volume.FromCubicMeters(0);
-
         TrySprout();
         TrySproutFlower();
         TrySproutLeaves(3);
 
-        availableSugar = Flower?.Grow(availableSugar) ?? availableSugar;
+        Flower?.Grow();
         foreach (var shoot in Shoots.Where(x => x.IsAlive))
         {
-            availableSugar = shoot.Grow(availableSugar);
+            shoot.Grow();
         }
         foreach (var leaf in Leaves)
         {
-            availableSugar = leaf.Grow(availableSugar);
+            leaf.Grow();
         }
-        availableSugar = Stem?.Grow(availableSugar) ?? availableSugar;
+        Stem?.Grow();
 
         LastUpdateDate = EnvironmentApi.GetDate();
-
-        return availableSugar;
     }
     public void Kill()
     {

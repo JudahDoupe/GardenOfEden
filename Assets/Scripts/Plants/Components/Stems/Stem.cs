@@ -43,7 +43,7 @@ public class Stem : TimeTracker
         }
     }
 
-    public Volume Grow(Volume availableSugar) //TODO: use sugar
+    public void Grow()
     {
         LastUpdateDate = EnvironmentApi.GetDate();
 
@@ -58,8 +58,6 @@ public class Stem : TimeTracker
 
         Node.transform.localPosition = Node.transform.localRotation * Vector3.forward * Length;
         Mesh.Matrix = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(Radius, Radius, Length));
-
-        return availableSugar;
     }
 
     public void Kill()
