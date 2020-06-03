@@ -1,4 +1,6 @@
-﻿public class Plant : TimeTracker
+﻿using UnityEngine;
+
+public class Plant : MonoBehaviour
 {
     public int PlantId;
     public PlantDna Dna;
@@ -14,14 +16,23 @@
 
     void Start()
     {
-        CreationDate = EnvironmentApi.GetDate();
-        LastUpdateDate = CreationDate;
-
-        Shoot = Node.Create(this, null, CreationDate);
+        Shoot = Node.Create(NodeType.Bud, null, this);
         Root = Root.Create(this);
 
-
         DI.LightService.AddLightAbsorber(this, (absorbedLight) => StoredLight += absorbedLight);
+    }
+
+    public void UpdateMesh()
+    {
+        UpdateMeshRecursively(Shoot);
+    }
+    private void UpdateMeshRecursively(Node node)
+    {
+        foreach(var branchNode in node.Branches)
+        {
+            UpdateMeshRecursively(branchNode);
+        }
+        node.UpdateMesh();
     }
 
     public void Kill()
@@ -32,8 +43,8 @@
         Destroy(gameObject);
     }
 
-    public void Accept(IVisitor visitor)
+    public void Accept(IFairy fairy)
     {
-        visitor.VisitPlant(this);
+        fairy.VisitPlant(this);
     }
 }

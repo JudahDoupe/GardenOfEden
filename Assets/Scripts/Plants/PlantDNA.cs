@@ -11,7 +11,6 @@ public struct PlantDna
     public NodeDna NodeDna;
     public StemDna StemDna;
     public LeafDna LeafDna;
-    public RootDna RootDna;
     public FlowerDna FlowerDna;
 }
 
@@ -43,24 +42,16 @@ public struct LeafDna
 {
     public enum LeafType
     {
-        Standard,
+        Broad,
+        Blade,
+        Shade,
+        Needle,
     }
 
     public LeafType Type;
     public float Size;
     public float DaysToMaturity;
     public Material Material;
-}
-
-[Serializable]
-public struct RootDna
-{
-    public enum RootType
-    {
-        Relative,
-    }
-
-    public RootType Type;
 }
 
 [Serializable]

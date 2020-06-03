@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class Node : TimeTracker
+public class Node : MonoBehaviour
 {
     public Plant Plant { get; set; }
     public Node Base { get; set; }
@@ -9,18 +9,25 @@ public class Node : TimeTracker
     public Internode Internode { get; set; }
     public RenderingInstanceData Mesh { get; set; }
 
-    public bool IsAlive { get; set; } = true;
+    public float CreationDate { get; set; }
+    public float LastUpdateDate { get; set; }
+    public float Age => EnvironmentApi.GetDate() - CreationDate;
+    public NodeType Type { get; set; }
     public float Size { get; set; }
 
-    public static N Create<N>(Node baseNode, Plant plant = null) where N : Node
+    public static Node Create(NodeType type, Node baseNode, Plant plant = null)
     {
-        var node = new GameObject(typeof(N).ToString()).AddComponent<N>();
+        var node = new GameObject(type.ToString()).AddComponent<Node>();
 
         node.CreationDate = EnvironmentApi.GetDate();
         node.LastUpdateDate = node.CreationDate;
 
         node.Plant = plant == null ? baseNode.Plant : plant;
         node.Base = baseNode;
+        node.Type = type;
+
+        if (type == NodeType.Leaf) node.Mesh = InstancedMeshRenderer.AddInstance("Leaf");
+        if (type == NodeType.Flower) node.Mesh = InstancedMeshRenderer.AddInstance("Flower");
 
         if (baseNode != null) baseNode.Internode = Internode.Create(node, baseNode);
 
@@ -39,8 +46,6 @@ public class Node : TimeTracker
 
     public virtual void Kill()
     {
-        IsAlive = false;
-
         foreach (var node in Branches)
         {
             node.Kill();
@@ -52,4 +57,12 @@ public class Node : TimeTracker
         Destroy(gameObject);
     }
 
+}
+
+public enum NodeType
+{
+    Node,
+    Bud,
+    Leaf,
+    Flower,
 }
