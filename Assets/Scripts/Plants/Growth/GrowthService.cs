@@ -47,6 +47,6 @@ public class GrowthService : MonoBehaviour
         var plant = _livingPlants.First();
         _livingPlants.Remove(plant);
         _livingPlants.AddLast(plant);
-        plant.Grow();
+        //plant.Grow();
     }
 }
