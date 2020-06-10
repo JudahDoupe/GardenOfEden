@@ -12,8 +12,8 @@ public class Node : MonoBehaviour
     public float CreationDate { get; set; }
     public float LastUpdateDate { get; set; }
     public float Age => EnvironmentApi.GetDate() - CreationDate;
-    public NodeType Type { get; set; }
-    public float Size { get; set; }
+    public NodeType Type;
+    public float Size;
 
     public static Node Create(NodeType type, Node baseNode, Plant plant = null)
     {
@@ -29,7 +29,11 @@ public class Node : MonoBehaviour
         if (type == NodeType.Leaf) node.Mesh = InstancedMeshRenderer.AddInstance("Leaf");
         if (type == NodeType.Flower) node.Mesh = InstancedMeshRenderer.AddInstance("Flower");
 
-        if (baseNode != null) baseNode.Internode = Internode.Create(node, baseNode);
+        if (baseNode != null)
+        {
+            baseNode.Branches.Add(node);
+            baseNode.Internode = Internode.Create(node, baseNode);
+        }
 
         node.transform.parent = node.Base == null ? node.Plant.transform : node.Base.transform;
         node.transform.localPosition = new Vector3(0, 0, 0);
@@ -63,6 +67,7 @@ public enum NodeType
 {
     Node,
     Bud,
+    ApicalBud,
     Leaf,
     Flower,
 }

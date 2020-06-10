@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace CameraState
 {
-    public class Inspection : ICameraState
+    public class InspectionCamera : ICameraState
     {
         private Stopwatch activityTimer = new Stopwatch();
         private TimeSpan timeout = TimeSpan.FromSeconds(10);

@@ -4,16 +4,16 @@ using UnityEngine;
 
 namespace CameraState
 {
-    public class Cinematic : ICameraState
+    public class CinematicCamera : ICameraState
     {
 
         private bool isPrimaryFocusDrifting = true;
         private Plant returningFocus;
         private bool isActive;
 
-        public Cinematic()
+        public CinematicCamera()
         {
-            DI.GrowthService.NewPlantSubject.Subscribe(NewPlantAction);
+            //DI.GrowthService.NewPlantSubject.Subscribe(NewPlantAction);
             DI.GameService.PointCapturedSubject.Subscribe(PointCapturedAction);
         }
 

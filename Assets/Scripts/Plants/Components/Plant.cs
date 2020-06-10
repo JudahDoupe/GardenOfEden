@@ -2,6 +2,7 @@
 
 public class Plant : MonoBehaviour
 {
+    public bool ShouldUpdate = false;
     public int PlantId;
     public PlantDna Dna;
 
@@ -16,10 +17,18 @@ public class Plant : MonoBehaviour
 
     void Start()
     {
-        Shoot = Node.Create(NodeType.Bud, null, this);
+        Shoot = Node.Create(NodeType.ApicalBud, null, this);
         Root = Root.Create(this);
 
         DI.LightService.AddLightAbsorber(this, (absorbedLight) => StoredLight += absorbedLight);
+    }
+    private void Update()
+    {
+        if (ShouldUpdate)
+        {
+            Grow();
+            ShouldUpdate = false;
+        }
     }
 
     public void UpdateMesh()
@@ -39,12 +48,16 @@ public class Plant : MonoBehaviour
     {
         IsAlive = false;
         Shoot.Kill();
-        DI.GrowthService.StopPlantGrowth(this);
         Destroy(gameObject);
     }
 
-    public void Accept(IFairy fairy)
+    public void Accept(IVisitor Visitor)
     {
-        fairy.VisitPlant(this);
+        Visitor.VisitPlant(this);
+    }
+
+    private void Grow()
+    {
+        Accept(new GrowthFairy());
     }
 }

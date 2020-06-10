@@ -8,12 +8,12 @@ public class Internode : MonoBehaviour
     public Node Head { get; set; }
     public Node Base { get; set; }
 
-    public float Length { get; set; }
-    public float Radius { get; set; }
+    public float Length;
+    public float Radius;
 
     public static Internode Create(Node headNode, Node baseNode)
     {
-        var internode = baseNode.gameObject.AddComponent<Internode>();
+        var internode = headNode.gameObject.AddComponent<Internode>();
 
         internode.Mesh = InstancedMeshRenderer.AddInstance("Stem");
         internode.Head = headNode;
@@ -24,8 +24,10 @@ public class Internode : MonoBehaviour
 
     public virtual void UpdateMesh()
     {
-        Head.transform.localPosition = Base.transform.localRotation * Vector3.forward * Length;
-        Mesh.Matrix = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(Radius, Radius, Length));
+        Head.transform.position = Base.transform.forward * Length + Base.transform.position;
+        Mesh.Matrix = Matrix4x4.TRS(Head.transform.position, 
+                                    Quaternion.LookRotation(Head.transform.position - Base.transform.position),
+                                    new Vector3(Radius, Radius, Length));
     }
 
     public void Kill()

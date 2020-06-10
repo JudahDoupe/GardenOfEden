@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace CameraState
 {
-    public class Species : ICameraState
+    public class SpeciesCamera : ICameraState
     {
         private Plant focusedPlant;
         private bool isActive;
         private Bounds bounds;
-        public Species()
+        public SpeciesCamera()
         {
-            DI.GrowthService.NewPlantSubject.Subscribe(NewPlantAction);
+            //DI.GrowthService.NewPlantSubject.Subscribe(NewPlantAction);
         }
 
         public void TransitionTo()

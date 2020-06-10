@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class ReproductionFairy : IFairy
+public class ReproductionFairy : IVisitor
 {
     public void VisitPlant(Plant plant)
     {

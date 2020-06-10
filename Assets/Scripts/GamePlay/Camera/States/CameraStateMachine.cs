@@ -25,10 +25,10 @@ namespace CameraState
         {
             _states = new Dictionary<CameraStateType, ICameraState>
             {
-                {CameraStateType.Cinematic, new Cinematic()},
+                {CameraStateType.Cinematic, new CinematicCamera()},
                 {CameraStateType.Birdseye, new BirdsEye()},
-                {CameraStateType.Inspection, new Inspection()},
-                {CameraStateType.Species, new Species()},
+                {CameraStateType.Inspection, new InspectionCamera()},
+                {CameraStateType.Species, new SpeciesCamera()},
             };
             Set(CameraStateType.Species);
         }
