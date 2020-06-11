@@ -48,11 +48,11 @@ public class PrimaryShoot : IGrowthRule
         node.Type = NodeType.Node;
 
         var apicalBud = Node.Create(NodeType.ApicalBud, node);
-        apicalBud.transform.Rotate(new Vector3(0, 0, 180), Space.Self);
+        apicalBud.transform.Rotate(new Vector3(0, 0, 50 + Random.Range(-10, 10)), Space.Self);
         var lateralBud = Node.Create(NodeType.Bud, node);
-        lateralBud.transform.Rotate(new Vector3(45, 0, 90), Space.Self);
+        lateralBud.transform.Rotate(new Vector3(45 + Random.Range(-10, 10), 0, 90), Space.Self);
         var leaf = Node.Create(NodeType.Leaf, node);
-        leaf.transform.Rotate(new Vector3(90, 0, -90), Space.Self);
+        leaf.transform.Rotate(new Vector3(90 + Random.Range(-10, 10), 0, -90), Space.Self);
     }
 
     public bool ShouldApplyTo(Node node)
@@ -72,7 +72,7 @@ public class LateralShoot : IGrowthRule
         node.Type = NodeType.Node;
 
         var bud = Node.Create(NodeType.Bud, node);
-        bud.transform.Rotate(new Vector3(0, 0, 180), Space.Self);
+        bud.transform.Rotate(new Vector3(Random.Range(-10, 10), Random.Range(-10, 10), 180), Space.Self);
         var leaf = Node.Create(NodeType.Leaf, node);
         leaf.transform.Rotate(new Vector3(90, 0, 0), Space.Self);
     }
@@ -100,7 +100,7 @@ public class RingFlower : IGrowthRule
     public bool ShouldApplyTo(Node node)
     {
         return (node.Type == NodeType.Bud || node.Type == NodeType.ApicalBud)
-            && node.Plant.Shoot.Age > 1;
+            && node.Plant.Shoot.Age > 10;
     }
 }
 

@@ -32,7 +32,7 @@ public class Node : MonoBehaviour
         if (baseNode != null)
         {
             baseNode.Branches.Add(node);
-            baseNode.Internode = Internode.Create(node, baseNode);
+            node.Internode = Internode.Create(node, baseNode);
         }
 
         node.transform.parent = node.Base == null ? node.Plant.transform : node.Base.transform;
