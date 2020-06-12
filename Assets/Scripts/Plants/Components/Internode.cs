@@ -8,6 +8,8 @@ public class Internode : MonoBehaviour
     public Node Head { get; set; }
     public Node Base { get; set; }
 
+    public InternodeDna Dna { get; set; }
+
     public float Length;
     public float Radius;
 
@@ -18,6 +20,7 @@ public class Internode : MonoBehaviour
         internode.Mesh = InstancedMeshRenderer.AddInstance("Stem");
         internode.Head = headNode;
         internode.Base = baseNode;
+        internode.Dna = baseNode.Plant.Dna.GetInternodeDna(headNode.Type);
 
         return internode;
     }

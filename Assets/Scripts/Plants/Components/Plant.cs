@@ -1,10 +1,20 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class Plant : MonoBehaviour
 {
-    public bool ShouldUpdate = false;
+    public float lastUpdateDate;
     public int PlantId;
     public PlantDna Dna;
+
+    public List<IGrowthRule> GrowthRules = new List<IGrowthRule>()
+    {
+        new SingleFlower(),
+        new BasalRosette(),
+        new LevelingLeaves(),
+        new KillWhenLevel(),
+        new PrimaryGrowth(),
+    };
 
     public Node Shoot { get; set; }
     public Root Root { get; set; }
@@ -19,16 +29,10 @@ public class Plant : MonoBehaviour
     {
         Shoot = Node.Create(NodeType.ApicalBud, null, this);
         Root = Root.Create(this);
+        lastUpdateDate = EnvironmentApi.GetDate();
 
         DI.LightService.AddLightAbsorber(this, (absorbedLight) => StoredLight += absorbedLight);
-    }
-    private void Update()
-    {
-        if (ShouldUpdate)
-        {
-            Grow();
-            ShouldUpdate = false;
-        }
+        DI.PlantGrowthService.AddPlant(this);
     }
 
     public void UpdateMesh()
@@ -54,10 +58,5 @@ public class Plant : MonoBehaviour
     public void Accept(IVisitor Visitor)
     {
         Visitor.VisitPlant(this);
-    }
-
-    private void Grow()
-    {
-        Accept(new GrowthFairy());
     }
 }

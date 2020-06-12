@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [Serializable]
@@ -8,60 +10,37 @@ public struct PlantDna
     public int SpeciesId;
     public int Generation;
 
-    public NodeDna NodeDna;
-    public StemDna StemDna;
-    public LeafDna LeafDna;
-    public FlowerDna FlowerDna;
+    public List<NodeDna> NodeDna;
+    public List<InternodeDna> InternodeDna;
+
+    public NodeDna GetNodeDna(NodeType type)
+    {
+        return NodeDna.Any(x => x.Type == type) ?
+                NodeDna.FirstOrDefault(x => x.Type == type) :
+                NodeDna.FirstOrDefault();
+    }
+    public InternodeDna GetInternodeDna(NodeType type)
+    {
+        return InternodeDna.Any(x => x.Type == type) ?
+                InternodeDna.FirstOrDefault(x => x.Type == type) :
+                InternodeDna.FirstOrDefault();
+    }
 }
 
 [Serializable]
 public struct NodeDna
 {
-    public int MaxDepth;
-    public float NodesPerDay;
-}
-
-[Serializable]
-public struct StemDna
-{
-    public enum StemType
-    {
-        Green,
-        Woody,
-    }
-
-    public StemType Type;
-    public float PrimaryLength;
-    public float PrimaryRadius;
-    public float DaysToMaturity;
-    public Material Material;
-}
-
-[Serializable]
-public struct LeafDna
-{
-    public enum LeafType
-    {
-        Broad,
-        Blade,
-        Shade,
-        Needle,
-    }
-
-    public LeafType Type;
+    public NodeType Type;
     public float Size;
-    public float DaysToMaturity;
-    public Material Material;
+    [Range(0.01f, 1)]
+    public float GrowthRate;
+    public string MeshId;
 }
 
 [Serializable]
-public struct FlowerDna
+public struct InternodeDna
 {
-    public float Size;
-    public float DaysToMaturity;
-    public float DaysForPolination;
-    public float DaysToSeed;
-
-    public int NumberOfSeeds;
-    public Material Material;
+    public NodeType Type;
+    public float Length;
+    public float Radius;
 }

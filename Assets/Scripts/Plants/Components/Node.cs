@@ -13,6 +13,7 @@ public class Node : MonoBehaviour
     public float LastUpdateDate { get; set; }
     public float Age => EnvironmentApi.GetDate() - CreationDate;
     public NodeType Type;
+    public NodeDna Dna;
     public float Size;
 
     public static Node Create(NodeType type, Node baseNode, Plant plant = null)
@@ -23,11 +24,11 @@ public class Node : MonoBehaviour
         node.LastUpdateDate = node.CreationDate;
 
         node.Plant = plant == null ? baseNode.Plant : plant;
+        node.Dna = node.Plant.Dna.GetNodeDna(type);
         node.Base = baseNode;
         node.Type = type;
 
-        if (type == NodeType.Leaf) node.Mesh = InstancedMeshRenderer.AddInstance("Leaf");
-        if (type == NodeType.Flower) node.Mesh = InstancedMeshRenderer.AddInstance("Flower");
+        if (!string.IsNullOrWhiteSpace(node.Dna.MeshId)) node.Mesh = InstancedMeshRenderer.AddInstance(node.Dna.MeshId);
 
         if (baseNode != null)
         {
@@ -55,6 +56,7 @@ public class Node : MonoBehaviour
             node.Kill();
         }
 
+        if (Base != null) Base.Branches.Remove(this);
         if (Mesh != null) InstancedMeshRenderer.RemoveInstance(Mesh);
         if (Internode != null) Internode.Kill();
 

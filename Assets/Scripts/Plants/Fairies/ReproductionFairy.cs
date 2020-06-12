@@ -9,6 +9,7 @@ public class ReproductionFairy : IVisitor
 
     public void TryDropSeeds(Plant plant, Node flower)
     {
+        /*
         var plantDna = plant.Dna;
         var flowerDna = plantDna.FlowerDna;
         var daysOfSeedGrowth = flower.Age - flowerDna.DaysToMaturity - flowerDna.DaysForPolination;
@@ -27,5 +28,6 @@ public class ReproductionFairy : IVisitor
 
             flower.Kill();
         }
+        */
     }
 }
