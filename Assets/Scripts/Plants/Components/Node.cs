@@ -12,11 +12,11 @@ public class Node : MonoBehaviour
     public float CreationDate { get; set; }
     public float LastUpdateDate { get; set; }
     public float Age => EnvironmentApi.GetDate() - CreationDate;
-    public NodeType Type;
-    public NodeDna Dna;
+    public PlantDna.NodeType Type;
+    public PlantDna.Node Dna;
     public float Size;
 
-    public static Node Create(NodeType type, Node baseNode, Plant plant = null)
+    public static Node Create(PlantDna.NodeType type, Node baseNode, Plant plant = null)
     {
         var node = new GameObject(type.ToString()).AddComponent<Node>();
 
@@ -33,7 +33,10 @@ public class Node : MonoBehaviour
         if (baseNode != null)
         {
             baseNode.Branches.Add(node);
-            node.Internode = Internode.Create(node, baseNode);
+            if (node.Plant.Dna.GetInternodeDna(type).Length > 0)
+            {
+                node.Internode = Internode.Create(node, baseNode);
+            }
         }
 
         node.transform.parent = node.Base == null ? node.Plant.transform : node.Base.transform;
@@ -63,13 +66,4 @@ public class Node : MonoBehaviour
         Destroy(gameObject);
     }
 
-}
-
-public enum NodeType
-{
-    Node,
-    Bud,
-    ApicalBud,
-    Leaf,
-    Flower,
 }

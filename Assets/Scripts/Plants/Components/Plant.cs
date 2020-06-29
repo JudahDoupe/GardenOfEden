@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Plant : MonoBehaviour
@@ -7,31 +8,7 @@ public class Plant : MonoBehaviour
     public int PlantId;
     public PlantDna Dna;
 
-    public List<IGrowthRule> GrowthRules = new List<IGrowthRule>()
-    {
-        new CompositeGrowthRule()
-            .WithCondition(x => x.Type == NodeType.ApicalBud)
-            .WithCondition(x => x.IsPlantOlder(13))
-            .WithModification(x => x.Type = NodeType.Node)
-            .WithModification(x => Node.Create(NodeType.Flower, x)),        
-        new CompositeGrowthRule()
-            .WithCondition(x => x.Type == NodeType.ApicalBud)
-            .WithModification(x => x.Type = NodeType.Node)
-            .WithModification(x => Node.Create(NodeType.ApicalBud, x).Roll(Constants.FibonacciDegrees))
-            .WithModification(x => Node.Create(NodeType.Leaf, x).Pitch(10).Roll(-90)),
-        new CompositeGrowthRule()
-            .WithCondition(x => x.Type == NodeType.Leaf)
-            .WithModification(x => x.Level(0.3f)),
-        new CompositeGrowthRule()
-            .WithCondition(x => x.Type == NodeType.Leaf)
-            .WithCondition(x => x.IsLevel())
-            .WithModification(x => x.Kill()),
-        new CompositeGrowthRule()
-            .WithModification(x => x.Grow()),
-        new CompositeGrowthRule()
-            .WithCondition(x => x.Internode != null)
-            .WithModification(x => x.GrowInternode()),
-    };
+    public List<IGrowthRule> GrowthRules;
 
     public Node Shoot { get; set; }
     public Root Root { get; set; }
@@ -44,9 +21,10 @@ public class Plant : MonoBehaviour
 
     void Start()
     {
-        Shoot = Node.Create(NodeType.ApicalBud, null, this);
+        Shoot = Node.Create(PlantDna.NodeType.ApicalBud, null, this);
         Root = Root.Create(this);
         lastUpdateDate = EnvironmentApi.GetDate();
+        GrowthRules = Dna.GetGrowthRules().ToList();
 
         DI.LightService.AddLightAbsorber(this, (absorbedLight) => StoredLight += absorbedLight);
         DI.PlantGrowthService.AddPlant(this);

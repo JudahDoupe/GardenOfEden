@@ -8,7 +8,7 @@ public class Internode : MonoBehaviour
     public Node Head { get; set; }
     public Node Base { get; set; }
 
-    public InternodeDna Dna { get; set; }
+    public PlantDna.Internode Dna { get; set; }
 
     public float Length;
     public float Radius;
