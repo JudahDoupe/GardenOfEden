@@ -8,7 +8,7 @@ public class Plant : MonoBehaviour
     public int PlantId;
     public PlantDna Dna;
 
-    public List<IGrowthRule> GrowthRules;
+    public List<IGrowthRule> GrowthRules { get; set; }
 
     public Node Shoot { get; set; }
     public Root Root { get; set; }

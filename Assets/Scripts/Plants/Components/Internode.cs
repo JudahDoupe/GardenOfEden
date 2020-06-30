@@ -20,7 +20,7 @@ public class Internode : MonoBehaviour
         internode.Mesh = InstancedMeshRenderer.AddInstance("Stem");
         internode.Head = headNode;
         internode.Base = baseNode;
-        internode.Dna = baseNode.Plant.Dna.GetInternodeDna(headNode.Type);
+        internode.Dna = headNode.Dna.Internode;
 
         return internode;
     }

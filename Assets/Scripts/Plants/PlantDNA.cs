@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 
 [Serializable]
-public struct PlantDna
+public class PlantDna
 {
     public string Name;
     public int SpeciesId;
@@ -12,16 +12,10 @@ public struct PlantDna
 
     public List<GrowthRule> GrowthRules;
     public List<Node> Nodes;
-    public List<Internode> Internodes;
 
     public Node GetNodeDna(NodeType type)
     {
-        return Nodes.FirstOrDefault(x => x.Type == type);
-    }
-
-    public Internode GetInternodeDna(NodeType type)
-    {
-        return Internodes.FirstOrDefault(x => x.Type == type);
+        return Nodes.FirstOrDefault(x => x.Type == type) ?? new Node { Type = type };
     }
 
     public IEnumerable<IGrowthRule> GetGrowthRules()
@@ -31,37 +25,36 @@ public struct PlantDna
 
 
     [Serializable]
-    public struct Node
+    public class Node
     {
         public NodeType Type;
         public float Size;
-        [Range(0.01f, 1)]
         public float GrowthRate;
         public string MeshId;
+        public Internode Internode = new Internode();
     }
 
     [Serializable]
-    public struct Internode
+    public class Internode
     {
-        public NodeType Type;
         public float Length;
         public float Radius;
     }
 
     [Serializable]
-    public struct GrowthRule
+    public class GrowthRule
     {
-        public List<Operation> Conditions;
-        public List<Operation> Transformations;
+        public List<Operation> Conditions = new List<Operation>();
+        public List<Operation> Transformations = new List<Operation>();
 
         [Serializable]
-        public struct Operation
+        public class Operation
         {
             public string Function;
-            public List<Parameter> Parameters;
+            public List<Parameter> Parameters = new List<Parameter>();
         }
         [Serializable]
-        public struct Parameter
+        public class Parameter
         {
             public string Name;
             public string Value;
