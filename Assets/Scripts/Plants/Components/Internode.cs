@@ -28,8 +28,10 @@ public class Internode : MonoBehaviour
     public virtual void UpdateMesh()
     {
         Head.transform.position = Base.transform.forward * Length + Base.transform.position;
-        Mesh.Matrix = Matrix4x4.TRS(Head.transform.position, 
-                                    Quaternion.LookRotation(Head.transform.position - Base.transform.position),
+        var vector = Head.transform.position - Base.transform.position;
+        var rotation = vector == Vector3.zero ? Base.transform.rotation : Quaternion.LookRotation(vector);
+        Mesh.Matrix = Matrix4x4.TRS(Head.transform.position,
+                                    rotation,
                                     new Vector3(Radius, Radius, Length));
     }
 

@@ -33,7 +33,7 @@ public class Node : MonoBehaviour
         if (baseNode != null)
         {
             baseNode.Branches.Add(node);
-            if (node.Dna.Internode != null)
+            if (node.Dna.Internode != null && node.Dna.Internode.Length > 0.001f)
             {
                 node.Internode = Internode.Create(node, baseNode);
             }

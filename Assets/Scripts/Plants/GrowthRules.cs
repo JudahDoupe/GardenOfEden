@@ -28,7 +28,7 @@ public class CompositeGrowthRule : IGrowthRule
     {
         try
         {
-            var method = typeof(GrowthRuleUtils).GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == operation.Function);
+            var method = typeof(GrowthTansformations).GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == operation.Function);
             if (method == null)
             {
                 throw new Exception($"Growth Modification not recognized: { operation.Function}");
@@ -52,7 +52,7 @@ public class CompositeGrowthRule : IGrowthRule
     {
         try
         {
-            var method = typeof(GrowthRuleUtils).GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == operation.Function);
+            var method = typeof(GrowthConditions).GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == operation.Function);
             if (method == null)
             {
                 throw new Exception($"Growth Condition not recognized: { operation.Function}");
@@ -114,10 +114,8 @@ public class CompositeGrowthRule : IGrowthRule
     }
 }
 
-public static class GrowthRuleUtils
+public static class GrowthTansformations
 {
-    /* Modifications */
-
     public static void Grow(this Node node)
     {
         node.Size = CalculateGrowth(node.Dna.Size, node.Size, node.Dna.GrowthRate);
@@ -163,8 +161,15 @@ public static class GrowthRuleUtils
         return node;
     }
 
-    /* Conditions */
 
+    private static float CalculateGrowth(float max, float current, float rate)
+    {
+        return Mathf.Min(max, current + (rate * max));
+    }
+}
+
+public static class GrowthConditions
+{
     public static bool IsLevel(this Node node)
     {
         var v = node.transform.rotation.eulerAngles;
@@ -179,12 +184,9 @@ public static class GrowthRuleUtils
     {
         return node.Type.ToString("G").ToLower() == type.ToLower();
     }
-
-    /* Helpers */
-
-    private static float CalculateGrowth(float max, float current, float rate)
+    public static bool HasInternode(this Node node)
     {
-        return Mathf.Min(max, current + (rate * max));
+        return node.Internode != null;
     }
 }
 

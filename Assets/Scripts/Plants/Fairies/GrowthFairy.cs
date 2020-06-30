@@ -16,12 +16,6 @@ public class GrowthFairy : IVisitor
             VisitNode(branch);
         }
 
-        node.Grow();
-        if (node.Internode != null)
-        {
-            node.GrowInternode();
-        }
-
         foreach(var rule in node.Plant.GrowthRules)
         {
             if (rule.ShouldApplyTo(node))
