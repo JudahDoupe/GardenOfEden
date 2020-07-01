@@ -139,7 +139,7 @@ public static class GrowthTansformations
     }
     public static void SetType(this Node node, string type)
     {
-        node.Type = (NodeType)Enum.Parse(typeof(NodeType), type);
+        node.SetType((NodeType)Enum.Parse(typeof(NodeType), type));
     }
     public static void Kill(this Node node)
     {

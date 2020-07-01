@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ public class Plant : MonoBehaviour
     public Root Root { get; set; }
 
     public bool IsAlive { get; set; } = true;
+    public bool IsGrowing { get; set; } = false;
 
     public Volume WaterCapacity = Volume.FromCubicMeters(5);
     public Volume StoredWater { get; set; }
@@ -30,17 +32,34 @@ public class Plant : MonoBehaviour
         DI.PlantGrowthService.AddPlant(this);
     }
 
-    public void UpdateMesh()
+    public void UpdateMesh(float seconds = 0)
     {
-        UpdateMeshRecursively(Shoot);
+        UpdateMeshRecursively(Shoot, seconds);
+        if (seconds > 0)
+        {
+            StartCoroutine(StartGrowTimer(seconds));
+        }
     }
-    private void UpdateMeshRecursively(Node node)
+    private void UpdateMeshRecursively(Node node, float seconds)
     {
         foreach(var branchNode in node.Branches)
         {
-            UpdateMeshRecursively(branchNode);
+            UpdateMeshRecursively(branchNode, seconds);
         }
-        node.UpdateMesh();
+        if (seconds > 0)
+        {
+            StartCoroutine(node.SmoothUpdateMesh(seconds));
+        }
+        else
+        {
+            node.UpdateMesh();
+        }
+    }
+    private IEnumerator StartGrowTimer(float seconds)
+    {
+        IsGrowing = true;
+        yield return new WaitForSeconds(seconds);
+        IsGrowing = false;
     }
 
     public void Kill()

@@ -1,4 +1,5 @@
 ﻿using Boo.Lang;
+using System.Collections;
 using UnityEngine;
 
 public class GrowthFairy : IVisitor
@@ -6,7 +7,6 @@ public class GrowthFairy : IVisitor
     public void VisitPlant(Plant plant)
     {
         VisitNode(plant.Shoot);
-        plant.UpdateMesh();
     }
 
     private void VisitNode(Node node)
@@ -22,5 +22,4 @@ public class GrowthFairy : IVisitor
                 rule.ApplyTo(node);
         }
     }
-
 }

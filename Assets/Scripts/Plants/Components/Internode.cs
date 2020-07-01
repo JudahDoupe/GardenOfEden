@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class Internode : MonoBehaviour
 {
@@ -27,12 +28,49 @@ public class Internode : MonoBehaviour
 
     public virtual void UpdateMesh()
     {
-        Head.transform.position = Base.transform.forward * Length + Base.transform.position;
+        Head.transform.position = Head.transform.forward * Length + Base.transform.position;
         var vector = Head.transform.position - Base.transform.position;
-        var rotation = vector == Vector3.zero ? Base.transform.rotation : Quaternion.LookRotation(vector);
+        var rotation = vector == Vector3.zero ? Head.transform.rotation : Quaternion.LookRotation(vector);
         Mesh.Matrix = Matrix4x4.TRS(Head.transform.position,
                                     rotation,
                                     new Vector3(Radius, Radius, Length));
+    }
+    public IEnumerator SmoothUpdateMesh(float seconds)
+    {
+        if (Mesh == null) yield break;
+
+        var oldPosition = Mesh.Matrix.GetColumn(3);
+        var oldRotation = Quaternion.LookRotation(
+            Mesh.Matrix.GetColumn(2),
+            Mesh.Matrix.GetColumn(1)
+        );
+        var oldScale = new Vector3(
+            Mesh.Matrix.GetColumn(0).magnitude,
+            Mesh.Matrix.GetColumn(1).magnitude,
+            Mesh.Matrix.GetColumn(2).magnitude
+        );
+
+        var vector = Head.transform.position - Base.transform.position;
+        var newRotation = vector == Vector3.zero ? Head.transform.rotation : Quaternion.LookRotation(vector);
+        var newScale = new Vector3(Radius, Radius, Length);
+
+        var t = 0f;
+        while (t < seconds)
+        {
+            var position = Head.transform.forward * Length + Base.transform.position;
+            Head.transform.position = Vector3.Lerp(oldPosition, position, t / seconds);
+            Mesh.Matrix = Matrix4x4.TRS(Vector3.Lerp(oldPosition, position, t / seconds),
+                                        Quaternion.Lerp(oldRotation, newRotation, t / seconds),
+                                        Vector3.Lerp(oldScale, newScale, t / seconds));
+            yield return new WaitForEndOfFrame();
+            t += Time.deltaTime;
+        }
+
+        var newPosition = Head.transform.forward * Length + Base.transform.position;
+        Head.transform.position = newPosition;
+        Mesh.Matrix = Matrix4x4.TRS(newPosition,
+                                    newRotation,
+                                    newScale);
     }
 
     public void Kill()

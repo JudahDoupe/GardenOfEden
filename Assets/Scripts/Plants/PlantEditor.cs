@@ -90,7 +90,7 @@ public class PlantEditor : Editor
                         GUILayout.Space(25);
                         EditorGUILayout.BeginVertical();
                         node.Internode.Length = EditorGUILayout.Slider("Length", node.Internode.Length, 0.01f, 2f);
-                        node.Internode.Radius = EditorGUILayout.Slider("Radius", node.Internode.Radius, 0.01f, 1f);
+                        node.Internode.Radius = EditorGUILayout.Slider("Radius", node.Internode.Radius, 0.001f, 1f);
                         EditorGUILayout.EndVertical();
                     }
                 }

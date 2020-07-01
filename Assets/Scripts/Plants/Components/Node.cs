@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
 public class Node : MonoBehaviour
@@ -24,19 +25,14 @@ public class Node : MonoBehaviour
         node.LastUpdateDate = node.CreationDate;
 
         node.Plant = plant == null ? baseNode.Plant : plant;
-        node.Dna = node.Plant.Dna.GetNodeDna(type);
         node.Base = baseNode;
-        node.Type = type;
+        node.SetType(type);
 
         if (!string.IsNullOrWhiteSpace(node.Dna.MeshId)) node.Mesh = InstancedMeshRenderer.AddInstance(node.Dna.MeshId);
 
         if (baseNode != null)
         {
             baseNode.Branches.Add(node);
-            if (node.Dna.Internode != null && node.Dna.Internode.Length > 0.001f)
-            {
-                node.Internode = Internode.Create(node, baseNode);
-            }
         }
 
         node.transform.parent = node.Base == null ? node.Plant.transform : node.Base.transform;
@@ -46,13 +42,52 @@ public class Node : MonoBehaviour
         return node;
     }
 
-    public virtual void UpdateMesh()
+    public void SetType(PlantDna.NodeType type)
+    {
+        Type = type;
+        Dna = Plant.Dna.GetNodeDna(type);
+        if (Base != null && Dna.Internode != null && Dna.Internode.Length > 0.001f)
+        {
+            Internode = Internode.Create(this, Base);
+        }
+    }
+
+    public void UpdateMesh()
     {
         if (Mesh != null) Mesh.Matrix = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(Size, Size, Size));
         if (Internode != null) Internode.UpdateMesh();
     }
+    public IEnumerator SmoothUpdateMesh(float seconds)
+    {
+        if (Mesh == null) yield break;
+        if (Internode != null) StartCoroutine(Internode.SmoothUpdateMesh(seconds));
 
-    public virtual void Kill()
+        var oldPosition = Mesh.Matrix.GetColumn(3);
+        var oldRotation = Quaternion.LookRotation(
+            Mesh.Matrix.GetColumn(2),
+            Mesh.Matrix.GetColumn(1)
+        );
+        var oldScale = new Vector3(
+            Mesh.Matrix.GetColumn(0).magnitude,
+            Mesh.Matrix.GetColumn(1).magnitude,
+            Mesh.Matrix.GetColumn(2).magnitude
+        );
+        var newScale = new Vector3(Size, Size, Size);
+
+        var t = 0f;
+        while (t < seconds)
+        {
+            Mesh.Matrix = Matrix4x4.TRS(Vector3.Lerp(oldPosition, transform.position, t / seconds), 
+                                        Quaternion.Lerp(oldRotation, transform.rotation, t / seconds),
+                                        Vector3.Lerp(oldScale, newScale, t / seconds));
+            yield return new WaitForEndOfFrame();
+            t += Time.deltaTime;
+        }
+        
+        Mesh.Matrix = Matrix4x4.TRS(transform.position, transform.rotation, newScale);
+    }
+
+    public void Kill()
     {
         foreach (var node in Branches)
         {

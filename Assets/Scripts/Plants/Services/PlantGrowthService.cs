@@ -7,16 +7,22 @@ public class PlantGrowthService : MonoBehaviour
 {
     public LinkedList<Plant> UpdateQueue = new LinkedList<Plant>();
 
+    private GrowthFairy _fairy = new GrowthFairy();
+
     private void Update()
     {
-        var plant = UpdateQueue.First();
-        UpdateQueue.RemoveFirst();
-        if (Mathf.FloorToInt(EnvironmentApi.GetDate()) > Mathf.FloorToInt(plant.lastUpdateDate))
+        var plant = UpdateQueue.FirstOrDefault(x => !x.IsGrowing);
+        if (plant != null)
         {
-            plant.Accept(new GrowthFairy());
-            plant.lastUpdateDate = EnvironmentApi.GetDate();
+            UpdateQueue.Remove(plant);
+            if (Mathf.FloorToInt(EnvironmentApi.GetDate()) > Mathf.FloorToInt(plant.lastUpdateDate))
+            {
+                plant.Accept(_fairy);
+                plant.UpdateMesh(EnvironmentApi.Instance.SecondsPerDay);
+                plant.lastUpdateDate = EnvironmentApi.GetDate();
+            }
+            UpdateQueue.AddLast(plant);
         }
-        UpdateQueue.AddLast(plant);
     }
 
     public void AddPlant(Plant plant)
