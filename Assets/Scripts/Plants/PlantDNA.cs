@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 [Serializable]
 public class PlantDna
@@ -44,20 +43,21 @@ public class PlantDna
     [Serializable]
     public class GrowthRule
     {
-        public List<Operation> Conditions = new List<Operation>();
-        public List<Operation> Transformations = new List<Operation>();
+        public List<Method> Conditions = new List<Method>();
+        public List<Method> Transformations = new List<Method>();
 
         [Serializable]
-        public class Operation
+        public class Method
         {
             public string Function;
             public List<Parameter> Parameters = new List<Parameter>();
-        }
-        [Serializable]
-        public class Parameter
-        {
-            public string Name;
-            public string Value;
+
+            [Serializable]
+            public class Parameter
+            {
+                public string Name;
+                public string Value;
+            }
         }
     }
 

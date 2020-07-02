@@ -183,7 +183,7 @@ public class PlantEditor : Editor
         EditorGUILayout.EndFoldoutHeaderGroup();
     }
 
-    private void RenderOperationGroup(List<PlantDna.GrowthRule.Operation> operations, List<MethodInfo> methods, string operationType)
+    private void RenderOperationGroup(List<PlantDna.GrowthRule.Method> operations, List<MethodInfo> methods, string operationType)
     {
         foreach (var operation in operations)
         {
@@ -201,14 +201,14 @@ public class PlantEditor : Editor
             if (operation.Function != method.Name)
             {
                 operation.Function = method.Name;
-                operation.Parameters = new List<PlantDna.GrowthRule.Parameter>();
+                operation.Parameters = new List<PlantDna.GrowthRule.Method.Parameter>();
                 var parameters = method.GetParameters().ToList();
                 parameters.Remove(parameters.First());
                 foreach (var param in parameters)
                 {
                     if (param.ParameterType != typeof(Node))
                     {
-                        operation.Parameters.Add(new PlantDna.GrowthRule.Parameter
+                        operation.Parameters.Add(new PlantDna.GrowthRule.Method.Parameter
                         {
                             Name = param.Name,
                             Value = "",
@@ -233,7 +233,7 @@ public class PlantEditor : Editor
         
         if (GUILayout.Button("Add " + operationType, GUILayout.Width(230)))
         {
-            operations.Add(new PlantDna.GrowthRule.Operation
+            operations.Add(new PlantDna.GrowthRule.Method
             {
                 Function = "Function Name"
             });

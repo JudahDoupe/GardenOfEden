@@ -1,8 +1,4 @@
-﻿using Boo.Lang;
-using System.Collections;
-using UnityEngine;
-
-public class GrowthFairy : IVisitor
+﻿public class MophologyGrowthVisitor : IVisitor
 {
     public void VisitPlant(Plant plant)
     {

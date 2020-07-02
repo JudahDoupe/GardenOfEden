@@ -3,12 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class PlantGrowthService : MonoBehaviour
+public class GrowthService : MonoBehaviour
 {
+    public bool SmoothGrow = true;
     public LinkedList<Plant> UpdateQueue = new LinkedList<Plant>();
 
-    private GrowthFairy _fairy = new GrowthFairy();
+    private MophologyGrowthVisitor _growthVisitor = new MophologyGrowthVisitor();
+    private VisualGrowthVisitor _meshVisitor = new VisualGrowthVisitor(0);
 
+    private void Start()
+    {
+        if (SmoothGrow)
+        {
+            _meshVisitor = new VisualGrowthVisitor(EnvironmentApi.Instance.SecondsPerDay);
+        }
+    }
     private void Update()
     {
         var plant = UpdateQueue.FirstOrDefault(x => !x.IsGrowing);
@@ -17,8 +26,8 @@ public class PlantGrowthService : MonoBehaviour
             UpdateQueue.Remove(plant);
             if (Mathf.FloorToInt(EnvironmentApi.GetDate()) > Mathf.FloorToInt(plant.lastUpdateDate))
             {
-                plant.Accept(_fairy);
-                plant.UpdateMesh(EnvironmentApi.Instance.SecondsPerDay);
+                plant.Accept(_growthVisitor);
+                plant.Accept(_meshVisitor);
                 plant.lastUpdateDate = EnvironmentApi.GetDate();
             }
             UpdateQueue.AddLast(plant);

@@ -76,11 +76,22 @@ public class RenderingInstanceData
 {
     public string MeshId;
     public Matrix4x4 Matrix;
+    public Vector3 Position;
+    public Quaternion Rotation;
+    public Vector3 Scale;
 
     public RenderingInstanceData(string meshId)
     {
         MeshId = meshId;
+        Position = new Vector3(0, 0, 0);
+        Rotation = Quaternion.identity;
+        Scale = new Vector3(0, 0, 0);
         Matrix = Matrix4x4.identity;
+    }
+
+    public void UpdateMatrix()
+    {
+        Matrix = Matrix4x4.TRS(Position, Rotation, Scale);
     }
 }
 

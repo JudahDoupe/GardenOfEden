@@ -35,7 +35,6 @@ public class ReproductionService : MonoBehaviour
 
     /* Inner Mechinations */
 
-    private CameraController _camera;
     private LandService _landService;
 
     private int lastPlantId = 10;
@@ -43,7 +42,6 @@ public class ReproductionService : MonoBehaviour
 
     void Start()
     {
-        _camera = FindObjectOfType<CameraController>();
         _landService = GetComponent<LandService>();
     }
     void Update()

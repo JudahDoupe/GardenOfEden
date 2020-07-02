@@ -24,7 +24,7 @@ public class CompositeGrowthRule : IGrowthRule
         rule.Transformations.ForEach(x => WithTransformation(x));
     }
 
-    public CompositeGrowthRule WithTransformation(GrowthRule.Operation operation)
+    public CompositeGrowthRule WithTransformation(GrowthRule.Method operation)
     {
         try
         {
@@ -48,7 +48,7 @@ public class CompositeGrowthRule : IGrowthRule
         return this;
     }
 
-    public CompositeGrowthRule WithCondition(GrowthRule.Operation operation)
+    public CompositeGrowthRule WithCondition(GrowthRule.Method operation)
     {
         try
         {
@@ -85,7 +85,7 @@ public class CompositeGrowthRule : IGrowthRule
         return Conditions.All(c => c(node));
     }
 
-    private object[] GetParamters(Node node, MethodInfo method, GrowthRule.Operation operation)
+    private object[] GetParamters(Node node, MethodInfo method, GrowthRule.Method operation)
     {
         if (!method.GetParameters().Any())
         {
@@ -139,7 +139,13 @@ public static class GrowthTansformations
     }
     public static void SetType(this Node node, string type)
     {
-        node.SetType((NodeType)Enum.Parse(typeof(NodeType), type));
+        var nodeType = ((NodeType)Enum.Parse(typeof(NodeType), type));
+        node.Type = nodeType;
+        node.Dna = node.Plant.Dna.GetNodeDna(nodeType);
+        if (node.Base != null && node.Dna.Internode != null && node.Dna.Internode.Length > 0.001f)
+        {
+            node.Internode = Internode.Create(node, node.Base);
+        }
     }
     public static void Kill(this Node node)
     {
