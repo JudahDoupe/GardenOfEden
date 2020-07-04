@@ -13,21 +13,20 @@ public class Node : MonoBehaviour
     public float CreationDate { get; set; }
     public float LastUpdateDate { get; set; }
     public float Age => EnvironmentApi.GetDate() - CreationDate;
-    public PlantDna.NodeType Type;
+    public string Type = "Node";
     public PlantDna.Node Dna;
     public float Size;
 
-    public static Node Create(PlantDna.NodeType type, Node baseNode, Plant plant = null)
+    public static Node Create(Node baseNode, Plant plant = null)
     {
-        var node = new GameObject(type.ToString()).AddComponent<Node>();
+        var node = new GameObject("Node").AddComponent<Node>();
 
         node.CreationDate = EnvironmentApi.GetDate();
         node.LastUpdateDate = node.CreationDate;
 
         node.Plant = plant == null ? baseNode.Plant : plant;
         node.Base = baseNode;
-        node.Type = type;
-        node.Dna = node.Plant.Dna.GetNodeDna(type);
+        node.Dna = node.Plant.Dna.GetNodeDna(node.Type);
 
         if (!string.IsNullOrWhiteSpace(node.Dna.MeshId)) node.Mesh = InstancedMeshRenderer.AddInstance(node.Dna.MeshId);
 

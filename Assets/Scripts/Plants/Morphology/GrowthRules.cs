@@ -34,7 +34,8 @@ public class CompositeGrowthRule : IGrowthRule
                 throw new Exception($"Growth Modification not recognized: { operation.Function}");
             }
 
-            return WithTransformation(x => method.Invoke(x, GetParamters(x, method, operation)));
+            var parameters = GetParamters(method, operation);
+            return WithTransformation(x => method.Invoke(x, parameters.Prepend(x).ToArray()));
         }
         catch (Exception e)
         {
@@ -62,7 +63,8 @@ public class CompositeGrowthRule : IGrowthRule
                 throw new Exception($"Growth Condition does not return a bool: { operation.Function}");
             }
 
-            return WithCondition(x => (bool)method.Invoke(x, GetParamters(x, method, operation))) ;
+            var parameters = GetParamters(method, operation);
+            return WithCondition(x => (bool)method.Invoke(x, parameters.Prepend(x).ToArray()));
         }
         catch (Exception e)
         {
@@ -82,23 +84,21 @@ public class CompositeGrowthRule : IGrowthRule
     }
     public bool ShouldApplyTo(Node node)
     {
-        return Conditions.All(c => c(node));
+        return Conditions.All(x => x(node));
     }
 
-    private object[] GetParamters(Node node, MethodInfo method, GrowthRule.Method operation)
+    private object[] GetParamters(MethodInfo method, GrowthRule.Method operation)
     {
         if (!method.GetParameters().Any())
         {
             return null;
         }
 
-        return method.GetParameters().Select(parameter =>
+        return method
+            .GetParameters()
+            .Where(x => x.Name.ToLower() != "node")
+            .Select(parameter =>
         {
-            if (parameter.Name.ToLower() == "node")
-            {
-                return node;
-            }
-
             var value = operation.Parameters.FirstOrDefault(x => x.Name.ToLower() == parameter.Name.ToLower()).Value;
             if (string.IsNullOrEmpty(value))
             {
@@ -134,17 +134,27 @@ public static class GrowthTansformations
     }
     public static void AddNode(this Node node, string type, float pitch, float yaw, float roll)
     {
-        var enumType = (NodeType)Enum.Parse(typeof(NodeType), type);
-        Node.Create(enumType, node, node.Plant).transform.Rotate(pitch, yaw, roll);
+        var newNode = Node.Create(node, node.Plant);
+        newNode.transform.Rotate(pitch, yaw, roll);
+        newNode.SetType(type);
     }
     public static void SetType(this Node node, string type)
     {
-        var nodeType = ((NodeType)Enum.Parse(typeof(NodeType), type));
-        node.Type = nodeType;
-        node.Dna = node.Plant.Dna.GetNodeDna(nodeType);
+        node.Type = type;
+        node.gameObject.name = type;
+        node.Dna = node.Plant.Dna.GetNodeDna(type);
         if (node.Base != null && node.Dna.Internode != null && node.Dna.Internode.Length > 0.001f)
         {
             node.Internode = Internode.Create(node, node.Base);
+        }
+        if (node.Mesh != null)
+        {
+            InstancedMeshRenderer.RemoveInstance(node.Mesh);
+            node.Mesh = null;
+        }
+        if (!string.IsNullOrWhiteSpace(node.Dna.MeshId))
+        {
+            node.Mesh = InstancedMeshRenderer.AddInstance(node.Dna.MeshId);
         }
     }
     public static void Kill(this Node node)
@@ -188,15 +198,10 @@ public static class GrowthConditions
     }
     public static bool IsType(this Node node, string type)
     {
-        return node.Type.ToString("G").ToLower() == type.ToLower();
+        return node.Type.ToLower() == type.ToLower();
     }
     public static bool HasInternode(this Node node)
     {
         return node.Internode != null;
     }
-}
-
-public static class Constants
-{
-    public static float FibonacciDegrees = 137.5f;
 }

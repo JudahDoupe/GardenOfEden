@@ -12,7 +12,7 @@ public class PlantDna
     public List<GrowthRule> GrowthRules;
     public List<Node> Nodes;
 
-    public Node GetNodeDna(NodeType type)
+    public Node GetNodeDna(string type)
     {
         return Nodes.FirstOrDefault(x => x.Type == type) ?? new Node { Type = type };
     }
@@ -26,7 +26,7 @@ public class PlantDna
     [Serializable]
     public class Node
     {
-        public NodeType Type;
+        public string Type;
         public float Size;
         public float GrowthRate;
         public string MeshId;

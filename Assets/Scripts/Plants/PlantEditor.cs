@@ -65,7 +65,7 @@ public class PlantEditor : Editor
                 GUILayout.BeginVertical();
 
 
-                node.Type = (PlantDna.NodeType)EditorGUILayout.EnumPopup("Node Type", node.Type);
+                node.Type = EditorGUILayout.TextField("Node Type", node.Type);
                 node.MeshId = EditorGUILayout.TextField("Mesh Id", node.MeshId);
                 node.Size = EditorGUILayout.Slider("Size", node.Size, 0.01f, 2f);
                 node.GrowthRate = EditorGUILayout.Slider("Growth Rate", node.GrowthRate, 0.01f, 1f);

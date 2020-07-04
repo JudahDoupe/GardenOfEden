@@ -22,7 +22,8 @@ public class Plant : MonoBehaviour
 
     void Start()
     {
-        Shoot = Node.Create(PlantDna.NodeType.ApicalBud, null, this);
+        Shoot = Node.Create(null, this);
+        Shoot.SetType("ApicalBud");
         Root = Root.Create(this);
         lastUpdateDate = EnvironmentApi.GetDate();
         GrowthRules = Dna.GetGrowthRules().ToList();
