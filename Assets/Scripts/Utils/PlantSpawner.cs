@@ -21,7 +21,7 @@ public class PlantSpawner : MonoBehaviour
                     y = 0,
                     z = Random.Range(-Radius, Radius)
                 };
-                DI.ReproductionService.DropSeed(Plant.Dna, location);
+                DI.ReproductionService.DropSeed(Plant.PlantDna, location);
             }
         }
     }

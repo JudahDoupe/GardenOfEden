@@ -6,25 +6,19 @@ using System.Reflection;
 using UnityEngine;
 using static PlantDna;
 
-public interface IGrowthRule
-{
-    bool ShouldApplyTo(Node node);
-    void ApplyTo(Node node);
-}
-
-public class CompositeGrowthRule : IGrowthRule
+public class GrowthRule
 {
     private List<Action<Node>> Modifications = new List<Action<Node>>();
     private List<Func<Node,bool>> Conditions = new List<Func<Node, bool>>();
 
-    public CompositeGrowthRule() { }
-    public CompositeGrowthRule(GrowthRule rule) 
+    public GrowthRule() { }
+    public GrowthRule(GrowthRuleDna rule) 
     {
         rule.Conditions.ForEach(x => WithCondition(x));
         rule.Transformations.ForEach(x => WithTransformation(x));
     }
 
-    public CompositeGrowthRule WithTransformation(GrowthRule.Method operation)
+    public GrowthRule WithTransformation(GrowthRuleDna.Method operation)
     {
         try
         {
@@ -43,13 +37,13 @@ public class CompositeGrowthRule : IGrowthRule
             return this;
         }
     }
-    public CompositeGrowthRule WithTransformation(Action<Node> modification)
+    public GrowthRule WithTransformation(Action<Node> modification)
     {
         Modifications.Add(modification);
         return this;
     }
 
-    public CompositeGrowthRule WithCondition(GrowthRule.Method operation)
+    public GrowthRule WithCondition(GrowthRuleDna.Method operation)
     {
         try
         {
@@ -72,7 +66,7 @@ public class CompositeGrowthRule : IGrowthRule
             return this;
         }
     }
-    public CompositeGrowthRule WithCondition(Func<Node, bool> condition)
+    public GrowthRule WithCondition(Func<Node, bool> condition)
     {
         Conditions.Add(condition);
         return this;
@@ -87,7 +81,7 @@ public class CompositeGrowthRule : IGrowthRule
         return Conditions.All(x => x(node));
     }
 
-    private object[] GetParamters(MethodInfo method, GrowthRule.Method operation)
+    private object[] GetParamters(MethodInfo method, GrowthRuleDna.Method operation)
     {
         if (!method.GetParameters().Any())
         {
@@ -132,9 +126,21 @@ public static class GrowthTansformations
         var flat = Quaternion.Euler(0, v.y, v.z);
         node.transform.rotation = Quaternion.Slerp(node.transform.rotation, flat, node.Dna.GrowthRate * rate);
     }
-    public static void AddNode(this Node node, string type, float pitch, float yaw, float roll)
+    public static void AddNodeAfter(this Node node, string type, float pitch, float yaw, float roll)
     {
-        var newNode = Node.Create(node, node.Plant);
+        var newNode = node.AddNodeAfter();
+        newNode.transform.Rotate(pitch, yaw, roll);
+        newNode.SetType(type);
+    }
+    public static void AddAdjacentNode(this Node node, string type, float pitch, float yaw, float roll)
+    {
+        Node newNode = node.Base.AddNodeAfter();
+        newNode.transform.Rotate(pitch, yaw, roll);
+        newNode.SetType(type);
+    }
+    public static void AddNodeBefore(this Node node, string type, float pitch, float yaw, float roll)
+    {
+        var newNode = node.AddNodeBefore();
         newNode.transform.Rotate(pitch, yaw, roll);
         newNode.SetType(type);
     }
@@ -142,8 +148,7 @@ public static class GrowthTansformations
     {
         node.Type = type;
         node.gameObject.name = type;
-        node.Dna = node.Plant.Dna.GetNodeDna(type);
-        if (node.Base != null && node.Dna.Internode != null && node.Dna.Internode.Length > 0.001f)
+        if (node.Base != null && node.Dna.InternodeDna != null && node.Dna.InternodeDna.Length > 0.001f)
         {
             node.Internode = Internode.Create(node, node.Base);
         }
@@ -192,9 +197,13 @@ public static class GrowthConditions
         var flat = Quaternion.Euler(0, v.y, v.z);
         return Quaternion.Angle(node.transform.rotation, flat) < 0.00001f;
     }
-    public static bool IsOlder(this Node node, float age)
+    public static bool IsPlantOlder(this Node node, float age)
     {
-        return node.Plant.Shoot.Age > age;
+        return node.Plant.Age > age;
+    }
+    public static bool IsPlantYounger(this Node node, float age)
+    {
+        return node.Plant.Age < age;
     }
     public static bool IsType(this Node node, string type)
     {

@@ -20,7 +20,7 @@ namespace UIState
             {
                 var root = GetComponent<PanelRenderer>().visualTree;
                 root.Q<Button>(name: "close-button").clickable.clicked += CloseMenu;
-                root.Q<Label>(name: "species-name").text = plant.Dna.Name;
+                root.Q<Label>(name: "species-name").text = plant.PlantDna.Name;
             }
 
             return null;

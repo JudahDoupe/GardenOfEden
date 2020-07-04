@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
+using System.Linq;
 
 public class Node : MonoBehaviour
 {
@@ -13,36 +14,46 @@ public class Node : MonoBehaviour
     public float CreationDate { get; set; }
     public float LastUpdateDate { get; set; }
     public float Age => EnvironmentApi.GetDate() - CreationDate;
+    public PlantDna.NodeDna Dna => Plant.PlantDna.Nodes.FirstOrDefault(x => x.Type == Type) ?? new PlantDna.NodeDna();
     public string Type = "Node";
-    public PlantDna.Node Dna;
     public float Size;
 
-    public static Node Create(Node baseNode, Plant plant = null)
+
+    public Node AddNodeAfter()
     {
-        var node = new GameObject("Node").AddComponent<Node>();
-
-        node.CreationDate = EnvironmentApi.GetDate();
-        node.LastUpdateDate = node.CreationDate;
-
-        node.Plant = plant == null ? baseNode.Plant : plant;
-        node.Base = baseNode;
-        node.Dna = node.Plant.Dna.GetNodeDna(node.Type);
-
-        if (!string.IsNullOrWhiteSpace(node.Dna.MeshId)) node.Mesh = InstancedMeshRenderer.AddInstance(node.Dna.MeshId);
-
-        if (baseNode != null)
-        {
-            baseNode.Branches.Add(node);
-            if (node.Dna.Internode != null && node.Dna.Internode.Length > 0.001f)
-            {
-                node.Internode = Internode.Create(node, node.Base);
-            }
-        }
-
-        node.transform.parent = node.Base == null ? node.Plant.transform : node.Base.transform;
+        var node = Create(Plant);
+        Branches.Add(node);
+        node.Base = this;
+        node.transform.parent = transform;
         node.transform.localPosition = new Vector3(0, 0, 0);
         node.transform.localRotation = Quaternion.identity;
+        return node;
+    }
+    public Node AddNodeBefore()
+    {
+        var node = Create(Plant);
+        if (Base != null)
+        {
+            Base.Branches.Remove(this);
+            Base.Branches.Add(node);
+            node.transform.parent = Base.transform;
+            node.Base = Base;
+        }
 
+        Base = node;
+        transform.parent = node.transform;
+        node.Branches.Add(this);
+
+        node.transform.localPosition = new Vector3(0, 0, 0);
+        node.transform.localRotation = Quaternion.identity;
+        return node;
+    }
+    private Node Create(Plant plant)
+    {
+        var node = new GameObject("Node").AddComponent<Node>();
+        node.CreationDate = EnvironmentApi.GetDate();
+        node.LastUpdateDate = node.CreationDate;
+        node.Plant = plant;
         return node;
     }
 

@@ -8,6 +8,6 @@ public class PlantApi : MonoBehaviour
 
     public static int GetSpeciesPopulation(int speciesId)
     {
-        return FindObjectsOfType<Plant>().Count(p => p.Dna.SpeciesId == speciesId);
+        return FindObjectsOfType<Plant>().Count(p => p.PlantDna.SpeciesId == speciesId);
     }
 }

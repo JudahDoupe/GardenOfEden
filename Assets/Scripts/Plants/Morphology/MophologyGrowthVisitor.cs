@@ -2,7 +2,7 @@
 {
     public void VisitPlant(Plant plant)
     {
-        VisitNode(plant.Shoot);
+        VisitNode(plant);
     }
 
     private void VisitNode(Node node)
@@ -12,7 +12,7 @@
             VisitNode(branch);
         }
 
-        foreach(var rule in node.Plant.GrowthRules)
+        foreach(var rule in node.Dna.GrowthRules)
         {
             if (rule.ShouldApplyTo(node))
                 rule.ApplyTo(node);

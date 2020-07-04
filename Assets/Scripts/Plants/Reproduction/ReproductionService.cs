@@ -23,7 +23,7 @@ public class ReproductionService : MonoBehaviour
         plant.PlantId = lastPlantId++;
         plant.transform.position = location;
         plant.transform.localEulerAngles = new Vector3(-90, Random.Range(0, 365), 0);
-        plant.Dna = dna;
+        plant.PlantDna = dna;
 
         if (LogReproductionSuccesses)
         {

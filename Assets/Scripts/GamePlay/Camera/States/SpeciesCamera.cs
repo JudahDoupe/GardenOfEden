@@ -45,7 +45,7 @@ namespace CameraState
 
         private void NewPlantAction(Plant plant)
         {
-            if (!isActive || plant.Dna.SpeciesId != focusedPlant.Dna.SpeciesId) return;
+            if (!isActive || plant.PlantDna.SpeciesId != focusedPlant.PlantDna.SpeciesId) return;
 
             bounds.Encapsulate(plant.transform.position);
         }

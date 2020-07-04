@@ -15,7 +15,7 @@ public class VisualGrowthVisitor : IVisitor
         {
             plant.StartCoroutine(StartGrowTimer(plant));
         }
-        UpdateMeshRecursively(plant.Shoot);
+        UpdateMeshRecursively(plant);
     }
 
     private void UpdateMeshRecursively(Node node)

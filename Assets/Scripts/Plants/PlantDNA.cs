@@ -8,40 +8,36 @@ public class PlantDna
     public string Name;
     public int SpeciesId;
     public int Generation;
-
-    public List<GrowthRule> GrowthRules;
-    public List<Node> Nodes;
-
-    public Node GetNodeDna(string type)
-    {
-        return Nodes.FirstOrDefault(x => x.Type == type) ?? new Node { Type = type };
-    }
-
-    public IEnumerable<IGrowthRule> GetGrowthRules()
-    {
-        return GrowthRules.Select(x => new CompositeGrowthRule(x));
-    }
-
+    public List<NodeDna> Nodes;
 
     [Serializable]
-    public class Node
+    public class NodeDna
     {
         public string Type;
         public float Size;
         public float GrowthRate;
         public string MeshId;
-        public Internode Internode = new Internode();
+        public InternodeDna InternodeDna = new InternodeDna();
+
+        [NonSerialized]
+        public List<GrowthRule> GrowthRules = new List<GrowthRule>();
+        public List<GrowthRuleDna> GrowthRulesDna = new List<GrowthRuleDna>();
+
+        public void Update()
+        {
+            GrowthRules = GrowthRulesDna.Select(x => new GrowthRule(x)).ToList();
+        }
     }
 
     [Serializable]
-    public class Internode
+    public class InternodeDna
     {
         public float Length;
         public float Radius;
     }
 
     [Serializable]
-    public class GrowthRule
+    public class GrowthRuleDna
     {
         public List<Method> Conditions = new List<Method>();
         public List<Method> Transformations = new List<Method>();
@@ -59,14 +55,5 @@ public class PlantDna
                 public string Value;
             }
         }
-    }
-
-    public enum NodeType
-    {
-        Node,
-        Bud,
-        ApicalBud,
-        Leaf,
-        Flower,
     }
 }
