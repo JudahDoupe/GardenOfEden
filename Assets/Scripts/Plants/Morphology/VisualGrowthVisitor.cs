@@ -42,82 +42,59 @@ public class VisualGrowthVisitor : IVisitor
 
     private void UpdateMesh(Node node)
     {
-        if (node.Internode != null)
-        {
-            node.transform.position = node.transform.forward * node.Internode.Length + node.Base.transform.position;
-            var vector = node.transform.position - node.Base.transform.position;
-
-            node.Internode.Mesh.Position = node.transform.position;
-            node.Internode.Mesh.Rotation = vector == Vector3.zero ? node.transform.rotation : Quaternion.LookRotation(vector);
-            node.Internode.Mesh.Scale = new Vector3(node.Internode.Radius, node.Internode.Radius, node.Internode.Length);
-            node.Internode.Mesh.UpdateMatrix();
-        }
-        if (node.Mesh != null)
-        {
-            node.Mesh.Position = node.transform.position;
-            node.Mesh.Rotation = node.transform.rotation;
-            node.Mesh.Scale = new Vector3(node.Size, node.Size, node.Size);
-            node.Mesh.UpdateMatrix();
-        }
+        UpdateMeshValues(node);
+        node.InternodeMesh?.UpdateMatrix();
+        node.NodeMesh?.UpdateMatrix();
     }
 
     private IEnumerator SmoothUpdateMesh(Node node, float seconds)
     {
-        var oldPosition = node.transform.position;
-        var oldRotation = node.transform.rotation;
-        var oldScale = new Vector3(node.Size, node.Size, node.Size);
+        var oldPosition = node.NodeMesh?.Position ?? node.transform.position;
+        var oldRotation = node.NodeMesh?.Rotation ?? node.transform.rotation;
+        var oldScale = node.NodeMesh?.Scale ?? new Vector3(node.Size, node.Size, node.Size);
 
-        var oldIndernodeRotation = Quaternion.identity;
-        var oldInternodeScale = new Vector3(0, 0, 0);
+        var oldIndernodePosition = node.InternodeMesh?.Position ?? oldPosition;
+        var oldIndernodeRotation = node.InternodeMesh?.Rotation ?? oldRotation;
+        var oldInternodeScale = node.InternodeMesh?.Scale ?? new Vector3(0, 0, 0);
 
-        if (node.Internode != null)
+        UpdateMeshValues(node);
+
+        var delta = 0f;
+        while (delta < seconds)
         {
-            oldIndernodeRotation = node.Internode.Mesh.Rotation;
-            oldInternodeScale = node.Internode.Mesh.Scale;
-
-            node.transform.position = node.transform.forward * node.Internode.Length + node.Base.transform.position;
-            var vector = node.transform.position - node.Base.transform.position;
-            node.Internode.Mesh.Position = node.transform.position;
-            node.Internode.Mesh.Rotation = vector == Vector3.zero ? node.transform.rotation : Quaternion.LookRotation(vector);
-            node.Internode.Mesh.Scale = new Vector3(node.Internode.Radius, node.Internode.Radius, node.Internode.Length);
-        }
-        if (node.Mesh != null)
-        {
-            oldPosition = node.Mesh.Position;
-            oldRotation = node.Mesh.Rotation;
-            oldScale = node.Mesh.Scale;
-
-            node.Mesh.Position = node.transform.position;
-            node.Mesh.Rotation = node.transform.rotation;
-            node.Mesh.Scale = new Vector3(node.Size, node.Size, node.Size);
-        }
-
-        var t = 0f;
-        while (t < seconds)
-        {
-            if (node.Internode != null)
+            var t = delta / seconds;
+            if (node.InternodeMesh != null)
             {
-                node.Internode.Mesh.Matrix = Matrix4x4.TRS(Vector3.Lerp(oldPosition, node.Internode.Mesh.Position, t / seconds),
-                                                           Quaternion.Lerp(oldIndernodeRotation, node.Internode.Mesh.Rotation, t / seconds),
-                                                           Vector3.Lerp(oldInternodeScale, node.Internode.Mesh.Scale, t / seconds));
+                node.InternodeMesh.Matrix = Matrix4x4.TRS(Vector3.Lerp(oldIndernodePosition, node.InternodeMesh.Position, t),
+                                                           Quaternion.Lerp(oldIndernodeRotation, node.InternodeMesh.Rotation, t),
+                                                           Vector3.Lerp(oldInternodeScale, node.InternodeMesh.Scale, t));
             }
-            if (node.Mesh != null)
+            if (node.NodeMesh != null)
             {
-                node.Mesh.Matrix = Matrix4x4.TRS(Vector3.Lerp(oldPosition, node.Mesh.Position, t / seconds),
-                                                 Quaternion.Lerp(oldRotation, node.Mesh.Rotation, t / seconds),
-                                                 Vector3.Lerp(oldScale, node.Mesh.Scale, t / seconds));
+                node.NodeMesh.Matrix = Matrix4x4.TRS(Vector3.Lerp(oldPosition, node.NodeMesh.Position, t),
+                                                 Quaternion.Lerp(oldRotation, node.NodeMesh.Rotation, t),
+                                                 Vector3.Lerp(oldScale, node.NodeMesh.Scale, t));
             }
             yield return new WaitForEndOfFrame();
-            t += Time.deltaTime;
+            delta += Time.deltaTime;
         }
+    }
 
-        if (node.Internode != null)
+    private void UpdateMeshValues(Node node)
+    {
+        if (node.InternodeMesh != null)
         {
-            node.Internode.Mesh.UpdateMatrix();
+            node.transform.position = node.transform.forward * node.InternodeLength + node.Base.transform.position;
+            var vector = node.transform.position - node.Base.transform.position;
+            node.InternodeMesh.Position = node.transform.position;
+            node.InternodeMesh.Rotation = vector == Vector3.zero ? node.transform.rotation : Quaternion.LookRotation(vector);
+            node.InternodeMesh.Scale = new Vector3(node.InternodeRadius, node.InternodeRadius, node.InternodeLength);
         }
-        if (node.Mesh != null)
+        if (node.NodeMesh != null)
         {
-            node.Mesh.UpdateMatrix();
+            node.NodeMesh.Position = node.transform.position;
+            node.NodeMesh.Rotation = node.transform.rotation;
+            node.NodeMesh.Scale = new Vector3(node.Size, node.Size, node.Size);
         }
     }
 }

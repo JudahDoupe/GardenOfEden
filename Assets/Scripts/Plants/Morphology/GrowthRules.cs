@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using static PlantDna;
+using Random = UnityEngine.Random;
 
 public class GrowthRule
 {
@@ -110,61 +111,106 @@ public class GrowthRule
 
 public static class GrowthTansformations
 {
-    public static void Grow(this Node node)
+    public static void Grow(this Node node, float rate)
     {
-        node.Size = CalculateGrowth(node.Dna.Size, node.Size, node.Dna.GrowthRate);
-    }
-    public static void GrowInternode(this Node node)
-    {
-        var internode = node.Internode;
-        internode.Length = CalculateGrowth(internode.Dna.Length, internode.Length, node.Dna.GrowthRate);
-        internode.Radius = CalculateGrowth(internode.Dna.Radius, internode.Radius, node.Dna.GrowthRate);
+        node.Size = CalculateGrowth(node.Dna.Size, node.Size, rate);
+        node.InternodeLength = CalculateGrowth(node.Dna.InternodeLength, node.InternodeLength, rate);
+        node.InternodeRadius = CalculateGrowth(node.Dna.InternodeRadius, node.InternodeRadius, rate);
     }
     public static void Level(this Node node, float rate)
     {
         var v = node.transform.rotation.eulerAngles;
         var flat = Quaternion.Euler(0, v.y, v.z);
-        node.transform.rotation = Quaternion.Slerp(node.transform.rotation, flat, node.Dna.GrowthRate * rate);
+        node.transform.rotation = Quaternion.Slerp(node.transform.rotation, flat, rate);
+    }
+    public static void AddNode(this Node node, string type, float pitch, float yaw, float roll)
+    {
+        node.Base.AddNodeAfter(type, pitch, roll, yaw);
     }
     public static void AddNodeAfter(this Node node, string type, float pitch, float yaw, float roll)
     {
-        var newNode = node.AddNodeAfter();
-        newNode.transform.Rotate(pitch, yaw, roll);
+        var newNode = new GameObject("Node").AddComponent<Node>();
+        
+        node.Branches.Add(newNode);
+
+        newNode.CreationDate = EnvironmentApi.GetDate();
+        newNode.LastUpdateDate = newNode.CreationDate;
+        newNode.Plant = node.Plant;
+        newNode.Base = node;
+        newNode.transform.parent = node.transform;
+        newNode.transform.localPosition = new Vector3(0, 0, 0);
+        newNode.transform.localRotation = Quaternion.Euler(pitch + Random.Range(-10, 10), 
+                                                           yaw + Random.Range(-10, 10), 
+                                                           roll + Random.Range(-10, 10));
         newNode.SetType(type);
     }
-    public static void AddAdjacentNode(this Node node, string type, float pitch, float yaw, float roll)
+    public static void AddNodeBefore(this Node node, float pitch, float yaw, float roll)
     {
-        Node newNode = node.Base.AddNodeAfter();
-        newNode.transform.Rotate(pitch, yaw, roll);
-        newNode.SetType(type);
-    }
-    public static void AddNodeBefore(this Node node, string type, float pitch, float yaw, float roll)
-    {
-        var newNode = node.AddNodeBefore();
-        newNode.transform.Rotate(pitch, yaw, roll);
-        newNode.SetType(type);
+        var baseNode = node.Base;
+        var middleNode = new GameObject("Node").AddComponent<Node>();
+
+        baseNode.Branches.Remove(node);
+        baseNode.Branches.Add(middleNode);
+
+        middleNode.CreationDate = EnvironmentApi.GetDate();
+        middleNode.LastUpdateDate = middleNode.CreationDate;
+        middleNode.Plant = node.Plant;
+        middleNode.Base = baseNode;
+        middleNode.Branches.Add(node);
+        middleNode.transform.parent = baseNode.transform;
+        middleNode.transform.position = node.transform.position;
+        middleNode.transform.rotation = node.transform.rotation;
+        middleNode.transform.Rotate(pitch + Random.Range(-10, 10), yaw + Random.Range(-10, 10), roll + Random.Range(-10, 10));
+        middleNode.InternodeLength = node.InternodeLength;
+        middleNode.InternodeRadius = node.InternodeRadius;
+        middleNode.InternodeMesh = node.InternodeMesh ?? InstancedMeshRenderer.AddInstance("Stem");
+        middleNode.Type = "Node";
+        middleNode.gameObject.name = "Node";
+
+        node.Base = middleNode;
+        node.transform.parent = middleNode.transform;
+        node.transform.localPosition = new Vector3(0, 0, 0);
+        node.transform.localRotation = Quaternion.identity;
+        node.InternodeLength = 0; 
+        node.InternodeRadius = 0;
+
+        node.SetType(node.Type);
     }
     public static void SetType(this Node node, string type)
     {
         node.Type = type;
         node.gameObject.name = type;
-        if (node.Base != null && node.Dna.InternodeDna != null && node.Dna.InternodeDna.Length > 0.001f)
+        if (node.NodeMesh != null)
         {
-            node.Internode = Internode.Create(node, node.Base);
+            InstancedMeshRenderer.RemoveInstance(node.NodeMesh);
+            node.NodeMesh = null;
         }
-        if (node.Mesh != null)
+        if (node.InternodeMesh != null)
         {
-            InstancedMeshRenderer.RemoveInstance(node.Mesh);
-            node.Mesh = null;
+            InstancedMeshRenderer.RemoveInstance(node.InternodeMesh);
+            node.InternodeMesh = null;
         }
         if (!string.IsNullOrWhiteSpace(node.Dna.MeshId))
         {
-            node.Mesh = InstancedMeshRenderer.AddInstance(node.Dna.MeshId);
+            node.NodeMesh = InstancedMeshRenderer.AddInstance(node.Dna.MeshId);
+        }
+        if (node.Dna.InternodeLength > 0.001)
+        {
+            node.InternodeMesh = InstancedMeshRenderer.AddInstance("Stem");
         }
     }
     public static void Kill(this Node node)
     {
-        node.Kill();
+        foreach (var branch in node.Branches)
+        {
+            branch.Kill();
+        }
+
+        if (node.Base != null) node.Base.Branches.Remove(node);
+        if (node.NodeMesh != null) InstancedMeshRenderer.RemoveInstance(node.NodeMesh);
+        if (node.InternodeMesh != null) InstancedMeshRenderer.RemoveInstance(node.InternodeMesh);
+
+        UnityEngine.Object.Destroy(node.gameObject);
     }
     public static Node Roll(this Node node, float degrees)
     {
@@ -208,9 +254,5 @@ public static class GrowthConditions
     public static bool IsType(this Node node, string type)
     {
         return node.Type.ToLower() == type.ToLower();
-    }
-    public static bool HasInternode(this Node node)
-    {
-        return node.Internode != null;
     }
 }

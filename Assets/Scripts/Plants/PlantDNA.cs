@@ -14,10 +14,10 @@ public class PlantDna
     public class NodeDna
     {
         public string Type;
+        public string MeshId; 
         public float Size;
-        public float GrowthRate;
-        public string MeshId;
-        public InternodeDna InternodeDna = new InternodeDna();
+        public float InternodeLength;
+        public float InternodeRadius;
 
         [NonSerialized]
         public List<GrowthRule> GrowthRules = new List<GrowthRule>();
@@ -27,13 +27,6 @@ public class PlantDna
         {
             GrowthRules = GrowthRulesDna.Select(x => new GrowthRule(x)).ToList();
         }
-    }
-
-    [Serializable]
-    public class InternodeDna
-    {
-        public float Length;
-        public float Radius;
     }
 
     [Serializable]

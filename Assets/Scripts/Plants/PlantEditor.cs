@@ -63,34 +63,8 @@ public class PlantEditor : Editor
             node.Type = EditorGUILayout.TextField("Node Type", node.Type);
             node.MeshId = EditorGUILayout.TextField("Mesh Id", node.MeshId);
             node.Size = EditorGUILayout.Slider("Size", node.Size, 0.01f, 2f);
-            node.GrowthRate = EditorGUILayout.Slider("Growth Rate", node.GrowthRate, 0.01f, 1f);
-
-            EditorGUILayout.BeginHorizontal();
-
-            if (node.InternodeDna.Length < 0.009f)
-            {
-                if (GUILayout.Button("Add Internode", GUILayout.Width(150)))
-                {
-                    node.InternodeDna.Length = 0.01f;
-                }
-            }
-            else
-            {
-                if (GUILayout.Button("Remove Internode", GUILayout.Width(150)))
-                {
-                    node.InternodeDna.Length = 0;
-                }
-                else
-                {
-                    GUILayout.Space(25);
-                    EditorGUILayout.BeginVertical();
-                    node.InternodeDna.Length = EditorGUILayout.Slider("Length", node.InternodeDna.Length, 0.01f, 2f);
-                    node.InternodeDna.Radius = EditorGUILayout.Slider("Radius", node.InternodeDna.Radius, 0.001f, 1f);
-                    EditorGUILayout.EndVertical();
-                }
-            }
-
-            EditorGUILayout.EndHorizontal();
+            node.InternodeLength = EditorGUILayout.Slider("Internode Length", node.InternodeLength, 0, 2f);
+            node.InternodeRadius = EditorGUILayout.Slider("Internode Radius", node.InternodeRadius, 0.001f, 1f);
 
             RenderGrowthRules(node);
 

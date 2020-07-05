@@ -29,7 +29,7 @@ public class Plant : Node
             node.Update();
         }
 
-        AddNodeAfter().SetType("Bud");
+        this.AddNodeAfter("Bud",0,0,0);
         Root = Root.Create(this);
 
         //DI.LightService.AddLightAbsorber(this, (absorbedLight) => StoredLight += absorbedLight);
