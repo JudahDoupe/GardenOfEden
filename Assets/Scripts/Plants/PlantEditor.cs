@@ -187,7 +187,19 @@ public class PlantEditor : Editor
             var methodNames = methods.Select(x => x.Name).ToList();
             var index = Math.Max(methodNames.IndexOf(operation.Function), 0);
             var method = methods[EditorGUILayout.Popup(index, methodNames.ToArray(), GUILayout.Width(150))];
-            if (GUILayout.Button("Remove", GUILayout.Width(75)))
+            if (GUILayout.Button("v", GUILayout.Width(25)))
+            {
+                var i = Math.Min(operations.IndexOf(operation) + 1, operations.Count - 1);
+                operations.Remove(operation);
+                operations.Insert(i, operation);
+            }
+            if (GUILayout.Button("^", GUILayout.Width(25)))
+            {
+                var i = Math.Max(operations.IndexOf(operation) - 1, 0);
+                operations.Remove(operation);
+                operations.Insert(i, operation);
+            }
+            if (GUILayout.Button("-", GUILayout.Width(25)))
             {
                 operations.Remove(operation);
             }

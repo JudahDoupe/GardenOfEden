@@ -31,22 +31,24 @@ public class Node : MonoBehaviour
     }
     public Node AddNodeBefore()
     {
-        var node = Create(Plant);
-        if (Base != null)
+        var newBase = Create(Plant);
+        var oldBase = Base;
+        if (oldBase != null)
         {
-            Base.Branches.Remove(this);
-            Base.Branches.Add(node);
-            node.transform.parent = Base.transform;
-            node.Base = Base;
+            oldBase.Branches.Remove(this);
+            newBase.Base = oldBase;
+            newBase.transform.parent = oldBase.transform;
+            oldBase.Branches.Add(newBase);
         }
+        Base = newBase;
+        transform.parent = newBase.transform;
+        newBase.Branches.Add(this);
 
-        Base = node;
-        transform.parent = node.transform;
-        node.Branches.Add(this);
-
-        node.transform.localPosition = new Vector3(0, 0, 0);
-        node.transform.localRotation = Quaternion.identity;
-        return node;
+        newBase.transform.position = transform.position;
+        newBase.transform.rotation = transform.rotation;
+        transform.localPosition = new Vector3(0, 0, 0);
+        transform.localRotation = Quaternion.identity;
+        return newBase;
     }
     private Node Create(Plant plant)
     {
