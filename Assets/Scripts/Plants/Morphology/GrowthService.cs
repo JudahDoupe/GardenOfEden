@@ -55,11 +55,7 @@ public class GrowthService : MonoBehaviour
             var missedDays = Mathf.FloorToInt(EnvironmentApi.GetDate()) - Mathf.FloorToInt(plant.lastUpdateDate);
             var timer = new Stopwatch();
             timer.Restart();
-            for(int i = 0; i < missedDays; i++)
-            {
-                plant.Accept(_growthVisitor);
-            }
-            UnityEngine.Debug.Log($"{missedDays} days: {timer.ElapsedMilliseconds}ms");
+            plant.Accept(_growthVisitor);
             plant.Accept(_meshVisitor);
             plant.lastUpdateDate = EnvironmentApi.GetDate();
 
