@@ -1,4 +1,4 @@
-﻿public class MophologyGrowthVisitor : IVisitor
+﻿public class MophologyGrowthVisitor : IPlantVisitor
 {
     public void VisitPlant(Plant plant)
     {

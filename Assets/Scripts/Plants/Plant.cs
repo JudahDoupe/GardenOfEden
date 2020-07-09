@@ -36,7 +36,7 @@ public class Plant : Node
         DI.GrowthService.AddPlant(this);
     }
 
-    public void Accept(IVisitor Visitor)
+    public void Accept(IPlantVisitor Visitor)
     {
         Visitor.VisitPlant(this);
     }

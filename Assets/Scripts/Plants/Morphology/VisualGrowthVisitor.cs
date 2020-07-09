@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class VisualGrowthVisitor : IVisitor
+public class VisualGrowthVisitor : IPlantVisitor
 {
     public float SpeedInSeconds { get; set; }
     public VisualGrowthVisitor(float speedInSeconds)
