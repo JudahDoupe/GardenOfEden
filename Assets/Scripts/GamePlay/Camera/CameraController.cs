@@ -5,8 +5,7 @@ public class CameraController : MonoBehaviour
 {
     public float Speed = 1;
     
-    public ICameraVisitor TransformVisitor { get; set;  }
-    public PostProcessProfile PPProfile { get; private set; }
+    public ICameraVisitor CameraVisitor { get; set;  }
 
     public void Accept(ICameraVisitor visitor)
     {
@@ -15,11 +14,11 @@ public class CameraController : MonoBehaviour
 
     private void Start()
     {
-        PPProfile = transform.GetComponent<PostProcessProfile>();
+        CameraVisitor = new EditorCameraVisitor(GameObject.FindObjectOfType<Plant>(), this);
     }
     
     private void LateUpdate()
     {
-        TransformVisitor.VisitCamera(this);
+        CameraVisitor?.VisitCamera(this);
     }
 }

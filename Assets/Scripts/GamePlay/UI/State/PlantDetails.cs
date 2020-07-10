@@ -10,7 +10,7 @@ namespace UIState
     {
         public override IEnumerable<UnityEngine.Object> Reload()
         {
-            var plant = DI.CameraController.PrimaryFocus.Object?.GetComponent<Plant>();
+            var plant = GameObject.FindObjectOfType<Plant>();
 
             if (plant == null)
             {
