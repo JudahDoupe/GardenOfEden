@@ -1,8 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public static class MaterialExtentions
+public static class MaterialExtensions
 {
     public enum BlendMode
     {

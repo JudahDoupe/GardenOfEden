@@ -9,6 +9,7 @@ public class DI : MonoBehaviour
     public static ReproductionService ReproductionService;
     public static RootService RootService;
     public static GrowthService GrowthService;
+    public static PlantSearchService PlantSearchService;
 
     public static GameService GameService;
 
@@ -24,6 +25,7 @@ public class DI : MonoBehaviour
         ReproductionService = FindObjectOfType<ReproductionService>();
         RootService = FindObjectOfType<RootService>();
         GrowthService = FindObjectOfType<GrowthService>();
+        PlantSearchService = FindObjectOfType<PlantSearchService>();
 
         GameService = FindObjectOfType<GameService>();
 
