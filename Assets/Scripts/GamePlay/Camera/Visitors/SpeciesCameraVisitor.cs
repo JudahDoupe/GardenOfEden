@@ -1,21 +1,23 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
 public class SpeciesCameraVisitor : ICameraVisitor
 {
     private Vector3 _targetPosition;
     private Quaternion _targetRotation;
-    
+
     private Vector3 _center;
     private float _radius;
+
+    private readonly Transform _camera;
     
     public SpeciesCameraVisitor()
     {
-        _targetPosition = Camera.main.transform.position;
+        _camera = Camera.main.transform;
+        _targetPosition = _camera.position;
         var height = _targetPosition.y - DI.LandService.SampleTerrainHeight(_targetPosition);
         _radius = 4 * height;
-        _center = _targetPosition + Camera.main.transform.forward * _radius;
+        _center = _targetPosition + _camera.forward * _radius;
     }
     
     public void VisitCamera(CameraController camera)
@@ -35,8 +37,8 @@ public class SpeciesCameraVisitor : ICameraVisitor
         _targetRotation =  CameraUtils.LookAtBoundsCenter(bounds);
 
         camera.transform.position = Vector3.Lerp(camera.transform.position, _targetPosition, t);
-        camera.transform.position = CameraUtils.ClampAboveGround(camera.transform.position, 5);
-        camera.transform.rotation = Quaternion.Slerp(camera.transform.rotation, _targetRotation, t);
+        camera.transform.position = CameraUtils.ClampAboveGround(_camera.position, 5);
+        camera.transform.rotation = Quaternion.Slerp(_camera.rotation, _targetRotation, t);
 
         Debug.DrawLine(_center, _center + new Vector3(_radius,0,0));
         Debug.DrawLine(_center, _center + new Vector3(-_radius,0,0));
@@ -52,16 +54,15 @@ public class SpeciesCameraVisitor : ICameraVisitor
         _radius -= Input.mouseScrollDelta.y;
         _radius = Mathf.Clamp(_radius, 1, 75);
 
-        if (verticalMovement != 0 || horizontalMovement != 0) 
-        {
-            var transformation = (Camera.main.transform.forward * verticalMovement) + (Camera.main.transform.right * horizontalMovement);
-            transformation *= _radius * Time.deltaTime;
-            var heightOffset = _center.y - DI.LandService.SampleTerrainHeight(_center);
-            _center += transformation;
-            _center.y = DI.LandService.SampleTerrainHeight(_center) + heightOffset;
-            return true;
-        }
-        return false;
+        if (Math.Abs(verticalMovement) < float.Epsilon && Math.Abs(horizontalMovement) < float.Epsilon) 
+            return false;
+        
+        var transformation = (_camera.forward * verticalMovement) + (_camera.right * horizontalMovement);
+        transformation *= _radius * Time.deltaTime;
+        var heightOffset = _center.y - DI.LandService.SampleTerrainHeight(_center);
+        _center += transformation;
+        _center.y = DI.LandService.SampleTerrainHeight(_center) + heightOffset;
+        return true;
     }
 
     private Bounds GetSpeciesBounds()
