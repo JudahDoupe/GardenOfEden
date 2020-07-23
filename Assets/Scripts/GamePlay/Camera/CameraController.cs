@@ -14,21 +14,9 @@ public class CameraController : MonoBehaviour
 
     private void Start()
     {
-        CameraVisitor = new SpeciesCameraVisitor();
+        CameraVisitor = new EcosystemCameraVisitor(FindObjectOfType<Plant>());
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            CameraVisitor = new EditorCameraVisitor(GameObject.FindObjectOfType<Plant>());
-        }
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            CameraVisitor = new SpeciesCameraVisitor();
-        }
-    }
-    
     private void LateUpdate()
     {
         CameraVisitor?.VisitCamera(this);

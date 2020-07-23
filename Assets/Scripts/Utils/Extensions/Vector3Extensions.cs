@@ -13,4 +13,12 @@ public static class Vector3Extensions
     {
         return new[] {t.x, t.y, t.z};
     }
+    
+    public static Vector3 ClampMagnitude(this Vector3 v, float max, float min)
+    {
+        double sm = v.sqrMagnitude;
+        if(sm > (double)max * (double)max) return v.normalized * max;
+        if(sm < (double)min * (double)min) return v.normalized * min;
+        return v;
+    }
 }
