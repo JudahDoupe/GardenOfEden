@@ -1,4 +1,5 @@
 ﻿using System;
+using UIState;
 using UnityEngine;
 
 public class EcosystemCameraVisitor : ICameraVisitor
@@ -17,11 +18,14 @@ public class EcosystemCameraVisitor : ICameraVisitor
     private float _distance;
     private Vector3 _targetPostion;
     private Quaternion _targetRotation;
+
+    private PlantInspectionUi _plantUi;
     
     public EcosystemCameraVisitor(Plant focusedPlant)
     {
         _camera = Camera.main.transform;
-        _focusedPlant = focusedPlant;
+        _plantUi = GameObject.FindObjectOfType<PlantInspectionUi>();
+        FocusOnPlant(focusedPlant);
         _center = _focusedPlant.transform.position;
         _direction = (_camera.position - _center).normalized;
         _distance = Vector3.Distance(_camera.position, _center);
@@ -34,7 +38,7 @@ public class EcosystemCameraVisitor : ICameraVisitor
         {
             if (_focusedPlant == null)
             {
-                _focusedPlant = DI.PlantSearchService.GetClosestPlant(_center);
+                FocusOnPlant(DI.PlantSearchService.GetClosestPlant(_center));
             }
             if (_focusedPlant != null)
             {
@@ -58,13 +62,16 @@ public class EcosystemCameraVisitor : ICameraVisitor
     }
     private bool Move()
     {
+        if (_plantUi.IsActive) 
+            return false;
+        
         var verticalMovement = Input.GetAxis("Vertical");
         var horizontalMovement = Input.GetAxis("Horizontal");
 
         if (Math.Abs(verticalMovement) < float.Epsilon && Math.Abs(horizontalMovement) < float.Epsilon) 
             return false;
         
-        _focusedPlant = null;
+        FocusOnPlant(null);
         var movementVector = _camera.forward * verticalMovement + _camera.right * horizontalMovement;
         movementVector *= _distance;
         movementVector *= SearchSpeedMultiplier;
@@ -72,5 +79,11 @@ public class EcosystemCameraVisitor : ICameraVisitor
         _center = CameraUtils.ClampAboveGround(_center);
 
         return true;
+    }
+
+    private void FocusOnPlant(Plant plant)
+    {
+        _plantUi.InspectPlant(plant);
+        _focusedPlant = plant;
     }
 }

@@ -1,0 +1,47 @@
+.Title {
+    -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf');
+    font-size: 21px;
+    color: rgb(254, 250, 224);
+}
+
+.Text {
+    -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf');
+    font-size: 12px;
+    color: rgb(254, 250, 224);
+}
+
+.RuleButton {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    background-color: rgb(254, 93, 38);
+    border-color: rgb(254, 93, 38);
+    color: rgb(254, 250, 224);
+    -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf');
+    font-size: 13px;
+    border-radius: 50%;
+}
+
+.RuleButton:hover {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    background-color: rgb(223, 57, 1);
+    border-color: rgb(223, 57, 1);
+    color: rgb(254, 250, 224);
+    -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf');
+    font-size: 13px;
+    border-radius: 50%;
+}
+
+.RuleButton:active {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    background-color: rgb(183, 46, 1);
+    border-color: rgb(183, 46, 1);
+    color: rgb(254, 250, 224);
+    -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf');
+    font-size: 13px;
+    border-radius: 50%;
+}

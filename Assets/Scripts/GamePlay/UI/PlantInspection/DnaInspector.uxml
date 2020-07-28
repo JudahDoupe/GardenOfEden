@@ -1,0 +1,26 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement name="Container" style="align-items: center;">
+        <Style src="DnaInspector.uss" />
+        <ui:VisualElement name="HeaderContainer" style="width: 250px; background-color: rgb(126, 188, 137); border-top-left-radius: 5px; border-bottom-left-radius: 0; border-top-right-radius: 5px; border-bottom-right-radius: 0; padding-top: 5px;">
+            <ui:Label text="Species Name" name="SpeciesName" class="Title" style="-unity-text-align: upper-center;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="CurrentRulesContainer" style="border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: rgb(126, 188, 137); flex-direction: row; padding-left: 10px; padding-right: 10px; padding-top: 5px; padding-bottom: 5px;">
+            <ui:Button text="Button" class="RuleButton" />
+            <ui:Button text="Button" class="RuleButton" />
+            <ui:Button text="Button" class="RuleButton" />
+            <ui:Button text="Button" class="RuleButton" />
+            <ui:Button text="Button" class="RuleButton" />
+        </ui:VisualElement>
+        <ui:VisualElement name="AdditionalInfoContainer" style="background-color: rgba(193, 219, 179, 255); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; align-items: center;">
+            <ui:VisualElement name="AvailableRulesContainer" style="flex-direction: row; align-items: center; justify-content: center;">
+                <ui:Button text="Button" class="RuleButton" />
+                <ui:Button text="Button" class="RuleButton" />
+                <ui:Button text="Button" class="RuleButton" />
+            </ui:VisualElement>
+            <ui:VisualElement name="RuleDescriptionContainer" style="max-width: 300px; margin-top: 5px; margin-left: 5px; margin-right: 5px; margin-bottom: 5px;">
+                <ui:Label text="Advantagious Branching" name="Title" class="Title" style="color: rgba(93, 58, 9, 255); -unity-font-style: normal;" />
+                <ui:Label text="Advantagious branches fall off when their leaves are not producing enough energy." name="Description" class="Text" style="white-space: normal; color: rgba(93, 58, 9, 255);" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
