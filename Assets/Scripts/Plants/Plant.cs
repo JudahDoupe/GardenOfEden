@@ -3,6 +3,7 @@
     public float lastUpdateDate;
     public int PlantId;
     public PlantDna PlantDna;
+    public GrowthRuleSet GrowthRules;
 
     public Root Root { get; set; }
 
@@ -19,11 +20,7 @@
         lastUpdateDate = CreationDate;
         Plant = this;
         Type = "Plant";
-        
-        foreach (var node in PlantDna.Nodes)
-        {
-            node.Update();
-        }
+        GrowthRules = new GrowthRuleSet(PlantDna);
 
         this.AddNodeAfter("Bud",0,0,0);
         Root = Root.Create(this);

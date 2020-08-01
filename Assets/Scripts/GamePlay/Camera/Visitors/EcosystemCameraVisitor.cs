@@ -24,7 +24,7 @@ public class EcosystemCameraVisitor : ICameraVisitor
     public EcosystemCameraVisitor(Plant focusedPlant)
     {
         _camera = Camera.main.transform;
-        _plantUi = GameObject.FindObjectOfType<PlantInspectionUi>();
+        //_plantUi = GameObject.FindObjectOfType<PlantInspectionUi>();
         FocusOnPlant(focusedPlant);
         _center = _focusedPlant.transform.position;
         _direction = (_camera.position - _center).normalized;
@@ -62,8 +62,10 @@ public class EcosystemCameraVisitor : ICameraVisitor
     }
     private bool Move()
     {
+        /*
         if (_plantUi.IsActive) 
             return false;
+        */
         
         var verticalMovement = Input.GetAxis("Vertical");
         var horizontalMovement = Input.GetAxis("Horizontal");
@@ -83,7 +85,7 @@ public class EcosystemCameraVisitor : ICameraVisitor
 
     private void FocusOnPlant(Plant plant)
     {
-        _plantUi.InspectPlant(plant);
+        //_plantUi.InspectPlant(plant);
         _focusedPlant = plant;
     }
 }

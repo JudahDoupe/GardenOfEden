@@ -6,7 +6,7 @@
 
 .Text {
     -unity-font: url('/Assets/Scripts/GamePlay/UI/Fonts/caviar_dreams/CaviarDreams_Bold.ttf');
-    font-size: 12px;
+    font-size: 14px;
     color: rgb(254, 250, 224);
 }
 
@@ -45,3 +45,4 @@
     font-size: 13px;
     border-radius: 50%;
 }
+

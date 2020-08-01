@@ -12,7 +12,7 @@
             VisitNode(branch);
         }
 
-        foreach(var rule in node.Dna.GrowthRules)
+        foreach(var rule in node.Plant.GrowthRules.GetRulesForNode(node.Type))
         {
             if (rule.ShouldApplyTo(node))
                 rule.ApplyTo(node);

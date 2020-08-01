@@ -111,7 +111,7 @@ public class PlantEditor : Editor
             Foldouts[$"T{id}"] = EditorGUILayout.Foldout(GetFoldout($"T{id}"), "Transformations");
             if (GetFoldout($"T{id}"))
             {
-                var methods = typeof(GrowthTansformations).GetMethods(BindingFlags.Static | BindingFlags.Public).ToList();
+                var methods = typeof(GrowthTransformations).GetMethods(BindingFlags.Static | BindingFlags.Public).ToList();
                 RenderOperationGroup(growthRule.Transformations, methods, "Transformation");
             }
             HorizontalLine();
@@ -150,7 +150,7 @@ public class PlantEditor : Editor
         GUILayout.Space(10);
     }
 
-    private void RenderOperationGroup(List<PlantDna.GrowthRuleDna.Method> operations, List<MethodInfo> methods, string operationType)
+    private void RenderOperationGroup(List<PlantDna.Method> operations, List<MethodInfo> methods, string operationType)
     {
         foreach (var operation in operations)
         {
@@ -180,14 +180,14 @@ public class PlantEditor : Editor
             if (operation.Function != method.Name)
             {
                 operation.Function = method.Name;
-                operation.Parameters = new List<PlantDna.GrowthRuleDna.Method.Parameter>();
+                operation.Parameters = new List<PlantDna.Method.Parameter>();
                 var parameters = method.GetParameters().ToList();
                 parameters.Remove(parameters.First());
                 foreach (var param in parameters)
                 {
                     if (param.ParameterType != typeof(Node))
                     {
-                        operation.Parameters.Add(new PlantDna.GrowthRuleDna.Method.Parameter
+                        operation.Parameters.Add(new PlantDna.Method.Parameter
                         {
                             Name = param.Name,
                             Value = "",
@@ -212,7 +212,7 @@ public class PlantEditor : Editor
         
         if (GUILayout.Button("Add " + operationType, GUILayout.Width(230)))
         {
-            operations.Add(new PlantDna.GrowthRuleDna.Method
+            operations.Add(new PlantDna.Method
             {
                 Function = "Function Name"
             });

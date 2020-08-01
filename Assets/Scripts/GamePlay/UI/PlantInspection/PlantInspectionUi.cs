@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.UIElements.Runtime;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UIState
@@ -8,9 +9,11 @@ namespace UIState
     {
         public bool IsActive { get; private set; }
         private Plant _inspectedPlant;
+        private VisualElement _root;
         
         public override IEnumerable<UnityEngine.Object> Reload()
         {
+            _root = GetComponent<PanelRenderer>().visualTree;
             InspectPlant(_inspectedPlant);
             SetInactive();
             return null;
@@ -27,9 +30,8 @@ namespace UIState
             {
                 //TODO: configure UI
             }
-            var root = GetComponent<PanelRenderer>().visualTree;
-            root.Q<Button>(name: "close-button").clickable.clicked += CloseMenu;
-            root.Q<Label>(name: "species-name").text = _inspectedPlant.PlantDna.Name;
+            //root.Q<Button>(name: "close-button").clickable.clicked += CloseMenu;
+            _root.Q<Label>(name: "SpeciesName").text = _inspectedPlant.PlantDna.Name;
         }
 
         private void SetActive()
