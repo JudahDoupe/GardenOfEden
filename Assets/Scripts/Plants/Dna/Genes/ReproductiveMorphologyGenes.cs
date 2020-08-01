@@ -1,9 +1,9 @@
-﻿public static class ReproductionMorphologyGene
+﻿public static class ReproductiveMorphologyGenes
 {
     public static void Flower (GrowthRuleSet rules)
     {
-        rules.AddRule("ReproductiveBud", new GrowthRule()
-            .WithTransformation(x => x.SetType("Flower"))
+        rules.AddRule(NodeType.ReproductiveBud, new GrowthRule()
+            .WithTransformation(x => x.SetType(NodeType.Flower))
         );
     }
     
@@ -12,12 +12,12 @@
         for (int r = 0; r < flowersPerRing; r++)
         {
             var angle = (360f / flowersPerRing) * r;
-            rules.AddRule("ReproductiveBud", new GrowthRule()
-                .WithTransformation(x => x.AddNode("Flower", 90, 0, angle))
+            rules.AddRule(NodeType.ReproductiveBud, new GrowthRule()
+                .WithTransformation(x => x.AddNode(NodeType.Flower, 90, 0, angle))
             );
         }
-        rules.AddRule("ReproductiveBud", new GrowthRule()
-            .WithTransformation(x => x.SetType("Node"))
+        rules.AddRule(NodeType.ReproductiveBud, new GrowthRule()
+            .WithTransformation(x => x.SetType(NodeType.Node))
         );
     }
     
@@ -28,16 +28,16 @@
             for (int r = 0; r < flowersPerRing; r++)
             {
                 var angle = (360f / flowersPerRing) * r;
-                rules.AddRule("ReproductiveBud", new GrowthRule()
-                    .WithTransformation(x => x.AddNode("Flower", 90, 0, angle))
+                rules.AddRule(NodeType.ReproductiveBud, new GrowthRule()
+                    .WithTransformation(x => x.AddNode(NodeType.Flower, 90, 0, angle))
                 );
             }
-            rules.AddRule("ReproductiveBud", new GrowthRule()
+            rules.AddRule(NodeType.ReproductiveBud, new GrowthRule()
                 .WithTransformation(x => x.AddNodeBefore(0,0,0))
             );
         }
-        rules.AddRule("ReproductiveBud", new GrowthRule()
-            .WithTransformation(x => x.SetType("Flower"))
+        rules.AddRule(NodeType.ReproductiveBud, new GrowthRule()
+            .WithTransformation(x => x.SetType(NodeType.Flower))
         );
     }
 }
