@@ -1,8 +1,8 @@
 ﻿public static class ReproductiveTriggerGenes
 {
-    public static void Age (GrowthRuleSet rules, float age)
+    public static void Age (Plant plant, float age)
     {
-        rules.AddRule(NodeType.VegatativeBud, new GrowthRule()
+        plant.GrowthRules.AddRule(NodeType.VegatativeBud, new GrowthRule()
             .WithCondition(x => x.Age > age)
             .WithTransformation(x => x.SetType(NodeType.ReproductiveBud))
         );

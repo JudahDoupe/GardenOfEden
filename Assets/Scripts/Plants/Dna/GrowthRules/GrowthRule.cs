@@ -21,10 +21,10 @@ public class GrowthRule
     {
         try
         {
-            var method = typeof(GrowthTransformations).GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == operation.Function);
+            var method = typeof(GrowthTransformations).GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == operation.Name);
             if (method == null)
             {
-                throw new Exception($"Growth Modification not recognized: { operation.Function}");
+                throw new Exception($"Growth Modification not recognized: { operation.Name}");
             }
 
             var parameters = GetParamters(method, operation);
@@ -46,14 +46,14 @@ public class GrowthRule
     {
         try
         {
-            var method = typeof(GrowthConditions).GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == operation.Function);
+            var method = typeof(GrowthConditions).GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == operation.Name);
             if (method == null)
             {
-                throw new Exception($"Growth Condition not recognized: { operation.Function}");
+                throw new Exception($"Growth Condition not recognized: { operation.Name}");
             }
             if (method.ReturnType != typeof(bool))
             {
-                throw new Exception($"Growth Condition does not return a bool: { operation.Function}");
+                throw new Exception($"Growth Condition does not return a bool: { operation.Name}");
             }
 
             var parameters = GetParamters(method, operation);

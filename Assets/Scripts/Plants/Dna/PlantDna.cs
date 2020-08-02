@@ -34,13 +34,13 @@ public class PlantDna
     public class GeneDna
     {
         public string Category;
-        public Method Strategy;
+        public Method Method;
     }
     
     [Serializable]
     public class Method
     {
-        public string Function;
+        public string Name;
         public List<Parameter> Parameters = new List<Parameter>();
 
         [Serializable]

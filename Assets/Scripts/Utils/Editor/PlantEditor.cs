@@ -158,7 +158,7 @@ public class PlantEditor : Editor
 
             GUILayout.BeginHorizontal();
             var methodNames = methods.Select(x => x.Name).ToList();
-            var index = Math.Max(methodNames.IndexOf(operation.Function), 0);
+            var index = Math.Max(methodNames.IndexOf(operation.Name), 0);
             var method = methods[EditorGUILayout.Popup(index, methodNames.ToArray(), GUILayout.Width(150))];
             if (GUILayout.Button("v", GUILayout.Width(25)))
             {
@@ -177,9 +177,9 @@ public class PlantEditor : Editor
                 operations.Remove(operation);
             }
 
-            if (operation.Function != method.Name)
+            if (operation.Name != method.Name)
             {
-                operation.Function = method.Name;
+                operation.Name = method.Name;
                 operation.Parameters = new List<PlantDna.Method.Parameter>();
                 var parameters = method.GetParameters().ToList();
                 parameters.Remove(parameters.First());
@@ -214,7 +214,7 @@ public class PlantEditor : Editor
         {
             operations.Add(new PlantDna.Method
             {
-                Function = "Function Name"
+                Name = "Function Name"
             });
         }
     }
