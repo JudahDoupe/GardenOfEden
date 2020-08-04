@@ -1,4 +1,4 @@
-﻿public static class VegatativeMorphologyGenes
+﻿public static class VegatationGenes
 {
     public static void Straight (Plant plant)
     {

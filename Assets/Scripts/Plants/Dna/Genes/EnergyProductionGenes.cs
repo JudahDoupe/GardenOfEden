@@ -1,4 +1,4 @@
-﻿public static class FoliageGenes
+﻿public static class EnergyProductionGenes
 {
     public static void Basic (Plant plant, float growthRate)
     {

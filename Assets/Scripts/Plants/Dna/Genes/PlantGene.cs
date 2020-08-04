@@ -7,8 +7,9 @@ using static PlantDna;
 
 public class PlantGene
 {
-    public string Category;
+    public PlantGeneCategory Category;
     public string Name;
+    public GeneDna Dna;
 
     private MethodInfo Method;
     private object[] Parameters;
@@ -17,7 +18,8 @@ public class PlantGene
     {
         try
         {
-            Category = dna.Category;
+            Dna = dna;
+            Category = (PlantGeneCategory)Enum.Parse(typeof(PlantGeneCategory), dna.Category);
             Name = dna.Method.Name;
             Method = typeof(GrowthConditions).GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == dna.Method.Name);
             Parameters = GetParamters(Method, dna.Method);
