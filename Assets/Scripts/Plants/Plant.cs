@@ -2,8 +2,8 @@
 {
     public float lastUpdateDate;
     public int PlantId;
-    public PlantDna PlantDna;
-    public GrowthRuleSet GrowthRules;
+    public PlantDna PlantDna = new PlantDna();
+    public GrowthRuleSet GrowthRules = new GrowthRuleSet();
 
     public Root Root { get; set; }
 
@@ -20,9 +20,12 @@
         lastUpdateDate = CreationDate;
         Plant = this;
         Type = "Plant";
-        GrowthRules = new GrowthRuleSet(PlantDna);
+        foreach (var gene in PlantDna.Genes)
+        {
+            new PlantGene(gene).Express(this);
+        }
 
-        this.AddNodeAfter("Bud",0,0,0);
+        this.AddNodeAfter(NodeType.VegatativeBud,0,0,0);
         Root = Root.Create(this);
 
         //DI.LightService.AddLightAbsorber(this, (absorbedLight) => StoredLight += absorbedLight);

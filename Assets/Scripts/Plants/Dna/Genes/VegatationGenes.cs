@@ -30,7 +30,7 @@
         );
     }
 
-    public static void Ladder(Plant plant, int steps)
+    public static void Ladder(Plant plant, int steps = 7)
     {
         for(var i = 0; i < steps; i++)
         {

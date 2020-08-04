@@ -1,6 +1,6 @@
 ﻿public static class ReproductionGenes
 {
-    public static void Flower (Plant plant, int daysToFlower)
+    public static void Flower (Plant plant, int daysToFlower = 10)
     {
         plant.GrowthRules.AddRule(NodeType.VegatativeBud, new GrowthRule()
             .WithCondition(x => x.Age > daysToFlower)
@@ -12,7 +12,7 @@
         );
     }
     
-    public static void RingFlower (Plant plant, int flowersPerRing, int daysToFlower)
+    public static void RingFlower (Plant plant, int flowersPerRing = 5, int daysToFlower = 10)
     {
         plant.GrowthRules.AddRule(NodeType.VegatativeBud, new GrowthRule()
             .WithCondition(x => x.Age > daysToFlower)
@@ -31,7 +31,7 @@
         );
     }
     
-    public static void TallFlower (Plant plant, int numRings, int flowersPerRing, int daysToFlower)
+    public static void TallFlower (Plant plant, int numRings = 5, int flowersPerRing = 3, int daysToFlower = 10)
     {
         plant.GrowthRules.AddRule(NodeType.VegatativeBud, new GrowthRule()
             .WithCondition(x => x.Age > daysToFlower)

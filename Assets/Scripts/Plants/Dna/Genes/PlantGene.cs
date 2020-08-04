@@ -21,7 +21,7 @@ public class PlantGene
             Dna = dna;
             Category = (PlantGeneCategory)Enum.Parse(typeof(PlantGeneCategory), dna.Category);
             Name = dna.Method.Name;
-            Method = typeof(GrowthConditions).GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == dna.Method.Name);
+            Method = Category.GetLibrary().GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == dna.Method.Name);
             Parameters = GetParamters(Method, dna.Method);
             if (Method == null)
             {

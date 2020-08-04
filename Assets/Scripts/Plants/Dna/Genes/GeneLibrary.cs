@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using static PlantDna;
 
 public static class GeneLibrary
@@ -20,14 +21,14 @@ public static class GeneLibrary
     
     public static void LoadGenes()
     {
-        LoadGeneCategory(PlantGeneCategory.Vegatation, typeof(VegatationGenes));
-        LoadGeneCategory(PlantGeneCategory.Reproduction, typeof(ReproductionGenes));
-        LoadGeneCategory(PlantGeneCategory.EnergyProduction, typeof(EnergyProductionGenes));
+        LoadGeneCategory(PlantGeneCategory.Vegatation);
+        LoadGeneCategory(PlantGeneCategory.Reproduction);
+        LoadGeneCategory(PlantGeneCategory.EnergyProduction);
     }
 
-    private static void LoadGeneCategory(PlantGeneCategory category, Type libraryClass)
+    private static void LoadGeneCategory(PlantGeneCategory category)
     {
-        var vegatationMethods = libraryClass.GetMethods(BindingFlags.Static | BindingFlags.Public);
+        var vegatationMethods = category.GetLibrary().GetMethods(BindingFlags.Static | BindingFlags.Public);
         var geneList = vegatationMethods.Select(x =>
         {
             return new GeneDna
@@ -55,4 +56,22 @@ public enum PlantGeneCategory
     Vegatation,
     Reproduction,
     EnergyProduction,
+}
+
+public static class PlantGeneCategoryExtentions
+{
+    public static Type GetLibrary(this PlantGeneCategory category)
+    {
+        switch (category)
+        {
+            case PlantGeneCategory.Vegatation:
+                return typeof(VegatationGenes);
+            case PlantGeneCategory.Reproduction:
+                return typeof(ReproductionGenes);
+            case PlantGeneCategory.EnergyProduction:
+                return typeof(EnergyProductionGenes);
+            default:
+                return typeof(VegatationGenes);
+        }
+    }
 }
