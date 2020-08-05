@@ -25,7 +25,7 @@
             new PlantGene(gene).Express(this);
         }
 
-        this.AddNodeAfter(NodeType.VegatativeBud,0,0,0);
+        this.AddNodeAfter(NodeType.VegatativeBud);
         Root = Root.Create(this);
 
         //DI.LightService.AddLightAbsorber(this, (absorbedLight) => StoredLight += absorbedLight);

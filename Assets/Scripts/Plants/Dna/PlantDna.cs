@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 [Serializable]
 public class PlantDna
@@ -12,7 +13,12 @@ public class PlantDna
         new GeneDna
         {
             Category = PlantGeneCategory.Vegatation.ToString(),
-            Method = new Method { Name = "Straight" }
+            Method = new Method { 
+                Name = "Straight",
+                Parameters = new List<Method.Parameter> {
+                    new Method.Parameter {Name = "growthRate", Value = "0.3" }
+                }
+            }
         },
         new GeneDna
         {
@@ -20,7 +26,8 @@ public class PlantDna
             Method = new Method { 
                 Name = "Flower", 
                 Parameters = new List<Method.Parameter> {
-                    new Method.Parameter {Name = "daysToFlower", Value = "10" }
+                    new Method.Parameter {Name = "daysToFlower", Value = "10" },
+                    new Method.Parameter {Name = "growthRate", Value = "0.1" }
                 } 
             }
         },
@@ -35,43 +42,21 @@ public class PlantDna
             }
         },
     };
-    public List<NodeDna> Nodes = new List<NodeDna>()
+    public List<NodeDna> Nodes = new List<NodeDna>();
+
+    public NodeDna GetOrAddNode(string type)
     {
-        new NodeDna
+        var node = Nodes.FirstOrDefault(x => x.Type == type);
+        if (node == null)
         {
-            Type = NodeType.VegatativeBud,
-        },
-        new NodeDna
-        {
-            Type = NodeType.ReproductiveBud,
-        },
-        new NodeDna
-        {
-            Type = NodeType.LeafBud,
-        },
-        new NodeDna
-        {
-            Type = NodeType.Node,
-            InternodeLength = 0.3f,
-            InternodeRadius = 0.025f,
-        },
-        new NodeDna
-        {
-            Type = NodeType.Leaf,
-            MeshId = "Leaf",
-            Size = 0.3f,
-            InternodeLength = 0.1f,
-            InternodeRadius = 0.015f,
-        },
-        new NodeDna
-        {
-            Type = NodeType.Flower,
-            MeshId = "Flower",
-            Size = 0.2f,
-            InternodeLength = 0.2f,
-            InternodeRadius = 0.015f,
-        },
-    };
+            node = new NodeDna
+            {
+                Type = type
+            };
+            Nodes.Add(node);
+        }
+        return node;
+    }
 
     [Serializable]
     public class NodeDna

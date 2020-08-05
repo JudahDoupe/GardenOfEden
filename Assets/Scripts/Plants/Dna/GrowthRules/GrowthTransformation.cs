@@ -2,23 +2,25 @@
 
 public static class GrowthTransformations
 {
-    public static void Grow(this Node node, float rate)
+    public static Node Grow(this Node node, float rate)
     {
         node.Size = CalculateGrowth(node.Dna.Size, node.Size, rate);
         node.InternodeLength = CalculateGrowth(node.Dna.InternodeLength, node.InternodeLength, rate);
         node.InternodeRadius = CalculateGrowth(node.Dna.InternodeRadius, node.InternodeRadius, rate);
+        return node;
     }
-    public static void Level(this Node node, float rate)
+    public static Node Level(this Node node, float rate)
     {
         var v = node.transform.rotation.eulerAngles;
         var flat = Quaternion.Euler(0, v.y, v.z);
         node.transform.rotation = Quaternion.Slerp(node.transform.rotation, flat, rate);
+        return node;
     }
-    public static void AddNode(this Node node, string type, float pitch, float yaw, float roll)
+    public static Node AddNode(this Node node, string type)
     {
-        node.Base.AddNodeAfter(type, pitch, roll, yaw);
+        return node.Base.AddNodeAfter(type);
     }
-    public static void AddNodeAfter(this Node node, string type, float pitch, float yaw, float roll)
+    public static Node AddNodeAfter(this Node node, string type)
     {
         var newNode = new GameObject("Node").AddComponent<Node>();
         
@@ -30,15 +32,15 @@ public static class GrowthTransformations
         newNode.Base = node;
         newNode.transform.parent = node.transform;
         newNode.transform.localPosition = new Vector3(0, 0, 0);
-        newNode.transform.localRotation = Quaternion.Euler(pitch + Random.Range(-10, 10), 
-                                                           yaw + Random.Range(-10, 10), 
-                                                           roll + Random.Range(-10, 10));
+        newNode.transform.localRotation = Quaternion.identity;
         newNode.SetType(type);
+
+        return newNode;
     }
-    public static void AddNodeBefore(this Node node, float pitch, float yaw, float roll)
+    public static Node AddNodeBefore(this Node node, string type)
     {
         var baseNode = node.Base;
-        var middleNode = new GameObject("Node").AddComponent<Node>();
+        var middleNode = new GameObject(type).AddComponent<Node>();
 
         baseNode.Branches.Remove(node);
         baseNode.Branches.Add(middleNode);
@@ -51,12 +53,10 @@ public static class GrowthTransformations
         middleNode.transform.parent = baseNode.transform;
         middleNode.transform.position = node.transform.position;
         middleNode.transform.rotation = node.transform.rotation;
-        middleNode.transform.Rotate(pitch + Random.Range(-10, 10), yaw + Random.Range(-10, 10), roll + Random.Range(-10, 10));
         middleNode.InternodeLength = node.InternodeLength;
         middleNode.InternodeRadius = node.InternodeRadius;
         middleNode.InternodeMesh = node.InternodeMesh ?? InstancedMeshRenderer.AddInstance("Stem");
-        middleNode.Type = "Node";
-        middleNode.gameObject.name = "Node";
+        middleNode.Type = type;
 
         node.Base = middleNode;
         node.transform.parent = middleNode.transform;
@@ -66,8 +66,10 @@ public static class GrowthTransformations
         node.InternodeRadius = 0;
 
         node.SetType(node.Type);
+
+        return middleNode;
     }
-    public static void SetType(this Node node, string type)
+    public static Node SetType(this Node node, string type)
     {
         node.Type = type;
         node.gameObject.name = type;
@@ -89,6 +91,7 @@ public static class GrowthTransformations
         {
             node.InternodeMesh = InstancedMeshRenderer.AddInstance("Stem");
         }
+        return node;
     }
     public static void Kill(this Node node)
     {
@@ -105,16 +108,19 @@ public static class GrowthTransformations
     }
     public static Node Roll(this Node node, float degrees)
     {
+        degrees += Random.Range(-10, 10);
         node.transform.Rotate(new Vector3(0, 0, degrees), Space.Self);
         return node; 
     }
     public static Node Pitch(this Node node, float degrees)
     {
+        degrees += Random.Range(-10, 10);
         node.transform.Rotate(new Vector3(degrees, 0, 0), Space.Self);
         return node;
     }
     public static Node Yaw(this Node node, float degrees)
     {
+        degrees += Random.Range(-10, 10);
         node.transform.Rotate(new Vector3(0, degrees, 0), Space.Self);
         return node;
     }
