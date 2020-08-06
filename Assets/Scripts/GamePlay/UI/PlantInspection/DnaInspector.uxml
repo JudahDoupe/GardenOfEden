@@ -1,26 +1,19 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
-    <ui:VisualElement name="Container" style="align-items: center;">
+    <ui:VisualElement name="Container" style="align-items: center; margin-left: 25px; margin-right: 25px; margin-top: 25px; margin-bottom: 25px; justify-content: center;">
         <Style src="DnaInspector.uss" />
-        <ui:VisualElement name="HeaderContainer" style="width: 250px; background-color: rgb(126, 188, 137); border-top-left-radius: 5px; border-bottom-left-radius: 0; border-top-right-radius: 5px; border-bottom-right-radius: 0; padding-top: 5px;">
+        <ui:VisualElement name="HeaderContainer" class="container-background" style="width: 250px;">
             <ui:Label text="Species Name" name="SpeciesName" class="Title" style="-unity-text-align: upper-center;" />
         </ui:VisualElement>
-        <ui:VisualElement name="CurrentRulesContainer" style="border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: rgb(126, 188, 137); flex-direction: row; padding-left: 10px; padding-right: 10px; padding-top: 5px; padding-bottom: 5px;">
-            <ui:Button text="Button" class="RuleButton" />
-            <ui:Button text="Button" class="RuleButton" />
-            <ui:Button text="Button" class="RuleButton" />
-            <ui:Button text="Button" class="RuleButton" />
-            <ui:Button text="Button" class="RuleButton" />
+    </ui:VisualElement>
+    <ui:VisualElement name="GeneContainer" style="flex-direction: row; justify-content: center; align-items: center;">
+        <Style src="DnaInspector.uss" />
+        <ui:VisualElement name="CategoryContainer" class="container-background" style="margin-left: 25px; margin-right: 25px; margin-top: 25px; margin-bottom: 25px; justify-content: center; align-items: center; flex-grow: 0;">
+            <ui:Button text="Vegatation" name="VegatationButton" class="RuleButton" />
+            <ui:Button text="Reproduction" name="ReproductionButton" class="RuleButton" />
+            <ui:Button text="Energy Production" name="EnergyProductionButton" class="RuleButton" />
         </ui:VisualElement>
-        <ui:VisualElement name="AdditionalInfoContainer" style="background-color: rgb(193, 219, 179); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; align-items: center;">
-            <ui:VisualElement name="AvailableRulesContainer" style="flex-direction: row; align-items: center; justify-content: center;">
-                <ui:Button text="Button" class="RuleButton" />
-                <ui:Button text="Button" class="RuleButton" />
-                <ui:Button text="Button" class="RuleButton" />
-            </ui:VisualElement>
-            <ui:VisualElement name="RuleDescriptionContainer" style="max-width: 300px; margin-top: 5px; margin-left: 5px; margin-right: 5px; margin-bottom: 5px;">
-                <ui:Label text="Advantagious Branching" name="Title" class="Title" style="color: rgb(93, 58, 9); -unity-font-style: normal;" />
-                <ui:Label text="Advantagious branches fall off when their leaves are not producing enough energy." name="Description" class="Text" style="white-space: normal; color: rgb(93, 58, 9);" />
-            </ui:VisualElement>
+        <ui:VisualElement name="GeneListContainer" class="container-background" style="margin-left: 25px; margin-right: 25px; margin-top: 25px; margin-bottom: 25px;">
+            <ui:ListView focusable="True" name="GeneList" style="width: 250px; height: auto; max-height: 400px; min-height: 50px;" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

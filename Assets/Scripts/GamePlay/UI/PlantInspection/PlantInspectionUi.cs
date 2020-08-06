@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.UIElements.Runtime;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -7,46 +9,55 @@ namespace UIState
 {
     public class PlantInspectionUi : UiState
     {
-        public bool IsActive { get; private set; }
         private Plant _inspectedPlant;
         private VisualElement _root;
-        
+
         public override IEnumerable<UnityEngine.Object> Reload()
         {
             _root = GetComponent<PanelRenderer>().visualTree;
-            InspectPlant(_inspectedPlant);
-            SetInactive();
+
+            _root.Q<Button>(name: "VegatationButton").clicked += new Action(() => ShowGeneList(PlantGeneCategory.Vegatation));
+            _root.Q<Button>(name: "ReproductionButton").clicked += new Action(() => ShowGeneList(PlantGeneCategory.Reproduction));
+            _root.Q<Button>(name: "EnergyProductionButton").clicked += new Action(() => ShowGeneList(PlantGeneCategory.EnergyProduction));
+
+            _root.style.display = DisplayStyle.None;
+            HideGeneList();
+
             return null;
         }
 
         public void InspectPlant(Plant plant)
         {
             _inspectedPlant = plant;
-            if (plant == null)
-            {
-                //TODO: hide elements                
-            }
-            else
-            {
-                //TODO: configure UI
-            }
-            //root.Q<Button>(name: "close-button").clickable.clicked += CloseMenu;
+            _root.style.display = DisplayStyle.Flex;
             _root.Q<Label>(name: "SpeciesName").text = _inspectedPlant.PlantDna.Name;
         }
 
-        private void SetActive()
+        public void HideGeneList()
         {
-            IsActive = true;
+            _root.Q<Button>(name: "GeneListContainer").style.display = DisplayStyle.None;
         }
-        
-        private void SetInactive()
+
+        public void ShowGeneList(PlantGeneCategory category)
         {
-            IsActive = false;
+            _root.Q<Button>(name: "GeneListContainer").style.display = DisplayStyle.Flex;
+            var geneList = _root.Q<ListView>(name: "GeneList");
+            var genes = GeneLibrary.GetGenesInCategory(category);
+            foreach(var gene in genes)
+            {
+                var geneButton = new Button(() => ReplaceGene(_inspectedPlant, category, gene));
+                geneButton.text = gene.Name;
+            }
+                
         }
-        
-        private void CloseMenu()
+
+        private void ReplaceGene(Plant plant, PlantGeneCategory category, PlantGene gene)
         {
-            UiStateMachine.SetState(null);
+            var newDna = new PlantDna();
+            newDna.Genes = plant.PlantDna.Genes.Where(x => x.Category != category.ToString()).ToList();
+            newDna.Genes.Add(gene.Dna);
+            _inspectedPlant = DI.ReproductionService.PlantSeed(newDna, plant.transform.position);
+            plant.Kill();
         }
     }
 }
