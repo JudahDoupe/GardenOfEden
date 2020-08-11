@@ -3,9 +3,8 @@ using UnityEngine;
 
 public class UiController: MonoBehaviour
 {
-    private UiState _currentState;
-    private UiData _data;
-    public Plant FocusedPlant;
+    public UiState CurrentState;
+    public UiData Data = new UiData();
 
     public void Start()
     {
@@ -14,15 +13,19 @@ public class UiController: MonoBehaviour
 
     public void SetState(UiState newState)
     {
-        if (_currentState != null && _currentState.Disable(_data))
+        if (CurrentState != null && !CurrentState.Disable(Data))
         {
-            if (newState.Enable(_data))
+            CurrentState.Enable(Data);
+        }
+        else
+        {
+            if (newState.Enable(Data))
             {
-                _currentState = newState;
+                CurrentState = newState;
             }
             else
             {
-                _currentState.Enable(_data);
+                CurrentState.Enable(Data);
             }
         }
     }
@@ -31,8 +34,8 @@ public class UiController: MonoBehaviour
 
 public interface UiState
 {
-    public bool Enable(UiData data);
-    public bool Disable(UiData data);
+    bool Enable(UiData data);
+    bool Disable(UiData data);
 }
 
 public class UiData

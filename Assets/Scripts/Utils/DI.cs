@@ -14,8 +14,9 @@ public class DI : MonoBehaviour
     public static GameService GameService;
 
     public static CameraController CameraController;
+    public static UiController UiController;
 
-    private void Start()
+    private void Awake()
     {
         LandService = FindObjectOfType<LandService>();
         LightService = FindObjectOfType<LightService>();
@@ -29,5 +30,6 @@ public class DI : MonoBehaviour
         GameService = FindObjectOfType<GameService>();
 
         CameraController = FindObjectOfType<CameraController>();
+        UiController = FindObjectOfType<UiController>();
     }
 }

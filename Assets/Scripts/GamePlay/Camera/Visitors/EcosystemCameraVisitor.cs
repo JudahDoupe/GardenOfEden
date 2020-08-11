@@ -1,5 +1,4 @@
 ﻿using System;
-using UIState;
 using UnityEngine;
 
 public class EcosystemCameraVisitor : ICameraVisitor
@@ -12,13 +11,21 @@ public class EcosystemCameraVisitor : ICameraVisitor
     private const float LookSpeedMultiplier = 0.5f;
     
     private readonly Transform _camera;
-    private Plant _focusedPlant;
+    private Plant _focusedPlant
+    {
+        get => DI.UiController.Data.FocusedPlant;
+        set => DI.UiController.Data.FocusedPlant = value;
+    }
     private Vector3 _center;
     private Vector3 _direction;
     private float _distance;
     private Vector3 _targetPostion;
     private Quaternion _targetRotation;
-    
+
+    private UiState _evolutionUi;
+    private UiState _infoUi;
+
+
     public EcosystemCameraVisitor(Plant focusedPlant)
     {
         _camera = Camera.main.transform;
@@ -26,22 +33,27 @@ public class EcosystemCameraVisitor : ICameraVisitor
         _center = _focusedPlant.transform.position;
         _direction = (_camera.position - _center).normalized;
         _distance = Vector3.Distance(_camera.position, _center);
+        _evolutionUi = GameObject.FindObjectOfType<PlantEvolutionUi>();
+        _infoUi = GameObject.FindObjectOfType<BasicInfoUi>();
     }
     
     public void VisitCamera(CameraController camera)
     {
-        var moving = Move();
-        if (!moving)
+        if (DI.UiController.CurrentState != _evolutionUi)
         {
-            if (_focusedPlant == null)
+            var moving = Move();
+            if (!moving)
             {
-                _focusedPlant = DI.PlantSearchService.GetClosestPlant(_center);
-            }
-            if (_focusedPlant != null)
-            {
-                var bounds = CameraUtils.GetPlantBounds(_focusedPlant); 
-                _center = bounds.center;
-                _distance = Mathf.Max(CameraUtils.GetDistanceToIncludeBounds(bounds), _distance);
+                if (_focusedPlant == null)
+                {
+                    _focusedPlant = DI.PlantSearchService.GetClosestPlant(_center);
+                }
+                if (_focusedPlant != null)
+                {
+                    var bounds = CameraUtils.GetPlantBounds(_focusedPlant); 
+                    _center = bounds.center;
+                    _distance = Mathf.Max(CameraUtils.GetDistanceToIncludeBounds(bounds), _distance);
+                }
             }
         }
 
@@ -57,11 +69,13 @@ public class EcosystemCameraVisitor : ICameraVisitor
         _camera.position = Vector3.Lerp(_camera.position, _targetPostion, Time.deltaTime * MoveSpeedMultiplier);
         _camera.rotation = Quaternion.Lerp(_camera.rotation, _targetRotation, Time.deltaTime * LookSpeedMultiplier);
 
-        if (Input.GetKeyDown(KeyCode.E) && _focusedPlant != null)
+        if (Input.GetKeyDown(KeyCode.E))
         {
-            var uiState = GameObject.FindObjectOfType<PlantInspectionUi>();
-            UiStateMachine.SetState(uiState);
-            uiState.InspectPlant(_focusedPlant);
+            DI.UiController.SetState(_evolutionUi);
+        }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            DI.UiController.SetState(_infoUi);
         }
     }
     private bool Move()
