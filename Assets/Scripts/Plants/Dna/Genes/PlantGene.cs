@@ -21,12 +21,13 @@ public class PlantGene
             Dna = dna;
             Category = (PlantGeneCategory)Enum.Parse(typeof(PlantGeneCategory), dna.Category);
             Name = dna.Method.Name;
-            Method = Category.GetLibrary().GetMethods(BindingFlags.Static | BindingFlags.Public).FirstOrDefault(x => x.Name == dna.Method.Name);
-            Parameters = GetParamters(Method, dna.Method);
+            var library = Category.GetLibrary().GetMethods(BindingFlags.Static | BindingFlags.Public);
+            Method = library.FirstOrDefault(x => x.Name == dna.Method.Name);
             if (Method == null)
             {
                 throw new Exception($"Plant Gene not recognized: { dna.Method.Name}");
             }
+            Parameters = GetParamters(Method, dna.Method);
         }
         catch (Exception e)
         {

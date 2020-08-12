@@ -21,6 +21,7 @@ public static class GeneLibrary
     
     public static void LoadGenes()
     {
+        _plantGenes = new Dictionary<PlantGeneCategory, List<PlantGene>>();
         LoadGeneCategory(PlantGeneCategory.Vegatation);
         LoadGeneCategory(PlantGeneCategory.Reproduction);
         LoadGeneCategory(PlantGeneCategory.EnergyProduction);
@@ -33,7 +34,7 @@ public static class GeneLibrary
         {
             return new GeneDna
             {
-                Category = PlantGeneCategory.Vegatation.ToString(),
+                Category = category.ToString(),
                 Method = new Method
                 {
                     Name = x.Name,
