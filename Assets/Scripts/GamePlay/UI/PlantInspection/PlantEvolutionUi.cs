@@ -7,11 +7,12 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
 {
     public GameObject ButtonPrefab;
     public GameObject GeneContainer;
+    public GameObject DecriptionContainer;
     public Text Title;
     public Text Description;
     public Button AcceptButton;
 
-    public UiState ExitState;
+    public BasicInfoUi ExitState;
 
     private UiData _uiData;
 
@@ -22,7 +23,7 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
             return false;
         }
         _uiData = data;
-        Title.text = data.FocusedPlant.PlantDna.Name;
+        selectedGene = null;
         HideGeneList();
         GetComponent<Canvas>().enabled = true;
         return true;
@@ -40,6 +41,7 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
         {
             GameObject.Destroy(child.gameObject);
         }
+        DecriptionContainer.SetActive(false);
     }
 
     public void ShowVegatationGenes()
@@ -58,7 +60,7 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
     {
         HideGeneList();
         var genes = GeneLibrary.GetGenesInCategory(category);
-        var currentGene = genes.Where(g => _uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Method.Name == g.Name));
+        var currentGene = genes.FirstOrDefault(g => _uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Method.Name == g.Name));
         var newGenes = genes.Where(g => g != currentGene).ToList();
         var r = 10;
         foreach(var gene in genes)
@@ -81,19 +83,25 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
         }
     }
 
+    private PlantGene selectedGene;
     public void SelectGene(PlantGene gene)
     {
+        DecriptionContainer.SetActive(true);
         Title.text = gene.Name;
         Description.text = "Gene Description";
+        selectedGene = gene;
     }
 
-    public void ReplaceGene(PlantGene gene)
+    public void ReplaceGene()
     {
-        if (!_uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Method.Name == gene.Name))
+        if (selectedGene == null)
+            return;
+
+        if (!_uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Method.Name == selectedGene.Name))
         {
-            var newDna = new PlantDna();
-            newDna.Genes = _uiData.FocusedPlant.PlantDna.Genes.Where(x => x.Category != gene.Category.ToString()).ToList();
-            newDna.Genes.Add(gene.Dna);
+            var newDna = new PlantDna { Name = "New Plant" };
+            newDna.Genes = _uiData.FocusedPlant.PlantDna.Genes.Where(x => x.Category != selectedGene.Category.ToString()).ToList();
+            newDna.Genes.Add(selectedGene.Dna);
             var oldPlant = _uiData.FocusedPlant;
             _uiData.FocusedPlant = DI.ReproductionService.PlantSeed(newDna, oldPlant.transform.position);
             oldPlant.Kill();

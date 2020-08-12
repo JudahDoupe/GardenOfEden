@@ -95,7 +95,7 @@ public static class GrowthTransformations
     }
     public static void Kill(this Node node)
     {
-        foreach (var branch in node.Branches)
+        foreach (var branch in node.Branches.ToArray())
         {
             branch.Kill();
         }
