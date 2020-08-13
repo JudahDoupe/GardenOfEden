@@ -13,8 +13,8 @@ public class EcosystemCameraVisitor : ICameraVisitor
     private readonly Transform _camera;
     private Plant _focusedPlant
     {
-        get => DI.UiController.Data.FocusedPlant;
-        set => DI.UiController.Data.FocusedPlant = value;
+        get => Singleton.UiController.Data.FocusedPlant;
+        set => Singleton.UiController.Data.FocusedPlant = value;
     }
     private Vector3 _center;
     private Vector3 _direction;
@@ -39,14 +39,14 @@ public class EcosystemCameraVisitor : ICameraVisitor
     
     public void VisitCamera(CameraController camera)
     {
-        if (DI.UiController.CurrentState != _evolutionUi)
+        if (Singleton.UiController.CurrentState != _evolutionUi)
         {
             var moving = Move();
             if (!moving)
             {
                 if (_focusedPlant == null)
                 {
-                    _focusedPlant = DI.PlantSearchService.GetClosestPlant(_center);
+                    _focusedPlant = Singleton.PlantSearchService.GetClosestPlant(_center);
                 }
                 if (_focusedPlant != null)
                 {
@@ -62,7 +62,7 @@ public class EcosystemCameraVisitor : ICameraVisitor
         
         var offset = _direction * _distance;
         _targetPostion = _center + offset;
-        _targetPostion.y = DI.LandService.SampleTerrainHeight(_center + offset) + _distance * 0.5f;
+        _targetPostion.y = Singleton.LandService.SampleTerrainHeight(_center + offset) + _distance * 0.5f;
 
         _targetRotation = Quaternion.LookRotation(_center - _camera.position, Vector3.up);
         
@@ -71,11 +71,11 @@ public class EcosystemCameraVisitor : ICameraVisitor
 
         if (Input.GetKeyDown(KeyCode.E))
         {
-            DI.UiController.SetState(_evolutionUi);
+            Singleton.UiController.SetState(_evolutionUi);
         }
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            DI.UiController.SetState(_infoUi);
+            Singleton.UiController.SetState(_infoUi);
         }
     }
     private bool Move()

@@ -6,7 +6,7 @@ public class CameraUtils : MonoBehaviour
 {
     public static Vector3 ClampAboveGround(Vector3 position, float padding = 0.1f)
     {
-        position.y = Mathf.Max(position.y, DI.LandService.SampleTerrainHeight(position) + padding);
+        position.y = Mathf.Max(position.y, Singleton.LandService.SampleTerrainHeight(position) + padding);
         return position;
     }
     

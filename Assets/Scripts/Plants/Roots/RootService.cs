@@ -77,14 +77,14 @@ public class RootService : MonoBehaviour
 
             if (updateTimer.ElapsedMilliseconds > UpdateMilliseconds)
             {
-                DI.LandService.SetRoots(_rootData);
+                Singleton.LandService.SetRoots(_rootData);
                 yield return new WaitForEndOfFrame();
                 updateTimer.Restart();
             }
         }
 
         RemoveDeadRoots();
-        DI.LandService.SetRoots(_rootData);
+        Singleton.LandService.SetRoots(_rootData);
         isCalculatingAbsorpedWater = false;
     }
 

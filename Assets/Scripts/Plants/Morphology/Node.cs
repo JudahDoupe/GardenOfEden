@@ -11,9 +11,8 @@ public class Node : MonoBehaviour
     public RenderingInstanceData InternodeMesh { get; set; }
     public PlantDna.NodeDna Dna => Plant.PlantDna.Nodes.FirstOrDefault(x => x.Type == Type) ?? new PlantDna.NodeDna();
 
-    public float CreationDate { get; set; }
-    public float LastUpdateDate { get; set; }
-    public float Age => EnvironmentApi.GetDate() - CreationDate;
+    public int CreationDate { get; set; }
+    public int Age => Singleton.TimeService.Day - CreationDate;
 
     public string Type;
     public float Size;

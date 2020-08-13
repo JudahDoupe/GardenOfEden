@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class DI : MonoBehaviour
+public class Singleton : MonoBehaviour
 {
     public static LandService LandService;
     public static LightService LightService;
@@ -12,6 +12,7 @@ public class DI : MonoBehaviour
     public static PlantSearchService PlantSearchService;
 
     public static GameService GameService;
+    public static TimeService TimeService;
 
     public static CameraController CameraController;
     public static UiController UiController;
@@ -28,6 +29,7 @@ public class DI : MonoBehaviour
         PlantSearchService = FindObjectOfType<PlantSearchService>();
 
         GameService = FindObjectOfType<GameService>();
+        TimeService = FindObjectOfType<TimeService>();
 
         CameraController = FindObjectOfType<CameraController>();
         UiController = FindObjectOfType<UiController>();

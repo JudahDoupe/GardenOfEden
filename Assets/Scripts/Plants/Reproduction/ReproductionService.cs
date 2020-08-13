@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class ReproductionService : MonoBehaviour
+public class ReproductionService : MonoBehaviour, IDailyProcess
 {
+    public float UpdateMilliseconds = 1;
+
     [Header("Debug Settings")]
     public bool LogReproductionFailures;
     public bool LogReproductionSuccesses;
 
-    /* Publicly Accessible Methods */
+    private int _lastPlantId = 10;
+    private Queue<Tuple<PlantDna, Vector3>> _seedQueue = new Queue<Tuple<PlantDna, Vector3>>();
 
     public void DropSeed(PlantDna dna, Vector3 location)
     {
@@ -20,7 +23,7 @@ public class ReproductionService : MonoBehaviour
     public Plant PlantSeed(PlantDna dna, Vector3 location)
     {
         var plant = new GameObject().AddComponent<Plant>();
-        plant.PlantId = lastPlantId++;
+        plant.PlantId = _lastPlantId++;
         plant.transform.position = location;
         plant.transform.localEulerAngles = new Vector3(-90, Random.Range(0, 365), 0);
         plant.PlantDna = dna;
@@ -28,47 +31,46 @@ public class ReproductionService : MonoBehaviour
 
         if (LogReproductionSuccesses)
         {
-            Debug.Log($"Successfully planted {PlantApi.GetSpeciesPopulation(dna.SpeciesId)}th {dna.Name ?? "your plant"}.");
+            UnityEngine.Debug.Log($"Successfully planted {PlantApi.GetSpeciesPopulation(dna.SpeciesId)}th {dna.Name ?? "your plant"}.");
         }
 
         return plant;
     }
 
-    /* Inner Mechinations */
-
-    private LandService _landService;
-
-    private int lastPlantId = 10;
-    private Queue<Tuple<PlantDna, Vector3>> _seedQueue = new Queue<Tuple<PlantDna, Vector3>>();
-
-    void Start()
+    public void ProcessDay()
     {
-        _landService = GetComponent<LandService>();
-    }
-    void Update()
-    {
-        if (_seedQueue.Any())
+        var timer = new Stopwatch();
+        timer.Start();
+        while(timer.ElapsedMilliseconds < UpdateMilliseconds)
         {
             DropNextSeed();
         }
+        timer.Stop();
     }
+
+    public bool HasDayBeenProccessed()
+    {
+        return true;
+    }
+
 
     private void DropNextSeed()
     {
         var seed = _seedQueue.Dequeue();
         if (IsLocationFertile(seed.Item2))
         {
-            PlantSeed(seed.Item1, DI.LandService.ClampAboveTerrain(seed.Item2));
+            PlantSeed(seed.Item1, Singleton.LandService.ClampAboveTerrain(seed.Item2));
         }
     }
 
     private bool IsLocationFertile(Vector3 worldPosition)
     {
-        var landHeight = _landService.SampleTerrainHeight(worldPosition);
+        var landService = Singleton.LandService;
+        var landHeight = landService.SampleTerrainHeight(worldPosition);
         worldPosition.y = landHeight;
-        var waterDepth = _landService.SampleWaterDepth(worldPosition);
-        var soilDepth = _landService.SampleSoilDepth(worldPosition);
-        var rootDepth = _landService.SampleRootDepth(worldPosition);
+        var waterDepth = landService.SampleWaterDepth(worldPosition);
+        var soilDepth = landService.SampleSoilDepth(worldPosition);
+        var rootDepth = landService.SampleRootDepth(worldPosition);
 
         if (soilDepth < 0.05f)
             DebugLackOfResources("soil");
@@ -86,8 +88,7 @@ public class ReproductionService : MonoBehaviour
     {
         if (LogReproductionFailures)
         {
-            Debug.Log($"Not enough {resource} to plant.");
+            UnityEngine.Debug.Log($"Not enough {resource} to plant.");
         }
     }
-
 }

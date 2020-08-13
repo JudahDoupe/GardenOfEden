@@ -1,6 +1,5 @@
 ﻿public class Plant : Node
 {
-    public float lastUpdateDate;
     public int PlantId;
     public PlantDna PlantDna = new PlantDna();
     public GrowthRuleSet GrowthRules = new GrowthRuleSet();
@@ -16,8 +15,7 @@
 
     void Start()
     {
-        CreationDate = EnvironmentApi.GetDate();
-        lastUpdateDate = CreationDate;
+        CreationDate = Singleton.TimeService.Day;
         Plant = this;
         Type = "Plant";
         foreach (var gene in PlantDna.Genes)
@@ -28,8 +26,7 @@
         this.AddNodeAfter(NodeType.VegatativeBud);
         Root = Root.Create(this);
 
-        //DI.LightService.AddLightAbsorber(this, (absorbedLight) => StoredLight += absorbedLight);
-        DI.GrowthService.AddPlant(this);
+        Singleton.GrowthService.AddPlant(this);
     }
 
     public void Accept(IPlantVisitor Visitor)

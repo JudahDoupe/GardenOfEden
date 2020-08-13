@@ -26,8 +26,7 @@ public static class GrowthTransformations
         
         node.Branches.Add(newNode);
 
-        newNode.CreationDate = EnvironmentApi.GetDate();
-        newNode.LastUpdateDate = newNode.CreationDate;
+        newNode.CreationDate = Singleton.TimeService.Day;
         newNode.Plant = node.Plant;
         newNode.Base = node;
         newNode.transform.parent = node.transform;
@@ -45,8 +44,7 @@ public static class GrowthTransformations
         baseNode.Branches.Remove(node);
         baseNode.Branches.Add(middleNode);
 
-        middleNode.CreationDate = EnvironmentApi.GetDate();
-        middleNode.LastUpdateDate = middleNode.CreationDate;
+        middleNode.CreationDate = Singleton.TimeService.Day;
         middleNode.Plant = node.Plant;
         middleNode.Base = baseNode;
         middleNode.Branches.Add(node);

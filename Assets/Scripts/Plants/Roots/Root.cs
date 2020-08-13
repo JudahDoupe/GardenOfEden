@@ -22,7 +22,7 @@ public class Root : MonoBehaviour
 
     public void Start()
     {
-        DI.RootService.AddRoots(this, AbsorbWater);
+        Singleton.RootService.AddRoots(this, AbsorbWater);
     }
     public void AbsorbWater(Volume water)
     {
@@ -32,6 +32,6 @@ public class Root : MonoBehaviour
     {
         var bounds = Plant.transform.GetBounds();
         Radius = (bounds.extents.x + bounds.extents.y) / 2f;
-        Depth = Mathf.Min(bounds.extents.z / 2, DI.LandService.SampleSoilDepth(transform.position));
+        Depth = Mathf.Min(bounds.extents.z / 2, Singleton.LandService.SampleSoilDepth(transform.position));
     }
 }

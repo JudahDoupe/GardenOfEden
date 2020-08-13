@@ -103,10 +103,10 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
             newDna.Genes = _uiData.FocusedPlant.PlantDna.Genes.Where(x => x.Category != selectedGene.Category.ToString()).ToList();
             newDna.Genes.Add(selectedGene.Dna);
             var oldPlant = _uiData.FocusedPlant;
-            _uiData.FocusedPlant = DI.ReproductionService.PlantSeed(newDna, oldPlant.transform.position);
+            _uiData.FocusedPlant = Singleton.ReproductionService.PlantSeed(newDna, oldPlant.transform.position);
             oldPlant.Kill();
         }
 
-        DI.UiController.SetState(ExitState);
+        Singleton.UiController.SetState(ExitState);
     }
 }

@@ -1,64 +1,63 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 
-public class GrowthService : MonoBehaviour
+public class GrowthService : MonoBehaviour, IDailyProcess
 {
-    [Header("Settings")]
-    [Range(1, 5)]
-    public float UpdateMilliseconds = 5;
-    public bool SmoothGrow = true;
+    public float UpdateMilliseconds = 3;
+    public float SmoothGrowDistance = 20;
 
-    private LinkedList<Plant> _updateQueue = new LinkedList<Plant>();
+    public int GrowingPlantCount => _growingPlants.Count();
+
+    private List<Plant> _growingPlants = new List<Plant>();
     private MophologyGrowthVisitor _growthVisitor = new MophologyGrowthVisitor();
-    private VisualGrowthVisitor _meshVisitor = new VisualGrowthVisitor(0);
+    private VisualGrowthVisitor _smoothMeshVisitor = new VisualGrowthVisitor(3);
+    private VisualGrowthVisitor _fastMeshVisitor = new VisualGrowthVisitor(0);
+
+    private bool _hasDayBeenProcessed = false;
 
     public void AddPlant(Plant plant)
     {
-        _updateQueue.AddFirst(plant);
+        _growingPlants.Add(plant);
     }
 
     public void RemovePlant(Plant plant)
     {
-        _updateQueue.Remove(plant);
+        _growingPlants.Remove(plant);
     }
 
 
-    private void Start()
+    public void ProcessDay()
     {
-        if (SmoothGrow)
-        {
-            _meshVisitor = new VisualGrowthVisitor(EnvironmentApi.Instance.SecondsPerDay);
-        }
-    }
-    private void Update()
-    {
-        var updateTimer = new Stopwatch();
-        updateTimer.Restart();
-        while (updateTimer.ElapsedMilliseconds < UpdateMilliseconds)
-        {
-            GrowNextPlant();
-        }
-        updateTimer.Stop();
+        _hasDayBeenProcessed = false;
+        _growingPlants.OrderBy(x => Vector3.Distance(Camera.main.transform.position, x.transform.position));
+        StartCoroutine(GrowPlants());
     }
 
-    private void GrowNextPlant()
+    public bool HasDayBeenProccessed()
     {
-        var plant = _updateQueue.FirstOrDefault(x => !x.IsGrowing
-                        && Mathf.FloorToInt(EnvironmentApi.GetDate()) > Mathf.FloorToInt(x.lastUpdateDate));
-        if (plant != null)
+        return _hasDayBeenProcessed && !_growingPlants.Any(x => x.IsGrowing);
+    }
+
+    private IEnumerator GrowPlants()
+    {
+        var updateQueue = new Queue<Plant>(_growingPlants);
+        while (updateQueue.Any())
         {
-            _updateQueue.Remove(plant);
-
-            var missedDays = Mathf.FloorToInt(EnvironmentApi.GetDate()) - Mathf.FloorToInt(plant.lastUpdateDate);
-            var timer = new Stopwatch();
-            timer.Restart();
-            plant.Accept(_growthVisitor);
-            plant.Accept(_meshVisitor);
-            plant.lastUpdateDate = EnvironmentApi.GetDate();
-
-            _updateQueue.AddLast(plant);
+            var updateTimer = new Stopwatch();
+            updateTimer.Restart();
+            while (updateQueue.Any() && updateTimer.ElapsedMilliseconds < UpdateMilliseconds)
+            {
+                var plant = updateQueue.Dequeue();
+                var meshVisitor = Vector3.Distance(Camera.main.transform.position, plant.transform.position) > SmoothGrowDistance ? _fastMeshVisitor : _smoothMeshVisitor;
+                plant.Accept(_growthVisitor);
+                plant.Accept(meshVisitor);
+                yield return new WaitForEndOfFrame();
+            }
+            updateTimer.Stop();
         }
+        _hasDayBeenProcessed = true;
     }
 }
