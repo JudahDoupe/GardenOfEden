@@ -1,10 +1,7 @@
 ﻿public class Plant : Node
 {
-    public int PlantId;
     public PlantDna PlantDna = new PlantDna();
     public GrowthRuleSet GrowthRules = new GrowthRuleSet();
-
-    public Root Root { get; set; }
 
     public bool IsAlive { get; set; } = true;
     public bool IsGrowing { get; set; } = false;
@@ -17,16 +14,16 @@
     {
         CreationDate = Singleton.TimeService.Day;
         Plant = this;
-        Type = "Plant";
+        this.SetType(NodeType.Plant);
         foreach (var gene in PlantDna.Genes)
         {
             new PlantGene(gene).Express(this);
         }
 
-        this.AddNodeAfter(NodeType.VegatativeBud);
-        Root = Root.Create(this);
+        if (transform.childCount == 0)
+            this.AddNodeAfter(NodeType.VegatativeBud);
 
-        Singleton.GrowthService.AddPlant(this);
+        NewPlantEventBus.Publish(this);
     }
 
     public void Accept(IPlantVisitor Visitor)

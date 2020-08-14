@@ -6,8 +6,6 @@ public class Singleton : MonoBehaviour
     public static LightService LightService;
     public static WaterService WaterService;
 
-    public static ReproductionService ReproductionService;
-    public static RootService RootService;
     public static GrowthService GrowthService;
     public static PlantSearchService PlantSearchService;
 
@@ -23,8 +21,6 @@ public class Singleton : MonoBehaviour
         LightService = FindObjectOfType<LightService>();
         WaterService = FindObjectOfType<WaterService>();
 
-        ReproductionService = FindObjectOfType<ReproductionService>();
-        RootService = FindObjectOfType<RootService>();
         GrowthService = FindObjectOfType<GrowthService>();
         PlantSearchService = FindObjectOfType<PlantSearchService>();
 

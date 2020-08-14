@@ -20,4 +20,8 @@ public static class GrowthConditions
     {
         return node.Type.ToLower() == type.ToLower();
     }
+    public static bool IsMature(this Node node)
+    {
+        return node.Size >= node.Dna.Size;
+    }
 }

@@ -62,24 +62,7 @@ public class LandService : MonoBehaviour
         return location;
     }
 
-    public void SetRoots(List<RootData> roots)
-    {
-        var kernelId = SoilShader.FindKernel("UpdateSoil");
-        if (!roots.Any())
-        {
-            roots.Add(new RootData());
-        }
-
-        _rootBuffer?.Release();
-        _rootBuffer = new ComputeBuffer(roots.Count, sizeof(float) * 5 + sizeof(int));
-        _rootBuffer.SetData(roots);
-        SoilShader.SetBuffer(kernelId, "RootBuffer", _rootBuffer);
-        SoilShader.SetInt("NumRoots", roots.Count);
-    }
-
     /* Inner Mechanations */
-
-    private ComputeBuffer _rootBuffer;
 
     void Start()
     {
@@ -87,7 +70,6 @@ public class LandService : MonoBehaviour
         SoilShader.SetTexture(kernelId, "SoilWaterMap", SoilWaterMap);
         SoilShader.SetTexture(kernelId, "LandMap", LandMap);
         SoilShader.SetTexture(kernelId, "WaterMap", WaterMap);
-        SetRoots(new List<RootData>());
     }
 
     void FixedUpdate()

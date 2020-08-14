@@ -13,21 +13,16 @@ public class GrowthService : MonoBehaviour, IDailyProcess
 
     private List<Plant> _growingPlants = new List<Plant>();
     private MophologyGrowthVisitor _growthVisitor = new MophologyGrowthVisitor();
-    private VisualGrowthVisitor _smoothMeshVisitor = new VisualGrowthVisitor(3);
+    private VisualGrowthVisitor _smoothMeshVisitor = new VisualGrowthVisitor(2);
     private VisualGrowthVisitor _fastMeshVisitor = new VisualGrowthVisitor(0);
 
     private bool _hasDayBeenProcessed = false;
 
-    public void AddPlant(Plant plant)
+    private void Awake()
     {
-        _growingPlants.Add(plant);
+        NewPlantEventBus.Subscribe(x => _growingPlants.Add(x));
+        PlantDeathEventBus.Subscribe(x => _growingPlants.Remove(x));
     }
-
-    public void RemovePlant(Plant plant)
-    {
-        _growingPlants.Remove(plant);
-    }
-
 
     public void ProcessDay()
     {
@@ -51,10 +46,13 @@ public class GrowthService : MonoBehaviour, IDailyProcess
             while (updateQueue.Any() && updateTimer.ElapsedMilliseconds < UpdateMilliseconds)
             {
                 var plant = updateQueue.Dequeue();
-                var meshVisitor = Vector3.Distance(Camera.main.transform.position, plant.transform.position) > SmoothGrowDistance ? _fastMeshVisitor : _smoothMeshVisitor;
-                plant.Accept(_growthVisitor);
-                plant.Accept(meshVisitor);
-                yield return new WaitForEndOfFrame();
+                if (plant != null)
+                {
+                    var meshVisitor = Vector3.Distance(Camera.main.transform.position, plant.transform.position) > SmoothGrowDistance ? _fastMeshVisitor : _smoothMeshVisitor;
+                    plant.Accept(_growthVisitor);
+                    plant.Accept(meshVisitor);
+                    yield return new WaitForEndOfFrame();
+                }
             }
             updateTimer.Stop();
         }

@@ -44,6 +44,16 @@ public class PlantDna
     };
     public List<NodeDna> Nodes = new List<NodeDna>();
 
+    public PlantDna CopyDna()
+    {
+        return new PlantDna {
+            Name = Name,
+            SpeciesId = SpeciesId + 1,
+            Generation = Generation + 1,
+            Genes = Genes.ToList(),
+        };
+    }
+
     public NodeDna GetOrAddNode(string type)
     {
         var node = Nodes.FirstOrDefault(x => x.Type == type);

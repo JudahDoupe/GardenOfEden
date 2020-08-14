@@ -39,16 +39,28 @@ public static class GrowthTransformations
     public static Node AddNodeBefore(this Node node, string type)
     {
         var baseNode = node.Base;
-        var middleNode = new GameObject(type).AddComponent<Node>();
+        Node middleNode;
+        switch (type)
+        {
+            case NodeType.Plant:
+                middleNode = new GameObject(type).AddComponent<Plant>();
+                break;
+            default:
+                middleNode = new GameObject(type).AddComponent<Node>();
+                break;
+        }
 
-        baseNode.Branches.Remove(node);
-        baseNode.Branches.Add(middleNode);
+        if (baseNode != null)
+        {
+            baseNode.Branches.Remove(node);
+            baseNode.Branches.Add(middleNode);
+            middleNode.transform.parent = baseNode.transform;
+        }
 
         middleNode.CreationDate = Singleton.TimeService.Day;
         middleNode.Plant = node.Plant;
         middleNode.Base = baseNode;
         middleNode.Branches.Add(node);
-        middleNode.transform.parent = baseNode.transform;
         middleNode.transform.position = node.transform.position;
         middleNode.transform.rotation = node.transform.rotation;
         middleNode.InternodeLength = node.InternodeLength;
@@ -102,6 +114,11 @@ public static class GrowthTransformations
         if (node.NodeMesh != null) InstancedMeshRenderer.RemoveInstance(node.NodeMesh);
         if (node.InternodeMesh != null) InstancedMeshRenderer.RemoveInstance(node.InternodeMesh);
 
+        if(node is Plant plant)
+        {
+            PlantDeathEventBus.Publish(plant);
+        }
+
         UnityEngine.Object.Destroy(node.gameObject);
     }
     public static Node Roll(this Node node, float degrees)
@@ -121,6 +138,29 @@ public static class GrowthTransformations
         degrees += Random.Range(-10, 10);
         node.transform.Rotate(new Vector3(0, degrees, 0), Space.Self);
         return node;
+    }
+    public static Node Jitter(this Node node, float degrees)
+    {
+        var angle = Random.Range(-degrees, degrees);
+        node.transform.Rotate(new Vector3(angle, angle, angle), Space.Self);
+        return node;
+    }
+    public static Plant Seperate(this Node node)
+    {
+        node.Base.Branches.Remove(node);
+        node.Base = null;
+        node.transform.parent = null;
+        var plant = node.AddNodeBefore(NodeType.Plant) as Plant;
+        plant.PlantDna = node.Plant.PlantDna.CopyDna();
+
+        var height = plant.transform.position.y - Singleton.LandService.SampleTerrainHeight(plant.transform.position);
+        var distance = Mathf.Max(height, 3);
+        var newPos = plant.transform.position + new Vector3(Random.Range(-distance, distance), 0, Random.Range(-distance, distance));
+        newPos.y = Singleton.LandService.SampleTerrainHeight(newPos);
+        plant.transform.position = newPos;
+        plant.transform.localEulerAngles = new Vector3(-90, Random.Range(0, 365), 0);
+        
+        return plant;
     }
 
 

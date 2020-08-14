@@ -1,11 +1,13 @@
 ﻿public class NodeType
 {
-    public static string VegatativeNode = "VegatativeNode";
-    public static string VegatativeBud = "VegatativeBud";
-    public static string ReproductiveNode = "ReproductiveNode";
-    public static string ReproductiveBud = "ReproductiveBud";
-    public static string Flower = "Flower";
-    public static string LeafBud = "LeafBud";
-    public static string LeafNode = "LeafNode";
-    public static string Leaf = "Leaf";
+    public const string VegatativeNode = "VegatativeNode";
+    public const string VegatativeBud = "VegatativeBud";
+    public const string ReproductiveNode = "ReproductiveNode";
+    public const string ReproductiveBud = "ReproductiveBud";
+    public const string Flower = "Flower";
+    public const string LeafBud = "LeafBud";
+    public const string LeafNode = "LeafNode";
+    public const string Leaf = "Leaf";
+    public const string Seed = "Seed";
+    public const string Plant = "Plant";
 }
