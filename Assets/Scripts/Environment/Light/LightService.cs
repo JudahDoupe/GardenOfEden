@@ -2,99 +2,105 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Linq;
 using UnityEngine;
 
-public class LightService : MonoBehaviour
+public class LightService : MonoBehaviour, IDailyProcess
 {
     [Header("Settings")]
     [Range(1, 5)]
     public float UpdateMilliseconds = 5;
+    [Range(100, 1000)]
+    public int SimulationDensity = 100;
+    public float CellWidth => ComputeShaderUtils.WorldSizeInMeters / SimulationDensity;
 
-    [Header("Render Textures")]
-    public RenderTexture LightMap;
-
-    /* Publicly Accessible Variables */
-
-    public void AddLightAbsorber(Plant plant, Action<Area> callback)
+    public void AddAbsorber(Node node)
     {
-        int id = _lastId++;
-        _lightAbsorbtionId.Add(plant, id);
-        _lightAbsorbers.Add(id, callback);
+        var coords = GetCoords(node);
+        _absorberIndex.Add(node, coords);
+        _lightAbsorberGrid[coords.Item1, coords.Item2].Append(node);
     }
 
-    /* Inner Mechanations */
-
-    private int _lastId = 0;
-    private Dictionary<Plant, int> _lightAbsorbtionId = new Dictionary<Plant, int>();
-    private Dictionary<int, Action<Area>> _lightAbsorbers = new Dictionary<int, Action<Area>>();
-
-    private Stopwatch updateTimer = new Stopwatch();
-    private Stopwatch deltaTimer = new Stopwatch();
-    private bool isCalculatingAbsorpedLight = false;
-
-    void Start()
+    public void UpdateAbsorber(Node node)
     {
-        deltaTimer.Start();
+        RemoveAbsorber(node);
+        AddAbsorber(node);
     }
 
-    void Update()
+    public void RemoveAbsorber(Node node)
     {
-        if (!isCalculatingAbsorpedLight)
+        if (_absorberIndex.TryGetValue(node, out var coords))
         {
-            updateTimer.Restart();
-            LightMap.UpdateTextureCache();
-            StartCoroutine(ComputeAbsorpedLight());
+            _absorberIndex.Remove(node);
+            _lightAbsorberGrid[coords.Item1, coords.Item2].Remove(node);
         }
     }
 
+    public void ProcessDay()
+    {
+        _hasDayBeenProcessed = false;
+        StartCoroutine(ComputeAbsorpedLight());
+    }
+
+    public bool HasDayBeenProccessed()
+    {
+        return _hasDayBeenProcessed;
+    }
+
+    private Dictionary<Node, Tuple<int, int>> _absorberIndex;
+    private List<Node>[,] _lightAbsorberGrid;
+
+    private bool _hasDayBeenProcessed;
     private IEnumerator ComputeAbsorpedLight()
     {
-        isCalculatingAbsorpedLight = true;
-        var deltaTime = (float) deltaTimer.Elapsed.TotalSeconds;
-        deltaTimer.Restart();
+        var timer = new Stopwatch();
+        timer.Restart();
 
-        var pixels = LightMap.CachedTexture().GetPixels();
-
-        foreach (var pixel in pixels)
+        for (int i = 0; i < SimulationDensity; i++)
         {
-            var id = Mathf.FloorToInt(pixel.r);
-
-            if (_lightAbsorbers.ContainsKey(id))
-                _lightAbsorbers[id].Invoke(Area.FromPixel(deltaTime));
-
-            if (updateTimer.ElapsedMilliseconds > UpdateMilliseconds)
+            for (int j = 0; j < SimulationDensity; j++)
             {
-                yield return new WaitForEndOfFrame();
-                updateTimer.Restart();
-                RemoveDeadLightAbsorbers();
+                if (timer.ElapsedMilliseconds > UpdateMilliseconds)
+                {
+                    yield return new WaitForEndOfFrame();
+                    timer.Restart();
+                }
+
+                var remainingLightArea = CellWidth * CellWidth;
+                foreach (var absorber in _lightAbsorberGrid[i, j].OrderByDescending(x => x.transform.position.y))
+                {
+                    var maxAbsobedLight = absorber.SurfaceArea * absorber.LightAbsorbtionRate;
+                    var absorbedLight = Mathf.Min(remainingLightArea, maxAbsobedLight);
+                    absorber.AbsorbedLight += absorbedLight;
+                    remainingLightArea -= absorbedLight;
+
+                    if (remainingLightArea <= Mathf.Epsilon)
+                    {
+                        break;
+                    }
+                }
             }
         }
 
-        UpdateLightAbsorptionIds();
-        isCalculatingAbsorpedLight = false;
+        _hasDayBeenProcessed = true;
     }
 
-    private void UpdateLightAbsorptionIds()
+    private void Start()
     {
-        foreach (var ids in _lightAbsorbtionId)
+        _lightAbsorberGrid = new List<Node>[SimulationDensity, SimulationDensity];
+        for (int i = 0; i < SimulationDensity; i++)
         {
-            foreach (var renderer in ids.Key.GetComponentsInChildren<Renderer>())
+            for (int j = 0; j < SimulationDensity; j++)
             {
-                renderer.material.SetFloat("_LightAbsorptionId", ids.Value + 0.5f);
+                _lightAbsorberGrid[i, j] = new List<Node>();
             }
         }
     }
 
-    private void RemoveDeadLightAbsorbers()
+    private Tuple<int,int> GetCoords(Node node)
     {
-        foreach (var deadPlant in _lightAbsorbtionId.Keys.Where(x => !x.IsAlive).ToArray())
-        {
-            if (_lightAbsorbtionId.TryGetValue(deadPlant, out int id))
-            {
-                _lightAbsorbtionId.Remove(deadPlant);
-                _lightAbsorbers.Remove(id);
-            }
-        }
-    }
+        return Tuple.Create(Mathf.FloorToInt((node.transform.position.x / CellWidth) % SimulationDensity),
+                            Mathf.FloorToInt((node.transform.position.z / CellWidth) % SimulationDensity));
+    } 
 }

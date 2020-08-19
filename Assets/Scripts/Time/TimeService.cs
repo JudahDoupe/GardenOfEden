@@ -18,7 +18,7 @@ public class TimeService : MonoBehaviour
         _dailyProcesses = new List<IDailyProcess>
         {
             Singleton.GrowthService,
-            //Singleton.ReproductionService,
+            Singleton.LightService,
         };
         StartNextDay();
     }
