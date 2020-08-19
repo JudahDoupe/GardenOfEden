@@ -8,14 +8,15 @@ public static class VegatationGenes
         vegNode.InternodeLength = 0.4f;
         vegNode.InternodeRadius = 0.03f;
         var volume = vegNode.InternodeLength * vegNode.InternodeRadius * vegNode.InternodeRadius * Mathf.PI;
+        var energyCost = volume * 15;
 
-        plant.GrowthRules.AddRule(NodeType.VegatativeBud, new GrowthRule(0.1f)
+        plant.GrowthRules.AddRule(NodeType.VegatativeBud, new GrowthRule()
             .WithTransformation(x => x.AddNodeBefore(NodeType.VegatativeNode))
             .WithTransformation(x => x.AddNode(NodeType.LeafBud).Pitch(90))
             .WithTransformation(x => x.AddNode(NodeType.LeafBud).Roll(180).Pitch(90))
             .WithTransformation(x => x.Jitter(10))
         );
-        plant.GrowthRules.AddRule(NodeType.VegatativeNode, new GrowthRule(growthRate * volume, false)
+        plant.GrowthRules.AddRule(NodeType.VegatativeNode, new GrowthRule(growthRate * energyCost, true)
             .WithCondition(x => !x.IsMature())
             .WithTransformation(x => x.Grow(growthRate))
         );

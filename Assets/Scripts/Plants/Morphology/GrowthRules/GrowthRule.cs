@@ -5,14 +5,14 @@ using System.Linq;
 public class GrowthRule
 {
     public readonly float EnergyCost;
-    public readonly bool TailRecursive;
+    public readonly bool IsPreOrder;
     private List<Action<Node>> Modifications = new List<Action<Node>>();
     private List<Func<Node,bool>> Conditions = new List<Func<Node, bool>>();
 
-    public GrowthRule(float energyCost = 0, bool tailRecursive = true) 
+    public GrowthRule(float energyCost = 0, bool isPreOrder = false) 
     {
         EnergyCost = energyCost;
-        TailRecursive = tailRecursive;
+        IsPreOrder = isPreOrder;
     }
 
     public GrowthRule WithTransformation(Action<Node> modification)

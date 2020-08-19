@@ -10,11 +10,13 @@ public static class EnergyProductionGenes
         leaf.MeshId = "Leaf";
         leaf.Size = 0.5f;
         leaf.LightAbsorbtionRate = 0.1f;
+        var volume = leaf.Size * leaf.Size * 0.1f;
+        var energyCost = volume * 10;
 
         plant.GrowthRules.AddRule(NodeType.LeafBud, new GrowthRule()
             .WithTransformation(x => x.SetType(NodeType.Leaf))
         );
-        plant.GrowthRules.AddRule(NodeType.Leaf, new GrowthRule(growthRate * leaf.Size, false)
+        plant.GrowthRules.AddRule(NodeType.Leaf, new GrowthRule(growthRate * energyCost, true)
             .WithCondition(x => !x.IsMature())
             .WithTransformation(x => x.Grow(growthRate))
         );
@@ -28,11 +30,12 @@ public static class EnergyProductionGenes
         leaf.MeshId = "Leaf";
         leaf.Size = 0.5f;
         leaf.LightAbsorbtionRate = 0.1f;
+        var volume = leaf.Size * leaf.Size * 0.001f;
 
         plant.GrowthRules.AddRule(NodeType.LeafBud, new GrowthRule()
             .WithTransformation(x => x.SetType(NodeType.Leaf))
         );
-        plant.GrowthRules.AddRule(NodeType.Leaf, new GrowthRule()
+        plant.GrowthRules.AddRule(NodeType.Leaf, new GrowthRule(growthRate * volume, true)
             .WithTransformation(x => x.Grow(growthRate))
             .WithTransformation(x => x.Level(levelRate))
         );

@@ -158,6 +158,7 @@ public static class GrowthTransformations
         node.transform.parent = null;
         var plant = node.AddNodeBefore(NodeType.Plant) as Plant;
         plant.PlantDna = node.Plant.PlantDna.CopyDna();
+        node.Plant = plant;
 
         var height = plant.transform.position.y - Singleton.LandService.SampleTerrainHeight(plant.transform.position);
         var distance = Mathf.Max(height, 3);

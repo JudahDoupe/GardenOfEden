@@ -1,4 +1,7 @@
-﻿public class MophologyGrowthVisitor : IPlantVisitor
+﻿using System.Collections.Generic;
+using System.Linq;
+
+public class MophologyGrowthVisitor : IPlantVisitor
 {
     public void VisitPlant(Plant plant)
     {
@@ -8,9 +11,31 @@
     private void VisitNode(Node node)
     {
         var didUpdateNode = false;
-        foreach (var rule in node.Plant.GrowthRules.GetRulesForNode(node.Type))
+        var nodeRules = node.Plant.GrowthRules.GetRulesForNode(node.Type);
+
+        didUpdateNode |= ApplyRules(nodeRules.Where(x => x.IsPreOrder), node);
+
+        foreach (var branch in node.Branches.ToArray())
         {
-            if (!rule.TailRecursive && rule.ShouldApplyTo(node) && node.Plant.StoredEnergy > rule.EnergyCost)
+            VisitNode(branch);
+        }
+
+        didUpdateNode |= ApplyRules(nodeRules.Where(x => !x.IsPreOrder), node);
+
+        if (didUpdateNode && node.Plant != null)
+        {
+            PlantMessageBus.NodeUpdate.Publish(node);
+        }
+    }
+
+    private bool ApplyRules(IEnumerable<GrowthRule> rules, Node node)
+    {
+        var didUpdateNode = false;
+        foreach (var rule in rules)
+        {
+            if (node.Plant != null
+                && node.Plant.StoredEnergy > rule.EnergyCost
+                && rule.ShouldApplyTo(node))
             {
                 rule.ApplyTo(node);
                 if (node.Plant != null)
@@ -20,28 +45,6 @@
                 didUpdateNode = true;
             }
         }
-
-        foreach (var branch in node.Branches.ToArray())
-        {
-            VisitNode(branch);
-        }
-
-        foreach(var rule in node.Plant.GrowthRules.GetRulesForNode(node.Type))
-        {
-            if (rule.TailRecursive && rule.ShouldApplyTo(node) && node.Plant.StoredEnergy > rule.EnergyCost)
-            {
-                rule.ApplyTo(node);
-                if(node.Plant != null)
-                {
-                    node.Plant.StoredEnergy -= rule.EnergyCost;
-                }
-                didUpdateNode = true;
-            }
-        }
-
-        if (didUpdateNode && node.Plant != null)
-        {
-            PlantMessageBus.NodeUpdate.Publish(node);
-        }
+        return didUpdateNode;
     }
 }

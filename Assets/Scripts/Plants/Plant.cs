@@ -6,7 +6,7 @@
     public bool IsAlive { get; set; } = true;
     public bool IsGrowing { get; set; } = false;
 
-    public float StoredEnergy = 10;
+    public float StoredEnergy;
 
     void Start()
     {
