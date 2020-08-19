@@ -7,7 +7,8 @@ public static class GrowthTransformations
         node.Size = CalculateGrowth(node.Dna.Size, node.Size, rate);
         node.InternodeLength = CalculateGrowth(node.Dna.InternodeLength, node.InternodeLength, rate);
         node.InternodeRadius = CalculateGrowth(node.Dna.InternodeRadius, node.InternodeRadius, rate);
-        node.SurfaceArea = (node.InternodeLength * node.InternodeRadius) + (node.Size * node.Size);
+        var angle = 1 - Mathf.Abs(Vector3.Dot(node.transform.forward, Vector3.up));
+        node.SurfaceArea = ((node.InternodeLength * node.InternodeRadius) + (node.Size * node.Size)) * angle;
         return node;
     }
     public static Node Level(this Node node, float rate)
@@ -35,6 +36,7 @@ public static class GrowthTransformations
         newNode.transform.localRotation = Quaternion.identity;
         newNode.SetType(type);
 
+        PlantMessageBus.NewNode.Publish(newNode);
         return newNode;
     }
     public static Node AddNodeBefore(this Node node, string type)
@@ -78,6 +80,7 @@ public static class GrowthTransformations
 
         node.SetType(node.Type);
 
+        PlantMessageBus.NewNode.Publish(middleNode);
         return middleNode;
     }
     public static Node SetType(this Node node, string type)
@@ -114,10 +117,12 @@ public static class GrowthTransformations
         if (node.Base != null) node.Base.Branches.Remove(node);
         if (node.NodeMesh != null) InstancedMeshRenderer.RemoveInstance(node.NodeMesh);
         if (node.InternodeMesh != null) InstancedMeshRenderer.RemoveInstance(node.InternodeMesh);
+        node.Plant = null;
 
-        if(node is Plant plant)
+        PlantMessageBus.NodeDeath.Publish(node);
+        if (node is Plant plant)
         {
-            PlantDeathEventBus.Publish(plant);
+            PlantMessageBus.PlantDeath.Publish(plant);
         }
 
         UnityEngine.Object.Destroy(node.gameObject);

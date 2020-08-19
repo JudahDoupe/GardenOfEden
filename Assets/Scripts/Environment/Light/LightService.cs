@@ -14,28 +14,6 @@ public class LightService : MonoBehaviour, IDailyProcess
     public int SimulationDensity = 100;
     public float CellWidth => ComputeShaderUtils.WorldSizeInMeters / SimulationDensity;
 
-    public void AddAbsorber(Node node)
-    {
-        var coords = GetCoords(node);
-        _absorberIndex.Add(node, coords);
-        _lightAbsorberGrid[coords.Item1, coords.Item2].Add(node);
-    }
-
-    public void UpdateAbsorber(Node node)
-    {
-        RemoveAbsorber(node);
-        AddAbsorber(node);
-    }
-
-    public void RemoveAbsorber(Node node)
-    {
-        if (_absorberIndex.TryGetValue(node, out var coords))
-        {
-            _absorberIndex.Remove(node);
-            _lightAbsorberGrid[coords.Item1, coords.Item2].Remove(node);
-        }
-    }
-
     public void ProcessDay()
     {
         _hasDayBeenProcessed = false;
@@ -47,29 +25,14 @@ public class LightService : MonoBehaviour, IDailyProcess
         return _hasDayBeenProcessed;
     }
 
-    private List<Plant> _growingPlants = new List<Plant>();
     private Dictionary<Node, Tuple<int, int>> _absorberIndex = new Dictionary<Node, Tuple<int, int>>();
     private List<Node>[,] _lightAbsorberGrid;
 
     private bool _hasDayBeenProcessed;
     private IEnumerator ComputeAbsorpedLight()
     {
-        var visitor = new LightAbsorberUpdateVisitor();
         var timer = new Stopwatch();
         timer.Restart();
-
-        /*
-        foreach (var plant in _growingPlants)
-        {
-            if (timer.ElapsedMilliseconds > UpdateMilliseconds)
-            {
-                yield return new WaitForEndOfFrame();
-                timer.Restart();
-            }
-
-            visitor.VisitPlant(plant);
-        }
-        */
 
         for (int i = 0; i < SimulationDensity; i++)
         {
@@ -102,16 +65,9 @@ public class LightService : MonoBehaviour, IDailyProcess
 
     private void Awake()
     {
-        /*
-        NewPlantEventBus.Subscribe(x => {
-            _growingPlants.Add(x);
-            new LightAbsorberUpdateVisitor().VisitPlant(x);
-        });
-        PlantDeathEventBus.Subscribe(x => {
-            _growingPlants.Remove(x);
-            new LightAbsorberRemovalVisitor().VisitPlant(x);
-       });
-       */
+        PlantMessageBus.NewNode.Subscribe(x => AddAbsorber(x));
+        PlantMessageBus.NodeUpdate.Subscribe(x => UpdateAbsorber(x));
+        PlantMessageBus.NodeDeath.Subscribe(x => RemoveAbsorber(x));
 
         _lightAbsorberGrid = new List<Node>[SimulationDensity, SimulationDensity];
         for (int i = 0; i < SimulationDensity; i++)
@@ -120,6 +76,30 @@ public class LightService : MonoBehaviour, IDailyProcess
             {
                 _lightAbsorberGrid[i, j] = new List<Node>();
             }
+        }
+    }
+
+    private void AddAbsorber(Node node)
+    {
+        if (node.SurfaceArea <= Mathf.Epsilon) return;
+
+        var coords = GetCoords(node);
+        _absorberIndex.Add(node, coords);
+        _lightAbsorberGrid[coords.Item1, coords.Item2].Add(node);
+    }
+
+    private void UpdateAbsorber(Node node)
+    {
+        RemoveAbsorber(node);
+        AddAbsorber(node);
+    }
+
+    private void RemoveAbsorber(Node node)
+    {
+        if (_absorberIndex.TryGetValue(node, out var coords))
+        {
+            _absorberIndex.Remove(node);
+            _lightAbsorberGrid[coords.Item1, coords.Item2].Remove(node);
         }
     }
 

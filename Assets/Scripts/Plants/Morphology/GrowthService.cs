@@ -20,8 +20,8 @@ public class GrowthService : MonoBehaviour, IDailyProcess
 
     private void Awake()
     {
-        NewPlantEventBus.Subscribe(x => _growingPlants.Add(x));
-        PlantDeathEventBus.Subscribe(x => _growingPlants.Remove(x));
+        PlantMessageBus.NewPlant.Subscribe(x => _growingPlants.Add(x));
+        PlantMessageBus.PlantDeath.Subscribe(x => _growingPlants.Remove(x));
     }
 
     public void ProcessDay()

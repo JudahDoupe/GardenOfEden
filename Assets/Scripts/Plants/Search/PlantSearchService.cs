@@ -31,7 +31,7 @@ public class PlantSearchService : MonoBehaviour
     
     private void Start()
     {
-        NewPlantEventBus.Subscribe(x =>
+        PlantMessageBus.NewPlant.Subscribe(x =>
         {
             AddToTree(x, _kdTree);
             if (!_speciesTrees.ContainsKey(x.PlantDna.SpeciesId))
@@ -40,7 +40,7 @@ public class PlantSearchService : MonoBehaviour
             } 
             AddToTree(x,  _speciesTrees[x.PlantDna.SpeciesId]);
         });
-        PlantDeathEventBus.Subscribe(x =>
+        PlantMessageBus.PlantDeath.Subscribe(x =>
         {
             _kdTree.RemoveAt(_kdTree.FindValue(x));
             _speciesTrees[x.PlantDna.SpeciesId].RemoveAt(_speciesTrees[x.PlantDna.SpeciesId].FindValue(x));

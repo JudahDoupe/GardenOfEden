@@ -23,7 +23,7 @@
         if (transform.childCount == 0)
             this.AddNodeAfter(NodeType.VegatativeBud);
 
-        NewPlantEventBus.Publish(this);
+        PlantMessageBus.NewPlant.Publish(this);
     }
 
     public void Accept(IPlantVisitor Visitor)

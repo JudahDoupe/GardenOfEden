@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Unity.Collections;
 using UnityEngine;
 
 public class TimeService : MonoBehaviour
@@ -17,8 +16,8 @@ public class TimeService : MonoBehaviour
     {
         _dailyProcesses = new List<IDailyProcess>
         {
-            Singleton.GrowthService,
             Singleton.LightService,
+            Singleton.GrowthService,
         };
         StartNextDay();
     }
