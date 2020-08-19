@@ -14,7 +14,8 @@ public static class EnergyProductionGenes
         plant.GrowthRules.AddRule(NodeType.LeafBud, new GrowthRule()
             .WithTransformation(x => x.SetType(NodeType.Leaf))
         );
-        plant.GrowthRules.AddRule(NodeType.Leaf, new GrowthRule()
+        plant.GrowthRules.AddRule(NodeType.Leaf, new GrowthRule(growthRate * leaf.Size, false)
+            .WithCondition(x => !x.IsMature())
             .WithTransformation(x => x.Grow(growthRate))
         );
     }

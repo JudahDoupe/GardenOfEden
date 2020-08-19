@@ -1,18 +1,22 @@
-﻿public static class VegatationGenes
+﻿using UnityEngine;
+
+public static class VegatationGenes
 {
     public static void Straight (Plant plant, float growthRate = 0.3f)
     {
         var vegNode = plant.PlantDna.GetOrAddNode(NodeType.VegatativeNode);
         vegNode.InternodeLength = 0.4f;
         vegNode.InternodeRadius = 0.03f;
+        var volume = vegNode.InternodeLength * vegNode.InternodeRadius * vegNode.InternodeRadius * Mathf.PI;
 
-        plant.GrowthRules.AddRule(NodeType.VegatativeBud, new GrowthRule()
+        plant.GrowthRules.AddRule(NodeType.VegatativeBud, new GrowthRule(0.1f)
             .WithTransformation(x => x.AddNodeBefore(NodeType.VegatativeNode))
             .WithTransformation(x => x.AddNode(NodeType.LeafBud).Pitch(90))
             .WithTransformation(x => x.AddNode(NodeType.LeafBud).Roll(180).Pitch(90))
             .WithTransformation(x => x.Jitter(10))
         );
-        plant.GrowthRules.AddRule(NodeType.VegatativeNode, new GrowthRule()
+        plant.GrowthRules.AddRule(NodeType.VegatativeNode, new GrowthRule(growthRate * volume, false)
+            .WithCondition(x => !x.IsMature())
             .WithTransformation(x => x.Grow(growthRate))
         );
     }

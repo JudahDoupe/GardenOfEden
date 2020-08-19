@@ -6,9 +6,7 @@
     public bool IsAlive { get; set; } = true;
     public bool IsGrowing { get; set; } = false;
 
-    public Volume WaterCapacity = Volume.FromCubicMeters(5);
-    public Volume StoredWater { get; set; }
-    public Area StoredLight { get; set; }
+    public float StoredEnergy = 10;
 
     void Start()
     {

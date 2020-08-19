@@ -13,7 +13,7 @@ public class GrowthService : MonoBehaviour, IDailyProcess
 
     private List<Plant> _growingPlants = new List<Plant>();
     private MophologyGrowthVisitor _growthVisitor = new MophologyGrowthVisitor();
-    private VisualGrowthVisitor _smoothMeshVisitor = new VisualGrowthVisitor(2);
+    private VisualGrowthVisitor _smoothMeshVisitor = new VisualGrowthVisitor(1);
     private VisualGrowthVisitor _fastMeshVisitor = new VisualGrowthVisitor(0);
 
     private bool _hasDayBeenProcessed = false;

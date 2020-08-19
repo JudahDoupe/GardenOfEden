@@ -14,10 +14,10 @@ public static class ReproductionGenes
             .WithCondition(x => x.Age > daysToFlower)
             .WithTransformation(x => x.SetType(NodeType.ReproductiveBud))
         );
-        plant.GrowthRules.AddRule(NodeType.ReproductiveBud, new GrowthRule()
+        plant.GrowthRules.AddRule(NodeType.ReproductiveBud, new GrowthRule(10)
             .WithTransformation(x => x.SetType(NodeType.Flower))
         );
-        plant.GrowthRules.AddRule(NodeType.Flower, new GrowthRule()
+        plant.GrowthRules.AddRule(NodeType.Flower, new GrowthRule(1, false)
             .WithTransformation(x => x.Grow(growthRate))
         );
         plant.GrowthRules.AddRule(NodeType.Flower, new GrowthRule()

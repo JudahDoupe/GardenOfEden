@@ -22,6 +22,8 @@ public static class GrowthConditions
     }
     public static bool IsMature(this Node node)
     {
-        return node.Size >= node.Dna.Size;
+        return node.Size >= node.Dna.Size
+               && node.InternodeLength >= node.Dna.InternodeLength
+               && node.InternodeRadius >= node.Dna.InternodeRadius;
     }
 }

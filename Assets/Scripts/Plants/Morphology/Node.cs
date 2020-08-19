@@ -20,5 +20,15 @@ public class Node : MonoBehaviour
     public float InternodeRadius;
     public float SurfaceArea;
 
-    public float AbsorbedLight;
+    public float AbsorbedLight
+    {
+        get
+        {
+            return 0;
+        }
+        set
+        {
+            Plant.StoredEnergy += value;
+        }
+    }
 }

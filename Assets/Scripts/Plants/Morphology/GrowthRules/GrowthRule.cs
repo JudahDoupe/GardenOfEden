@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using UnityEngine;
-using static PlantDna;
 
 public class GrowthRule
 {
+    public readonly float EnergyCost;
+    public readonly bool TailRecursive;
     private List<Action<Node>> Modifications = new List<Action<Node>>();
     private List<Func<Node,bool>> Conditions = new List<Func<Node, bool>>();
 
-    public GrowthRule() { }
+    public GrowthRule(float energyCost = 0, bool tailRecursive = true) 
+    {
+        EnergyCost = energyCost;
+        TailRecursive = tailRecursive;
+    }
 
     public GrowthRule WithTransformation(Action<Node> modification)
     {

@@ -7,17 +7,34 @@
 
     private void VisitNode(Node node)
     {
-        foreach(var branch in node.Branches.ToArray())
+        var didUpdateNode = false;
+        foreach (var rule in node.Plant.GrowthRules.GetRulesForNode(node.Type))
+        {
+            if (!rule.TailRecursive && rule.ShouldApplyTo(node) && node.Plant.StoredEnergy > rule.EnergyCost)
+            {
+                rule.ApplyTo(node);
+                if (node.Plant != null)
+                {
+                    node.Plant.StoredEnergy -= rule.EnergyCost;
+                }
+                didUpdateNode = true;
+            }
+        }
+
+        foreach (var branch in node.Branches.ToArray())
         {
             VisitNode(branch);
         }
 
-        var didUpdateNode = false;
         foreach(var rule in node.Plant.GrowthRules.GetRulesForNode(node.Type))
         {
-            if (rule.ShouldApplyTo(node))
+            if (rule.TailRecursive && rule.ShouldApplyTo(node) && node.Plant.StoredEnergy > rule.EnergyCost)
             {
                 rule.ApplyTo(node);
+                if(node.Plant != null)
+                {
+                    node.Plant.StoredEnergy -= rule.EnergyCost;
+                }
                 didUpdateNode = true;
             }
         }
