@@ -7,6 +7,7 @@ public static class GrowthTransformations
         node.Size = CalculateGrowth(node.Dna.Size, node.Size, rate);
         node.InternodeLength = CalculateGrowth(node.Dna.InternodeLength, node.InternodeLength, rate);
         node.InternodeRadius = CalculateGrowth(node.Dna.InternodeRadius, node.InternodeRadius, rate);
+        node.SurfaceArea = (node.InternodeLength * node.InternodeRadius) + (node.Size * node.Size);
         return node;
     }
     public static Node Level(this Node node, float rate)

@@ -9,6 +9,7 @@ public static class EnergyProductionGenes
         leaf.InternodeRadius = 0.02f;
         leaf.MeshId = "Leaf";
         leaf.Size = 0.5f;
+        leaf.LightAbsorbtionRate = 0.1f;
 
         plant.GrowthRules.AddRule(NodeType.LeafBud, new GrowthRule()
             .WithTransformation(x => x.SetType(NodeType.Leaf))
@@ -25,6 +26,7 @@ public static class EnergyProductionGenes
         leaf.InternodeRadius = 0.02f;
         leaf.MeshId = "Leaf";
         leaf.Size = 0.5f;
+        leaf.LightAbsorbtionRate = 0.1f;
 
         plant.GrowthRules.AddRule(NodeType.LeafBud, new GrowthRule()
             .WithTransformation(x => x.SetType(NodeType.Leaf))

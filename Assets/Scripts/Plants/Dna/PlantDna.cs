@@ -76,6 +76,7 @@ public class PlantDna
         public float Size;
         public float InternodeLength;
         public float InternodeRadius;
+        public float LightAbsorbtionRate;
     }
     
     [Serializable]

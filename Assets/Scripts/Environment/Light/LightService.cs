@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Dynamic;
 using System.Linq;
 using UnityEngine;
 
@@ -19,7 +18,7 @@ public class LightService : MonoBehaviour, IDailyProcess
     {
         var coords = GetCoords(node);
         _absorberIndex.Add(node, coords);
-        _lightAbsorberGrid[coords.Item1, coords.Item2].Append(node);
+        _lightAbsorberGrid[coords.Item1, coords.Item2].Add(node);
     }
 
     public void UpdateAbsorber(Node node)
@@ -48,14 +47,29 @@ public class LightService : MonoBehaviour, IDailyProcess
         return _hasDayBeenProcessed;
     }
 
-    private Dictionary<Node, Tuple<int, int>> _absorberIndex;
+    private List<Plant> _growingPlants = new List<Plant>();
+    private Dictionary<Node, Tuple<int, int>> _absorberIndex = new Dictionary<Node, Tuple<int, int>>();
     private List<Node>[,] _lightAbsorberGrid;
 
     private bool _hasDayBeenProcessed;
     private IEnumerator ComputeAbsorpedLight()
     {
+        var visitor = new LightAbsorberUpdateVisitor();
         var timer = new Stopwatch();
         timer.Restart();
+
+        /*
+        foreach (var plant in _growingPlants)
+        {
+            if (timer.ElapsedMilliseconds > UpdateMilliseconds)
+            {
+                yield return new WaitForEndOfFrame();
+                timer.Restart();
+            }
+
+            visitor.VisitPlant(plant);
+        }
+        */
 
         for (int i = 0; i < SimulationDensity; i++)
         {
@@ -70,10 +84,10 @@ public class LightService : MonoBehaviour, IDailyProcess
                 var remainingLightArea = CellWidth * CellWidth;
                 foreach (var absorber in _lightAbsorberGrid[i, j].OrderByDescending(x => x.transform.position.y))
                 {
-                    var maxAbsobedLight = absorber.SurfaceArea * absorber.LightAbsorbtionRate;
+                    var maxAbsobedLight = absorber.SurfaceArea;
                     var absorbedLight = Mathf.Min(remainingLightArea, maxAbsobedLight);
-                    absorber.AbsorbedLight += absorbedLight;
                     remainingLightArea -= absorbedLight;
+                    absorber.AbsorbedLight += absorbedLight * absorber.Dna.LightAbsorbtionRate;
 
                     if (remainingLightArea <= Mathf.Epsilon)
                     {
@@ -86,8 +100,19 @@ public class LightService : MonoBehaviour, IDailyProcess
         _hasDayBeenProcessed = true;
     }
 
-    private void Start()
+    private void Awake()
     {
+        /*
+        NewPlantEventBus.Subscribe(x => {
+            _growingPlants.Add(x);
+            new LightAbsorberUpdateVisitor().VisitPlant(x);
+        });
+        PlantDeathEventBus.Subscribe(x => {
+            _growingPlants.Remove(x);
+            new LightAbsorberRemovalVisitor().VisitPlant(x);
+       });
+       */
+
         _lightAbsorberGrid = new List<Node>[SimulationDensity, SimulationDensity];
         for (int i = 0; i < SimulationDensity; i++)
         {
@@ -100,7 +125,8 @@ public class LightService : MonoBehaviour, IDailyProcess
 
     private Tuple<int,int> GetCoords(Node node)
     {
-        return Tuple.Create(Mathf.FloorToInt((node.transform.position.x / CellWidth) % SimulationDensity),
-                            Mathf.FloorToInt((node.transform.position.z / CellWidth) % SimulationDensity));
+        var uv = ComputeShaderUtils.LocationToUv(node.transform.position);
+        var id = uv * SimulationDensity;
+        return Tuple.Create(Mathf.FloorToInt(id.x), Mathf.FloorToInt(id.y));
     } 
 }

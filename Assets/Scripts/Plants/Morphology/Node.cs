@@ -16,11 +16,9 @@ public class Node : MonoBehaviour
 
     public string Type;
     public float Size;
-    public float SurfaceArea;
     public float InternodeLength;
     public float InternodeRadius;
+    public float SurfaceArea;
 
-    [Range(0, 1)]
-    public float LightAbsorbtionRate;
     public float AbsorbedLight;
 }
