@@ -19,7 +19,7 @@
         }
 
         if (transform.childCount == 0)
-            this.AddNodeAfter(NodeType.VegatativeBud);
+            this.AddNodeAfter(NodeType.TerminalBud);
 
         PlantMessageBus.NewPlant.Publish(this);
     }

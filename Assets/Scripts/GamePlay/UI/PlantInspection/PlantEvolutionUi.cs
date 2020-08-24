@@ -59,7 +59,7 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
     private void ShowGeneList(PlantGeneCategory category)
     {
         HideGeneList();
-        var genes = GeneLibrary.GetGenesInCategory(category);
+        var genes = GeneCache.GetGenesInCategory(category);
         var currentGene = genes.FirstOrDefault(g => _uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Method.Name == g.Name));
         var newGenes = genes.Where(g => g != currentGene).ToList();
         var r = 10;

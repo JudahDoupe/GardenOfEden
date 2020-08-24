@@ -169,7 +169,22 @@ public static class GrowthTransformations
         
         return plant;
     }
-
+    public static Node TransportGrowthHormone(this Node node)
+    {
+        if (node.Base != null)
+        {
+            node.Base.GrowthHormone += node.GrowthHormone;
+            node.GrowthHormone = 0;
+        }
+        return node;
+    }
+    public static Node Photosynthesize(this Node node)
+    {
+        node.Plant.StoredEnergy += node.AbsorbedLight;
+        node.GrowthHormone += node.AbsorbedLight;
+        node.AbsorbedLight = 0;
+        return node;
+    }
 
     private static float CalculateGrowth(float max, float current, float rate)
     {

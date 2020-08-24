@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using static PlantDna;
 
-public static class GeneLibrary
+public static class GeneCache
 {
     private static Dictionary<PlantGeneCategory, List<PlantGene>> _plantGenes;
 
@@ -66,13 +65,13 @@ public static class PlantGeneCategoryExtentions
         switch (category)
         {
             case PlantGeneCategory.Vegatation:
-                return typeof(VegatationGenes);
+                return typeof(VegatationGeneLibrary);
             case PlantGeneCategory.Reproduction:
-                return typeof(ReproductionGenes);
+                return typeof(ReproductionGeneLibrary);
             case PlantGeneCategory.EnergyProduction:
-                return typeof(EnergyProductionGenes);
+                return typeof(EnergyProductionGeneLibrary);
             default:
-                return typeof(VegatationGenes);
+                return typeof(VegatationGeneLibrary);
         }
     }
 }

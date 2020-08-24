@@ -1,9 +1,9 @@
 ﻿public class NodeType
 {
+    public const string TerminalBud = "TerminalBud";
+    public const string AuxilaryBud = "AuxilaryBud";
     public const string VegatativeNode = "VegatativeNode";
-    public const string VegatativeBud = "VegatativeBud";
     public const string ReproductiveNode = "ReproductiveNode";
-    public const string ReproductiveBud = "ReproductiveBud";
     public const string Flower = "Flower";
     public const string LeafBud = "LeafBud";
     public const string LeafNode = "LeafNode";

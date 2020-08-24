@@ -85,7 +85,11 @@ public class LightService : MonoBehaviour, IDailyProcess
 
         var coords = GetCoords(node);
         _absorberIndex.Add(node, coords);
-        _lightAbsorberGrid[coords.Item1, coords.Item2].Add(node);
+        if (0 <= coords.Item1 && coords.Item1 < SimulationDensity
+            && 0 <= coords.Item2 && coords.Item2 < SimulationDensity)
+        {
+            _lightAbsorberGrid[coords.Item1, coords.Item2].Add(node);
+        }
     }
 
     private void UpdateAbsorber(Node node)
