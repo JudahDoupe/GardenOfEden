@@ -84,7 +84,6 @@ public class VisualGrowthVisitor : IPlantVisitor
     {
         if (node.InternodeMesh != null)
         {
-            node.transform.position = node.transform.forward * node.InternodeLength + node.Base.transform.position;
             var vector = node.transform.position - node.Base.transform.position;
             node.InternodeMesh.Position = node.transform.position;
             node.InternodeMesh.Rotation = vector == Vector3.zero ? node.transform.rotation : Quaternion.LookRotation(vector);
