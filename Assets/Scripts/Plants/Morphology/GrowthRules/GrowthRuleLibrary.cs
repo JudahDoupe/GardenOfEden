@@ -22,4 +22,16 @@ public static class GrowthRuleLibrary
         return new GrowthRule(0, true)
             .WithTransformation(x => x.Photosynthesize());
     }
+    public static GrowthRule GenerateGrowthHormone(float amount)
+    {
+        return new GrowthRule(0, true)
+            .WithTransformation(x => x.GrowthHormone += amount);
+    }
+    public static GrowthRule KillWhenGrowthHormoneStops()
+    {
+        return new GrowthRule()
+            .WithCondition(x => x.GrowthHormone < Mathf.Epsilon)
+            .WithCondition(x => x.IsMature())
+            .WithTransformation(x => x.Kill());
+    }
 }

@@ -84,10 +84,10 @@ public class LightService : MonoBehaviour, IDailyProcess
         if (node.SurfaceArea <= Mathf.Epsilon) return;
 
         var coords = GetCoords(node);
-        _absorberIndex.Add(node, coords);
         if (0 <= coords.Item1 && coords.Item1 < SimulationDensity
             && 0 <= coords.Item2 && coords.Item2 < SimulationDensity)
         {
+            _absorberIndex.Add(node, coords);
             _lightAbsorberGrid[coords.Item1, coords.Item2].Add(node);
         }
     }

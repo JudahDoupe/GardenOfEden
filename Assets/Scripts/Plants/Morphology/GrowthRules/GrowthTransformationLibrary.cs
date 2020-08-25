@@ -9,10 +9,7 @@ public static class GrowthTransformations
         node.InternodeRadius = CalculateGrowth(node.Dna.InternodeRadius, node.InternodeRadius, rate / 2);
         var angle = 1 - Mathf.Abs(Vector3.Dot(node.transform.forward, Vector3.up));
         node.SurfaceArea = ((node.InternodeLength * node.InternodeRadius) + (node.Size * node.Size)) * angle;
-        if (node.Base != null)
-        {
-            node.transform.position = node.transform.forward * node.InternodeLength + node.Base.transform.position;
-        }
+        node.transform.localPosition = new Vector3(0, 0, node.InternodeLength);
         return node;
     }
     public static Node Level(this Node node, float rate)
@@ -38,6 +35,7 @@ public static class GrowthTransformations
         newNode.transform.parent = node.transform;
         newNode.transform.localPosition = new Vector3(0, 0, 0);
         newNode.transform.localRotation = Quaternion.identity;
+        newNode.transform.localScale = new Vector3(1, 1, 1);
         newNode.SetType(type);
 
         PlantMessageBus.NewNode.Publish(newNode);
@@ -68,8 +66,9 @@ public static class GrowthTransformations
         middleNode.Plant = node.Plant;
         middleNode.Base = baseNode;
         middleNode.Branches.Add(node);
-        middleNode.transform.position = node.transform.position;
-        middleNode.transform.rotation = node.transform.rotation;
+        middleNode.transform.localPosition = node.transform.localPosition;
+        middleNode.transform.localRotation = node.transform.localRotation;
+        middleNode.transform.localScale = new Vector3(1,1,1);
         middleNode.InternodeLength = node.InternodeLength;
         middleNode.InternodeRadius = node.InternodeRadius;
         middleNode.InternodeMesh = node.InternodeMesh ?? InstancedMeshRenderer.AddInstance("Stem");
@@ -165,7 +164,7 @@ public static class GrowthTransformations
         node.Plant = plant;
 
         var height = plant.transform.position.y - Singleton.LandService.SampleTerrainHeight(plant.transform.position);
-        var distance = Mathf.Max(height, 3);
+        var distance = Mathf.Clamp(height, 3, 25);
         var newPos = plant.transform.position + new Vector3(Random.Range(-distance, distance), 0, Random.Range(-distance, distance));
         newPos.y = Singleton.LandService.SampleTerrainHeight(newPos);
         plant.transform.position = newPos;
