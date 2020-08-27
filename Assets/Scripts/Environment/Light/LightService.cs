@@ -10,7 +10,7 @@ public class LightService : MonoBehaviour, IDailyProcess
     [Header("Settings")]
     [Range(1, 5)]
     public float UpdateMilliseconds = 5;
-    [Range(100, 1000)]
+    [Range(10, 200)]
     public int SimulationDensity = 100;
     public float CellWidth => ComputeShaderUtils.WorldSizeInMeters / SimulationDensity;
 

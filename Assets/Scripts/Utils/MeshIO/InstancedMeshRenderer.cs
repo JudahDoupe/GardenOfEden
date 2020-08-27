@@ -90,7 +90,7 @@ public class RenderingInstanceData
 
     public void UpdateMatrix()
     {
-        Matrix = Matrix4x4.TRS(Position, Rotation, Scale);
+        Matrix = Matrix4x4.TRS(Position, Rotation.normalized, Scale);
     }
 }
 
