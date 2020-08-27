@@ -17,7 +17,7 @@ public static class EnergyProductionGeneLibrary
         );
         plant.GrowthRules.AddRule(NodeType.Leaf, GrowthRuleLibrary.TransportGrowthHormone());
         plant.GrowthRules.AddRule(NodeType.Leaf, GrowthRuleLibrary.Photosynthesize());
-        plant.GrowthRules.AddRule(NodeType.Leaf, GrowthRuleLibrary.Grow(leaf, growthRate, 0.05f));
+        plant.GrowthRules.AddRule(NodeType.Leaf, GrowthRuleLibrary.PrimaryGrowth(leaf, growthRate, 0.05f));
         plant.GrowthRules.AddRule(NodeType.Leaf, GrowthRuleLibrary.KillWhenGrowthHormoneStops());
     }
 

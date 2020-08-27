@@ -2,7 +2,7 @@
 
 public static class GrowthTransformations
 {
-    public static Node Grow(this Node node, float rate)
+    public static Node PrimaryGrowth(this Node node, float rate)
     {
         node.Size = CalculateGrowth(node.Dna.Size, node.Size, rate);
         node.InternodeLength = CalculateGrowth(node.Dna.InternodeLength, node.InternodeLength, rate / 2);
@@ -10,6 +10,13 @@ public static class GrowthTransformations
         var angle = 1 - Mathf.Abs(Vector3.Dot(node.transform.forward, Vector3.up));
         node.SurfaceArea = ((node.InternodeLength * node.InternodeRadius) + (node.Size * node.Size)) * angle;
         node.transform.localPosition = new Vector3(0, 0, node.InternodeLength);
+        return node;
+    }
+    public static Node SecondaryGrowth(this Node node, float rate)
+    {
+        node.InternodeRadius += rate;
+        var angle = 1 - Mathf.Abs(Vector3.Dot(node.transform.forward, Vector3.up));
+        node.SurfaceArea = ((node.InternodeLength * node.InternodeRadius) + (node.Size * node.Size)) * angle;
         return node;
     }
     public static Node Level(this Node node, float rate)

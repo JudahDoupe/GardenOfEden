@@ -13,7 +13,7 @@
             .WithCondition(x => x.Age > daysToFlower)
             .WithTransformation(x => x.SetType(NodeType.Flower))
         );
-        plant.GrowthRules.AddRule(NodeType.Flower, GrowthRuleLibrary.Grow(flower, growthRate));
+        plant.GrowthRules.AddRule(NodeType.Flower, GrowthRuleLibrary.PrimaryGrowth(flower, growthRate));
         plant.GrowthRules.AddRule(NodeType.Flower, new GrowthRule()
             .WithCondition(x => x.IsMature())
             .WithTransformation(x => x.Kill())
@@ -24,7 +24,7 @@
             .WithTransformation(x => x.AddNode(NodeType.Seed))
         );
         plant.GrowthRules.AddRule(NodeType.Seed, new GrowthRule(growthRate * seedStoredEnery)
-            .WithTransformation(x => x.Grow(growthRate))
+            .WithTransformation(x => x.PrimaryGrowth(growthRate))
         );
         plant.GrowthRules.AddRule(NodeType.Seed, new GrowthRule()
             .WithCondition(x => x.IsMature())
