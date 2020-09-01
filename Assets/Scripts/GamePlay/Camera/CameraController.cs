@@ -13,7 +13,7 @@ public class CameraController : MonoBehaviour
 
     private void Start()
     {
-        CameraVisitor = new EcosystemCameraVisitor(FindObjectOfType<Plant>());
+        CameraVisitor = new EditorCameraVisitor(FindObjectOfType<Plant>());
     }
 
     private void LateUpdate()

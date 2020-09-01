@@ -1,26 +1,89 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class EditorCameraVisitor : ICameraVisitor
 {
-    private readonly Plant _editedPlant;
-    private Vector3 _targetPosition;
-    private Quaternion _targetRotation;
-    
+    private const float MinDistance = 1f;
+    private const float MaxDistance = 50f;
+
+    private const float ZoomSpeedMultiplier = 0.1f;
+    private const float MoveSpeedMultiplier = 2f;
+    private const float DriftSpeedMultiplier = 0.1f;
+
+    private readonly Transform _camera;
+    private Plant _focusedPlant;
+    private Vector3 _position;
+    private Vector3 _center;
+    private float _directionSign;
+
     public EditorCameraVisitor(Plant plant)
     {
-        _editedPlant = plant;
-        _targetPosition = Camera.main.transform.position;
+        _camera = Camera.main.transform;
+        _focusedPlant = plant;
+        _center = CameraUtils.GetPlantBounds(_focusedPlant).center;
+        _position = _camera.transform.position - _center;
     }
     
     public void VisitCamera(CameraController camera)
     {
-        var t = Time.deltaTime * camera.Speed;
-        var bounds = CameraUtils.GetPlantBounds(_editedPlant);
-        _targetPosition = CameraUtils.RotateAroundBounds(_targetPosition, bounds,t * 10);
-        _targetPosition = CameraUtils.ClampAboveGround(_targetPosition);
-        _targetRotation =  CameraUtils.LookAtBoundsCenter(bounds);
-        camera.transform.position = Vector3.Lerp(camera.transform.position, _targetPosition, t);
-        camera.transform.position = CameraUtils.ClampAboveGround(camera.transform.position);
-        camera.transform.rotation = Quaternion.Slerp(camera.transform.rotation, _targetRotation, t);
+        _center = Vector3.Lerp(_center, CameraUtils.GetPlantBounds(_focusedPlant).center, Time.deltaTime * MoveSpeedMultiplier / 2);
+
+        if (!TryControl())
+        {
+            Drift();
+        }
+
+        var lerpSpeed = Time.deltaTime * (MoveSpeedMultiplier * 2);
+
+        _camera.position = Vector3.Lerp(_camera.position, _center + _position, lerpSpeed);
+        _camera.LookAt(_center);
+    }
+
+    private bool TryControl()
+    {
+        var verticalMovement = Input.GetAxis("Vertical") * (MoveSpeedMultiplier);
+        var horizontalMovement = Input.GetAxis("Horizontal") * (MoveSpeedMultiplier);
+        var depthMovement = Input.mouseScrollDelta.y * ZoomSpeedMultiplier;
+
+        if (Math.Abs(verticalMovement) < float.Epsilon 
+            && Math.Abs(horizontalMovement) < float.Epsilon
+            && Math.Abs(depthMovement) < float.Epsilon)
+        {
+            return false;
+        }
+
+
+        var targetPosition = Quaternion.AngleAxis(-horizontalMovement, Vector3.up) * (Quaternion.AngleAxis(verticalMovement, _camera.transform.right) * _position);
+
+        if (targetPosition.magnitude * (1 - depthMovement) > MinDistance 
+            && targetPosition.magnitude * (1 - depthMovement) < MaxDistance)
+        {
+            targetPosition.Scale(new Vector3(1 - depthMovement, 1 - depthMovement, 1 - depthMovement));
+        }
+
+        if (Singleton.LandService.SampleTerrainHeight(targetPosition + _center) < (targetPosition + _center).y 
+            && targetPosition.normalized.y < 0.9f)
+        {
+            _position = targetPosition;
+        }
+
+        if (Math.Abs(horizontalMovement) > float.Epsilon)
+        {
+            _directionSign = Mathf.Sign(horizontalMovement);
+        }
+
+        return true;
+    }
+
+    private void Drift()
+    {
+        var targetPosition = Quaternion.AngleAxis(-DriftSpeedMultiplier * _directionSign, Vector3.up) * _position;
+        var landHeight = Singleton.LandService.SampleTerrainHeight(targetPosition + _center);
+
+        if (landHeight + 1 > (targetPosition + _center).y)
+        {
+            targetPosition = Quaternion.AngleAxis(DriftSpeedMultiplier, _camera.transform.right) * targetPosition;
+        }
+        _position = targetPosition;
     }
 }
