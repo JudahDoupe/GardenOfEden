@@ -135,7 +135,7 @@ public static class GrowthTransformations
             PlantMessageBus.PlantDeath.Publish(plant);
         }
 
-        UnityEngine.Object.Destroy(node.gameObject);
+        Object.Destroy(node.gameObject);
     }
     public static Node Roll(this Node node, float degrees)
     {
@@ -193,6 +193,27 @@ public static class GrowthTransformations
         node.Plant.StoredEnergy += node.AbsorbedLight;
         node.GrowthHormone += node.AbsorbedLight;
         node.AbsorbedLight = 0;
+        return node;
+    }
+    public static Node Coalesce(this Node node)
+    {
+        var baseNode = node.Base;
+
+        node.Base = baseNode.Base;
+        node.Base.Branches.Add(node);
+        node.Base.Branches.Remove(baseNode);
+
+        node.transform.parent = baseNode.transform.parent;
+
+        node.AbsorbedLight += baseNode.AbsorbedLight;
+        node.GrowthHormone += baseNode.GrowthHormone;
+        node.InternodeLength += baseNode.InternodeLength;
+        node.InternodeRadius = (baseNode.InternodeRadius + node.InternodeRadius) / 2;
+        var angle = 1 - Mathf.Abs(Vector3.Dot(node.transform.forward, Vector3.up));
+        node.SurfaceArea = ((node.InternodeLength * node.InternodeRadius) + (node.Size * node.Size)) * angle;
+
+        baseNode.Branches.Clear();
+        baseNode.Kill();
         return node;
     }
 

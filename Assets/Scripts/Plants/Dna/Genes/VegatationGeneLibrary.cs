@@ -62,6 +62,7 @@
         var vegNode = plant.PlantDna.GetOrAddNode(NodeType.VegatativeNode);
         vegNode.InternodeLength = 0.1f;
         vegNode.InternodeRadius = 0.03f;
+        vegNode.LightAbsorbtionRate = 0;
 
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.TransportGrowthHormone());
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.Photosynthesize());
@@ -69,6 +70,7 @@
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.SecondaryGrowth(vegNode, growthRate / 100));
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.SetMesh("WoodyStem").WithCondition(x => x.IsMature()));
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.KillWhenGrowthHormoneStops());
+        plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.CoalesceInternodes(5));
 
         plant.GrowthRules.AddRule(NodeType.TerminalBud, GrowthRuleLibrary.TransportGrowthHormone());
         plant.GrowthRules.AddRule(NodeType.TerminalBud, new GrowthRule(0.25f)
@@ -80,7 +82,7 @@
             .WithTransformation(x => x.GrowthHormone += 1)
         );
 
-        plant.GrowthRules.AddRule(NodeType.AuxilaryBud, new GrowthRule(0.5f)
+        plant.GrowthRules.AddRule(NodeType.AuxilaryBud, new GrowthRule(0.5f, true)
             .WithCondition(x => x.Base.GrowthHormone < maxBranchingGrowthHormone)
             .WithTransformation(x => x.SetType(NodeType.TerminalBud))
         );

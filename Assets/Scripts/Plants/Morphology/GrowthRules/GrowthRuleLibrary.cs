@@ -54,10 +54,13 @@ public static class GrowthRuleLibrary
     }
     public static GrowthRule CoalesceInternodes(float maxAngle)
     {
-        return new GrowthRule(0, false)
+        return new GrowthRule(0, true)
             .WithCondition(x => x.Base != null)
             .WithCondition(x => x.Base.Branches.Count == 1)
-            .WithCondition(x => Vector3.Dot(x.Base.transform.forward, x.Base.transform.forward) < maxAngle)
+            .WithCondition(x => x.Base.Type == x.Type)
+            .WithCondition(x => x.IsMature() && x.Base.IsMature())
+            .WithCondition(x => x.NodeMesh == null && x.Base.NodeMesh == null)
+            .WithCondition(x => Vector3.Angle(x.Base.transform.forward, x.transform.forward) < maxAngle)
             .WithTransformation(x => x.Coalesce());
     }
 }
