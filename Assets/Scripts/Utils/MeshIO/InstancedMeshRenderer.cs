@@ -13,8 +13,7 @@ public class InstancedMeshRenderer : MonoBehaviour
     public static RenderingInstanceData AddInstance(string meshId)
     {
         var instance = new RenderingInstanceData(meshId);
-        List<RenderingInstanceData> instances; 
-        if(Instances.TryGetValue(instance.MeshId, out instances))
+        if(Instances.TryGetValue(instance.MeshId, out var instances))
         {
             instances.Add(instance);
         }
@@ -27,10 +26,30 @@ public class InstancedMeshRenderer : MonoBehaviour
     }
     public static void RemoveInstance(RenderingInstanceData instance)
     {
-        List<RenderingInstanceData> instances;
-        if (Instances.TryGetValue(instance.MeshId, out instances))
+        if (Instances.TryGetValue(instance.MeshId, out var instances))
         {
             instances.Remove(instance);
+        }
+        else
+        {
+            Debug.LogError($"No mesh registered with id: {instance.MeshId}");
+        }
+    }
+    public static void UpdateMeshId(RenderingInstanceData instance, string meshId)
+    {
+        if (Instances.TryGetValue(instance.MeshId, out var instances))
+        {
+            instances.Remove(instance);
+
+        }
+        else
+        {
+            Debug.LogError($"No mesh registered with id: {instance.MeshId}");
+        }
+
+        if (Instances.TryGetValue(meshId, out instances))
+        {
+            instances.Add(instance);
         }
         else
         {
@@ -73,7 +92,7 @@ public class InstancedMeshRenderer : MonoBehaviour
 
 public class RenderingInstanceData
 {
-    public string MeshId;
+    public string MeshId { get; private set; }
     public Matrix4x4 Matrix;
     public Vector3 Position;
     public Quaternion Rotation;
@@ -91,6 +110,12 @@ public class RenderingInstanceData
     public void UpdateMatrix()
     {
         Matrix = Matrix4x4.TRS(Position, Rotation.normalized, Scale);
+    }
+
+    public void UpdateMeshId(string meshId)
+    {
+        InstancedMeshRenderer.UpdateMeshId(this, meshId);
+        MeshId = meshId;
     }
 }
 

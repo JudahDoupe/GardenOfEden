@@ -24,8 +24,6 @@ public static class GrowthRuleLibrary
             .WithCondition(x => x.IsMature())
             .WithTransformation(x => x.SecondaryGrowth(rate));
     }
-
-
     public static GrowthRule TransportGrowthHormone()
     {
         return new GrowthRule(0, true)
@@ -47,5 +45,19 @@ public static class GrowthRuleLibrary
             .WithCondition(x => x.GrowthHormone < Mathf.Epsilon)
             .WithCondition(x => x.IsMature())
             .WithTransformation(x => x.Kill());
+    }
+    public static GrowthRule SetMesh(string meshId)
+    {
+        return new GrowthRule()
+            .WithCondition(x => x.InternodeMesh.MeshId != meshId)
+            .WithTransformation(x => x.InternodeMesh.UpdateMeshId(meshId));
+    }
+    public static GrowthRule CoalesceInternodes(float maxAngle)
+    {
+        return new GrowthRule(0, false)
+            .WithCondition(x => x.Base != null)
+            .WithCondition(x => x.Base.Branches.Count == 1)
+            .WithCondition(x => Vector3.Dot(x.Base.transform.forward, x.Base.transform.forward) < maxAngle)
+            .WithTransformation(x => x.Coalesce());
     }
 }

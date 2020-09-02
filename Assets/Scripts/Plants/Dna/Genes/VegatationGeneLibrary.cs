@@ -67,6 +67,7 @@
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.Photosynthesize());
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.PrimaryGrowth(vegNode, growthRate));
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.SecondaryGrowth(vegNode, growthRate / 100));
+        plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.SetMesh("WoodyStem").WithCondition(x => x.IsMature()));
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.KillWhenGrowthHormoneStops());
 
         plant.GrowthRules.AddRule(NodeType.TerminalBud, GrowthRuleLibrary.TransportGrowthHormone());
