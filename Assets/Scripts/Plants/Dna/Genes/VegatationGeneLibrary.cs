@@ -60,14 +60,14 @@
     public static void DominantBranching(Plant plant, float growthRate = 0.3f, float maxBranchingGrowthHormone = 0.1f)
     {
         var vegNode = plant.PlantDna.GetOrAddNode(NodeType.VegatativeNode);
-        vegNode.InternodeLength = 0.1f;
+        vegNode.InternodeLength = 0.2f;
         vegNode.InternodeRadius = 0.03f;
         vegNode.LightAbsorbtionRate = 0;
 
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.TransportGrowthHormone());
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.Photosynthesize());
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.PrimaryGrowth(vegNode, growthRate));
-        plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.SecondaryGrowth(vegNode, growthRate / 100));
+        plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.SecondaryGrowth(vegNode, growthRate / 365));
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.SetMesh("WoodyStem").WithCondition(x => x.IsMature()));
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.KillWhenGrowthHormoneStops());
         plant.GrowthRules.AddRule(NodeType.VegatativeNode, GrowthRuleLibrary.CoalesceInternodes(5));
