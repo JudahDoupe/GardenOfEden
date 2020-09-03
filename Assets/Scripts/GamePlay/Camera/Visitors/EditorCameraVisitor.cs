@@ -10,7 +10,7 @@ public class EditorCameraVisitor : ICameraVisitor
     private const float ZoomSpeedMultiplier = 0.1f;
     private const float MoveSpeedMultiplier = 2f;
     private const float DriftSpeedMultiplier = 0.05f;
-    private const float ZoomDriftSpeedMultiplier = 0.0002f;
+    private const float ZoomDriftSpeedMultiplier = 0.0001f;
 
     private readonly Transform _camera;
     private Plant _focusedPlant;

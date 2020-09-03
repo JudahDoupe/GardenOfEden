@@ -13,7 +13,7 @@ public class GrowthService : MonoBehaviour, IDailyProcess
 
     private List<Plant> _growingPlants = new List<Plant>();
     private MophologyGrowthVisitor _growthVisitor = new MophologyGrowthVisitor();
-    private VisualGrowthVisitor _smoothMeshVisitor = new VisualGrowthVisitor(1);
+    private VisualGrowthVisitor _smoothMeshVisitor = new VisualGrowthVisitor(0.1f);
     private VisualGrowthVisitor _fastMeshVisitor = new VisualGrowthVisitor(0);
 
     private bool _hasDayBeenProcessed = false;
@@ -28,6 +28,7 @@ public class GrowthService : MonoBehaviour, IDailyProcess
     {
         _hasDayBeenProcessed = false;
         _growingPlants.OrderBy(x => Vector3.Distance(Camera.main.transform.position, x.transform.position));
+        _smoothMeshVisitor = new VisualGrowthVisitor(Mathf.Max(Singleton.TimeService.DayLength, 0.1f));
         StartCoroutine(GrowPlants());
     }
 
