@@ -6,7 +6,7 @@
         flower.InternodeLength = 0.1f;
         flower.InternodeRadius = 0.05f;
         flower.MeshId = "Flower";
-        flower.Size = 0.4f;
+        flower.Size = 0.15f;
         var seedStoredEnery = 1;
 
         plant.GrowthRules.AddRule(NodeType.TerminalBud, new GrowthRule(0.75f)

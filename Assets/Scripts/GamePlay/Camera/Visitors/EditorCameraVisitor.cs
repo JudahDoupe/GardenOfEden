@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 
 public class EditorCameraVisitor : ICameraVisitor
@@ -8,7 +9,8 @@ public class EditorCameraVisitor : ICameraVisitor
 
     private const float ZoomSpeedMultiplier = 0.1f;
     private const float MoveSpeedMultiplier = 2f;
-    private const float DriftSpeedMultiplier = 0.1f;
+    private const float DriftSpeedMultiplier = 0.05f;
+    private const float ZoomDriftSpeedMultiplier = 0.0002f;
 
     private readonly Transform _camera;
     private Plant _focusedPlant;
@@ -22,6 +24,13 @@ public class EditorCameraVisitor : ICameraVisitor
         _focusedPlant = plant;
         _center = CameraUtils.GetPlantBounds(_focusedPlant).center;
         _position = _camera.transform.position - _center;
+        PlantMessageBus.PlantDeath.Subscribe(x =>
+        {
+            if (x == _focusedPlant)
+            {
+                _focusedPlant = Singleton.PlantSearchService.GetClosestPlants(_center, 2).Last();
+            }
+        });
     }
     
     public void VisitCamera(CameraController camera)
@@ -78,6 +87,7 @@ public class EditorCameraVisitor : ICameraVisitor
     private void Drift()
     {
         var targetPosition = Quaternion.AngleAxis(-DriftSpeedMultiplier * _directionSign, Vector3.up) * _position;
+        targetPosition.Scale(new Vector3(1 + ZoomDriftSpeedMultiplier, 1 + ZoomDriftSpeedMultiplier, 1 + ZoomDriftSpeedMultiplier));
         var landHeight = Singleton.LandService.SampleTerrainHeight(targetPosition + _center);
 
         if (landHeight + 1 > (targetPosition + _center).y)
