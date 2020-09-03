@@ -1,0 +1,1 @@
+Foliage is the primary part of a plant responsible for energy production.  Foliage always recieves light and uses water provided by the rest of the plant for photosynthesis.

@@ -1,0 +1,1 @@
+Whorled Leaves are a type of [[Alternating Leaves]] but with at least multiple leaves in a ring per node.  See Lupine as an example of a plant with 5 leaves.

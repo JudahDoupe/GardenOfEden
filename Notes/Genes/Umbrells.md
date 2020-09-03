@@ -1,0 +1,1 @@
+Umbrells are a type of [[Flowers]] that multiply into many flower heads.

@@ -1,0 +1,1 @@
+Seeds are a [[Reproduction Strategy]] that require water to produce a plant.

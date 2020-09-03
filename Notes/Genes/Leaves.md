@@ -1,0 +1,1 @@
+Leaves are a type of [[Foliage]] with a large surface area.  This generally makes them use large amounts of water to produce large amounts of energy.  In general their high efficiency makes them sensitive to environmental change.

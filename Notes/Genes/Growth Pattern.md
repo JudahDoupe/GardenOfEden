@@ -1,0 +1,1 @@
+Growth patterns define a plant's morphology, structure and how it looks.  

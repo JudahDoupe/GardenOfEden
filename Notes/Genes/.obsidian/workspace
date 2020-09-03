@@ -1,0 +1,78 @@
+{
+  "main": {
+    "id": "a640ab06e936f834",
+    "type": "split",
+    "children": [
+      {
+        "id": "1088b0d3ab200bc9",
+        "type": "leaf",
+        "active": true,
+        "state": {
+          "type": "graph",
+          "state": {}
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "7f004b3cfb867754",
+    "type": "split",
+    "children": [
+      {
+        "id": "fd75c21a274c1a4f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "10375806eac261d6",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "2745ee3ee57073d4",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "c406b04e081e0edd",
+    "type": "split",
+    "children": [
+      {
+        "id": "83237bdac309989c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5b82e439f32f09c2",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "lastOpenFiles": [
+    "Rossette.md",
+    "Spiraling Leaves.md",
+    "Whorled Leaves.md",
+    "Ladders.md",
+    "Fire Cone.md"
+  ]
+}

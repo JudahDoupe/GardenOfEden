@@ -1,0 +1,1 @@
+A branching strategy tells a plant how to expand it's morphology.  Branches are usefull for plants that want to grow bigger, especially perenial plants that have more time to grow.

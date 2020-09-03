@@ -1,0 +1,1 @@
+A Rossette is a type of [[Spiraling Leaves]], except in a rossette there is no internode between leaves.

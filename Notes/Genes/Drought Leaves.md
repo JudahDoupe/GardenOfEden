@@ -1,0 +1,1 @@
+Drought Leaves are a type of [[Leaves]] that do not produce energy when the plant does not have sufficient water.  This helps plants preserve water during long periods of drought.

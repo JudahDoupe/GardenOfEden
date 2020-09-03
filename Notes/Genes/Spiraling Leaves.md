@@ -1,0 +1,1 @@
+Spiraling leaves is a [[Growth Pattern]] where leaf nodes rotate by some angle forming an upward spiral.  Spiraling leaves need at least 3 leaves to form a complete circle.

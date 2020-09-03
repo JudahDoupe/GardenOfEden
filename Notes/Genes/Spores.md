@@ -1,0 +1,1 @@
+Spores are a [[Reproduction Strategy]] that will automatically produce new plants.
