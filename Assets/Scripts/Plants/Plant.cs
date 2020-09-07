@@ -1,7 +1,6 @@
 ﻿public class Plant : Node
 {
-    public PlantDna PlantDna = new PlantDna();
-    public GrowthRuleSet GrowthRules = new GrowthRuleSet();
+    public PlantDna PlantDna;
 
     public bool IsAlive { get; set; } = true;
     public bool IsGrowing { get; set; } = false;
@@ -12,14 +11,18 @@
     {
         CreationDate = Singleton.TimeService.Day;
         Plant = this;
+        PlantDna = PlantDna ?? new PlantDna();
         this.SetType(NodeType.Plant);
+
         foreach (var gene in PlantDna.Genes)
         {
-            new PlantGene(gene).Express(this);
+            gene.Express(this);
         }
 
         if (transform.childCount == 0)
+        { 
             this.AddNodeAfter(NodeType.TerminalBud);
+        }
 
         PlantMessageBus.NewPlant.Publish(this);
     }

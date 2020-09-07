@@ -2,7 +2,7 @@
 
 public static class GrowthRuleLibrary
 {
-    public static GrowthRule PrimaryGrowth(PlantDna.NodeDna node, float rate = 0.27f, float costMultiplier = 1)
+    public static GrowthRule PrimaryGrowth(NodeDna node, float rate = 0.27f, float costMultiplier = 1)
     {
         var stemVolume = node.InternodeLength * node.InternodeRadius * node.InternodeRadius * Mathf.PI;
         var nodeVolume = node.Size * node.Size * node.Size;
@@ -13,7 +13,7 @@ public static class GrowthRuleLibrary
             .WithTransformation(x => x.PrimaryGrowth(rate));
     }
 
-    public static GrowthRule SecondaryGrowth(PlantDna.NodeDna node, float rate = 0.05f, float costMultiplier = 1)
+    public static GrowthRule SecondaryGrowth(NodeDna node, float rate = 0.05f, float costMultiplier = 1)
     {
         var oldStemVolume = node.InternodeLength * Mathf.Pow(node.InternodeRadius, 2) * Mathf.PI;
         var newStemVolume = node.InternodeLength * Mathf.Pow(node.InternodeRadius + rate, 2) * Mathf.PI;

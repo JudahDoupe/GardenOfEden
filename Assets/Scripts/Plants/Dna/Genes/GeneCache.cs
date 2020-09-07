@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using static PlantDna;
 
 public static class GeneCache
 {
@@ -31,19 +30,19 @@ public static class GeneCache
         var vegatationMethods = category.GetLibrary().GetMethods(BindingFlags.Static | BindingFlags.Public);
         var geneList = vegatationMethods.Select(x =>
         {
-            return new GeneDna
+            return new PlantGeneDto
             {
                 Category = category.ToString(),
-                Method = new Method
+                Method = new MethodDto
                 {
                     Name = x.Name,
                     Parameters = x.GetParameters().Where(p => p.ParameterType != typeof(Plant)).Select(p =>
-                        new Method.Parameter
+                        new ParameterDto
                         {
                             Name = p.Name,
                             Value = p.DefaultValue.ToString(),
                         }
-                    ).ToList(),
+                    ).ToArray(),
                 }
             };
         });

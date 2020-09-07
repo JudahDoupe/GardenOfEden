@@ -17,9 +17,8 @@ public class MophologyGrowthVisitor : IPlantVisitor
         while (_untraversedNodes.Count() > 0)
         {
             var node = _untraversedNodes.Dequeue();
-            var nodeRules = node.Plant.GrowthRules.GetRulesForNode(node.Type);
             AddBranches(node);
-            _didUpdate[node] = ApplyRules(nodeRules.Where(x => x.IsPreOrder), node);
+            _didUpdate[node] = ApplyRules(node.Dna.GrowthRules.Where(x => x.IsPreOrder), node);
             _traversedNodes.Enqueue(node);
         }
 
@@ -28,8 +27,7 @@ public class MophologyGrowthVisitor : IPlantVisitor
             var node = _traversedNodes.Dequeue();
             if (node.Plant != null)
             {
-                var nodeRules = node.Plant.GrowthRules.GetRulesForNode(node.Type);
-                _didUpdate[node] |= ApplyRules(nodeRules.Where(x => !x.IsPreOrder), node);
+                _didUpdate[node] |= ApplyRules(node.Dna.GrowthRules.Where(x => !x.IsPreOrder), node);
             }
 
             if (node.Plant != null && _didUpdate[node])

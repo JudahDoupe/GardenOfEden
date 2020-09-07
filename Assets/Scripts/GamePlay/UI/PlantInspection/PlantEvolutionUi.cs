@@ -62,7 +62,7 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
     {
         HideGeneList();
         var genes = GeneCache.GetGenesInCategory(category);
-        var currentGene = genes.FirstOrDefault(g => _uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Method.Name == g.Name));
+        var currentGene = genes.FirstOrDefault(g => _uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Name == g.Name));
         var newGenes = genes.Where(g => g != currentGene).ToList();
         var r = 10;
         foreach(var gene in genes)
@@ -99,11 +99,11 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
         if (selectedGene == null)
             return;
 
-        if (!_uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Method.Name == selectedGene.Name))
+        if (!_uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Name == selectedGene.Name))
         {
             var newDna = new PlantDna { Name = "New Plant" };
-            newDna.Genes = _uiData.FocusedPlant.PlantDna.Genes.Where(x => x.Category != selectedGene.Category.ToString()).ToList();
-            newDna.Genes.Add(selectedGene.Dna);
+            newDna.Genes = _uiData.FocusedPlant.PlantDna.Genes.Where(x => x.Category != selectedGene.Category).ToList();
+            newDna.Genes.Add(selectedGene);
             var oldPlant = _uiData.FocusedPlant;
             _uiData.FocusedPlant = new GameObject().AddComponent<Plant>();
             _uiData.FocusedPlant.transform.position = oldPlant.transform.position;

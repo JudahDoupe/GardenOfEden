@@ -2,19 +2,19 @@
 {
     public static void Flower (Plant plant, int daysToFlower = 10, float growthRate = 0.1f)
     {
+        var terminalBud = plant.PlantDna.GetOrAddNode(NodeType.TerminalBud);
+        terminalBud.GrowthRules.Add(new GrowthRule(0.75f)
+            .WithCondition(x => x.Age > daysToFlower)
+            .WithTransformation(x => x.SetType(NodeType.Flower))
+        );
+
         var flower = plant.PlantDna.GetOrAddNode(NodeType.Flower);
         flower.InternodeLength = 0.1f;
         flower.InternodeRadius = 0.05f;
         flower.MeshId = "Flower";
         flower.Size = 0.15f;
-        var seedStoredEnery = 1;
-
-        plant.GrowthRules.AddRule(NodeType.TerminalBud, new GrowthRule(0.75f)
-            .WithCondition(x => x.Age > daysToFlower)
-            .WithTransformation(x => x.SetType(NodeType.Flower))
-        );
-        plant.GrowthRules.AddRule(NodeType.Flower, GrowthRuleLibrary.PrimaryGrowth(flower, growthRate));
-        plant.GrowthRules.AddRule(NodeType.Flower, new GrowthRule()
+        flower.GrowthRules.Add(GrowthRuleLibrary.PrimaryGrowth(flower, growthRate));
+        flower.GrowthRules.Add(new GrowthRule()
             .WithCondition(x => x.IsMature())
             .WithTransformation(x => x.Kill())
             .WithTransformation(x => x.AddNode(NodeType.Seed))
@@ -23,10 +23,13 @@
             .WithTransformation(x => x.AddNode(NodeType.Seed))
             .WithTransformation(x => x.AddNode(NodeType.Seed))
         );
-        plant.GrowthRules.AddRule(NodeType.Seed, new GrowthRule(growthRate * seedStoredEnery)
+
+        var seed = plant.PlantDna.GetOrAddNode(NodeType.Seed);
+        var seedStoredEnery = 1;
+        seed.GrowthRules.Add(new GrowthRule(growthRate * seedStoredEnery)
             .WithTransformation(x => x.PrimaryGrowth(growthRate))
         );
-        plant.GrowthRules.AddRule(NodeType.Seed, new GrowthRule()
+        seed.GrowthRules.Add(new GrowthRule()
             .WithCondition(x => x.IsMature())
             .WithTransformation(x => x.Seperate())
             .WithTransformation(x => x.SetType(NodeType.TerminalBud))

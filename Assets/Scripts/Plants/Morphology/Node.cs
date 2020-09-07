@@ -9,7 +9,7 @@ public class Node : MonoBehaviour
     public List<Node> Branches { get; set; } = new List<Node>();
     public RenderingInstanceData NodeMesh { get; set; }
     public RenderingInstanceData InternodeMesh { get; set; }
-    public PlantDna.NodeDna Dna => Plant.PlantDna.Nodes.FirstOrDefault(x => x.Type == Type) ?? new PlantDna.NodeDna();
+    public NodeDna Dna => Plant.PlantDna.Nodes.FirstOrDefault(x => x.Type == Type) ?? new NodeDna();
 
     public int CreationDate { get; set; }
     public int Age => Singleton.TimeService.Day - CreationDate;

@@ -3,31 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using static PlantDna;
 
-public class PlantGene
+public class PlantGene : IDataBaseObject<PlantGeneDto>
 {
     public PlantGeneCategory Category;
     public string Name;
-    public GeneDna Dna;
 
+    private PlantGeneDto Dto;
     private MethodInfo Method;
     private object[] Parameters;
     
-    public PlantGene(GeneDna dna)
+    public PlantGene(PlantGeneDto dto)
     {
         try
         {
-            Dna = dna;
-            Category = (PlantGeneCategory)Enum.Parse(typeof(PlantGeneCategory), dna.Category);
-            Name = dna.Method.Name;
+            Dto = dto;
+            Category = (PlantGeneCategory)Enum.Parse(typeof(PlantGeneCategory), dto.Category);
+            Name = dto.Method.Name;
             var library = Category.GetLibrary().GetMethods(BindingFlags.Static | BindingFlags.Public);
-            Method = library.FirstOrDefault(x => x.Name == dna.Method.Name);
+            Method = library.FirstOrDefault(x => x.Name == dto.Method.Name);
             if (Method == null)
             {
-                throw new Exception($"Plant Gene not recognized: { dna.Method.Name}");
+                throw new Exception($"Plant Gene not recognized: { dto.Method.Name}");
             }
-            Parameters = GetParamters(Method, dna.Method);
+            Parameters = GetParamters(Method, dto.Method);
         }
         catch (Exception e)
         {
@@ -40,7 +39,7 @@ public class PlantGene
         Method.Invoke(plant, Parameters.Prepend(plant).ToArray());
     }
 
-    private object[] GetParamters(MethodInfo method, Method operation)
+    private object[] GetParamters(MethodInfo method, MethodDto operation)
     {
         if (!method.GetParameters().Any())
         {
@@ -65,4 +64,15 @@ public class PlantGene
                 return @switch[parameter.ParameterType](value);
             }).ToArray();
     }
+
+    public PlantGeneDto ToDto()
+    {
+        return Dto;
+    }
+}
+
+public class PlantGeneDto
+{
+    public string Category { get; set; }
+    public MethodDto Method { get; set; }
 }
