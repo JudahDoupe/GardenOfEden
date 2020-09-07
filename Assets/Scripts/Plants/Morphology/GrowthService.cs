@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GrowthService : MonoBehaviour, IDailyProcess
 {
@@ -13,10 +14,11 @@ public class GrowthService : MonoBehaviour, IDailyProcess
 
     private List<Plant> _growingPlants = new List<Plant>();
     private MophologyGrowthVisitor _growthVisitor = new MophologyGrowthVisitor();
-    private VisualGrowthVisitor _smoothMeshVisitor = new VisualGrowthVisitor(0.1f);
+    private VisualGrowthVisitor _smoothMeshVisitor = new VisualGrowthVisitor(0);
     private VisualGrowthVisitor _fastMeshVisitor = new VisualGrowthVisitor(0);
 
     private bool _hasDayBeenProcessed = false;
+    private float _growTime = 0.25f;
 
     private void Awake()
     {
@@ -28,17 +30,20 @@ public class GrowthService : MonoBehaviour, IDailyProcess
     {
         _hasDayBeenProcessed = false;
         _growingPlants.OrderBy(x => Vector3.Distance(Camera.main.transform.position, x.transform.position));
-        _smoothMeshVisitor = new VisualGrowthVisitor(Mathf.Max(Singleton.TimeService.DayLength, 0.1f));
+        _smoothMeshVisitor = new VisualGrowthVisitor(Mathf.Max(_growTime, 0.3f));
         StartCoroutine(GrowPlants());
     }
 
     public bool HasDayBeenProccessed()
     {
-        return _hasDayBeenProcessed && !_growingPlants.Any(x => x.IsGrowing);
+        return _hasDayBeenProcessed && _growingPlants.All(x => !x.IsGrowing);
     }
 
     private IEnumerator GrowPlants()
     {
+        var growTimer = new Stopwatch();
+        growTimer.Restart();
+        
         var updateQueue = new Queue<Plant>(_growingPlants);
         while (updateQueue.Any())
         {
@@ -57,6 +62,8 @@ public class GrowthService : MonoBehaviour, IDailyProcess
             }
             updateTimer.Stop();
         }
+
         _hasDayBeenProcessed = true;
+        _growTime = (float)growTimer.Elapsed.TotalSeconds * 0.9f;
     }
 }

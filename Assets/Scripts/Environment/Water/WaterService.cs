@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class WaterService : MonoBehaviour
+public class WaterService : MonoBehaviour, IDailyProcess
 {
     [Header("Variables")]
     public float Rain_MetersPerSecond = 0.1f;
@@ -58,6 +58,15 @@ public class WaterService : MonoBehaviour
     {
         int updateKernel = WaterShader.FindKernel("Update");
         WaterShader.Dispatch(updateKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+    }
+
+    public void ProcessDay()
+    {
         WaterMap.UpdateTextureCache();
+    }
+
+    public bool HasDayBeenProccessed()
+    {
+        return true;
     }
 }

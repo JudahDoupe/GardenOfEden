@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.Utils;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -92,8 +93,9 @@ public static class RenderTextureExtentions
 
     public static void LoadFromFile(this RenderTexture rt, string path, TextureFormat format = TextureFormat.RGBAFloat)
     {
-        var tex = new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, format, false);
-        tex.LoadRawTextureData(File.ReadAllBytes(path));
+        Texture2D tex;  
+        tex = new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, format, false);
+        tex.LoadRawTextureData(File.ReadAllBytes(Application.persistentDataPath + '/' + path));
         tex.Apply();
         Graphics.Blit(tex, rt);
     }
@@ -101,7 +103,7 @@ public static class RenderTextureExtentions
     {
         var tex = rt.ToTexture2D(format);
         var bytes = tex.GetRawTextureData();
-        File.WriteAllBytes(path, bytes);
+        File.WriteAllBytes(Application.persistentDataPath + path, bytes);
     }
 
 

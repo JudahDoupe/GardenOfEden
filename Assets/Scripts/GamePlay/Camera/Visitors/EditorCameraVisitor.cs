@@ -16,7 +16,7 @@ public class EditorCameraVisitor : ICameraVisitor
     private Plant _focusedPlant;
     private Vector3 _position;
     private Vector3 _center;
-    private float _directionSign;
+    private float _directionSign = 1;
 
     public EditorCameraVisitor(Plant plant)
     {

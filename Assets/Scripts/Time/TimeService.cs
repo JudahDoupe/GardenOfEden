@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
@@ -17,38 +18,36 @@ public class TimeService : MonoBehaviour
         _dailyProcesses = new List<IDailyProcess>
         {
             Singleton.LightService,
+            Singleton.WaterService,
+            Singleton.LandService,
             Singleton.GrowthService,
         };
         StartNextDay();
+        _processQueue.Peek().ProcessDay();
     }
 
     public void Update()
     {
-        if (!_processQueue.Any())
-        {
-            StartNextDay();
-        }
         if (_processQueue.Peek().HasDayBeenProccessed())
         {
             StartNextProcess();
         }
     }
 
-    private void StartNextDay()
-    {
-        DayLength = _dayLengthTimer.Elapsed.Seconds;
-        _dayLengthTimer.Restart();
-        _processQueue = new Queue<IDailyProcess>(_dailyProcesses);
-        _processQueue.Peek().ProcessDay();
-        Day++;
-    }
-
     private void StartNextProcess()
     {
         _processQueue.Dequeue();
-        if (_processQueue.Any())
+        if (!_processQueue.Any())
         {
-            _processQueue.Peek().ProcessDay();
+            StartNextDay();
         }
+        _processQueue.Peek().ProcessDay();
+    }
+    private void StartNextDay()
+    {
+        Day++;
+        DayLength = _dayLengthTimer.Elapsed.Seconds;
+        _dayLengthTimer.Restart();
+        _processQueue = new Queue<IDailyProcess>(_dailyProcesses);
     }
 }

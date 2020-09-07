@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-public class LandService : MonoBehaviour
+public class LandService : MonoBehaviour, IDailyProcess
 {
     [Header("Render Textures")]
     public RenderTexture LandMap;
@@ -78,7 +78,16 @@ public class LandService : MonoBehaviour
         SoilShader.SetFloat("RootPullSpeed", RootPullSpeed);
         SoilShader.SetFloat("WaterAbsorptionRate", WaterAbsorptionRate);
         SoilShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+    }
+
+    public void ProcessDay()
+    {
         LandMap.UpdateTextureCache();
         SoilWaterMap.UpdateTextureCache();
+    }
+
+    public bool HasDayBeenProccessed()
+    {
+        return true;
     }
 }

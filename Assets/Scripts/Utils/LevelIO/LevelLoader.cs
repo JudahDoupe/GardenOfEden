@@ -22,26 +22,34 @@ public class LevelLoader : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(LoadStarterLevel());
-        Land.mesh.bounds = new Bounds(Land.mesh.bounds.center, new Vector3(Land.mesh.bounds.size.x, 500, Land.mesh.bounds.size.z));
+        LoadLevel(MapName);
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            LoadLevel(MapName);
+        }
     }
 
     public void SaveLevel(string mapName)
     {
-        Directory.CreateDirectory($"Assets/Resources/Map/{mapName}/");
-        WaterMap.SaveToFile($"Assets/Resources/Map/{mapName}/water.tex");
-        WaterSourceMap.SaveToFile($"Assets/Resources/Map/{mapName}/waterSource.tex", TextureFormat.RFloat);
-        LandMap.SaveToFile($"Assets/Resources/Map/{mapName}/land.tex");
-        SoilWaterMap.SaveToFile($"Assets/Resources/Map/{mapName}/soilWater.tex");
+        Directory.CreateDirectory($"Map/{mapName}/");
+        WaterMap.SaveToFile($"Map/{mapName}/water.tex");
+        WaterSourceMap.SaveToFile($"Map/{mapName}/waterSource.tex", TextureFormat.RFloat);
+        LandMap.SaveToFile($"Map/{mapName}/land.tex");
+        SoilWaterMap.SaveToFile($"Map/{mapName}/soilWater.tex");
     }
 
     public void LoadLevel(string mapName)
     {
         ResetMaps();
-        WaterMap.LoadFromFile($"Assets/Resources/Map/{mapName}/water.tex");
-        WaterSourceMap.LoadFromFile($"Assets/Resources/Map/{mapName}/waterSource.tex", TextureFormat.RFloat);
-        LandMap.LoadFromFile($"Assets/Resources/Map/{mapName}/land.tex");
-        SoilWaterMap.LoadFromFile($"Assets/Resources/Map/{mapName}/soilWater.tex");
+        WaterMap.LoadFromFile($"Map/{mapName}/water.tex");
+        WaterSourceMap.LoadFromFile($"Map/{mapName}/waterSource.tex", TextureFormat.RFloat);
+        LandMap.LoadFromFile($"Map/{mapName}/land.tex");
+        SoilWaterMap.LoadFromFile($"Map/{mapName}/soilWater.tex");
+        Land.mesh.bounds = new Bounds(Land.mesh.bounds.center, new Vector3(Land.mesh.bounds.size.x, 500, Land.mesh.bounds.size.z));
     }
 
     public void RenderMaps()
@@ -68,11 +76,5 @@ public class LevelLoader : MonoBehaviour
         WaterSourceMap.ResetTexture();
         LandMap.ResetTexture();
         SoilWaterMap.ResetTexture();
-    }
-
-    private IEnumerator LoadStarterLevel()
-    {
-        yield return new WaitForSeconds(0.1f);
-        LoadLevel(MapName);
     }
 }
