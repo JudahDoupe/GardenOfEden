@@ -1,7 +1,4 @@
-﻿using LiteDB;
-using System;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -109,29 +106,11 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
             _uiData.FocusedPlant.transform.position = oldPlant.transform.position;
             _uiData.FocusedPlant.transform.rotation = oldPlant.transform.rotation;
             _uiData.FocusedPlant.PlantDna = newDna;
+            _uiData.FocusedPlant.StoredEnergy = 5;
             oldPlant.Kill();
-
-            SaveDna(newDna);
+            PlantDnaDataStore.SaveDna(newDna.ToDto());
         }
 
         Singleton.UiController.SetState(ExitState);
-    }
-    public void SaveDna(PlantDna dna)
-    {
-        var mem = new MemoryStream();
-
-        using (var db = new LiteDatabase(mem))
-        {
-            Debug.Log(Application.temporaryCachePath);
-            var collection = db.GetCollection<PlantDna>("PlantDna");
-
-            collection.Insert(dna);
-            collection.EnsureIndex(x => x.SpeciesId);
-
-            var tmp = collection.FindOne(x => x.SpeciesId == dna.SpeciesId);
-
-            Debug.Log(tmp.Name);
-        }
-
     }
 }
