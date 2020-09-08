@@ -11,9 +11,15 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
     public Text Description;
     public Button AcceptButton;
 
-    public BasicInfoUi ExitState;
-
     private UiData _uiData;
+
+    public void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Singleton.UiController.SetState(UiStateType.BasicInfo);
+        }
+    }
 
     public bool Enable(UiData data)
     {
@@ -111,6 +117,6 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
             PlantDnaDataStore.SaveDna(newDna.ToDto());
         }
 
-        Singleton.UiController.SetState(ExitState);
+        Singleton.UiController.SetState(UiStateType.BasicInfo);
     }
 }

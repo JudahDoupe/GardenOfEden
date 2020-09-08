@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
 
 public class CameraController : MonoBehaviour
-{
-    public float Speed = 1;
-    
+{    
     public ICameraVisitor CameraVisitor { get; set;  }
 
     public void Accept(ICameraVisitor visitor)
@@ -13,7 +11,7 @@ public class CameraController : MonoBehaviour
 
     private void Start()
     {
-        CameraVisitor = new EcosystemCameraVisitor(FindObjectOfType<Plant>());
+        CameraVisitor = new EditorCameraVisitor(FindObjectOfType<Plant>());
     }
 
     private void LateUpdate()

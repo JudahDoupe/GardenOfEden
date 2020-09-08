@@ -7,7 +7,6 @@ public class EditorCameraVisitor : ICameraVisitor
     private const float MinDistance = 1f;
     private const float MaxDistance = 50f;
 
-    private const float ZoomSpeedMultiplier = 0.1f;
     private const float MoveSpeedMultiplier = 2f;
     private const float DriftSpeedMultiplier = 0.05f;
     private const float ZoomDriftSpeedMultiplier = 0.0001f;
@@ -22,13 +21,14 @@ public class EditorCameraVisitor : ICameraVisitor
     {
         _camera = Camera.main.transform;
         _focusedPlant = plant;
+        Singleton.UiController.Data.FocusedPlant = _focusedPlant;
         _center = CameraUtils.GetPlantBounds(_focusedPlant).center;
         _position = _camera.transform.position - _center;
         PlantMessageBus.PlantDeath.Subscribe(x =>
         {
             if (x == _focusedPlant)
             {
-                _focusedPlant = Singleton.PlantSearchService.GetClosestPlants(_center, 2).Last();
+                _focusedPlant = Singleton.UiController.Data.FocusedPlant ?? Singleton.PlantSearchService.GetClosestPlants(_center, 2).Last();
             }
         });
     }
@@ -50,9 +50,10 @@ public class EditorCameraVisitor : ICameraVisitor
 
     private bool TryControl()
     {
-        var verticalMovement = Input.GetAxis("Vertical") * (MoveSpeedMultiplier);
-        var horizontalMovement = Input.GetAxis("Horizontal") * (MoveSpeedMultiplier);
-        var depthMovement = Input.mouseScrollDelta.y * ZoomSpeedMultiplier;
+        var timeFactor = Time.deltaTime * 30;
+        var verticalMovement = Input.GetAxis("Vertical") * (MoveSpeedMultiplier) * timeFactor;
+        var horizontalMovement = Input.GetAxis("Horizontal") * (MoveSpeedMultiplier) * timeFactor;
+        var depthMovement = Input.mouseScrollDelta.y * MoveSpeedMultiplier / 10 * timeFactor;
 
         if (Math.Abs(verticalMovement) < float.Epsilon 
             && Math.Abs(horizontalMovement) < float.Epsilon

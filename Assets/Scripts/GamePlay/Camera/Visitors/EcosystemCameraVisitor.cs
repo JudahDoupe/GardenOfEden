@@ -22,9 +22,6 @@ public class EcosystemCameraVisitor : ICameraVisitor
     private Vector3 _targetPostion;
     private Quaternion _targetRotation;
 
-    private UiState _evolutionUi;
-    private UiState _infoUi;
-
 
     public EcosystemCameraVisitor(Plant focusedPlant)
     {
@@ -33,13 +30,11 @@ public class EcosystemCameraVisitor : ICameraVisitor
         _center = _focusedPlant.transform.position;
         _direction = (_camera.position - _center).normalized;
         _distance = Vector3.Distance(_camera.position, _center);
-        _evolutionUi = GameObject.FindObjectOfType<PlantEvolutionUi>();
-        _infoUi = GameObject.FindObjectOfType<BasicInfoUi>();
     }
     
     public void VisitCamera(CameraController camera)
     {
-        if (Singleton.UiController.CurrentState != _evolutionUi)
+        if (Singleton.UiController.CurrentStateType != UiStateType.Evolution)
         {
             var moving = Move();
             if (!moving)
@@ -68,15 +63,6 @@ public class EcosystemCameraVisitor : ICameraVisitor
         
         _camera.position = Vector3.Lerp(_camera.position, _targetPostion, Time.deltaTime * MoveSpeedMultiplier);
         _camera.rotation = Quaternion.Lerp(_camera.rotation, _targetRotation, Time.deltaTime * LookSpeedMultiplier);
-
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            Singleton.UiController.SetState(_evolutionUi);
-        }
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Singleton.UiController.SetState(_infoUi);
-        }
     }
     private bool Move()
     {
