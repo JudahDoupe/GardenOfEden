@@ -6,8 +6,3 @@ public interface IPlantVisitor
 {
     void VisitPlant(Plant plant); 
 }
-
-public interface ICameraVisitor
-{
-    void VisitCamera(CameraController camera);
-}

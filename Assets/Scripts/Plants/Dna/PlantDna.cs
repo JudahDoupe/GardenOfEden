@@ -72,46 +72,6 @@ public class PlantDnaDto
     public int SpeciesId { get; set; }
     public int Generation { get; set; }
     public PlantGeneDto[] Genes { get; set; }
-    
+
     // Node dna does not get stored because it is derived from the plant genes
 }
-
-
-
-
-/*
-Genes = new List<PlantGene>()
-{
-    new GeneDna
-    {
-        Category = PlantGeneCategory.Vegatation.ToString(),
-        Method = new Method {
-            Name = "Straight",
-            Parameters = new List<Method.Parameter> {
-                new Method.Parameter {Name = "growthRate", Value = "0.3" }
-            }
-        }
-    },
-    new GeneDna
-    {
-        Category = PlantGeneCategory.Reproduction.ToString(),
-        Method = new Method {
-            Name = "Flower",
-            Parameters = new List<Method.Parameter> {
-                new Method.Parameter {Name = "daysToFlower", Value = "10" },
-                new Method.Parameter {Name = "growthRate", Value = "0.1" }
-            }
-        }
-    },
-    new GeneDna
-    {
-        Category = PlantGeneCategory.EnergyProduction.ToString(),
-        Method = new Method {
-            Name = "Basic",
-            Parameters = new List<Method.Parameter> {
-                new Method.Parameter {Name = "growthRate", Value = "0.3" }
-            }
-        }
-    },
-};
-*/

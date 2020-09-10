@@ -8,6 +8,8 @@
         vegNode.GrowthRules.Add(GrowthRuleLibrary.TransportGrowthHormone());
         vegNode.GrowthRules.Add(GrowthRuleLibrary.Photosynthesize());
         vegNode.GrowthRules.Add(GrowthRuleLibrary.PrimaryGrowth(vegNode, growthRate));
+        vegNode.GrowthRules.Add(GrowthRuleLibrary.KillWhenGrowthHormoneStops());
+        vegNode.GrowthRules.Add(GrowthRuleLibrary.CoalesceInternodes(5));
 
         var terminalBud = plant.PlantDna.GetOrAddNode(NodeType.TerminalBud);
         terminalBud.GrowthRules.Add(GrowthRuleLibrary.TransportGrowthHormone());
@@ -28,6 +30,8 @@
         vegNode.GrowthRules.Add(GrowthRuleLibrary.TransportGrowthHormone());
         vegNode.GrowthRules.Add(GrowthRuleLibrary.Photosynthesize());
         vegNode.GrowthRules.Add(GrowthRuleLibrary.PrimaryGrowth(vegNode, growthRate));
+        vegNode.GrowthRules.Add(GrowthRuleLibrary.KillWhenGrowthHormoneStops());
+        vegNode.GrowthRules.Add(GrowthRuleLibrary.CoalesceInternodes(5));
 
         var terminalBud = plant.PlantDna.GetOrAddNode(NodeType.TerminalBud);
         terminalBud.GrowthRules.Add(GrowthRuleLibrary.TransportGrowthHormone());
@@ -81,7 +85,7 @@
             .WithTransformation(x => x.AddNodeBefore(NodeType.VegatativeNode))
             .WithTransformation(x => x.AddNode(NodeType.LeafBud).Pitch(90))
             .WithTransformation(x => x.AddNode(NodeType.AuxilaryBud).Pitch(45))
-            .WithTransformation(x => x.Jitter(1))
+            .WithTransformation(x => x.Jitter(5))
             .WithTransformation(x => x.GrowthHormone += 1)
         );
 

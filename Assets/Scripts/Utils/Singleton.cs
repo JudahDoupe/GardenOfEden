@@ -13,7 +13,6 @@ public class Singleton : MonoBehaviour
     public static TimeService TimeService;
 
     public static CameraController CameraController;
-    public static UiController UiController;
 
     private void Awake()
     {
@@ -28,6 +27,5 @@ public class Singleton : MonoBehaviour
         TimeService = FindObjectOfType<TimeService>();
 
         CameraController = FindObjectOfType<CameraController>();
-        UiController = FindObjectOfType<UiController>();
     }
 }

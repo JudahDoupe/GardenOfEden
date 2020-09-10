@@ -1,21 +1,23 @@
 ﻿using UnityEngine;
 
 public class CameraController : MonoBehaviour
-{    
-    public ICameraVisitor CameraVisitor { get; set;  }
+{
+    public StateMachine<ICameraState> CameraState { get; private set; }
+    public StateMachine<IUiState> UiState { get; private set; }
 
-    public void Accept(ICameraVisitor visitor)
-    {
-        visitor.VisitCamera(this);
-    }
+    public Plant FocusedPlant { get; set; }
 
     private void Start()
     {
-        CameraVisitor = new EditorCameraVisitor(FindObjectOfType<Plant>());
+        CameraState = new StateMachine<ICameraState>();
+        UiState = new StateMachine<IUiState>();
+
+        CameraState.SetState(new ObservationCameraState(this));
+        UiState.SetState(FindObjectOfType<CinematicUi>());
     }
 
     private void LateUpdate()
     {
-        CameraVisitor?.VisitCamera(this);
+        CameraState.State?.UpdateCamera();
     }
 }

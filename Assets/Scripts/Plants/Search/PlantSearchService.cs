@@ -28,7 +28,7 @@ public class PlantSearchService : MonoBehaviour
             .Select(x => x.Value)
             .Where(x => x.PlantDna.SpeciesId == (speciesId ?? x.PlantDna.SpeciesId));
     }
-    
+
     private void Start()
     {
         PlantMessageBus.NewPlant.Subscribe(x =>

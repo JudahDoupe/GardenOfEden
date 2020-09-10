@@ -2,8 +2,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlantEvolutionUi : MonoBehaviour, UiState
+public class PlantEvolutionUi : MonoBehaviour, IUiState
 {
+    public CameraController Controller;
     public GameObject ButtonPrefab;
     public GameObject GeneContainer;
     public GameObject DecriptionContainer;
@@ -11,33 +12,33 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
     public Text Description;
     public Button AcceptButton;
 
-    private UiData _uiData;
 
     public void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (GetComponent<Canvas>().enabled)
         {
-            Singleton.UiController.SetState(UiStateType.BasicInfo);
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Controller.UiState.SetState(FindObjectOfType<BasicInfoUi>());
+            }
         }
     }
 
-    public bool Enable(UiData data)
+    public void Enable()
     {
-        if (data.FocusedPlant == null)
+        if (Controller.FocusedPlant == null)
         {
-            return false;
+            Controller.UiState.SetState(FindObjectOfType<CinematicUi>());
         }
-        _uiData = data;
+
         selectedGene = null;
         HideGeneList();
         GetComponent<Canvas>().enabled = true;
-        return true;
     }
 
-    public bool Disable(UiData data)
+    public void Disable()
     {
         GetComponent<Canvas>().enabled = false;
-        return true;
     }
 
     public void HideGeneList()
@@ -65,7 +66,7 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
     {
         HideGeneList();
         var genes = GeneCache.GetGenesInCategory(category);
-        var currentGene = genes.FirstOrDefault(g => _uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Name == g.Name));
+        var currentGene = genes.FirstOrDefault(g => Controller.FocusedPlant.PlantDna.Genes.Any(x => x.Name == g.Name));
         var newGenes = genes.Where(g => g != currentGene).ToList();
         var r = 10;
         foreach(var gene in genes)
@@ -102,21 +103,21 @@ public class PlantEvolutionUi : MonoBehaviour, UiState
         if (selectedGene == null)
             return;
 
-        if (!_uiData.FocusedPlant.PlantDna.Genes.Any(x => x.Name == selectedGene.Name))
+        if (!Controller.FocusedPlant.PlantDna.Genes.Any(x => x.Name == selectedGene.Name))
         {
             var newDna = new PlantDna { Name = "New Plant" };
-            newDna.Genes = _uiData.FocusedPlant.PlantDna.Genes.Where(x => x.Category != selectedGene.Category).ToList();
+            newDna.Genes = Controller.FocusedPlant.PlantDna.Genes.Where(x => x.Category != selectedGene.Category).ToList();
             newDna.Genes.Add(selectedGene);
-            var oldPlant = _uiData.FocusedPlant;
-            _uiData.FocusedPlant = new GameObject().AddComponent<Plant>();
-            _uiData.FocusedPlant.transform.position = oldPlant.transform.position;
-            _uiData.FocusedPlant.transform.rotation = oldPlant.transform.rotation;
-            _uiData.FocusedPlant.PlantDna = newDna;
-            _uiData.FocusedPlant.StoredEnergy = 5;
+            var oldPlant = Controller.FocusedPlant;
+            Controller.FocusedPlant = new GameObject().AddComponent<Plant>();
+            Controller.FocusedPlant.transform.position = oldPlant.transform.position;
+            Controller.FocusedPlant.transform.rotation = oldPlant.transform.rotation;
+            Controller.FocusedPlant.PlantDna = newDna;
+            Controller.FocusedPlant.StoredEnergy = 5;
             oldPlant.Kill();
             PlantDnaDataStore.SaveDna(newDna.ToDto());
         }
 
-        Singleton.UiController.SetState(UiStateType.BasicInfo);
+        Controller.UiState.SetState(FindObjectOfType<BasicInfoUi>());
     }
 }
