@@ -51,14 +51,14 @@ public class LandService : MonoBehaviour, IDailyProcess
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
         var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
-        location.y = color.a;
+        location.y = Mathf.Max(color.a, location.y);
         return location;
     }
-    public Vector3 ClampWithinSoil(Vector3 location)
+    public Vector3 ClampToTerrain(Vector3 location)
     {
         var uv = ComputeShaderUtils.LocationToUv(location);
         var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
-        location.y = Mathf.Clamp(location.y, color.a - color.r, color.a);
+        location.y = color.a;
         return location;
     }
 

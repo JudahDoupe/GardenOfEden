@@ -7,24 +7,21 @@ public class BasicInfoUi : MonoBehaviour, IUiState
     public Text Title;
     public Text Description;
 
-    public void Update()
+    public void UpdateUi()
     {
-        if (GetComponent<Canvas>().enabled)
+        if (Controller.FocusedPlant == null)
         {
-            if (Controller.FocusedPlant == null)
-            {
-                Title.text = "";
-                Description.text = "";
-            }
-            else
-            {
-                Title.text = Controller.FocusedPlant.PlantDna.Name;
-            }
+            Title.text = "";
+            Description.text = "";
+        }
+        else
+        {
+            Title.text = Controller.FocusedPlant.PlantDna.Name;
+        }
 
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                Controller.UiState.SetState(FindObjectOfType<CinematicUi>());
-            }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Controller.UiState.SetState(FindObjectOfType<CinematicUi>());
         }
     }
 

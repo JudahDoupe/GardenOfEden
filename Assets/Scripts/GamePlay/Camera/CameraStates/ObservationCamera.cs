@@ -2,71 +2,70 @@
 using System.Linq;
 using UnityEngine;
 
-public class ObservationCameraState : ICameraState
+public class ObservationCamera : MonoBehaviour, ICameraState
 {
-    private const float MinDistance = 1f;
-    private const float MaxDistance = 50f;
+    public float MinDistance = 1f;
+    public float MaxDistance = 50f;
+    public float MoveSpeedMultiplier = 2f;
+    public float DriftSpeedMultiplier = 0.05f;
+    public float ZoomDriftSpeedMultiplier = 0.0001f;
 
-    private const float MoveSpeedMultiplier = 2f;
-    private const float DriftSpeedMultiplier = 0.05f;
-    private const float ZoomDriftSpeedMultiplier = 0.0001f;
-
-    private readonly CameraController _controller;
-    private readonly Transform _camera;
-    private Vector3 _center;
+    private CameraController _controller;
+    private Transform _camera;
     private Vector3 _offset;
     private float _directionSign = 1;
 
-    public ObservationCameraState(CameraController controller)
+    private void Start()
     {
-        _controller = controller;
         _camera = Camera.main.transform;
+        _controller = FindObjectOfType<CameraController>();
     }
 
     public void UpdateCamera()
     {
+        var lerpSpeed = Time.deltaTime * MoveSpeedMultiplier * 2;
+
         if ((_controller.FocusedPlant == null || Input.GetKeyDown(KeyCode.Q))
             && !FocusOnRandomPlant())
         {
-            _controller.CameraState.SetState(new ExplorationCameraState(_controller));
+            _controller.CameraState.SetState(FindObjectOfType<ExplorationCamera>());
             return;
         }
 
-        _center = Vector3.Lerp(_center, CameraUtils.GetPlantBounds(_controller.FocusedPlant).center, Time.deltaTime * MoveSpeedMultiplier / 2);
+        _controller.FocusPoint = Vector3.Lerp(_controller.FocusPoint, CameraUtils.GetPlantBounds(_controller.FocusedPlant).center, lerpSpeed);
 
-        if (!TryControl())
+        if (!Move())
         {
             Drift();
         }
 
         if (Input.GetKeyDown(KeyCode.E))
         {
-            _controller.UiState.SetState(GameObject.FindObjectOfType<PlantEvolutionUi>());
+            _controller.UiState.SetState(FindObjectOfType<PlantEvolutionUi>());
+        }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            _controller.CameraState.SetState(FindObjectOfType<ExplorationCamera>());
         }
 
-        var lerpSpeed = Time.deltaTime * (MoveSpeedMultiplier * 2);
-
-        _camera.position = Vector3.Lerp(_camera.position, _center + _offset, lerpSpeed);
-        _camera.LookAt(_center);
+        _camera.position = Vector3.Lerp(_camera.position, _controller.FocusPoint + _offset, lerpSpeed);
+        _camera.LookAt(_controller.FocusPoint);
     }
 
     public void Enable()
     {
-        _center = _camera.position;
-
         if (_controller.FocusedPlant == null && !FocusOnClosestPlant())
         {
-            _controller.CameraState.SetState(new ExplorationCameraState(_controller));
+            _controller.CameraState.SetState(FindObjectOfType<ExplorationCamera>());
             return;
         }
 
-        _center = CameraUtils.GetPlantBounds(_controller.FocusedPlant).center;
-        _offset = _camera.transform.position - _center;
+        _offset = _camera.transform.position - CameraUtils.GetPlantBounds(_controller.FocusedPlant).center;
     }
 
     public void Disable() { }
 
-    private bool TryControl()
+    private bool Move()
     {
         var timeFactor = Time.deltaTime * 30;
         var verticalMovement = Input.GetAxis("Vertical") * (MoveSpeedMultiplier) * timeFactor;
@@ -89,7 +88,7 @@ public class ObservationCameraState : ICameraState
             targetoffset.Scale(new Vector3(1 - depthMovement, 1 - depthMovement, 1 - depthMovement));
         }
 
-        if (Singleton.LandService.SampleTerrainHeight(targetoffset + _center) < (targetoffset + _center).y
+        if (Singleton.LandService.SampleTerrainHeight(targetoffset + _controller.FocusPoint) < (targetoffset + _controller.FocusPoint).y
             && targetoffset.normalized.y < 0.9f)
         {
             _offset = targetoffset;
@@ -107,9 +106,9 @@ public class ObservationCameraState : ICameraState
     {
         var targetPosition = Quaternion.AngleAxis(-DriftSpeedMultiplier * _directionSign, Vector3.up) * _offset;
         targetPosition.Scale(new Vector3(1 + ZoomDriftSpeedMultiplier, 1 + ZoomDriftSpeedMultiplier, 1 + ZoomDriftSpeedMultiplier));
-        var landHeight = Singleton.LandService.SampleTerrainHeight(targetPosition + _center);
+        var landHeight = Singleton.LandService.SampleTerrainHeight(targetPosition + _controller.FocusPoint);
 
-        if (landHeight + 1 > (targetPosition + _center).y)
+        if (landHeight + 1 > (targetPosition + _controller.FocusPoint).y)
         {
             targetPosition = Quaternion.AngleAxis(DriftSpeedMultiplier, _camera.transform.right) * targetPosition;
         }
@@ -118,7 +117,7 @@ public class ObservationCameraState : ICameraState
 
     private bool FocusOnRandomPlant()
     {
-        var plants = Singleton.PlantSearchService.GetPlantsWithinRadius(_center, _offset.magnitude);
+        var plants = Singleton.PlantSearchService.GetPlantsWithinRadius(_controller.FocusPoint, _offset.magnitude);
         if (plants.Any())
         {
             var plantIndex = Mathf.FloorToInt(UnityEngine.Random.Range(0, plants.Count()));
@@ -133,7 +132,7 @@ public class ObservationCameraState : ICameraState
 
     private bool FocusOnClosestPlant()
     {
-        _controller.FocusedPlant = Singleton.PlantSearchService.GetClosestPlant(_center);
+        _controller.FocusedPlant = Singleton.PlantSearchService.GetClosestPlant(_controller.FocusPoint);
         return _controller.FocusedPlant != null;
     }
 }

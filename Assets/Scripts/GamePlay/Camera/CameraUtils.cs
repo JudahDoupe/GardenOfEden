@@ -4,12 +4,6 @@ using UnityEngine;
 
 public class CameraUtils : MonoBehaviour
 {
-    public static Vector3 ClampAboveGround(Vector3 position, float padding = 0.1f)
-    {
-        position.y = Mathf.Max(position.y, Singleton.LandService.SampleTerrainHeight(position) + padding);
-        return position;
-    }
-    
     public static Quaternion LookAtBoundsCenter(Bounds bounds)
     {
         var towardPlantDirection = (bounds.center - Camera.main.transform.position).normalized;

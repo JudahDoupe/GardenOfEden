@@ -12,15 +12,11 @@ public class PlantEvolutionUi : MonoBehaviour, IUiState
     public Text Description;
     public Button AcceptButton;
 
-
-    public void Update()
+    public void UpdateUi()
     {
-        if (GetComponent<Canvas>().enabled)
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                Controller.UiState.SetState(FindObjectOfType<BasicInfoUi>());
-            }
+            Controller.UiState.SetState(FindObjectOfType<BasicInfoUi>());
         }
     }
 

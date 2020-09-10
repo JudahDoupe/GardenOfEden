@@ -11,4 +11,8 @@ public class CinematicUi : MonoBehaviour, IUiState
     public void Enable()
     {
     }
+
+    public void UpdateUi()
+    {
+    }
 }
