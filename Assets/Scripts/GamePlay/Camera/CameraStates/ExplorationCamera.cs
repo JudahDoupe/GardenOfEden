@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 
 public class ExplorationCamera : MonoBehaviour, ICameraState
 {
@@ -52,6 +53,7 @@ public class ExplorationCamera : MonoBehaviour, ICameraState
 
         _camera.position = Vector3.Lerp(_camera.position, newPos, lerpSpeed);
         _camera.LookAt(_controller.FocusPoint);
+        _controller.PostProccessing.GetSetting<DepthOfField>().focusDistance.value = Vector3.Distance(_camera.transform.position, _controller.FocusPoint);
     }
 
     private bool Move()

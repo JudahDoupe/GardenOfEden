@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 
 public class CameraController : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class CameraController : MonoBehaviour
     public Vector3 FocusPoint { get; set; }
 
     public GameObject FocusObject;
+    public PostProcessProfile PostProccessing;
 
     private void Start()
     {

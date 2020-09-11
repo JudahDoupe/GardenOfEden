@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 
 public class ObservationCamera : MonoBehaviour, ICameraState
 {
@@ -50,6 +51,7 @@ public class ObservationCamera : MonoBehaviour, ICameraState
 
         _camera.position = Vector3.Lerp(_camera.position, _controller.FocusPoint + _offset, lerpSpeed);
         _camera.LookAt(_controller.FocusPoint);
+        _controller.PostProccessing.GetSetting<DepthOfField>().focusDistance.value = Vector3.Distance(_camera.transform.position, _controller.FocusPoint);
     }
 
     public void Enable()
