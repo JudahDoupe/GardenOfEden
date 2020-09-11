@@ -5,6 +5,7 @@
 		_DeadSoilColor("Dead Soil Color", color) = (1,1,1,0)
 		_LiveSoilColor("Live Soil Color", color) = (1,1,1,0)
 		_BedRockColor("Bedrock Color", color) = (1,1,1,0)
+        _TopographyFrequency ("Topography Line Frequency", Range(5,50)) = 10
         _TopographyWidth ("Topography Line Width", Range(0,1)) = 0.5
         _TopographyDarkening ("Topography Line Darkening", Range(0,0.5)) = 0.2
         _LandMap ("Land Map", 2D) = "white" {}
@@ -38,6 +39,7 @@
 		};
 
         half _TopographyWidth;
+        half _TopographyFrequency;
 		half _TopographyDarkening;
 		float _EdgeLength;
 		float Epsilon = 1e-10;
@@ -126,7 +128,7 @@
 			float3 normal = FindNormal(float4(i.uv_LandMap,0,0));
 			float3 angle = float3(0,1,0);
 			float angleDist = length(angle - normal);
-			if (landHeight % 5 < angleDist * _TopographyWidth){
+			if (landHeight % _TopographyFrequency < angleDist * _TopographyWidth){
 				bedrockHSL.z -= _TopographyDarkening;
 				soilHSL.z -= _TopographyDarkening;
 			}
@@ -135,7 +137,7 @@
 			soilColor = float4(HSLtoRGB(soilHSL),1);
 
             o.Albedo = lerp(bedrockColor, soilColor, saturate(soilDepth * 10));
-			o.Normal = normal;
+			o.Normal = normal.xzy;
 			o.Metallic = 0;
 			o.Smoothness = 0;
         }

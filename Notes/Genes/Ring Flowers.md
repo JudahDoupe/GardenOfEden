@@ -1,0 +1,1 @@
+Ring flowers are a type of [[Flowers]] that grow in rings.  This increases the number of seeds per bud, and the flower's attraction to polinators.

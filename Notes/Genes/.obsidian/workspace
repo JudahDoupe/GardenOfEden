@@ -36,7 +36,9 @@
             "type": "leaf",
             "state": {
               "type": "search",
-              "state": {}
+              "state": {
+                "query": ""
+              }
             }
           }
         ]
@@ -60,6 +62,14 @@
               "type": "backlink",
               "state": {}
             }
+          },
+          {
+            "id": "c845fa0567e34452",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {}
+            }
           }
         ]
       }
@@ -69,10 +79,10 @@
     "collapsed": true
   },
   "lastOpenFiles": [
+    "Untitled.md",
     "Rossette.md",
     "Spiraling Leaves.md",
     "Whorled Leaves.md",
-    "Ladders.md",
-    "Fire Cone.md"
+    "Ladders.md"
   ]
 }

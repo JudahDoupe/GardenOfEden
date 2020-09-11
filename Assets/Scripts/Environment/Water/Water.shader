@@ -78,7 +78,7 @@
 				o.Specular = 0.9;
 				o.Gloss = 0.1;
 				o.Alpha = c.a * (w.b > 0);
-				o.Normal = FindNormal(float4(input.uv_WaterMap,0,0));
+				o.Normal = FindNormal(float4(input.uv_WaterMap,0,0)).xzy;
 			}
 			ENDCG
 		}
