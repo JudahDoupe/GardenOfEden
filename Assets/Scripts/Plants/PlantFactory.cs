@@ -13,8 +13,8 @@ public static class PlantFactory
             gene.Express(plant);
         }
         plant.SetType(NodeType.Plant);
-        BuildNode(dto.BaseNode, plant);
-        AssignNodesToPlant(plant, plant);
+        BuildNode(dto.BaseNode, plant, plant);
+        plant.Accept(new VisualGrowthVisitor(0));
 
         PlantMessageBus.NewPlant.Publish(plant);
 
@@ -60,7 +60,7 @@ public static class PlantFactory
         return plant;
     }
 
-    private static Node BuildNode(NodeDto dto, Node node = null)
+    private static Node BuildNode(NodeDto dto, Plant plant, Node node = null)
     {
         if (node == null)
         {
@@ -71,6 +71,7 @@ public static class PlantFactory
         node.transform.rotation = dto.Transform.Rotation();
         node.transform.localScale = dto.Transform.Scale();
 
+        node.Plant = plant;
         node.CreationDate = dto.CreationDate;
         node.Size = dto.Size;
         node.InternodeLength = dto.InternodeLength;
@@ -80,10 +81,14 @@ public static class PlantFactory
         node.GrowthHormone = dto.GrowthHormone;
         node.SetType(dto.Type);
 
+        PlantMessageBus.NewNode.Publish(node);
+
         foreach (var branch in dto.Branches)
         {
-            var newNode = BuildNode(branch);
+            var newNode = BuildNode(branch, plant);
             newNode.Base = node;
+            newNode.transform.parent = node.transform;
+            node.Branches.Add(newNode);
         }
 
         return node;

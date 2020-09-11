@@ -7,19 +7,20 @@ using UnityEngine;
 public class PlantSearchService : MonoBehaviour
 {
     private readonly KdTree<float, Plant> _kdTree = new KdTree<float, Plant>(3, new FloatMath());
-    private readonly Dictionary<int, KdTree<float, Plant>> _speciesTrees = new Dictionary<int, KdTree<float, Plant>>();
     
-    public Plant GetClosestPlant(Vector3 position, int? speciesId = null)
+    public Plant GetClosestPlant(Vector3 position)
     {
-        return GetClosestPlants(position, 1, speciesId).FirstOrDefault();
+        return GetClosestPlants(position, 1).FirstOrDefault();
     }
     
-    public IEnumerable<Plant> GetClosestPlants(Vector3 position, int count, int? speciesId = null)
+    public IEnumerable<Plant> GetClosestPlants(Vector3 position, int count)
     {
-        var tree = speciesId.HasValue && _speciesTrees.ContainsKey(speciesId.Value) ? _speciesTrees[speciesId.Value] : _kdTree;
-        return tree.GetNearestNeighbours(position.ToFloatArray(), count)
-            .Select(x => x.Value)
-            .Where(x => x.PlantDna.SpeciesId == (speciesId ?? x.PlantDna.SpeciesId));
+        return _kdTree.GetNearestNeighbours(position.ToFloatArray(), count).Select(x => x.Value);
+    }
+
+    public IEnumerable<Plant> GetAllPlants()
+    {
+        return _kdTree.Select(x => x.Value);
     }
 
     public IEnumerable<Plant> GetPlantsWithinRadius(Vector3 position, float radius, int? speciesId = null)
@@ -34,16 +35,10 @@ public class PlantSearchService : MonoBehaviour
         PlantMessageBus.NewPlant.Subscribe(x =>
         {
             AddToTree(x, _kdTree);
-            if (!_speciesTrees.ContainsKey(x.PlantDna.SpeciesId))
-            {
-                _speciesTrees[x.PlantDna.SpeciesId] = new KdTree<float, Plant>(3, new FloatMath());
-            } 
-            AddToTree(x,  _speciesTrees[x.PlantDna.SpeciesId]);
         });
         PlantMessageBus.PlantDeath.Subscribe(x =>
         {
             _kdTree.RemoveAt(_kdTree.FindValue(x));
-            _speciesTrees[x.PlantDna.SpeciesId].RemoveAt(_speciesTrees[x.PlantDna.SpeciesId].FindValue(x));
         });
     }
 

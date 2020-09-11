@@ -15,6 +15,8 @@ public class GameService : MonoBehaviour
     {
         IsGameInProgress = true;
 
+        Singleton.WorldService.LoadWorld();
+
         if (!FindObjectsOfType<Plant>().Any())
         {
             var dna = new PlantDna()

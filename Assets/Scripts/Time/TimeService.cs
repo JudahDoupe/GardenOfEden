@@ -21,22 +21,28 @@ public class TimeService : MonoBehaviour
             Singleton.WaterService,
             Singleton.LandService,
             Singleton.GrowthService,
+            Singleton.WorldService,
         };
-        StartNextDay();
-        _processQueue.Peek().ProcessDay();
+        _processQueue = new Queue<IDailyProcess>();
     }
 
     public void Update()
     {
-        if (_processQueue.Peek().HasDayBeenProccessed())
+        if (Singleton.GameService.IsGameInProgress)
         {
-            StartNextProcess();
+            if (!_processQueue.Any() || _processQueue.Peek().HasDayBeenProccessed())
+            {
+                StartNextProcess();
+            }
         }
     }
 
     private void StartNextProcess()
     {
-        _processQueue.Dequeue();
+        if (_processQueue.Any())
+        {
+            _processQueue.Dequeue();
+        }
         if (!_processQueue.Any())
         {
             StartNextDay();

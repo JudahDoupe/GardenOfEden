@@ -11,8 +11,10 @@ public class Singleton : MonoBehaviour
 
     public static GameService GameService;
     public static TimeService TimeService;
+    public static WorldDataStore WorldService;
 
     public static CameraController CameraController;
+
 
     private void Awake()
     {
@@ -25,6 +27,7 @@ public class Singleton : MonoBehaviour
 
         GameService = FindObjectOfType<GameService>();
         TimeService = FindObjectOfType<TimeService>();
+        WorldService = FindObjectOfType<WorldDataStore>();
 
         CameraController = FindObjectOfType<CameraController>();
     }
