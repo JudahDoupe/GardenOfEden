@@ -8,9 +8,13 @@ public class PlantEvolutionUi : MonoBehaviour, IUiState
     public GameObject ButtonPrefab;
     public GameObject GeneContainer;
     public GameObject DecriptionContainer;
+    public GameObject ChomosomeContainer;
+    public GameObject NameContainer;
     public Text Title;
     public Text Description;
-    public Button AcceptButton;
+    public Text Name;
+
+    private ICameraState _nextCameraState;
 
     public void UpdateUi()
     {
@@ -27,14 +31,23 @@ public class PlantEvolutionUi : MonoBehaviour, IUiState
             Controller.UiState.SetState(FindObjectOfType<CinematicUi>());
         }
 
+        _nextCameraState = Controller.CameraState.State;
+        Controller.CameraState.SetState(FindObjectOfType<StaticCamera>());
+
         selectedGene = null;
         HideGeneList();
         GetComponent<Canvas>().enabled = true;
+        ChomosomeContainer.SetActive(true);
+        NameContainer.SetActive(false);
     }
 
     public void Disable()
     {
         GetComponent<Canvas>().enabled = false;
+        Controller.CameraState.SetState(_nextCameraState);
+        HideGeneList();
+        ChomosomeContainer.SetActive(false);
+        NameContainer.SetActive(false);
     }
 
     public void HideGeneList()
@@ -58,6 +71,13 @@ public class PlantEvolutionUi : MonoBehaviour, IUiState
     {
         ShowGeneList(PlantGeneCategory.EnergyProduction);
     }
+    public void NameSpecies()
+    {
+        HideGeneList();
+        ChomosomeContainer.SetActive(false);
+        NameContainer.SetActive(true);
+    }
+
     private void ShowGeneList(PlantGeneCategory category)
     {
         HideGeneList();
@@ -101,7 +121,7 @@ public class PlantEvolutionUi : MonoBehaviour, IUiState
 
         if (!Controller.FocusedPlant.PlantDna.Genes.Any(x => x.Name == selectedGene.Name))
         {
-            var newDna = new PlantDna { Name = "New Plant" };
+            var newDna = new PlantDna { Name = Name.text };
             newDna.Genes = Controller.FocusedPlant.PlantDna.Genes.Where(x => x.Category != selectedGene.Category).ToList();
             newDna.Genes.Add(selectedGene);
             var oldPlant = Controller.FocusedPlant;
@@ -114,6 +134,7 @@ public class PlantEvolutionUi : MonoBehaviour, IUiState
             PlantDnaDataStore.SaveDna(newDna.ToDto());
         }
 
+        _nextCameraState = FindObjectOfType<ObservationCamera>();
         Controller.UiState.SetState(FindObjectOfType<BasicInfoUi>());
     }
 }
