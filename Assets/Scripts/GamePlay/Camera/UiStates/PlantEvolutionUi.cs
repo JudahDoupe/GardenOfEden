@@ -125,11 +125,8 @@ public class PlantEvolutionUi : MonoBehaviour, IUiState
             newDna.Genes = Controller.FocusedPlant.PlantDna.Genes.Where(x => x.Category != selectedGene.Category).ToList();
             newDna.Genes.Add(selectedGene);
             var oldPlant = Controller.FocusedPlant;
-            Controller.FocusedPlant = new GameObject().AddComponent<Plant>();
-            Controller.FocusedPlant.transform.position = oldPlant.transform.position;
-            Controller.FocusedPlant.transform.rotation = oldPlant.transform.rotation;
-            Controller.FocusedPlant.PlantDna = newDna;
-            Controller.FocusedPlant.StoredEnergy = 5;
+            Controller.FocusedPlant = PlantFactory.Build(newDna, oldPlant.transform.position);
+            Controller.FocusedPlant.StoredEnergy = 10;
             oldPlant.Kill();
             PlantDnaDataStore.SaveDna(newDna.ToDto());
         }

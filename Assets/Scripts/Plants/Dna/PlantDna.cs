@@ -22,12 +22,7 @@ public class PlantDna : IDataBaseObject<PlantDnaDto>
     public PlantDna()
     {
         Nodes = new List<NodeDna>();
-        Genes = new List<PlantGene>()
-        {
-            GeneCache.GetGenesInCategory(PlantGeneCategory.EnergyProduction).First(),
-            GeneCache.GetGenesInCategory(PlantGeneCategory.Reproduction).First(),
-            GeneCache.GetGenesInCategory(PlantGeneCategory.Vegatation).First(),
-        };
+        Genes = new List<PlantGene>();
     }
 
     public PlantDna CopyDna()

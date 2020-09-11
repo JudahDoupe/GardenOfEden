@@ -1,34 +1,28 @@
-﻿public class Plant : Node
+﻿public class Plant : Node, IDataBaseObject<PlantDto>
 {
-    public PlantDna PlantDna;
-
-    public bool IsAlive { get; set; } = true;
+    public PlantDna PlantDna { get; set; }
     public bool IsGrowing { get; set; } = false;
-
     public float StoredEnergy;
-
-    void Start()
-    {
-        CreationDate = Singleton.TimeService.Day;
-        Plant = this;
-        PlantDna = PlantDna ?? new PlantDna();
-        this.SetType(NodeType.Plant);
-
-        foreach (var gene in PlantDna.Genes)
-        {
-            gene.Express(this);
-        }
-
-        if (transform.childCount == 0)
-        { 
-            this.AddNodeAfter(NodeType.TerminalBud);
-        }
-
-        PlantMessageBus.NewPlant.Publish(this);
-    }
 
     public void Accept(IPlantVisitor Visitor)
     {
         Visitor.VisitPlant(this);
     }
+
+    new public PlantDto ToDto()
+    {
+        return new PlantDto
+        {
+            Dna = PlantDna.ToDto(),
+            BaseNode = (this as Node).ToDto(),
+            StoredEnergy = StoredEnergy,
+        };
+    }
+}
+
+public class PlantDto
+{
+    public PlantDnaDto Dna { get; set; }
+    public NodeDto BaseNode { get; set; }
+    public float StoredEnergy { get; set; }
 }

@@ -78,8 +78,8 @@ public static class GrowthTransformations
         middleNode.transform.localScale = new Vector3(1,1,1);
         middleNode.InternodeLength = node.InternodeLength;
         middleNode.InternodeRadius = node.InternodeRadius;
-        middleNode.InternodeMesh = node.InternodeMesh ?? InstancedMeshRenderer.AddInstance("Stem");
-        middleNode.Type = type;
+        middleNode.InternodeMesh = node.InternodeMesh;
+        middleNode.SetType(type);
 
         node.Base = middleNode;
         node.transform.parent = middleNode.transform;
@@ -166,18 +166,11 @@ public static class GrowthTransformations
         node.Base.Branches.Remove(node);
         node.Base = null;
         node.transform.parent = null;
-        var plant = node.AddNodeBefore(NodeType.Plant) as Plant;
-        plant.PlantDna = node.Plant.PlantDna.CopyDna();
-        node.Plant = plant;
-
-        var height = plant.transform.position.y - Singleton.LandService.SampleTerrainHeight(plant.transform.position);
+        var height = node.transform.position.y - Singleton.LandService.SampleTerrainHeight(node.transform.position);
         var distance = Mathf.Clamp(height, 3, 25);
-        var newPos = plant.transform.position + new Vector3(Random.Range(-distance, distance), 0, Random.Range(-distance, distance));
-        newPos.y = Singleton.LandService.SampleTerrainHeight(newPos);
-        plant.transform.position = newPos;
-        plant.transform.localEulerAngles = new Vector3(-90, Random.Range(0, 365), 0);
-        
-        return plant;
+        node.transform.position += new Vector3(Random.Range(-distance, distance), 0, Random.Range(-distance, distance));
+
+        return PlantFactory.Build(node);
     }
     public static Node TransportGrowthHormone(this Node node)
     {

@@ -1,25 +1,32 @@
-﻿using System.Linq;
-using Assets.Scripts.Utils;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameService : MonoBehaviour
 {
     public bool IsGameInProgress { get; private set; }
-    public Plant FocusedPlant { get; set; }
-    public Subject<CapturePoint> PointCapturedSubject = new Subject<CapturePoint>();
 
     private void Start()
     {
-        IsGameInProgress = true;
-        PointCapturedSubject.Subscribe(PointCapturedAction);
-        FocusedPlant = FindObjectsOfType<Plant>().First();
+        StartGame();
     }
 
-    private void PointCapturedAction(CapturePoint cp)
+    private void StartGame()
     {
-        if (FindObjectsOfType<CapturePoint>().All(x => x.IsCaptured))
+        IsGameInProgress = true;
+
+        if (!FindObjectsOfType<Plant>().Any())
         {
-            EndGame();
+            var dna = new PlantDna()
+            {
+                Genes = new List<PlantGene>()
+                {
+                    GeneCache.GetGenesInCategory(PlantGeneCategory.EnergyProduction).First(),
+                    GeneCache.GetGenesInCategory(PlantGeneCategory.Reproduction).First(),
+                    GeneCache.GetGenesInCategory(PlantGeneCategory.Vegatation).First(),
+                }
+            };
+            PlantFactory.Build(dna, Singleton.CameraController.FocusPoint);
         }
     }
 
@@ -35,13 +42,5 @@ public class GameService : MonoBehaviour
 #else
         Application.Quit();
 #endif
-    }
-
-    public CapturePoint GetNearestGoal()
-    {
-        var capturePoints = FindObjectsOfType<CapturePoint>().Where(x => !x.IsCaptured);
-        return capturePoints.Any()
-            ? capturePoints.Closest(Camera.main.transform.position)
-            : null;
     }
 }

@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Linq;
 
-public class Node : MonoBehaviour
+public class Node : MonoBehaviour, IDataBaseObject<NodeDto>
 {
     public Plant Plant { get; set; }
     public Node Base { get; set; }
@@ -22,4 +22,35 @@ public class Node : MonoBehaviour
 
     public float AbsorbedLight;
     public float GrowthHormone;
+
+    public NodeDto ToDto()
+    {
+        return new NodeDto
+        {
+            Transform = transform.ToDto(),
+            Branches = Branches.Select(x => x.ToDto()).ToArray(),
+            CreationDate = CreationDate,
+            Type = Type,
+            Size = Size,
+            InternodeLength = InternodeLength,
+            InternodeRadius = InternodeRadius,
+            SurfaceArea = SurfaceArea,
+            AbsorbedLight = AbsorbedLight,
+            GrowthHormone = GrowthHormone,
+        };
+    }
+}
+
+public class NodeDto
+{
+    public TransformDto Transform { get; set; }
+    public NodeDto[] Branches { get; set; }
+    public int CreationDate { get; set; }
+    public string Type { get; set; }
+    public float Size { get; set; }
+    public float InternodeLength { get; set; }
+    public float InternodeRadius { get; set; }
+    public float SurfaceArea { get; set; }
+    public float AbsorbedLight { get; set; }
+    public float GrowthHormone { get; set; }
 }
