@@ -30,7 +30,7 @@ public class GrowthService : MonoBehaviour, IDailyProcess
     {
         _hasDayBeenProcessed = false;
         _growingPlants.OrderBy(x => Vector3.Distance(Camera.main.transform.position, x.transform.position));
-        _smoothMeshVisitor = new VisualGrowthVisitor(Mathf.Max(_growTime, 0.3f));
+        _smoothMeshVisitor = new VisualGrowthVisitor(Mathf.Clamp(_growTime, 0.3f, 2));
         StartCoroutine(GrowPlants());
     }
 
