@@ -21,7 +21,7 @@ public class TimeService : MonoBehaviour
             Singleton.WaterService,
             Singleton.LandService,
             Singleton.GrowthService,
-            Singleton.WorldService,
+            //Singleton.WorldService,
         };
         _processQueue = new Queue<IDailyProcess>();
     }
