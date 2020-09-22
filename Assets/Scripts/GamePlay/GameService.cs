@@ -15,21 +15,8 @@ public class GameService : MonoBehaviour
     {
         IsGameInProgress = true;
 
-        Singleton.WorldService.LoadWorld();
 
-        if (!FindObjectsOfType<Plant>().Any())
-        {
-            var dna = new PlantDna()
-            {
-                Genes = new List<PlantGene>()
-                {
-                    GeneCache.GetGenesInCategory(PlantGeneCategory.EnergyProduction).First(),
-                    GeneCache.GetGenesInCategory(PlantGeneCategory.Reproduction).First(),
-                    GeneCache.GetGenesInCategory(PlantGeneCategory.Vegatation).First(),
-                }
-            };
-            PlantFactory.Build(dna, Singleton.CameraController.FocusPoint);
-        }
+
     }
 
     private void EndGame()
