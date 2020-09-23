@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Assets.Scripts.Plants.ECS.Components;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
@@ -10,9 +12,19 @@ public class GameService : MonoBehaviour
     public bool IsGameInProgress { get; private set; }
 
     public RenderMesh Stem;
+    private RenderBounds StemBounds;
 
     private void Start()
     {
+        StemBounds = new RenderBounds()
+        {
+            Value = new AABB()
+            {
+                Center = new float3(Stem.mesh.bounds.center.x, Stem.mesh.bounds.center.y, Stem.mesh.bounds.center.z),
+                Extents = new float3(Stem.mesh.bounds.extents.x, Stem.mesh.bounds.extents.y, Stem.mesh.bounds.extents.z)
+            }
+        };
+
         StartGame();
     }
 
@@ -36,9 +48,8 @@ public class GameService : MonoBehaviour
             typeof(Translation),
             typeof(Rotation),
             typeof(NonUniformScale),
-            typeof(Parent),
             typeof(LocalToWorld),
-            typeof(LocalToParent),
+            typeof(Internode),
             typeof(RenderMesh),
             typeof(RenderBounds));
 
@@ -52,7 +63,7 @@ public class GameService : MonoBehaviour
         for (var i = 0; i < 5; i++)
         {
 
-            var angle = Random.Range(-0.1f, 0.1f);
+            var angle = UnityEngine.Random.Range(-0.1f, 0.1f);
             var offset = new Vector3(angle, angle, angle);
 
             var node = em.CreateEntity(nodeArch);
@@ -60,14 +71,15 @@ public class GameService : MonoBehaviour
             em.SetComponentData(node, new Translation { Value = new Vector3(0,0,1) });
             em.SetComponentData(node, new Rotation { Value = Quaternion.LookRotation(Vector3.forward + offset) });
             em.SetComponentData(node, new Parent { Value = lastNode });
-            lastNode = node;
 
             var internode = em.CreateEntity(internodeMeshArch);
             em.SetName(internode, "internodeMesh");
-            em.SetComponentData(internode, new Parent { Value = node });
             em.SetComponentData(internode, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
             em.SetComponentData(internode, new NonUniformScale { Value = new Vector3(0.1f,0.1f,1) });
+            em.SetComponentData(internode, new Internode { HeadNode = node, TailNode = lastNode });
             em.SetSharedComponentData(internode, Stem);
+            em.SetComponentData(internode, StemBounds);
+            lastNode = node;
         }
 
     }
