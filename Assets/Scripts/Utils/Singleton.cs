@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Plants.ECS;
+using UnityEngine;
 
 public class Singleton : MonoBehaviour
 {
@@ -14,6 +15,8 @@ public class Singleton : MonoBehaviour
     public static WorldDataStore WorldService;
 
     public static CameraController CameraController;
+    public static RenderMeshLibrary RenderMeshLibrary;
+    public static ArchetypeLibrary ArchetypeLibrary;
 
 
     private void Awake()
@@ -30,5 +33,7 @@ public class Singleton : MonoBehaviour
         WorldService = FindObjectOfType<WorldDataStore>();
 
         CameraController = FindObjectOfType<CameraController>();
+        RenderMeshLibrary = FindObjectOfType<RenderMeshLibrary>();
+        ArchetypeLibrary = FindObjectOfType<ArchetypeLibrary>();
     }
 }

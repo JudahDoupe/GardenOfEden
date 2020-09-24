@@ -12,4 +12,9 @@ namespace Assets.Scripts.Plants.ECS.Components
         public Entity HeadNode { get; set; }
         public Entity TailNode { get; set; }
     }
+
+    public struct InternodeReference : IComponentData
+    {
+        public Entity Internode { get; set; }
+    }
 }

@@ -1,9 +1,6 @@
 ﻿using Assets.Scripts.Plants.ECS.Components;
-using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -11,20 +8,8 @@ public class GameService : MonoBehaviour
 {
     public bool IsGameInProgress { get; private set; }
 
-    public RenderMesh Stem;
-    private RenderBounds StemBounds;
-
     private void Start()
     {
-        StemBounds = new RenderBounds()
-        {
-            Value = new AABB()
-            {
-                Center = new float3(Stem.mesh.bounds.center.x, Stem.mesh.bounds.center.y, Stem.mesh.bounds.center.z),
-                Extents = new float3(Stem.mesh.bounds.extents.x, Stem.mesh.bounds.extents.y, Stem.mesh.bounds.extents.z)
-            }
-        };
-
         StartGame();
     }
 
@@ -33,53 +18,42 @@ public class GameService : MonoBehaviour
         IsGameInProgress = true;
 
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+        var stemMesh = Singleton.RenderMeshLibrary.Meshes.First(x => x.Name == "Stem");
 
-        var plantArch = em.CreateArchetype(
-            typeof(Translation),
-            typeof(Rotation),
-            typeof(LocalToWorld));
-        var nodeArch = em.CreateArchetype(
-            typeof(Translation),
-            typeof(Rotation),
-            typeof(Parent),
-            typeof(LocalToWorld),
-            typeof(LocalToParent));
-        var internodeMeshArch = em.CreateArchetype(
-            typeof(Translation),
-            typeof(Rotation),
-            typeof(NonUniformScale),
-            typeof(LocalToWorld),
-            typeof(Internode),
-            typeof(RenderMesh),
-            typeof(RenderBounds));
-
-
-        var plant = em.CreateEntity(plantArch);
-        em.SetName(plant, "plant");
-        em.SetComponentData(plant, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(-11, 50, -116)) });
-        em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
-
-        var lastNode = plant;
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 500; i++)
         {
+            var plant = em.CreateEntity(Singleton.ArchetypeLibrary.Archetypes["Plant"]);
+            em.SetName(plant, "plant");
+            em.SetComponentData(plant, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(UnityEngine.Random.Range(-100f,100f), 50, UnityEngine.Random.Range(-200f, 0f))) });
+            em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
 
-            var angle = UnityEngine.Random.Range(-0.1f, 0.1f);
-            var offset = new Vector3(angle, angle, angle);
+            var lastNode = plant;
+            for (var j = 0; j < 5; j++)
+            {
 
-            var node = em.CreateEntity(nodeArch);
-            em.SetName(node, "node");
-            em.SetComponentData(node, new Translation { Value = new Vector3(0,0,1) });
-            em.SetComponentData(node, new Rotation { Value = Quaternion.LookRotation(Vector3.forward + offset) });
-            em.SetComponentData(node, new Parent { Value = lastNode });
+                var angle = UnityEngine.Random.Range(-0.1f, 0.1f);
+                var offset = new Vector3(angle, angle, angle);
 
-            var internode = em.CreateEntity(internodeMeshArch);
-            em.SetName(internode, "internodeMesh");
-            em.SetComponentData(internode, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
-            em.SetComponentData(internode, new NonUniformScale { Value = new Vector3(0.1f,0.1f,1) });
-            em.SetComponentData(internode, new Internode { HeadNode = node, TailNode = lastNode });
-            em.SetSharedComponentData(internode, Stem);
-            em.SetComponentData(internode, StemBounds);
-            lastNode = node;
+                var node = em.CreateEntity(Singleton.ArchetypeLibrary.Archetypes["Node"]);
+                em.SetName(node, "node");
+                em.SetComponentData(node, new Translation { Value = new Vector3(0, 0, 0.1f) });
+                em.SetComponentData(node, new Rotation { Value = Quaternion.LookRotation(Vector3.forward + offset) });
+                em.SetComponentData(node, new Parent { Value = lastNode });
+
+                var internode = em.CreateEntity(Singleton.ArchetypeLibrary.Archetypes["Internode"]);
+                em.SetName(internode, "internodeMesh");
+                em.SetComponentData(internode, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
+                em.SetComponentData(internode, new NonUniformScale { Value = new Vector3(0.1f, 0.1f, 1) });
+                em.SetComponentData(internode, new Internode { HeadNode = node, TailNode = lastNode });
+                em.SetSharedComponentData(internode, stemMesh.Mesh);
+                em.SetComponentData(internode, stemMesh.Bounds);
+
+                em.SetComponentData(node, new InternodeReference { Internode = internode });
+                lastNode = node;
+            }
+
+            em.AddComponent<TerminalBud>(lastNode);
+
         }
 
     }
