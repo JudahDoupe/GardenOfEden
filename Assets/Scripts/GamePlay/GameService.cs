@@ -18,7 +18,6 @@ public class GameService : MonoBehaviour
         IsGameInProgress = true;
 
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        var stemMesh = Singleton.RenderMeshLibrary.Meshes.First(x => x.Name == "Stem");
 
         for (var i = 0; i < 500; i++)
         {
@@ -45,8 +44,6 @@ public class GameService : MonoBehaviour
                 em.SetComponentData(internode, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
                 em.SetComponentData(internode, new NonUniformScale { Value = new Vector3(0.1f, 0.1f, 1) });
                 em.SetComponentData(internode, new Internode { HeadNode = node, TailNode = lastNode });
-                em.SetSharedComponentData(internode, stemMesh.Mesh);
-                em.SetComponentData(internode, stemMesh.Bounds);
 
                 em.SetComponentData(node, new InternodeReference { Internode = internode });
                 lastNode = node;

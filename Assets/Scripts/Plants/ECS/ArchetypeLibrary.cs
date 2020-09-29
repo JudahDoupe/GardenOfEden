@@ -32,9 +32,7 @@ namespace Assets.Scripts.Plants.ECS
                 typeof(Rotation),
                 typeof(NonUniformScale),
                 typeof(LocalToWorld),
-                typeof(Internode),
-                typeof(RenderMesh),
-                typeof(RenderBounds));
+                typeof(Internode));
         }
     }
 }

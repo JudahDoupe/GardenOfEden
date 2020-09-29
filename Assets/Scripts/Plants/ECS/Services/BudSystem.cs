@@ -22,38 +22,34 @@ namespace Assets.Scripts.Plants.ECS.Services
 
         protected override void OnUpdate()
         {
-            var ecb = ecbSystem.CreateCommandBuffer();
+            var ecb = ecbSystem.CreateCommandBuffer().AsParallelWriter();
             var nodearch = Singleton.ArchetypeLibrary.Archetypes["Node"];
             var internodeArch = Singleton.ArchetypeLibrary.Archetypes["Internode"];
-            var stem = Singleton.RenderMeshLibrary.Meshes.First(x => x.Name == "Stem");
-            var stemMesh = stem.Mesh;
-            var stemBounds = stem.Bounds;
+            var rand = (uint)UnityEngine.Random.Range(0,99999999);
 
             Entities
                 .WithAll<TerminalBud>()
-                .ForEach((in Entity entity, in Parent parent, in Rotation rotation, in InternodeReference internodeReference) =>
+                .ForEach((in Entity entity, in Parent parent, in Rotation rotation, in InternodeReference internodeReference, in int entityInQueryIndex) =>
                 {
-                    var angle = UnityEngine.Random.Range(-0.1f, 0.1f);
+                    var angle = Unity.Mathematics.Random.CreateFromIndex(rand + (uint)entityInQueryIndex).NextFloat(-0.1f, 0.1f);
                     var offset = new Vector3(angle, angle, angle);
 
-                    var middleNode = ecb.CreateEntity(nodearch);
-                    ecb.SetComponent(middleNode, new Parent { Value = parent.Value });
-                    ecb.SetComponent(middleNode, new Translation { Value = new float3(0,0,0.1f) });
-                    ecb.SetComponent(middleNode, rotation);
+                    var middleNode = ecb.CreateEntity(entityInQueryIndex, nodearch);
+                    ecb.SetComponent(entityInQueryIndex, middleNode, new Parent { Value = parent.Value });
+                    ecb.SetComponent(entityInQueryIndex, middleNode, new Translation { Value = new float3(0,0,0.1f) });
+                    ecb.SetComponent(entityInQueryIndex, middleNode, rotation);
 
-                    var internode = ecb.CreateEntity(internodeArch);
-                    ecb.SetComponent(internode, new Internode { HeadNode = entity, TailNode = middleNode });
-                    ecb.SetComponent(internode, new NonUniformScale { Value = new float3(0.1f, 0.1f, 0) });
-                    ecb.SetComponent(internode, stemBounds);
-                    ecb.SetSharedComponent(internode, stemMesh);
+                    var internode = ecb.CreateEntity(entityInQueryIndex, internodeArch);
+                    ecb.SetComponent(entityInQueryIndex, internode, new Internode { HeadNode = entity, TailNode = middleNode });
+                    ecb.SetComponent(entityInQueryIndex, internode, new NonUniformScale { Value = new float3(0.1f, 0.1f, 0) });
 
-                    ecb.SetComponent(entity, new Parent { Value = middleNode });
-                    ecb.SetComponent(internodeReference.Internode, new Internode { HeadNode = middleNode, TailNode = parent.Value });
-                    ecb.SetComponent(entity, new InternodeReference { Internode = internode });
-                    ecb.SetComponent(entity, new Rotation { Value = Quaternion.LookRotation(Vector3.forward + offset) });
+                    ecb.SetComponent(entityInQueryIndex, entity, new Parent { Value = middleNode });
+                    ecb.SetComponent(entityInQueryIndex, internodeReference.Internode, new Internode { HeadNode = middleNode, TailNode = parent.Value });
+                    ecb.SetComponent(entityInQueryIndex, entity, new InternodeReference { Internode = internode });
+                    ecb.SetComponent(entityInQueryIndex, entity, new Rotation { Value = Quaternion.LookRotation(Vector3.forward + offset) });
                 })
-                .WithoutBurst()
-                .Run();
+                .WithBurst()
+                .ScheduleParallel();
 
             // Make sure that the ECB system knows about our job
             ecbSystem.AddJobHandleForProducer(this.Dependency);
