@@ -9,6 +9,8 @@ namespace Assets.Scripts.Plants.ECS
     public class RenderMeshLibrary : MonoBehaviour
     {
         public List<MeshContainer> Meshes = new List<MeshContainer>();
+        public Dictionary<string, MeshContainer> Library = new Dictionary<string, MeshContainer>();
+
 
         public void Start()
         {
@@ -22,6 +24,8 @@ namespace Assets.Scripts.Plants.ECS
                         Extents = new float3(mesh.Mesh.mesh.bounds.extents.x, mesh.Mesh.mesh.bounds.extents.y, mesh.Mesh.mesh.bounds.extents.z)
                     }
                 };
+
+                Library.Add(mesh.Name, mesh);
             }
         }
 

@@ -5,6 +5,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using System.Linq;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Assets.Scripts.Plants.ECS.Services
@@ -23,9 +24,10 @@ namespace Assets.Scripts.Plants.ECS.Services
         protected override void OnUpdate()
         {
             var ecb = ecbSystem.CreateCommandBuffer().AsParallelWriter();
-            var nodearch = Singleton.ArchetypeLibrary.Archetypes["Node"];
-            var internodeArch = Singleton.ArchetypeLibrary.Archetypes["Internode"];
+            var nodearch = Singleton.ArchetypeLibrary.Library["Node"];
+            var internodeArch = Singleton.ArchetypeLibrary.Library["Internode"];
             var rand = (uint)UnityEngine.Random.Range(0,99999999);
+            var meshName = new FixedString64("GreenStem");
 
             Entities
                 .WithAll<TerminalBud>()
@@ -42,6 +44,8 @@ namespace Assets.Scripts.Plants.ECS.Services
                     var internode = ecb.CreateEntity(entityInQueryIndex, internodeArch);
                     ecb.SetComponent(entityInQueryIndex, internode, new Internode { HeadNode = entity, TailNode = middleNode });
                     ecb.SetComponent(entityInQueryIndex, internode, new NonUniformScale { Value = new float3(0.1f, 0.1f, 0) });
+                    ecb.AddComponent<AssignMesh>(entityInQueryIndex, internode);
+                    ecb.SetComponent(entityInQueryIndex, internode, new AssignMesh { MeshName = new FixedString64(meshName) });
 
                     ecb.SetComponent(entityInQueryIndex, entity, new Parent { Value = middleNode });
                     ecb.SetComponent(entityInQueryIndex, internodeReference.Internode, new Internode { HeadNode = middleNode, TailNode = parent.Value });
