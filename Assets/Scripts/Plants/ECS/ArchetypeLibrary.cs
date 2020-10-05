@@ -30,14 +30,8 @@ namespace Assets.Scripts.Plants.ECS
                 typeof(Parent),
                 typeof(InternodeReference),
                 typeof(LocalToWorld),
-                typeof(LocalToParent));
-            Library["Leaf"] = em.CreateArchetype(
-                typeof(Translation),
-                typeof(Rotation),
-                typeof(Parent),
-                typeof(InternodeReference),
-                typeof(LocalToWorld),
-                typeof(LocalToParent));
+                typeof(LocalToParent),
+                typeof(EnergyStore));
         }
     }
 }
