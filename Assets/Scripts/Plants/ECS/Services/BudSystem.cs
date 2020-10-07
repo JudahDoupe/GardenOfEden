@@ -5,6 +5,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using System.Linq;
+using Assets.Scripts.Plants.ECS.Services.TransportationSystems;
 using Unity.Collections;
 using UnityEngine;
 
@@ -31,7 +32,7 @@ namespace Assets.Scripts.Plants.ECS.Services
 
             Entities
                 .WithAll<TerminalBud>()
-                .ForEach((in Entity entity, in Parent parent, in Rotation rotation, in InternodeReference internodeReference, in int entityInQueryIndex) =>
+                .ForEach((in Rotation rotation, in Entity entity, in Parent parent, in InternodeReference internodeReference, in int entityInQueryIndex) =>
                 {
                     var angle = Unity.Mathematics.Random.CreateFromIndex(rand + (uint)entityInQueryIndex).NextFloat(-0.1f, 0.1f);
                     var offset = new Vector3(angle, angle, angle);
@@ -39,7 +40,10 @@ namespace Assets.Scripts.Plants.ECS.Services
                     var middleNode = ecb.CreateEntity(entityInQueryIndex, nodearch);
                     ecb.SetComponent(entityInQueryIndex, middleNode, new Parent { Value = parent.Value });
                     ecb.SetComponent(entityInQueryIndex, middleNode, new Translation { Value = new float3(0,0,0.1f) });
+                    ecb.SetComponent(entityInQueryIndex, middleNode, internodeReference);
                     ecb.SetComponent(entityInQueryIndex, middleNode, rotation);
+
+                    ecb.SetComponent(entityInQueryIndex, internodeReference.Internode, new Internode { HeadNode = middleNode, TailNode = parent.Value });
 
                     var internode = ecb.CreateEntity(entityInQueryIndex, internodeArch);
                     ecb.SetComponent(entityInQueryIndex, internode, new Internode { HeadNode = entity, TailNode = middleNode });
@@ -56,7 +60,25 @@ namespace Assets.Scripts.Plants.ECS.Services
                 .ScheduleParallel();
 
             // Make sure that the ECB system knows about our job
-            ecbSystem.AddJobHandleForProducer(this.Dependency);
+            ecbSystem.AddJobHandleForProducer(Dependency);
+        }
+
+        public static void RemoveElement(ref DynamicBuffer<Entity> buffer, in Entity element)
+        {
+            int index = -1;
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                var e = buffer.ElementAt(i);
+                if (e == element)
+                {
+                    index = i;
+                }
+            }
+
+            if (index >= 0)
+            {
+                buffer.RemoveAt(index);
+            }
         }
 
     }

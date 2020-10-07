@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Plants.ECS.Components;
 using System.Linq;
+using Assets.Scripts.Plants.ECS.Services.TransportationSystems;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -35,6 +36,7 @@ public class GameService : MonoBehaviour
             em.SetComponentData(internode, new Internode { HeadNode = node, TailNode = plant }); 
             em.SetComponentData(node, new InternodeReference { Internode = internode });
             em.AddComponentData(internode, new AssignMesh{MeshName = "GreenStem"});
+            em.GetBuffer<BranchBufferElement>(plant).Add(new BranchBufferElement {Value = node});
 
             var leftLeaf = em.CreateEntity(Singleton.ArchetypeLibrary.Library["Node"]);
             em.SetComponentData(leftLeaf, new Translation { Value = new Vector3(0, 0, 0.01f) });
@@ -72,6 +74,10 @@ public class GameService : MonoBehaviour
             em.SetComponentData(budInternode, new Internode { HeadNode = node, TailNode = plant });
             em.SetComponentData(budNode, new InternodeReference { Internode = internode });
             em.AddComponentData(budInternode, new AssignMesh { MeshName = "GreenStem" });
+            var branches = em.GetBuffer<BranchBufferElement>(node);
+            branches.Add(new BranchBufferElement { Value = leftLeaf });
+            branches.Add(new BranchBufferElement { Value = rightLeaf });
+            branches.Add(new BranchBufferElement { Value = budNode });
         }
 
     }

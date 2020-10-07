@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Plants.ECS.Components;
 using System.Collections.Generic;
+using Assets.Scripts.Plants.ECS.Services.TransportationSystems;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -17,12 +18,15 @@ namespace Assets.Scripts.Plants.ECS
             Library["Plant"] = em.CreateArchetype(
                 typeof(Translation),
                 typeof(Rotation),
-                typeof(LocalToWorld));
+                typeof(LocalToWorld),
+                typeof(EnergyStore),
+                typeof(BranchBufferElement));
             Library["Internode"] = em.CreateArchetype(
                 typeof(Translation),
                 typeof(Rotation),
                 typeof(NonUniformScale),
                 typeof(LocalToWorld),
+                typeof(EnergyFlow),
                 typeof(Internode));
             Library["Node"] = em.CreateArchetype(
                 typeof(Translation),
@@ -31,6 +35,7 @@ namespace Assets.Scripts.Plants.ECS
                 typeof(InternodeReference),
                 typeof(LocalToWorld),
                 typeof(LocalToParent),
+                typeof(BranchBufferElement),
                 typeof(EnergyStore));
         }
     }

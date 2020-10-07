@@ -1,5 +1,8 @@
 ﻿using Assets.Scripts.Plants.ECS.Components;
+using System.Diagnostics;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Transforms;
 
 namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
 {
@@ -26,22 +29,15 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
 
     class EnergyFlowSystem : SystemBase
     {
-        private EndSimulationEntityCommandBufferSystem ecbSystem;
-
-        protected override void OnCreate()
-        {
-            base.OnCreate();
-            ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-        }
-
         protected override void OnUpdate()
         {
-            var ecb = ecbSystem.CreateCommandBuffer().AsParallelWriter();
+            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var parallelWriter = ecb.AsParallelWriter();
 
-            Entities
+            var jobHandle = Entities
                 .WithChangeFilter<BranchBufferElement>()
                 .ForEach(
-                    (in DynamicBuffer<BranchBufferElement> branches, in int entityInQueryIndex) =>
+                    (in DynamicBuffer<Child> branches, in int entityInQueryIndex) =>
                     {
                         var internodeQuery = GetComponentDataFromEntity<InternodeReference>(true);
 
@@ -50,14 +46,16 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
                             var branchEntity = branches[i].Value;
                             var internode = internodeQuery[branchEntity].Internode;
                             var energyFlow = new EnergyFlow { FlowRate = 1f / (branches.Length + 1), Throughput = 0 };
-                            ecb.SetComponent(entityInQueryIndex, internode, energyFlow);
+                            parallelWriter.SetComponent(entityInQueryIndex, internode, energyFlow);
                         }
                     })
                 .WithBurst()
-                .WithName("UpdateEnergyFlowrate")
-                .ScheduleParallel();
+                .WithName("UpdateEnergyFlowRate")
+                .ScheduleParallel(Dependency);
 
-            //TODO: Replay ECB before continuing energy flow
+            jobHandle.Complete();
+            ecb.Playback(EntityManager);
+            ecb.Dispose();
 
             Entities
                 .ForEach(
@@ -80,7 +78,6 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
                             energyFlow.Throughput = -energyFlow.FlowRate * headStore.Quantity * (headPressure - tailPressure);
                         }
                     })
-                .WithBurst()
                 .WithName("CalculateEnergyThroughput")
                 .ScheduleParallel();
 
@@ -91,7 +88,10 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
                         var internodeQuery = GetComponentDataFromEntity<InternodeReference>(true);
                         var energyFlowQuery = GetComponentDataFromEntity<EnergyFlow>(true);
 
-                        energyStore.Quantity += energyFlowQuery[internodeRef.Internode].Throughput;
+                        if (energyFlowQuery.HasComponent(internodeRef.Internode))
+                        {
+                            energyStore.Quantity += energyFlowQuery[internodeRef.Internode].Throughput;
+                        }
 
                         for (int i = 0; i < branches.Length; i++)
                         {
@@ -99,7 +99,6 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
                             energyStore.Quantity -= energyFlowQuery[internode].Throughput;
                         }
                     })
-                .WithBurst()
                 .WithName("UpdateEnergyQuantities")
                 .ScheduleParallel();
         }
