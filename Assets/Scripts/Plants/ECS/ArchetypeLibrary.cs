@@ -19,8 +19,7 @@ namespace Assets.Scripts.Plants.ECS
                 typeof(Translation),
                 typeof(Rotation),
                 typeof(LocalToWorld),
-                typeof(EnergyStore),
-                typeof(BranchBufferElement));
+                typeof(EnergyStore));
             Library["Internode"] = em.CreateArchetype(
                 typeof(Translation),
                 typeof(Rotation),
@@ -35,7 +34,6 @@ namespace Assets.Scripts.Plants.ECS
                 typeof(InternodeReference),
                 typeof(LocalToWorld),
                 typeof(LocalToParent),
-                typeof(BranchBufferElement),
                 typeof(EnergyStore));
         }
     }

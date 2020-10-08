@@ -13,7 +13,7 @@ namespace Assets.Scripts.Plants.ECS.Services
             Entities
                 .WithNone<LocalToParent>()
                 .ForEach(
-                    (ref Rotation rotation, ref Translation translation, ref NonUniformScale scale, in LocalToWorld l2w, in Internode internode) =>
+                    (ref Rotation rotation, ref Translation translation, ref NonUniformScale scale, ref Internode internode, in LocalToWorld l2w) =>
                     {
                         var querry = GetComponentDataFromEntity<LocalToWorld>(true);
                         var headPos = querry[internode.HeadNode].Position;
@@ -22,9 +22,9 @@ namespace Assets.Scripts.Plants.ECS.Services
 
                         rotation.Value = UnityEngine.Quaternion.LookRotation(vector);
                         translation.Value = tailPos;
-                        scale.Value.z = math.length(vector);
+                        internode.Length = math.length(vector);
+                        scale.Value = new float3(internode.Radius, internode.Radius, internode.Length);
                     })
-                .WithBurst()
                 .WithName("UpdateInternodeMesh")
                 .ScheduleParallel();
         }

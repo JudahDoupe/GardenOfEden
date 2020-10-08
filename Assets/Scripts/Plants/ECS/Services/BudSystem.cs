@@ -32,8 +32,9 @@ namespace Assets.Scripts.Plants.ECS.Services
 
             Entities
                 .WithAll<TerminalBud>()
-                .ForEach((in Rotation rotation, in Entity entity, in Parent parent, in InternodeReference internodeReference, in int entityInQueryIndex) =>
+                .ForEach((in Rotation rotation, in Entity entity, in Parent parent, in InternodeReference internodeReference, in int entityInQueryIndex, in EnergyStore energyStore) =>
                 {
+
                     var angle = Unity.Mathematics.Random.CreateFromIndex(rand + (uint)entityInQueryIndex).NextFloat(-0.1f, 0.1f);
                     var offset = new Vector3(angle, angle, angle);
 
@@ -43,16 +44,15 @@ namespace Assets.Scripts.Plants.ECS.Services
                     ecb.SetComponent(entityInQueryIndex, middleNode, internodeReference);
                     ecb.SetComponent(entityInQueryIndex, middleNode, rotation);
 
-                    ecb.SetComponent(entityInQueryIndex, internodeReference.Internode, new Internode { HeadNode = middleNode, TailNode = parent.Value });
-
                     var internode = ecb.CreateEntity(entityInQueryIndex, internodeArch);
-                    ecb.SetComponent(entityInQueryIndex, internode, new Internode { HeadNode = entity, TailNode = middleNode });
+                    ecb.SetComponent(entityInQueryIndex, internode, new Internode { HeadNode = entity, TailNode = middleNode, Length = 1, Radius = 0.1f });
                     ecb.SetComponent(entityInQueryIndex, internode, new NonUniformScale { Value = new float3(0.1f, 0.1f, 0) });
                     ecb.AddComponent<AssignMesh>(entityInQueryIndex, internode);
                     ecb.SetComponent(entityInQueryIndex, internode, new AssignMesh { MeshName = new FixedString64(meshName) });
 
+                    var oldInternode = GetComponentDataFromEntity<Internode>(true)[internodeReference.Internode];
                     ecb.SetComponent(entityInQueryIndex, entity, new Parent { Value = middleNode });
-                    ecb.SetComponent(entityInQueryIndex, internodeReference.Internode, new Internode { HeadNode = middleNode, TailNode = parent.Value });
+                    ecb.SetComponent(entityInQueryIndex, internodeReference.Internode, new Internode { HeadNode = middleNode, TailNode = parent.Value, Length = oldInternode.Length, Radius = oldInternode.Radius });
                     ecb.SetComponent(entityInQueryIndex, entity, new InternodeReference { Internode = internode });
                     ecb.SetComponent(entityInQueryIndex, entity, new Rotation { Value = Quaternion.LookRotation(Vector3.forward + offset) });
                 })

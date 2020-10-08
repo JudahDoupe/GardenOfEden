@@ -1,7 +1,6 @@
 ﻿using Assets.Scripts.Plants.ECS.Components;
-using System.Diagnostics;
-using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
@@ -14,78 +13,55 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
 
     public struct EnergyFlow : IComponentData
     {
-        public float FlowRate { get; set; }
         public float Throughput { get; set; }
-    }
-
-    [InternalBufferCapacity(5)]
-    public struct BranchBufferElement : IBufferElementData
-    {
-        public static implicit operator Entity(BranchBufferElement e) { return e.Value; }
-        public static implicit operator BranchBufferElement(Entity e) { return new BranchBufferElement { Value = e }; }
-
-        public Entity Value;
     }
 
     class EnergyFlowSystem : SystemBase
     {
+
         protected override void OnUpdate()
         {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
-            var parallelWriter = ecb.AsParallelWriter();
-
-            var jobHandle = Entities
-                .WithChangeFilter<BranchBufferElement>()
-                .ForEach(
-                    (in DynamicBuffer<Child> branches, in int entityInQueryIndex) =>
-                    {
-                        var internodeQuery = GetComponentDataFromEntity<InternodeReference>(true);
-
-                        for (int i = 0; i < branches.Length; i++)
-                        {
-                            var branchEntity = branches[i].Value;
-                            var internode = internodeQuery[branchEntity].Internode;
-                            var energyFlow = new EnergyFlow { FlowRate = 1f / (branches.Length + 1), Throughput = 0 };
-                            parallelWriter.SetComponent(entityInQueryIndex, internode, energyFlow);
-                        }
-                    })
-                .WithBurst()
-                .WithName("UpdateEnergyFlowRate")
-                .ScheduleParallel(Dependency);
-
-            jobHandle.Complete();
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
-
             Entities
                 .ForEach(
                     (ref EnergyFlow energyFlow, in Internode internode) =>
                     {
-                        var query = GetComponentDataFromEntity<EnergyStore>(true);
+                        var energyStoreQuery = GetComponentDataFromEntity<EnergyStore>(true);
+                        var childrenQuery = GetBufferFromEntity<Child>(true);
+                        var internodeEntityQuery = GetComponentDataFromEntity<InternodeReference>(true);
+                        var internodeQuery = GetComponentDataFromEntity<Internode>(true);
 
-                        var headStore = query[internode.HeadNode];
-                        var tailStore = query[internode.TailNode];
+                        var headInternode = internodeQuery[internodeEntityQuery[internode.HeadNode].Internode];
+                        var tailInternode = internodeQuery[internodeEntityQuery[internode.HeadNode].Internode];
+                        var headInternodeCapacity = headInternode.Length * headInternode.Radius * headInternode.Radius * math.PI * 0.3f;
+                        var tailInternodeCapacity = tailInternode.Length * tailInternode.Radius * tailInternode.Radius * math.PI * 0.3f;
 
-                        var headPressure = headStore.Quantity / headStore.Capacity;
-                        var tailPressure = tailStore.Quantity / tailStore.Capacity;
+                        var headStore = energyStoreQuery[internode.HeadNode];
+                        var tailStore = energyStoreQuery[internode.TailNode];
+                        var branches = childrenQuery[internode.TailNode];
+
+                        var resistence = 1.3f;
+                        var flowrate = (1f / (branches.Length + 1)) / resistence;
+                        var headPressure = headStore.Quantity / (headStore.Capacity + headInternodeCapacity + float.Epsilon);
+                        var tailPressure = tailStore.Quantity / (tailStore.Capacity + tailInternodeCapacity + float.Epsilon);
 
                         if (tailPressure > headPressure)
                         {
-                            energyFlow.Throughput = energyFlow.FlowRate * tailStore.Quantity * (tailPressure - headPressure);
+                            energyFlow.Throughput = flowrate * tailStore.Quantity * (tailPressure - headPressure);
                         }
                         else
                         {
-                            energyFlow.Throughput = -energyFlow.FlowRate * headStore.Quantity * (headPressure - tailPressure);
+                            energyFlow.Throughput = -flowrate * headStore.Quantity * (headPressure - tailPressure);
                         }
                     })
-                .WithName("CalculateEnergyThroughput")
+                .WithName("UpdateEnergyThroughput")
                 .ScheduleParallel();
 
             Entities
                 .ForEach(
-                    (ref EnergyStore energyStore, in InternodeReference internodeRef, in DynamicBuffer<BranchBufferElement> branches) =>
+                    (ref EnergyStore energyStore, in InternodeReference internodeRef, in DynamicBuffer<Child> branches) =>
                     {
-                        var internodeQuery = GetComponentDataFromEntity<InternodeReference>(true);
+                        var internodeRefQuery = GetComponentDataFromEntity<InternodeReference>(true);
+                        var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                         var energyFlowQuery = GetComponentDataFromEntity<EnergyFlow>(true);
 
                         if (energyFlowQuery.HasComponent(internodeRef.Internode))
@@ -95,8 +71,8 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
 
                         for (int i = 0; i < branches.Length; i++)
                         {
-                            var internode = internodeQuery[branches[i].Value].Internode;
-                            energyStore.Quantity -= energyFlowQuery[internode].Throughput;
+                            var internodeEntity = internodeRefQuery[branches[i].Value].Internode;
+                            energyStore.Quantity -= energyFlowQuery[internodeEntity].Throughput;
                         }
                     })
                 .WithName("UpdateEnergyQuantities")

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Entities;
+﻿using Unity.Entities;
 
 namespace Assets.Scripts.Plants.ECS.Components
 {
@@ -11,6 +6,8 @@ namespace Assets.Scripts.Plants.ECS.Components
     {
         public Entity HeadNode { get; set; }
         public Entity TailNode { get; set; }
+        public float Length;
+        public float Radius;
     }
 
     public struct InternodeReference : IComponentData
