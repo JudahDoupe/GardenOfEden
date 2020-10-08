@@ -23,7 +23,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                         rotation.Value = UnityEngine.Quaternion.LookRotation(vector);
                         translation.Value = tailPos;
                         internode.Length = math.length(vector);
-                        scale.Value = new float3(internode.Radius, internode.Radius, internode.Length);
+                        scale.Value = new float3(internode.Radius * 2, internode.Radius * 2, internode.Length);
                     })
                 .WithName("UpdateInternodeMesh")
                 .ScheduleParallel();

@@ -7,8 +7,8 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
 {
     public struct EnergyStore : IComponentData
     {
-        public float Quantity { get; set; }
-        public float Capacity { get; set; }
+        public float Quantity;
+        public float Capacity;
     }
 
     public struct EnergyFlow : IComponentData
@@ -32,8 +32,6 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
 
                         var headInternode = internodeQuery[internodeEntityQuery[internode.HeadNode].Internode];
                         var tailInternode = internodeQuery[internodeEntityQuery[internode.HeadNode].Internode];
-                        var headInternodeCapacity = headInternode.Length * headInternode.Radius * headInternode.Radius * math.PI * 0.3f;
-                        var tailInternodeCapacity = tailInternode.Length * tailInternode.Radius * tailInternode.Radius * math.PI * 0.3f;
 
                         var headStore = energyStoreQuery[internode.HeadNode];
                         var tailStore = energyStoreQuery[internode.TailNode];
@@ -41,8 +39,8 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
 
                         var resistence = 1.3f;
                         var flowrate = (1f / (branches.Length + 1)) / resistence;
-                        var headPressure = headStore.Quantity / (headStore.Capacity + headInternodeCapacity + float.Epsilon);
-                        var tailPressure = tailStore.Quantity / (tailStore.Capacity + tailInternodeCapacity + float.Epsilon);
+                        var headPressure = headStore.Quantity / (headStore.Capacity + GetInternodeCapacity(headInternode) + float.Epsilon);
+                        var tailPressure = tailStore.Quantity / (tailStore.Capacity + GetInternodeCapacity(tailInternode) + float.Epsilon);
 
                         if (tailPressure > headPressure)
                         {
@@ -74,10 +72,17 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
                             var internodeEntity = internodeRefQuery[branches[i].Value].Internode;
                             energyStore.Quantity -= energyFlowQuery[internodeEntity].Throughput;
                         }
+
+                        energyStore.Quantity = math.clamp(energyStore.Quantity, 0, energyStore.Capacity + GetInternodeCapacity(internodeQuery[internodeRef.Internode]));
                     })
                 .WithName("UpdateEnergyQuantities")
                 .ScheduleParallel();
         }
 
+
+        private static float GetInternodeCapacity(Internode internode)
+        {
+            return internode.Length* internode.Radius* internode.Radius* math.PI * 0.3f;
+        }
     }
 }

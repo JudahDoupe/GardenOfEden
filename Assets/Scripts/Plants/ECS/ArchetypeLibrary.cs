@@ -4,6 +4,7 @@ using Assets.Scripts.Plants.ECS.Services.TransportationSystems;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
+using Assets.Scripts.Plants.ECS.Services;
 
 namespace Assets.Scripts.Plants.ECS
 {
@@ -26,6 +27,7 @@ namespace Assets.Scripts.Plants.ECS
                 typeof(NonUniformScale),
                 typeof(LocalToWorld),
                 typeof(EnergyFlow),
+                typeof(InsertLightAbsorber),
                 typeof(Internode));
             Library["Node"] = em.CreateArchetype(
                 typeof(Translation),

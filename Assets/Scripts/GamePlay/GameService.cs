@@ -4,6 +4,7 @@ using Assets.Scripts.Plants.ECS.Services.TransportationSystems;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
+using Assets.Scripts.Plants.ECS.Services;
 
 public class GameService : MonoBehaviour
 {
@@ -36,12 +37,15 @@ public class GameService : MonoBehaviour
             em.SetComponentData(internode, new Internode { HeadNode = node, TailNode = plant, Radius = 0.1f, Length = 1f }); 
             em.SetComponentData(node, new InternodeReference { Internode = internode });
             em.AddComponentData(internode, new AssignMesh{MeshName = "GreenStem"});
+            em.AddComponentData(internode, new Choloplast { Efficiency = 1});
 
             var leftLeaf = em.CreateEntity(Singleton.ArchetypeLibrary.Library["Node"]);
             em.SetComponentData(leftLeaf, new Translation { Value = new Vector3(0, 0, 0.01f) });
             em.SetComponentData(leftLeaf, new Rotation { Value = Quaternion.LookRotation(Vector3.left, Vector3.down) });
             em.SetComponentData(leftLeaf, new Parent { Value = node });
             em.AddComponentData(leftLeaf, new AssignMesh { MeshName = "Leaf" });
+            em.AddComponentData(leftLeaf, new Choloplast { Efficiency = 1});
+            em.AddComponentData(leftLeaf, new InsertLightAbsorber());
             var leftLeafInternode = em.CreateEntity(Singleton.ArchetypeLibrary.Library["Internode"]);
             em.SetComponentData(leftLeafInternode, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
             em.SetComponentData(leftLeafInternode, new NonUniformScale { Value = new Vector3(0.05f, 0.05f, 1) });
@@ -55,6 +59,8 @@ public class GameService : MonoBehaviour
             em.SetComponentData(rightLeaf, new Rotation { Value = Quaternion.LookRotation(Vector3.right, Vector3.up)});
             em.SetComponentData(rightLeaf, new Parent { Value = node });
             em.AddComponentData(rightLeaf, new AssignMesh{MeshName = "Leaf"});
+            em.AddComponentData(rightLeaf, new Choloplast { Efficiency = 1});
+            em.AddComponentData(rightLeaf, new InsertLightAbsorber());
             var rightLeafInternode = em.CreateEntity(Singleton.ArchetypeLibrary.Library["Internode"]);
             em.SetComponentData(rightLeafInternode, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
             em.SetComponentData(rightLeafInternode, new NonUniformScale { Value = new Vector3(0.05f, 0.05f, 1) });
@@ -73,6 +79,7 @@ public class GameService : MonoBehaviour
             em.SetComponentData(budInternode, new Internode { HeadNode = node, TailNode = plant, Radius = 0.1f, Length = 1f });
             em.SetComponentData(budNode, new InternodeReference { Internode = internode });
             em.AddComponentData(budInternode, new AssignMesh { MeshName = "GreenStem" });
+            em.AddComponentData(budInternode, new Choloplast { Efficiency = 1});
         }
 
     }
