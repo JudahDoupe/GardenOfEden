@@ -1,61 +1,45 @@
 ﻿using Unity.Entities;
 using Unity.Transforms;
-using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Assets.Scripts.Plants.ECS.Services.TransportationSystems;
 using Unity.Collections;
 using Assets.Scripts.Plants.ECS.Components;
-using UnityEngine;
 
 namespace Assets.Scripts.Plants.ECS.Services
 {
-    public struct InsertLightAbsorber : IComponentData { }
-
-    public struct LightAbsorber : IComponentData
+    public struct LightAbsorption : IComponentData
     {
-        public float AbsorbedLight { get; set; }
-        public float SurfaceArea { get; set; }
+        public float SurfaceArea;
+        public int2 CellId;
     }
 
-    public struct LightLevel : IComponentData
+    public struct Photosynthesis : IComponentData
     {
-        public Entity ParentLevel { get; set; }
-        public float AvailableLight { get; set; }
+        public float Efficiency;
     }
-
-    public struct Choloplast : IComponentData 
-    { 
-        public float Efficiency { get; set; }
-    }
-
 
     class LightSystem : SystemBase
     {
-        private static int WorldSize = 200;
-        private static float ColumnDensity = 1f;
-        private static NativeHashMap<int2, Entity> LightColumns;
-
-        protected override void OnCreate()
-        {
-            base.OnCreate();
-            LightColumns = new NativeHashMap<int2, Entity>(WorldSize * WorldSize, Allocator.Persistent);
-        }
-
         protected override void OnUpdate()
         {
-            Entities
-                .WithChangeFilter<LocalToWorld>()
-                .ForEach((ref LightAbsorber absorber, in Entity entity, in LocalToWorld l2w, in RenderBounds bounds) =>
+            float cellSize = 5;
+
+            var query = GetEntityQuery(typeof(LightAbsorption), typeof(LocalToWorld), typeof(RenderBounds));
+            var lightCells = new NativeMultiHashMap<int2, Entity>(query.CalculateEntityCount(), Allocator.TempJob);
+            var lightCellsWriter = lightCells.AsParallelWriter();
+
+            var job = Entities
+                .ForEach((ref LightAbsorption absorber, in Entity entity, in LocalToWorld l2w, in RenderBounds bounds) =>
                 {
-                    var internodeQuerry = GetComponentDataFromEntity<Internode>(true);
+                    var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                     var scaleQuery = GetComponentDataFromEntity<Scale>(true);
                     var scaleQuery2 = GetComponentDataFromEntity<NonUniformScale>(true);
                     
-                    if (internodeQuerry.HasComponent(entity))
+                    if (internodeQuery.HasComponent(entity))
                     {
                         var angle = 1 - math.abs(math.dot(l2w.Forward, new float3(0, 1, 0)));
-                        var internode = internodeQuerry[entity];
+                        var internode = internodeQuery[entity];
                         absorber.SurfaceArea = internode.Length * internode.Radius * angle;
                     }
                     else if (scaleQuery.HasComponent(entity))
@@ -63,6 +47,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                         var extents = bounds.Value.Extents * scaleQuery[entity].Value;
                         var globalExtents = math.mul(l2w.Rotation, extents);
                         absorber.SurfaceArea = globalExtents.x * globalExtents.z;
+                        //TODO: This calculation is wrong
                     }
                     else if (scaleQuery2.HasComponent(entity))
                     {
@@ -75,102 +60,46 @@ namespace Assets.Scripts.Plants.ECS.Services
                         absorber.SurfaceArea = 0;
                     }
 
+                    absorber.CellId = GetCellIdFromPosition(l2w.Position, cellSize);
+                    lightCellsWriter.Add(absorber.CellId, entity);
 
                 })
-                .WithName("UpdateSurfaceArea")
-                .ScheduleParallel();
-
-            EntityQuery lightAbsorberEntityQuery = GetEntityQuery(typeof(LightAbsorber), typeof(LightLevel));
-            NativeArray<float> lightLevels = new NativeArray<float>(lightAbsorberEntityQuery.CalculateEntityCount(), Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-            //TODO: What happens when a light absorber moves to a differnet column
-
-            var hadle = Entities
-                .WithNativeDisableParallelForRestriction(lightLevels)
-                .ForEach((int entityInQueryIndex, ref LightAbsorber absorber, in LightLevel lightLevel) =>
-                {
-                    var cellQuery = GetComponentDataFromEntity<LightLevel>(true);
-                    var availableLight = 1f;
-                    if (cellQuery.HasComponent(lightLevel.ParentLevel))
-                    {
-                        availableLight = cellQuery[lightLevel.ParentLevel].AvailableLight;
-                    }
-
-                    absorber.AbsorbedLight = math.min(availableLight, absorber.SurfaceArea);
-                    lightLevels[entityInQueryIndex] = math.max(availableLight - absorber.AbsorbedLight, 0);
-                })
-                .WithName("UpdateAbsorbedLight")
-                .WithBurst()
+                .WithName("UpdateLightAbsorber")
                 .ScheduleParallel(Dependency);
 
-            hadle.Complete();
+            job.Complete();
 
             Entities
-                .WithReadOnly(lightLevels)
-                .WithDisposeOnCompletion(lightLevels)
-                .WithAll<LightAbsorber>()
-                .ForEach((int entityInQueryIndex, ref LightLevel lightLevel) =>
+                .WithNativeDisableParallelForRestriction(lightCells)
+                .ForEach((ref EnergyStore energyStore, in LightAbsorption absorber, in LocalToWorld l2w, in Photosynthesis photosynthesis) =>
                 {
-                    lightLevel.AvailableLight = lightLevels[entityInQueryIndex];
-                })
-                .WithName("UpdateAvailableLight")
-                .ScheduleParallel();
+                    var l2wQuery = GetComponentDataFromEntity<LocalToWorld>(true);
+                    var lightQuery = GetComponentDataFromEntity<LightAbsorption>(true);
 
-            Entities
-                .ForEach((ref EnergyStore energyStore, in LightAbsorber absorber, in Choloplast chloroplast) =>
-                {
-                    Debug.Log("Woo");
-                    energyStore.Quantity += absorber.AbsorbedLight * chloroplast.Efficiency;
-                })
-                .WithName("Photosynthesis")
-                .WithBurst()
-                .ScheduleParallel();
-
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
-            var handle = Entities
-                .WithAll<InsertLightAbsorber>()
-                .ForEach((in Entity entity, in LocalToWorld l2w) =>
-                {
-                    var lightLevelQuery = GetComponentDataFromEntity<LightLevel>(true);
-                    var localToWorldQuery = GetComponentDataFromEntity<LocalToWorld>(true);
-                    var cellId = GetCellIdFromPosition(l2w.Position);
-
-                    Entity upperEntity = Entity.Null;
-                    Entity lowerEntity = Entity.Null;
-                    if (LightColumns.TryGetValue(cellId, out upperEntity))
+                    var availableLight = cellSize * cellSize;
+                    if (lightCells.TryGetFirstValue(absorber.CellId, out var shadingEntity, out var iterator))
                     {
-                        var nextEntity = lightLevelQuery[upperEntity].ParentLevel;
-                        var nextHeight = nextEntity == Entity.Null ? float.MaxValue : localToWorldQuery[nextEntity].Position.y;
-                        while (upperEntity != Entity.Null && nextHeight > l2w.Position.y)
+                        do
                         {
-                            lowerEntity = upperEntity;
-                            upperEntity = nextEntity;
-                            nextEntity = lightLevelQuery[upperEntity].ParentLevel;
-                            nextHeight = nextEntity == Entity.Null ? float.MaxValue : localToWorldQuery[nextEntity].Position.y;
-                        }
-
-                        ecb.AddComponent(entity, new LightLevel { ParentLevel = upperEntity });
-                        ecb.SetComponent(lowerEntity, new LightLevel { ParentLevel = entity });
-                    }
-                    else
-                    {
-                        LightColumns.Add(cellId, entity);
-                        ecb.AddComponent(entity, new LightLevel { ParentLevel = Entity.Null });
+                            if (l2wQuery[shadingEntity].Position.y > l2w.Position.y)
+                            {
+                                availableLight -= lightQuery[shadingEntity].SurfaceArea;
+                            }
+                        } while (availableLight > 0 && lightCells.TryGetNextValue(out shadingEntity, ref iterator));
                     }
 
-                    ecb.RemoveComponent(entity, typeof(InsertLightAbsorber));
-                    ecb.AddComponent(entity, typeof(LightAbsorber));
+                    energyStore.Quantity += math.clamp(availableLight, absorber.SurfaceArea, 0) * photosynthesis.Efficiency;
                 })
-                .WithName("InsertLightAbsorber")
-                .Schedule(Dependency);
-            handle.Complete();
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
+                .WithDisposeOnCompletion(lightCells)
+                .WithName("Photosynthesis")
+                .ScheduleParallel();
+
+
         }
 
-        public static int2 GetCellIdFromPosition(float3 position)
+        public static int2 GetCellIdFromPosition(float3 position, float cellSize)
         {
-            return math.int2(new float2(math.floor(position.x / ColumnDensity), math.floor(position.z / ColumnDensity)));
+            return math.int2(new float2(math.floor(position.x / cellSize), math.floor(position.z / cellSize)));
         }
 
     }

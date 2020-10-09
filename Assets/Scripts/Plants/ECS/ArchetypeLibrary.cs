@@ -27,7 +27,8 @@ namespace Assets.Scripts.Plants.ECS
                 typeof(NonUniformScale),
                 typeof(LocalToWorld),
                 typeof(EnergyFlow),
-                typeof(InsertLightAbsorber),
+                typeof(LightAbsorption),
+                typeof(Photosynthesis),
                 typeof(Internode));
             Library["Node"] = em.CreateArchetype(
                 typeof(Translation),

@@ -13,7 +13,7 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
 
     public struct EnergyFlow : IComponentData
     {
-        public float Throughput { get; set; }
+        public float Throughput;
     }
 
     class EnergyFlowSystem : SystemBase
