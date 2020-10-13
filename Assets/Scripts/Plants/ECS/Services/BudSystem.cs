@@ -32,8 +32,11 @@ namespace Assets.Scripts.Plants.ECS.Services
 
             Entities
                 .WithAll<TerminalBud>()
-                .ForEach((in Rotation rotation, in Entity entity, in Parent parent, in InternodeReference internodeReference, in int entityInQueryIndex, in EnergyStore energyStore) =>
+                .ForEach((ref EnergyStore energyStore, in Rotation rotation, in Entity entity, in Parent parent, in InternodeReference internodeReference, in int entityInQueryIndex) =>
                 {
+                    if (energyStore.Quantity < 0.00003f) return;
+
+                    energyStore.Quantity -= 0.00003f;
 
                     var angle = Unity.Mathematics.Random.CreateFromIndex(rand + (uint)entityInQueryIndex).NextFloat(-0.1f, 0.1f);
                     var offset = new Vector3(angle, angle, angle);

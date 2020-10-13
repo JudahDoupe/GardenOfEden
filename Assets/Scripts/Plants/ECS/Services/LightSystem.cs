@@ -40,14 +40,13 @@ namespace Assets.Scripts.Plants.ECS.Services
                     {
                         var angle = 1 - math.abs(math.dot(l2w.Forward, new float3(0, 1, 0)));
                         var internode = internodeQuery[entity];
-                        absorber.SurfaceArea = internode.Length * internode.Radius * angle;
+                        absorber.SurfaceArea = math.abs(internode.Length * internode.Radius * angle);
                     }
                     else if (scaleQuery.HasComponent(entity))
                     {
                         var extents = bounds.Value.Extents * scaleQuery[entity].Value;
                         var globalExtents = math.mul(l2w.Rotation, extents);
-                        absorber.SurfaceArea = globalExtents.x * globalExtents.z;
-                        //TODO: This calculation is wrong
+                        absorber.SurfaceArea = math.abs(globalExtents.x * globalExtents.z);
                     }
                     else if (scaleQuery2.HasComponent(entity))
                     {

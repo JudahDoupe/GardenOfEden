@@ -16,9 +16,8 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
         public float Throughput;
     }
 
-    class EnergyFlowSystem : SystemBase
+    public class EnergyFlowSystem : SystemBase
     {
-
         protected override void OnUpdate()
         {
             Entities
@@ -37,7 +36,7 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
                         var tailStore = energyStoreQuery[internode.TailNode];
                         var branches = childrenQuery[internode.TailNode];
 
-                        var resistence = 1.3f;
+                        var resistence = 1f;
                         var flowrate = (1f / (branches.Length + 1)) / resistence;
                         var headPressure = headStore.Quantity / (headStore.Capacity + GetInternodeCapacity(headInternode) + float.Epsilon);
                         var tailPressure = tailStore.Quantity / (tailStore.Capacity + GetInternodeCapacity(tailInternode) + float.Epsilon);
@@ -73,7 +72,8 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
                             energyStore.Quantity -= energyFlowQuery[internodeEntity].Throughput;
                         }
 
-                        energyStore.Quantity = math.clamp(energyStore.Quantity, 0, energyStore.Capacity + GetInternodeCapacity(internodeQuery[internodeRef.Internode]));
+                        var maxCapacity = energyStore.Capacity + GetInternodeCapacity(internodeQuery[internodeRef.Internode]);
+                        energyStore.Quantity = math.clamp(energyStore.Quantity, 0, maxCapacity);
                     })
                 .WithName("UpdateEnergyQuantities")
                 .ScheduleParallel();
