@@ -34,20 +34,20 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
 
                         var headStore = energyStoreQuery[internode.HeadNode];
                         var tailStore = energyStoreQuery[internode.TailNode];
-                        var branches = childrenQuery[internode.TailNode];
+                        var numBranches = childrenQuery.HasComponent(internode.TailNode) ? childrenQuery[internode.TailNode].Length + 1 : 1;
 
-                        var resistence = 1f;
-                        var flowrate = (1f / (branches.Length + 1)) / resistence;
+                        var resistance = 1f;
+                        var flowRate = (1f / numBranches) / resistance;
                         var headPressure = headStore.Quantity / (headStore.Capacity + GetInternodeCapacity(headInternode) + float.Epsilon);
                         var tailPressure = tailStore.Quantity / (tailStore.Capacity + GetInternodeCapacity(tailInternode) + float.Epsilon);
 
                         if (tailPressure > headPressure)
                         {
-                            energyFlow.Throughput = flowrate * tailStore.Quantity * (tailPressure - headPressure);
+                            energyFlow.Throughput = flowRate * tailStore.Quantity * (tailPressure - headPressure);
                         }
                         else
                         {
-                            energyFlow.Throughput = -flowrate * headStore.Quantity * (headPressure - tailPressure);
+                            energyFlow.Throughput = -flowRate * headStore.Quantity * (headPressure - tailPressure);
                         }
                     })
                 .WithName("UpdateEnergyThroughput")
@@ -55,21 +55,27 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
 
             Entities
                 .ForEach(
-                    (ref EnergyStore energyStore, in InternodeReference internodeRef, in DynamicBuffer<Child> branches) =>
+                    (ref EnergyStore energyStore, in InternodeReference internodeRef, in Entity entity) =>
                     {
                         var internodeRefQuery = GetComponentDataFromEntity<InternodeReference>(true);
                         var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                         var energyFlowQuery = GetComponentDataFromEntity<EnergyFlow>(true);
+                        var childrenQuery = GetBufferFromEntity<Child>(true);
 
                         if (energyFlowQuery.HasComponent(internodeRef.Internode))
                         {
                             energyStore.Quantity += energyFlowQuery[internodeRef.Internode].Throughput;
                         }
 
-                        for (int i = 0; i < branches.Length; i++)
+                        if (childrenQuery.HasComponent(entity))
                         {
-                            var internodeEntity = internodeRefQuery[branches[i].Value].Internode;
-                            energyStore.Quantity -= energyFlowQuery[internodeEntity].Throughput;
+                            var branches = childrenQuery[entity];
+
+                            for (int i = 0; i < branches.Length; i++)
+                            {
+                                var internodeEntity = internodeRefQuery[branches[i].Value].Internode;
+                                energyStore.Quantity -= energyFlowQuery[internodeEntity].Throughput;
+                            }
                         }
 
                         var maxCapacity = energyStore.Capacity + GetInternodeCapacity(internodeQuery[internodeRef.Internode]);

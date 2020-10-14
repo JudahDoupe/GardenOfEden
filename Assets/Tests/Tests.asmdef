@@ -1,9 +1,16 @@
 {
     "name": "Tests",
     "references": [
+        "Eden",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Eden"
+        "Unity.Entities",
+        "Unity.Entities.Tests",
+        "Unity.Transforms",
+        "Unity.Mathematics",
+        "Unity.Mathematics.Extensions",
+        "Unity.Burst",
+        "Unity.Collections"
     ],
     "includePlatforms": [
         "Editor"
