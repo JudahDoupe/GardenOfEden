@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.Plants.ECS.Components;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 
 namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
@@ -26,20 +27,15 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
                     {
                         var energyStoreQuery = GetComponentDataFromEntity<EnergyStore>(true);
                         var childrenQuery = GetBufferFromEntity<Child>(true);
-                        var internodeEntityQuery = GetComponentDataFromEntity<InternodeReference>(true);
-                        var internodeQuery = GetComponentDataFromEntity<Internode>(true);
-
-                        var headInternode = internodeQuery[internodeEntityQuery[internode.HeadNode].Internode];
-                        var tailInternode = internodeQuery[internodeEntityQuery[internode.HeadNode].Internode];
 
                         var headStore = energyStoreQuery[internode.HeadNode];
                         var tailStore = energyStoreQuery[internode.TailNode];
                         var numBranches = childrenQuery.HasComponent(internode.TailNode) ? childrenQuery[internode.TailNode].Length + 1 : 1;
 
-                        var resistance = 1f;
-                        var flowRate = (1f / numBranches) / resistance;
-                        var headPressure = headStore.Quantity / (headStore.Capacity + GetInternodeCapacity(headInternode) + float.Epsilon);
-                        var tailPressure = tailStore.Quantity / (tailStore.Capacity + GetInternodeCapacity(tailInternode) + float.Epsilon);
+                        var resistance = 0f;
+                        var flowRate = (1f / numBranches) / (1 + resistance);
+                        var headPressure = headStore.Quantity / (headStore.Capacity + float.Epsilon);
+                        var tailPressure = tailStore.Quantity / (tailStore.Capacity + float.Epsilon);
 
                         if (tailPressure > headPressure)
                         {
@@ -60,7 +56,33 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
                         var internodeRefQuery = GetComponentDataFromEntity<InternodeReference>(true);
                         var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                         var energyFlowQuery = GetComponentDataFromEntity<EnergyFlow>(true);
+
+                        var boundsQuery = GetComponentDataFromEntity<RenderBounds>(true);
+                        var scaleQuery = GetComponentDataFromEntity<Scale>(true);
+                        var nonUniformScaleQuery = GetComponentDataFromEntity<NonUniformScale>(true);
+
                         var childrenQuery = GetBufferFromEntity<Child>(true);
+
+                        var extents = new float3(0.001f, 0.001f, 0.001f);
+                        if (boundsQuery.HasComponent(entity))
+                        {
+                            if (scaleQuery.HasComponent(entity))
+                            {
+                                extents = boundsQuery[entity].Value.Extents * scaleQuery[entity].Value;
+                            }
+                            else if (nonUniformScaleQuery.HasComponent(entity))
+                            {
+                                extents = boundsQuery[entity].Value.Extents * nonUniformScaleQuery[entity].Value;
+                            }
+                            else
+                            {
+                                extents = boundsQuery[entity].Value.Extents;
+                            }
+                        }
+                        var nodeCapacity = GetNodeCapacity(extents);
+                        var internodeCapacity = GetInternodeCapacity(internodeQuery[internodeRefQuery[entity].Internode]);
+                        energyStore.Capacity = internodeCapacity + nodeCapacity;
+
 
                         if (energyFlowQuery.HasComponent(internodeRef.Internode))
                         {
@@ -78,17 +100,20 @@ namespace Assets.Scripts.Plants.ECS.Services.TransportationSystems
                             }
                         }
 
-                        var maxCapacity = energyStore.Capacity + GetInternodeCapacity(internodeQuery[internodeRef.Internode]);
-                        energyStore.Quantity = math.clamp(energyStore.Quantity, 0, maxCapacity);
+                        energyStore.Quantity = math.clamp(energyStore.Quantity, 0, energyStore.Capacity);
                     })
                 .WithName("UpdateEnergyQuantities")
                 .ScheduleParallel();
         }
 
-
         private static float GetInternodeCapacity(Internode internode)
         {
-            return internode.Length* internode.Radius* internode.Radius* math.PI * 0.3f;
+            return internode.Length * internode.Radius * internode.Radius * math.PI;
+        }
+
+        private static float GetNodeCapacity(float3 extents)
+        {
+            return extents.x * extents.y * extents.z * 1.333f * math.PI;
         }
     }
 }
