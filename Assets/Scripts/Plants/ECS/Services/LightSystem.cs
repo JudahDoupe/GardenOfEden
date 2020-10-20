@@ -2,7 +2,6 @@
 using Unity.Transforms;
 using Unity.Mathematics;
 using Unity.Rendering;
-using Assets.Scripts.Plants.ECS.Services.TransportationSystems;
 using Unity.Collections;
 using Assets.Scripts.Plants.ECS.Components;
 
@@ -25,38 +24,28 @@ namespace Assets.Scripts.Plants.ECS.Services
         {
             float cellSize = 5;
 
-            var query = GetEntityQuery(typeof(LightAbsorption), typeof(LocalToWorld), typeof(RenderBounds));
+            var query = GetEntityQuery(typeof(LightAbsorption), typeof(LocalToWorld));
             var lightCells = new NativeMultiHashMap<int2, Entity>(query.CalculateEntityCount(), Allocator.TempJob);
             var lightCellsWriter = lightCells.AsParallelWriter();
 
             var job = Entities
-                .ForEach((ref LightAbsorption absorber, in Entity entity, in LocalToWorld l2w, in RenderBounds bounds) =>
+                .ForEach((ref LightAbsorption absorber, in Entity entity, in LocalToWorld l2w) =>
                 {
                     var internodeQuery = GetComponentDataFromEntity<Internode>(true);
-                    var scaleQuery = GetComponentDataFromEntity<Scale>(true);
-                    var scaleQuery2 = GetComponentDataFromEntity<NonUniformScale>(true);
-                    
+                    var nodeQuery = GetComponentDataFromEntity<Components.Node>(true);
+
+                    absorber.SurfaceArea = 0;
                     if (internodeQuery.HasComponent(entity))
                     {
-                        var angle = 1 - math.abs(math.dot(l2w.Forward, new float3(0, 1, 0)));
                         var internode = internodeQuery[entity];
-                        absorber.SurfaceArea = math.abs(internode.Length * internode.Radius * angle);
+                        var angle = 1 - math.abs(math.dot(l2w.Forward, new float3(0, 1, 0)));
+                        absorber.SurfaceArea += math.abs(internode.Length * internode.Radius * angle);
                     }
-                    else if (scaleQuery.HasComponent(entity))
+                    if (nodeQuery.HasComponent(entity))
                     {
-                        var extents = bounds.Value.Extents * scaleQuery[entity].Value;
-                        var globalExtents = math.mul(l2w.Rotation, extents);
-                        absorber.SurfaceArea = math.abs(globalExtents.x * globalExtents.z);
-                    }
-                    else if (scaleQuery2.HasComponent(entity))
-                    {
-                        var extents = bounds.Value.Extents * scaleQuery2[entity].Value;
-                        var globalExtents = math.mul(l2w.Rotation, extents);
-                        absorber.SurfaceArea = globalExtents.x * globalExtents.z;
-                    }
-                    else
-                    {
-                        absorber.SurfaceArea = 0;
+                        var node = nodeQuery[entity];
+                        var globalSize = math.mul(l2w.Rotation, node.Size);
+                        absorber.SurfaceArea = math.abs(globalSize.x * globalSize.z);
                     }
 
                     absorber.CellId = GetCellIdFromPosition(l2w.Position, cellSize);

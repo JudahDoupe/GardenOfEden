@@ -16,7 +16,6 @@ public class Singleton : MonoBehaviour
 
     public static CameraController CameraController;
     public static RenderMeshLibrary RenderMeshLibrary;
-    public static ArchetypeLibrary ArchetypeLibrary;
 
 
     private void Awake()
@@ -34,6 +33,5 @@ public class Singleton : MonoBehaviour
 
         CameraController = FindObjectOfType<CameraController>();
         RenderMeshLibrary = FindObjectOfType<RenderMeshLibrary>();
-        ArchetypeLibrary = FindObjectOfType<ArchetypeLibrary>();
     }
 }

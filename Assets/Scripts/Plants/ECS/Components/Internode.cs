@@ -1,17 +1,17 @@
 ﻿using Unity.Entities;
+using Unity.Mathematics;
 
 namespace Assets.Scripts.Plants.ECS.Components
 {
-    public struct Internode : IComponentData
+    public struct Node : IComponentData
     {
-        public Entity HeadNode { get; set; }
-        public Entity TailNode { get; set; }
-        public float Length;
-        public float Radius;
+        public float3 Size;
     }
 
-    public struct InternodeReference : IComponentData
+    public struct Internode : IComponentData
     {
-        public Entity Internode { get; set; }
+        public Entity Mesh;
+        public float Length;
+        public float Radius;
     }
 }

@@ -1,11 +1,7 @@
 ﻿using Assets.Scripts.Plants.ECS.Components;
 using Unity.Entities;
 using Unity.Transforms;
-using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Rendering;
-using System.Linq;
-using Assets.Scripts.Plants.ECS.Services.TransportationSystems;
 using Unity.Collections;
 using UnityEngine;
 
@@ -25,15 +21,14 @@ namespace Assets.Scripts.Plants.ECS.Services
         protected override void OnUpdate()
         {
             var ecb = ecbSystem.CreateCommandBuffer().AsParallelWriter();
-            var nodearch = Singleton.ArchetypeLibrary.Library["Node"];
-            var internodeArch = Singleton.ArchetypeLibrary.Library["Internode"];
             var rand = (uint)UnityEngine.Random.Range(0,99999999);
             var meshName = new FixedString64("GreenStem");
 
             Entities
                 .WithAll<TerminalBud>()
-                .ForEach((ref EnergyStore energyStore, in Rotation rotation, in Entity entity, in Parent parent, in InternodeReference internodeReference, in int entityInQueryIndex) =>
+                .ForEach((ref EnergyStore energyStore, in Rotation rotation, in Entity entity, in Parent parent, in int entityInQueryIndex) =>
                 {
+                    /*
                     if (energyStore.Quantity < 0.00003f) return;
 
                     energyStore.Quantity -= 0.00003f;
@@ -58,6 +53,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                     ecb.SetComponent(entityInQueryIndex, internodeReference.Internode, new Internode { HeadNode = middleNode, TailNode = parent.Value, Length = oldInternode.Length, Radius = oldInternode.Radius });
                     ecb.SetComponent(entityInQueryIndex, entity, new InternodeReference { Internode = internode });
                     ecb.SetComponent(entityInQueryIndex, entity, new Rotation { Value = Quaternion.LookRotation(Vector3.forward + offset) });
+                    */
                 })
                 .WithBurst()
                 .ScheduleParallel();
