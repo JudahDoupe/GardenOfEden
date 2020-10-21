@@ -39,7 +39,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                     {
                         var internode = internodeQuery[entity];
                         var angle = 1 - math.abs(math.dot(l2w.Forward, new float3(0, 1, 0)));
-                        absorber.SurfaceArea += math.abs(internode.Length * internode.Radius * angle);
+                        absorber.SurfaceArea += math.abs(internode.Length * angle) + math.abs(internode.Radius * 1 - angle);
                     }
                     if (nodeQuery.HasComponent(entity))
                     {

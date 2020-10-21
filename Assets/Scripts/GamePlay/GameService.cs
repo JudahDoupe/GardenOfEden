@@ -25,18 +25,18 @@ public class GameService : MonoBehaviour
         for (var i = 0; i < 500; i++)
         {
             var baseNode = em.CreateEntity();
-            em.AddComponentData(baseNode, new Assets.Scripts.Plants.ECS.Components.Node { Size = float3.zero });
+            em.AddComponentData(baseNode, new Assets.Scripts.Plants.ECS.Components.Node{Size = new float3(0.5f,0.5f,0.5f)});
             em.AddComponentData(baseNode, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(Random.Range(-100f, 100f), 50, Random.Range(-200f, 0f))) });
             em.AddComponentData(baseNode, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
             em.AddComponentData(baseNode, new LocalToWorld());
-            em.AddComponentData(baseNode, new EnergyStore());
+            em.AddComponentData(baseNode, new EnergyStore {Capacity = 1, Quantity = 1});
             em.AddComponentData(baseNode, new EnergyFlow());
             em.AddComponentData(baseNode, new LightAbsorption ());
 
             var topNode = em.CreateEntity();
-            em.AddComponentData(topNode, new Assets.Scripts.Plants.ECS.Components.Node {Size = float3.zero});
-            em.AddComponentData(topNode, new Internode { Length = 0.1f, Radius = 0.01f});
-            em.AddComponentData(topNode, new Translation { Value = new Vector3(0, 0, 0.1f) });
+            em.AddComponentData(topNode, new Assets.Scripts.Plants.ECS.Components.Node());
+            em.AddComponentData(topNode, new Internode());
+            em.AddComponentData(topNode, new Translation());
             em.AddComponentData(topNode, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
             em.AddComponentData(topNode, new Parent {Value = baseNode});
             em.AddComponentData(topNode, new LocalToParent());
@@ -46,11 +46,12 @@ public class GameService : MonoBehaviour
             em.AddComponentData(topNode, new LightAbsorption ());
             em.AddComponentData(topNode, new Photosynthesis { Efficiency = 1 });
             em.AddComponentData(topNode, new AssignInternodeMesh { MeshName = "GreenStem" });
+            em.AddComponentData(topNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 1, InternodeRadius = 0.1f });
 
             var leafNode = em.CreateEntity();
-            em.AddComponentData(leafNode, new Assets.Scripts.Plants.ECS.Components.Node {Size = new float3(0.25f, 0.1f, 0.25f)});
-            em.AddComponentData(leafNode, new Internode { Length = 0.01f, Radius = 0.01f });
-            em.AddComponentData(leafNode, new Translation { Value = new Vector3(0, 0, 0.01f) });
+            em.AddComponentData(leafNode, new Assets.Scripts.Plants.ECS.Components.Node());
+            em.AddComponentData(leafNode, new Internode());
+            em.AddComponentData(leafNode, new Translation( ));
             em.AddComponentData(leafNode, new Rotation { Value = Quaternion.LookRotation(Vector3.left, Vector3.down) });
             em.AddComponentData(leafNode, new Parent { Value = topNode });
             em.AddComponentData(leafNode, new LocalToParent());
@@ -61,11 +62,12 @@ public class GameService : MonoBehaviour
             em.AddComponentData(leafNode, new Photosynthesis { Efficiency = 1});
             em.AddComponentData(leafNode, new AssignInternodeMesh { MeshName = "GreenStem"});
             em.AddComponentData(leafNode, new AssignNodeMesh { MeshName = "Leaf"});
+            em.AddComponentData(leafNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1});
 
             var budNode = em.CreateEntity();
-            em.AddComponentData(budNode, new Assets.Scripts.Plants.ECS.Components.Node { Size = float3.zero });
-            em.AddComponentData(budNode, new Internode { Length = 0.1f, Radius = 0.01f });
-            em.AddComponentData(budNode, new Translation { Value = new Vector3(0, 0, 0.1f) });
+            em.AddComponentData(budNode, new Assets.Scripts.Plants.ECS.Components.Node());
+            em.AddComponentData(budNode, new Internode());
+            em.AddComponentData(budNode, new Translation());
             em.AddComponentData(budNode, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
             em.AddComponentData(budNode, new Parent {Value = topNode});
             em.AddComponentData(budNode, new LocalToParent());

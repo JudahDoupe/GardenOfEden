@@ -70,7 +70,7 @@ namespace Assets.Scripts.Plants.ECS.Services
 
                         var childrenQuery = GetBufferFromEntity<Child>(true);
 
-                        energyStore.Capacity = 0;
+                        energyStore.Capacity = 0.001f;
                         if (nodeQuery.HasComponent(entity))
                         {
                             energyStore.Capacity += GetNodeCapacity(nodeQuery[entity]);

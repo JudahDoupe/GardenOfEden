@@ -13,16 +13,6 @@ namespace Assets.Scripts.Plants.ECS.Services
             Entities
                 .WithNone<LocalToParent>()
                 .ForEach(
-                    (ref Translation translation, in Internode internode) =>
-                    {
-                        translation.Value = new float3(0,0,internode.Length);
-                    })
-                .WithName("UpdateNodePositions")
-                .ScheduleParallel();
-
-            Entities
-                .WithNone<LocalToParent>()
-                .ForEach(
                     (ref Rotation rotation, ref Translation translation, ref NonUniformScale scale, ref InternodeReference internodeRef, in LocalToWorld l2w) =>
                     {
                         var l2wQuery = GetComponentDataFromEntity<LocalToWorld>(true);
@@ -32,7 +22,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                         var internode = internodeQuery[internodeRef.Entity];
                         var headPos = l2wQuery[internodeRef.Entity].Position;
                         var tailPos = l2wQuery[parentQuery[internodeRef.Entity].Value].Position;
-                        float3 vector = headPos - tailPos + new float3(float.Epsilon, float.Epsilon, float.Epsilon);
+                        float3 vector = headPos - tailPos + new float3(0,0,0.00001f);
 
                         translation.Value = headPos;
                         rotation.Value = UnityEngine.Quaternion.LookRotation(vector);
