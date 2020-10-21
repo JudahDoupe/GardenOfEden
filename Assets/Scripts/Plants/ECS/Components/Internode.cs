@@ -10,7 +10,6 @@ namespace Assets.Scripts.Plants.ECS.Components
 
     public struct Internode : IComponentData
     {
-        public Entity Mesh;
         public float Length;
         public float Radius;
     }

@@ -32,11 +32,11 @@ namespace Assets.Scripts.Plants.ECS.Services
                         var internode = internodeQuery[internodeRef.Entity];
                         var headPos = l2wQuery[internodeRef.Entity].Position;
                         var tailPos = l2wQuery[parentQuery[internodeRef.Entity].Value].Position;
-                        float3 vector = tailPos - headPos + new float3(0, 0, -0.000001f);
+                        float3 vector = headPos - tailPos + new float3(float.Epsilon, float.Epsilon, float.Epsilon);
 
-                        translation.Value = tailPos;
+                        translation.Value = headPos;
                         rotation.Value = UnityEngine.Quaternion.LookRotation(vector);
-                        scale.Value = new float3(internode.Radius * 2, internode.Radius * 2, internode.Length);
+                        scale.Value = new float3(internode.Radius, internode.Radius, internode.Length);
                     })
                 .WithName("UpdateInternodeMesh")
                 .ScheduleParallel();
