@@ -18,7 +18,7 @@ namespace Assets.Scripts.Plants.ECS.Services
         public float Efficiency;
     }
 
-    class LightSystem : SystemBase
+    public class LightSystem : SystemBase
     {
         protected override void OnUpdate()
         {
@@ -38,14 +38,14 @@ namespace Assets.Scripts.Plants.ECS.Services
                     if (internodeQuery.HasComponent(entity))
                     {
                         var internode = internodeQuery[entity];
-                        var angle = 1 - math.abs(math.dot(l2w.Forward, new float3(0, 1, 0)));
-                        absorber.SurfaceArea += math.abs(internode.Length * angle) + math.abs(internode.Radius * 1 - angle);
+                        var globalSize = math.mul(l2w.Rotation, new float3(internode.Radius, internode.Radius, internode.Length));
+                        absorber.SurfaceArea += math.abs(globalSize.x * globalSize.z);
                     }
                     if (nodeQuery.HasComponent(entity))
                     {
                         var node = nodeQuery[entity];
                         var globalSize = math.mul(l2w.Rotation, node.Size);
-                        absorber.SurfaceArea = math.abs(globalSize.x * globalSize.z);
+                        absorber.SurfaceArea += math.abs(globalSize.x * globalSize.z);
                     }
 
                     absorber.CellId = GetCellIdFromPosition(l2w.Position, cellSize);
