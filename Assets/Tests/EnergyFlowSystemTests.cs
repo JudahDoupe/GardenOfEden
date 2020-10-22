@@ -10,6 +10,7 @@ using Unity.Transforms;
 
 namespace Tests
 {
+    [Category("Systems")]
     public class EnergyFlowSystemTests : ECSTestsFixture
     {
         const float InternodeCapacity = 3.141529f;
@@ -24,8 +25,8 @@ namespace Tests
 
             World.CreateSystem<EnergyFlowSystem>().Update();
 
-            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(top).Quantity, 0.0001f);
-            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(bottom).Quantity, 0.0001f);
+            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(top).Quantity, 0.001f);
+            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(bottom).Quantity, 0.001f);
         }
 
         [Test]
@@ -36,8 +37,8 @@ namespace Tests
 
             World.CreateSystem<EnergyFlowSystem>().Update();
 
-            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(top).Quantity, 0.0001f);
-            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(bottom).Quantity, 0.0001f);
+            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(top).Quantity, 0.001f);
+            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(bottom).Quantity, 0.001f);
         }
 
         [TestCase(1)]
@@ -58,7 +59,7 @@ namespace Tests
 
             foreach (var node in nodes)
             {
-                Assert.AreEqual(Capacity / (branches + 1), m_Manager.GetComponentData<EnergyFlow>(node).Throughput, 0.0001f);
+                Assert.AreEqual(Capacity / (branches + 1), m_Manager.GetComponentData<EnergyFlow>(node).Throughput, 0.001f);
             }
         }
 
@@ -69,7 +70,7 @@ namespace Tests
 
             World.CreateSystem<EnergyFlowSystem>().Update();
 
-            Assert.AreEqual(Capacity, m_Manager.GetComponentData<EnergyStore>(bottom).Quantity, 0.0001f);
+            Assert.AreEqual(Capacity, m_Manager.GetComponentData<EnergyStore>(bottom).Quantity, 0.001f);
         }
 
         [Test]

@@ -26,15 +26,15 @@ namespace Assets.Scripts.Plants.ECS.Services
                         if (node.Size.Equals(growth.NodeSize))
                             return;
 
-                        var desiredSize = math.min(node.Size + growth.GrowthRate, growth.NodeSize);
+                        var desiredNode = new Components.Node { 
+                            Size = math.min(node.Size + growth.GrowthRate, growth.NodeSize) 
+                        };
+                        var desiredVolumeGrowth = desiredNode.Volume - node.Volume;
+                        var constrainedVolumeGrowth = math.min(energyStore.Quantity * 2, desiredVolumeGrowth);
+                        var constrainedGrowthRate = math.pow(constrainedVolumeGrowth / (1.333f * math.PI), 1f/3f);
 
-                        var currentVolume = math.PI * node.Size.x * node.Size.y * node.Size.z;
-                        var desiredVolume = math.PI * desiredSize.x * desiredSize.y + desiredSize.z;
-                        var desiredGrowth = desiredVolume - currentVolume;
-                        var actuallyGrowth = math.min(energyStore.Quantity / 2, desiredGrowth);
-
-                        node.Size = math.min(node.Size + actuallyGrowth, growth.NodeSize);
-                        energyStore.Quantity -= actuallyGrowth;
+                        node.Size = math.min(node.Size + constrainedGrowthRate, growth.NodeSize);
+                        energyStore.Quantity -= constrainedVolumeGrowth / 4;
                     })
                 .WithName("GrowNode")
                 .ScheduleParallel();
@@ -46,18 +46,18 @@ namespace Assets.Scripts.Plants.ECS.Services
                         if (internode.Length.Equals(growth.InternodeLength) && internode.Radius.Equals(growth.InternodeRadius))
                             return;
 
-                        var desiredRadius = math.min(internode.Radius + growth.GrowthRate, growth.InternodeRadius);
-                        var desiredLength = math.min(internode.Length + growth.GrowthRate, growth.InternodeLength);
+                        var desiredInternode = new Internode {
+                            Radius = math.min(internode.Radius + growth.GrowthRate, growth.InternodeRadius),
+                            Length = math.min(internode.Length + growth.GrowthRate, growth.InternodeLength), 
+                        };
+                        var desiredVolumeGrowth = desiredInternode.Volume - internode.Volume;
+                        var constrainedVolumeGrowth = math.min(energyStore.Quantity * 2, desiredVolumeGrowth);
+                        var constrainedGrowthRate = math.pow(constrainedVolumeGrowth / math.PI, 1f / 3f);
 
-                        var currentVolume = math.PI * math.pow(internode.Radius, 2) * internode.Length;
-                        var desiredVolume = math.PI * math.pow(desiredRadius, 2) * desiredLength;
-                        var desiredGrowth = desiredVolume - currentVolume;
-                        var actuallyGrowth = math.min(energyStore.Quantity / 2, desiredGrowth);
-
-                        internode.Radius = math.min(internode.Radius + actuallyGrowth, growth.InternodeRadius);
-                        internode.Length = math.min(internode.Length + actuallyGrowth, growth.InternodeLength);
+                        internode.Radius = math.min(internode.Radius + constrainedGrowthRate, growth.InternodeRadius);
+                        internode.Length = math.min(internode.Length + constrainedGrowthRate, growth.InternodeLength);
                         translation.Value.z = internode.Length;
-                        energyStore.Quantity -= actuallyGrowth;
+                        energyStore.Quantity -= constrainedVolumeGrowth / 4;
                     })
                 .WithName("GrowInternode")
                 .ScheduleParallel();

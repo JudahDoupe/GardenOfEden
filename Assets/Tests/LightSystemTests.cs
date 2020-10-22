@@ -9,6 +9,7 @@ using Unity.Transforms;
 
 namespace Tests
 {
+    [Category("Systems")]
     public class LightSystemTests : ECSTestsFixture
     {
 

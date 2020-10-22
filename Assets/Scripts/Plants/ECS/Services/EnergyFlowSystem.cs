@@ -70,15 +70,16 @@ namespace Assets.Scripts.Plants.ECS.Services
 
                         var childrenQuery = GetBufferFromEntity<Child>(true);
 
-                        energyStore.Capacity = 0.001f;
+                        energyStore.Capacity = 0;
                         if (nodeQuery.HasComponent(entity))
                         {
-                            energyStore.Capacity += GetNodeCapacity(nodeQuery[entity]);
+                            energyStore.Capacity += nodeQuery[entity].Volume;
                         }
                         if (internodeQuery.HasComponent(entity))
                         {
-                            energyStore.Capacity += GetInternodeCapacity(internodeQuery[entity]);
+                            energyStore.Capacity += internodeQuery[entity].Volume;
                         }
+                        energyStore.Capacity = math.max(0.001f, energyStore.Capacity);
 
                         if (energyFlowQuery.HasComponent(entity))
                         {
@@ -101,16 +102,6 @@ namespace Assets.Scripts.Plants.ECS.Services
                     })
                 .WithName("UpdateEnergyQuantities")
                 .ScheduleParallel();
-        }
-
-        private static float GetInternodeCapacity(Internode internode)
-        {
-            return internode.Length * internode.Radius * internode.Radius * math.PI;
-        }
-
-        private static float GetNodeCapacity(Components.Node node)
-        {
-            return node.Size.x * node.Size.y * node.Size.z * 1.333f * math.PI;
         }
     }
 }
