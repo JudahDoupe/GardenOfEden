@@ -20,6 +20,7 @@ namespace Assets.Scripts.Plants.ECS.Services
         protected override void OnUpdate()
         {
             Entities
+                .WithNone<Dormant>()
                 .ForEach(
                     (ref EnergyStore energyStore, ref Components.Node node, in PrimaryGrowth growth) =>
                     {
@@ -40,6 +41,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                 .ScheduleParallel();
 
             Entities
+                .WithNone<Dormant>()
                 .ForEach(
                     (ref EnergyStore energyStore, ref Internode internode, ref Translation translation, in PrimaryGrowth growth) =>
                     {

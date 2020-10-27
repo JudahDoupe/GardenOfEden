@@ -49,6 +49,7 @@ namespace Assets.Scripts.Plants.ECS.Services
             var ecb = ecbSystem.CreateCommandBuffer();
 
             Entities
+                .WithNone<Dormant>()
                 .ForEach(
                     (in AssignNodeMesh assignMesh, in Entity entity) =>
                     {
@@ -95,6 +96,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                 .Run();
 
             Entities
+                .WithNone<Dormant>()
                 .ForEach(
                     (in AssignInternodeMesh assignMesh, in Entity entity) =>
                     {

@@ -24,6 +24,55 @@ public class GameService : MonoBehaviour
 
         for (var i = 0; i < 500; i++)
         {
+            var vegEmbryo = em.CreateEntity();
+            em.AddComponentData(vegEmbryo, new Dormant());
+            em.AddComponentData(vegEmbryo, new Assets.Scripts.Plants.ECS.Components.Node());
+            em.AddComponentData(vegEmbryo, new Internode());
+            em.AddComponentData(vegEmbryo, new Translation());
+            em.AddComponentData(vegEmbryo, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
+            em.AddComponentData(vegEmbryo, new Parent ());
+            em.AddComponentData(vegEmbryo, new LocalToParent());
+            em.AddComponentData(vegEmbryo, new LocalToWorld());
+            em.AddComponentData(vegEmbryo, new EnergyStore());
+            em.AddComponentData(vegEmbryo, new EnergyFlow());
+            em.AddComponentData(vegEmbryo, new LightAbsorption());
+            em.AddComponentData(vegEmbryo, new Photosynthesis { Efficiency = 1 });
+            em.AddComponentData(vegEmbryo, new AssignInternodeMesh { MeshName = "GreenStem" });
+            em.AddComponentData(vegEmbryo, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 1, InternodeRadius = 0.1f });
+
+            var leafEmbryo = em.CreateEntity();
+            em.AddComponentData(leafEmbryo, new Dormant());
+            em.AddComponentData(leafEmbryo, new Assets.Scripts.Plants.ECS.Components.Node());
+            em.AddComponentData(leafEmbryo, new Internode());
+            em.AddComponentData(leafEmbryo, new Translation());
+            em.AddComponentData(leafEmbryo, new Rotation());
+            em.AddComponentData(leafEmbryo, new Parent ());
+            em.AddComponentData(leafEmbryo, new LocalToParent());
+            em.AddComponentData(leafEmbryo, new LocalToWorld());
+            em.AddComponentData(leafEmbryo, new EnergyStore());
+            em.AddComponentData(leafEmbryo, new EnergyFlow());
+            em.AddComponentData(leafEmbryo, new LightAbsorption());
+            em.AddComponentData(leafEmbryo, new Photosynthesis { Efficiency = 1 });
+            em.AddComponentData(leafEmbryo, new AssignInternodeMesh { MeshName = "GreenStem" });
+            em.AddComponentData(leafEmbryo, new AssignNodeMesh { MeshName = "Leaf" });
+            em.AddComponentData(leafEmbryo, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1 });
+
+            var budEmbryo = em.CreateEntity();
+            em.AddComponentData(budEmbryo, new Dormant());
+            em.AddComponentData(budEmbryo, new Assets.Scripts.Plants.ECS.Components.Node { Size = new float3(0.01f, 0.01f, 0.01f) });
+            em.AddComponentData(budEmbryo, new Translation());
+            em.AddComponentData(budEmbryo, new Rotation());
+            em.AddComponentData(budEmbryo, new Parent());
+            em.AddComponentData(budEmbryo, new LocalToParent());
+            em.AddComponentData(budEmbryo, new LocalToWorld());
+            em.AddComponentData(budEmbryo, new EnergyStore());
+            em.AddComponentData(budEmbryo, new EnergyFlow());
+            em.AddComponentData(budEmbryo, new LightAbsorption());
+            var embryoBuffer = em.AddBuffer<NodeDivision>(budEmbryo);
+            embryoBuffer.Add(new NodeDivision { Entity = vegEmbryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.PreNode, NumDivisions = -1 } );
+            embryoBuffer.Add(new NodeDivision { Entity = leafEmbryo, Rotation = Quaternion.LookRotation(Vector3.left, Vector3.forward), Order = DivisionOrder.InPlace, NumDivisions = -1 });
+            embryoBuffer.Add(new NodeDivision { Entity = leafEmbryo, Rotation = Quaternion.LookRotation(Vector3.right, Vector3.forward), Order = DivisionOrder.InPlace, NumDivisions = -1 });
+
             var baseNode = em.CreateEntity();
             em.AddComponentData(baseNode, new Assets.Scripts.Plants.ECS.Components.Node{Size = new float3(0.5f,0.5f,0.5f)});
             em.AddComponentData(baseNode, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(Random.Range(-100f, 100f), 50, Random.Range(-200f, 0f))) });
@@ -32,51 +81,8 @@ public class GameService : MonoBehaviour
             em.AddComponentData(baseNode, new EnergyStore {Capacity = 1, Quantity = 1});
             em.AddComponentData(baseNode, new EnergyFlow());
             em.AddComponentData(baseNode, new LightAbsorption ());
-
-            var topNode = em.CreateEntity();
-            em.AddComponentData(topNode, new Assets.Scripts.Plants.ECS.Components.Node());
-            em.AddComponentData(topNode, new Internode());
-            em.AddComponentData(topNode, new Translation());
-            em.AddComponentData(topNode, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
-            em.AddComponentData(topNode, new Parent {Value = baseNode});
-            em.AddComponentData(topNode, new LocalToParent());
-            em.AddComponentData(topNode, new LocalToWorld());
-            em.AddComponentData(topNode, new EnergyStore());
-            em.AddComponentData(topNode, new EnergyFlow());
-            em.AddComponentData(topNode, new LightAbsorption ());
-            em.AddComponentData(topNode, new Photosynthesis { Efficiency = 1 });
-            em.AddComponentData(topNode, new AssignInternodeMesh { MeshName = "GreenStem" });
-            em.AddComponentData(topNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 1, InternodeRadius = 0.1f });
-
-            var leafNode = em.CreateEntity();
-            em.AddComponentData(leafNode, new Assets.Scripts.Plants.ECS.Components.Node());
-            em.AddComponentData(leafNode, new Internode());
-            em.AddComponentData(leafNode, new Translation( ));
-            em.AddComponentData(leafNode, new Rotation { Value = Quaternion.LookRotation(Vector3.left, Vector3.down) });
-            em.AddComponentData(leafNode, new Parent { Value = topNode });
-            em.AddComponentData(leafNode, new LocalToParent());
-            em.AddComponentData(leafNode, new LocalToWorld());
-            em.AddComponentData(leafNode, new EnergyStore());
-            em.AddComponentData(leafNode, new EnergyFlow());
-            em.AddComponentData(leafNode, new LightAbsorption ());
-            em.AddComponentData(leafNode, new Photosynthesis { Efficiency = 1});
-            em.AddComponentData(leafNode, new AssignInternodeMesh { MeshName = "GreenStem"});
-            em.AddComponentData(leafNode, new AssignNodeMesh { MeshName = "Leaf"});
-            em.AddComponentData(leafNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1});
-
-            var budNode = em.CreateEntity();
-            em.AddComponentData(budNode, new Assets.Scripts.Plants.ECS.Components.Node());
-            em.AddComponentData(budNode, new Internode());
-            em.AddComponentData(budNode, new Translation());
-            em.AddComponentData(budNode, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
-            em.AddComponentData(budNode, new Parent {Value = topNode});
-            em.AddComponentData(budNode, new LocalToParent());
-            em.AddComponentData(budNode, new LocalToWorld());
-            em.AddComponentData(budNode, new EnergyStore());
-            em.AddComponentData(budNode, new EnergyFlow());
-            em.AddComponentData(budNode, new LightAbsorption ());
-            em.AddComponentData(budNode, new TerminalBud());
-            em.AddComponentData(budNode, new AssignInternodeMesh { MeshName = "GreenStem" });
+            embryoBuffer = em.AddBuffer<NodeDivision>(baseNode);
+            embryoBuffer.Add(new NodeDivision { Entity = budEmbryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.PostNode, NumDivisions = 1});
         }
 
     }

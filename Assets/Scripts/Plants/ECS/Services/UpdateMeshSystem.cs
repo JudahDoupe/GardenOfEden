@@ -11,7 +11,7 @@ namespace Assets.Scripts.Plants.ECS.Services
         protected override void OnUpdate()
         {
             Entities
-                .WithNone<LocalToParent>()
+                .WithNone<Dormant, LocalToParent>()
                 .ForEach(
                     (ref Rotation rotation, ref Translation translation, ref NonUniformScale scale, ref InternodeReference internodeRef, in LocalToWorld l2w) =>
                     {
@@ -32,7 +32,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                 .ScheduleParallel();
 
             Entities
-                .WithNone<LocalToParent>()
+                .WithNone<Dormant, LocalToParent>()
                 .ForEach(
                     (ref Rotation rotation, ref Translation translation, ref NonUniformScale scale, ref NodeReference nodeRef, in LocalToWorld l2w) =>
                     {

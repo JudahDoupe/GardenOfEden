@@ -29,6 +29,7 @@ namespace Assets.Scripts.Plants.ECS.Services
             var lightCellsWriter = lightCells.AsParallelWriter();
 
             var job = Entities
+                .WithNone<Dormant>()
                 .ForEach((ref LightAbsorption absorber, in Entity entity, in LocalToWorld l2w) =>
                 {
                     var internodeQuery = GetComponentDataFromEntity<Internode>(true);
@@ -58,6 +59,7 @@ namespace Assets.Scripts.Plants.ECS.Services
             job.Complete();
 
             Entities
+                .WithNone<Dormant>()
                 .WithNativeDisableParallelForRestriction(lightCells)
                 .ForEach((ref EnergyStore energyStore, in LightAbsorption absorber, in LocalToWorld l2w, in Photosynthesis photosynthesis) =>
                 {
