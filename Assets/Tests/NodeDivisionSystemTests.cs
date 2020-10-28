@@ -23,7 +23,7 @@ namespace Tests
             m_Manager.SetComponentData(top, new Parent { Value = bottom });
             var embryo = CreateEmbryoNode();
             var embryoBuffer = m_Manager.AddBuffer<NodeDivision>(top);
-            embryoBuffer.Add(new NodeDivision { Entity = embryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = order, NumDivisions = -1 });
+            embryoBuffer.Add(new NodeDivision { Entity = embryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = order});
 
             World.CreateSystem<NodeDivisionSystem>().Update();
             World.CreateSystem<EndFrameParentSystem>().Update();
@@ -55,7 +55,7 @@ namespace Tests
             m_Manager.SetComponentData(top, new EnergyStore { Capacity = 1, Quantity = quantity });
             var embryo = CreateEmbryoNode();
             var embryoBuffer = m_Manager.AddBuffer<NodeDivision>(top);
-            embryoBuffer.Add(new NodeDivision { Entity = embryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.InPlace, NumDivisions = -1});
+            embryoBuffer.Add(new NodeDivision { Entity = embryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.InPlace});
 
             World.CreateSystem<NodeDivisionSystem>().Update();
             World.CreateSystem<EndFrameParentSystem>().Update();
@@ -63,7 +63,7 @@ namespace Tests
             Assert.AreEqual(quantity > 0.5f ? 2 : 1, m_Manager.GetBuffer<Child>(bottom).Length);
         }
 
-        [TestCase(1)]
+        [TestCase(0)]
         [TestCase(5)]
         public void OnlyDividesNodeASetNumberOfTimes(int divisions)
         {
@@ -71,15 +71,34 @@ namespace Tests
             var baseNode = CreateNode();
             var embryo = CreateEmbryoNode();
             var embryoBuffer = m_Manager.AddBuffer<NodeDivision>(baseNode);
-            embryoBuffer.Add(new NodeDivision { Entity = embryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.PostNode, NumDivisions = divisions });
+            embryoBuffer.Add(new NodeDivision { Entity = embryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.PostNode, RemainingDivisions = divisions });
 
-            for (int i = 0; i < divisions + 2; i++)
+            for (int i = 0; i < divisions + 5; i++)
             {
                 World.CreateSystem<NodeDivisionSystem>().Update();
                 World.CreateSystem<EndFrameParentSystem>().Update();
             }
 
-            Assert.AreEqual(divisions, m_Manager.GetBuffer<Child>(baseNode).Length);
+            Assert.AreEqual(divisions + 1, m_Manager.GetBuffer<Child>(baseNode).Length);
+            Assert.AreEqual(0, m_Manager.GetBuffer<NodeDivision>(baseNode).Length);
+        }
+
+        [Test]
+        public void UnsetRemainingDivisionsDividesOnce()
+        {
+
+            var baseNode = CreateNode();
+            var embryo = CreateEmbryoNode();
+            var embryoBuffer = m_Manager.AddBuffer<NodeDivision>(baseNode);
+            embryoBuffer.Add(new NodeDivision { Entity = embryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.PostNode});
+
+            for (int i = 0; i <  5; i++)
+            {
+                World.CreateSystem<NodeDivisionSystem>().Update();
+                World.CreateSystem<EndFrameParentSystem>().Update();
+            }
+
+            Assert.AreEqual( 1, m_Manager.GetBuffer<Child>(baseNode).Length);
             Assert.AreEqual(0, m_Manager.GetBuffer<NodeDivision>(baseNode).Length);
         }
 

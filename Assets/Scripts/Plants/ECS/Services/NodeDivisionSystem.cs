@@ -1,6 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Transforms;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Assets.Scripts.Plants.ECS.Services
@@ -13,7 +14,7 @@ namespace Assets.Scripts.Plants.ECS.Services
         public Entity Entity;
         public Quaternion Rotation;
         public DivisionOrder Order;
-        public int NumDivisions;
+        public int RemainingDivisions;
     }
 
     public enum DivisionOrder
@@ -31,6 +32,8 @@ namespace Assets.Scripts.Plants.ECS.Services
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
             var writer = ecb.AsParallelWriter();
 
+            var genericSeed = new System.Random().Next();
+
             var job = Entities
                 .WithNone<Dormant>()
                 .ForEach((ref DynamicBuffer<NodeDivision> embryoNodes, ref EnergyStore energyStore, in Entity entity, in int entityInQueryIndex) =>
@@ -43,15 +46,16 @@ namespace Assets.Scripts.Plants.ECS.Services
                     for (var i = 0; i < embryoNodes.Length; i++)
                     {
                         var embryo = embryoNodes[i];
-                        if (embryo.NumDivisions == 0)
+                        if (embryo.RemainingDivisions < 0)
                         {
                             embryoNodes.RemoveAt(i);
                             continue;
                         }
 
+                        var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
                         var parent = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
                         var newNode = writer.Instantiate(entityInQueryIndex, embryo.Entity);
-                        writer.SetComponent(entityInQueryIndex, newNode, new Rotation {Value = embryo.Rotation});
+                        writer.SetComponent(entityInQueryIndex, newNode, new Rotation {Value = embryo.Rotation * RandomQuaternion(0.05f, seed)});
                         writer.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
                         switch (embryo.Order)
                         {
@@ -67,20 +71,23 @@ namespace Assets.Scripts.Plants.ECS.Services
                                 break;
                         }
 
-                        embryo.NumDivisions--;
+                        embryo.RemainingDivisions--;
                         embryoNodes[i] = embryo;
                     }
-
-                    if (embryoNodes.Length == 0)
-                    {
-                        embryoNodes.Clear();
-                    }
                 })
-                .WithBurst()
                 .ScheduleParallel(Dependency);
 
             job.Complete();
             ecb.Playback(EntityManager);
+            ecb.Dispose();
+        }
+
+        private static Quaternion RandomQuaternion(float maxAngle, uint seed)
+        {
+            var rand = new Unity.Mathematics.Random(seed);
+            var rtn = rand.NextFloat3() % maxAngle * 2;
+            rtn -= new float3(maxAngle);
+            return new Quaternion(rtn.x, rtn.y, rtn.z, 1);
         }
 
     }

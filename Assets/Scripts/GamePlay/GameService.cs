@@ -69,9 +69,9 @@ public class GameService : MonoBehaviour
             em.AddComponentData(budEmbryo, new EnergyFlow());
             em.AddComponentData(budEmbryo, new LightAbsorption());
             var embryoBuffer = em.AddBuffer<NodeDivision>(budEmbryo);
-            embryoBuffer.Add(new NodeDivision { Entity = vegEmbryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.PreNode, NumDivisions = -1 } );
-            embryoBuffer.Add(new NodeDivision { Entity = leafEmbryo, Rotation = Quaternion.LookRotation(Vector3.left, Vector3.forward), Order = DivisionOrder.InPlace, NumDivisions = -1 });
-            embryoBuffer.Add(new NodeDivision { Entity = leafEmbryo, Rotation = Quaternion.LookRotation(Vector3.right, Vector3.forward), Order = DivisionOrder.InPlace, NumDivisions = -1 });
+            embryoBuffer.Add(new NodeDivision { Entity = vegEmbryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.PreNode, RemainingDivisions = 10} );
+            embryoBuffer.Add(new NodeDivision { Entity = leafEmbryo, Rotation = Quaternion.LookRotation(Vector3.left, Vector3.forward), Order = DivisionOrder.InPlace, RemainingDivisions = 10 });
+            embryoBuffer.Add(new NodeDivision { Entity = leafEmbryo, Rotation = Quaternion.LookRotation(Vector3.right, Vector3.forward), Order = DivisionOrder.InPlace, RemainingDivisions = 10 });
 
             var baseNode = em.CreateEntity();
             em.AddComponentData(baseNode, new Assets.Scripts.Plants.ECS.Components.Node{Size = new float3(0.5f,0.5f,0.5f)});
@@ -82,7 +82,7 @@ public class GameService : MonoBehaviour
             em.AddComponentData(baseNode, new EnergyFlow());
             em.AddComponentData(baseNode, new LightAbsorption ());
             embryoBuffer = em.AddBuffer<NodeDivision>(baseNode);
-            embryoBuffer.Add(new NodeDivision { Entity = budEmbryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.PostNode, NumDivisions = 1});
+            embryoBuffer.Add(new NodeDivision { Entity = budEmbryo, Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right), Order = DivisionOrder.PostNode});
         }
 
     }
