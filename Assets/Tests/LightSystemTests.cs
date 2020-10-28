@@ -1,5 +1,4 @@
-﻿using Assets.Scripts.Plants.ECS.Components;
-using Assets.Scripts.Plants.ECS.Services;
+﻿using Assets.Scripts.Plants.Systems;
 using NUnit.Framework;
 using Unity.Entities;
 using Unity.Entities.Tests;
@@ -15,9 +14,9 @@ namespace Tests
         public void LightAbsorbersShouldBlockLight()
         {
             var top = CreateNode(10, true, false);
-            m_Manager.SetComponentData(top, new Assets.Scripts.Plants.ECS.Components.Node { Size = new float3(4, 0.1f, 4) });
+            m_Manager.SetComponentData(top, new Node { Size = new float3(4, 0.1f, 4) });
             var bottom = CreateNode(5, true, false);
-            m_Manager.SetComponentData(bottom, new Assets.Scripts.Plants.ECS.Components.Node { Size = new float3(4, 0.1f, 4) });
+            m_Manager.SetComponentData(bottom, new Node { Size = new float3(4, 0.1f, 4) });
             m_Manager.AddComponentData(bottom, new Photosynthesis { Efficiency = 1 });
 
             World.CreateSystem<EndFrameTRSToLocalToWorldSystem>().Update();
@@ -31,7 +30,7 @@ namespace Tests
         public void PhotosynthesisShouldTurnLightIntoEnergy()
         {
             var top = CreateNode(10, true, false);
-            m_Manager.SetComponentData(top, new Assets.Scripts.Plants.ECS.Components.Node { Size = new float3(5, 0.1f, 5) });
+            m_Manager.SetComponentData(top, new Node { Size = new float3(5, 0.1f, 5) });
 
             World.CreateSystem<EndFrameTRSToLocalToWorldSystem>().Update();
             World.CreateSystem<LightSystem>().Update();
@@ -100,7 +99,7 @@ namespace Tests
             }
             if (includeNode)
             {
-                m_Manager.AddComponentData(entity, new Assets.Scripts.Plants.ECS.Components.Node {Size = new float3(1,0.1f,2) });
+                m_Manager.AddComponentData(entity, new Node {Size = new float3(1,0.1f,2) });
             }
             return entity;
         }

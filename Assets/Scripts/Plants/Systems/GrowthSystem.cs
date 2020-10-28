@@ -1,11 +1,22 @@
-﻿using Assets.Scripts.Plants.ECS.Components;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
-namespace Assets.Scripts.Plants.ECS.Services
+namespace Assets.Scripts.Plants.Systems
 {
+    public struct Node : IComponentData
+    {
+        public float3 Size;
+        public float Volume => Size.x * Size.y * Size.z * 1.333f * math.PI;
+    }
+
+    public struct Internode : IComponentData
+    {
+        public float Length;
+        public float Radius;
+        public float Volume => Length * Radius * Radius * math.PI;
+    }
+
     public struct PrimaryGrowth : IComponentData
     {
         public float GrowthRate;
@@ -22,12 +33,12 @@ namespace Assets.Scripts.Plants.ECS.Services
             Entities
                 .WithNone<Dormant>()
                 .ForEach(
-                    (ref EnergyStore energyStore, ref Components.Node node, in PrimaryGrowth growth) =>
+                    (ref EnergyStore energyStore, ref Node node, in PrimaryGrowth growth) =>
                     {
                         if (node.Size.Equals(growth.NodeSize))
                             return;
 
-                        var desiredNode = new Components.Node { 
+                        var desiredNode = new Node { 
                             Size = math.min(node.Size + growth.GrowthRate, growth.NodeSize) 
                         };
                         var desiredVolumeGrowth = desiredNode.Volume - node.Volume;

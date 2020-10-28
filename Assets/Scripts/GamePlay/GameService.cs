@@ -1,9 +1,7 @@
-﻿using Assets.Scripts.Plants.ECS.Components;
-using System.Linq;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
-using Assets.Scripts.Plants.ECS.Services;
+using Assets.Scripts.Plants.Systems;
 using Unity.Mathematics;
 using Random = UnityEngine.Random;
 
@@ -26,7 +24,7 @@ public class GameService : MonoBehaviour
         {
             var vegEmbryo = em.CreateEntity();
             em.AddComponentData(vegEmbryo, new Dormant());
-            em.AddComponentData(vegEmbryo, new Assets.Scripts.Plants.ECS.Components.Node());
+            em.AddComponentData(vegEmbryo, new Node());
             em.AddComponentData(vegEmbryo, new Internode());
             em.AddComponentData(vegEmbryo, new Translation());
             em.AddComponentData(vegEmbryo, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
@@ -42,7 +40,7 @@ public class GameService : MonoBehaviour
 
             var leafEmbryo = em.CreateEntity();
             em.AddComponentData(leafEmbryo, new Dormant());
-            em.AddComponentData(leafEmbryo, new Assets.Scripts.Plants.ECS.Components.Node());
+            em.AddComponentData(leafEmbryo, new Node());
             em.AddComponentData(leafEmbryo, new Internode());
             em.AddComponentData(leafEmbryo, new Translation());
             em.AddComponentData(leafEmbryo, new Rotation());
@@ -59,7 +57,7 @@ public class GameService : MonoBehaviour
 
             var budEmbryo = em.CreateEntity();
             em.AddComponentData(budEmbryo, new Dormant());
-            em.AddComponentData(budEmbryo, new Assets.Scripts.Plants.ECS.Components.Node { Size = new float3(0.01f, 0.01f, 0.01f) });
+            em.AddComponentData(budEmbryo, new Node { Size = new float3(0.01f, 0.01f, 0.01f) });
             em.AddComponentData(budEmbryo, new Translation());
             em.AddComponentData(budEmbryo, new Rotation());
             em.AddComponentData(budEmbryo, new Parent());
@@ -74,7 +72,7 @@ public class GameService : MonoBehaviour
             embryoBuffer.Add(new NodeDivision { Entity = leafEmbryo, Rotation = Quaternion.LookRotation(Vector3.right, Vector3.forward), Order = DivisionOrder.InPlace, RemainingDivisions = 10 });
 
             var baseNode = em.CreateEntity();
-            em.AddComponentData(baseNode, new Assets.Scripts.Plants.ECS.Components.Node{Size = new float3(0.5f,0.5f,0.5f)});
+            em.AddComponentData(baseNode, new Node{Size = new float3(0.5f,0.5f,0.5f)});
             em.AddComponentData(baseNode, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(Random.Range(-100f, 100f), 50, Random.Range(-200f, 0f))) });
             em.AddComponentData(baseNode, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
             em.AddComponentData(baseNode, new LocalToWorld());

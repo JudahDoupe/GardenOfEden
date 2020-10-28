@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
-using Assets.Scripts.Plants.ECS.Components;
-using Assets.Scripts.Plants.ECS.Services;
+using Assets.Scripts.Plants.Systems;
 using NUnit.Framework;
 using Unity.Entities;
 using Unity.Entities.Tests;
 using Unity.Mathematics;
-using Unity.Rendering;
 using Unity.Transforms;
 
 namespace Tests
@@ -91,7 +89,7 @@ namespace Tests
             m_Manager.AddComponentData(entity, new Parent { Value = parent });
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = Capacity, Quantity = quantity });
             m_Manager.AddComponentData(entity, new EnergyFlow());
-            m_Manager.AddComponentData(entity, new Assets.Scripts.Plants.ECS.Components.Node{Size = new float3(1,1,1)});
+            m_Manager.AddComponentData(entity, new Node{Size = new float3(1,1,1)});
             m_Manager.AddComponentData(entity, new Internode {Length = 1, Radius = 1});
             m_Manager.AddBuffer<Child>(entity);
 

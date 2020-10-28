@@ -31,20 +31,8 @@ public class ExplorationCamera : MonoBehaviour, ICameraState
     public void UpdateCamera()
     {
         var lerpSpeed = Time.deltaTime * MoveSpeedMultiplier * 2;
-        
-        _controller.FocusedPlant = Singleton.PlantSearchService
-            .GetPlantsWithinRadius(_controller.FocusPoint, _offset.magnitude)
-            .Closest(_controller.FocusPoint);
 
-        if (!Move() && _controller.FocusedPlant != null) 
-        { 
-            _controller.FocusPoint = Vector3.Lerp(_controller.FocusPoint, _controller.FocusedPlant.transform.position, lerpSpeed);
-
-            if (Input.GetKeyDown(KeyCode.F))
-            {
-                _controller.CameraState.SetState(FindObjectOfType<ObservationCamera>());
-            }
-        }
+        Move();
 
         var offsetDirection = (Vector3.Scale(_camera.transform.position, new Vector3(1, 0, 1)) - Vector3.Scale(_controller.FocusPoint, new Vector3(1, 0, 1))).normalized;
         var offset = offsetDirection * _offset.x;

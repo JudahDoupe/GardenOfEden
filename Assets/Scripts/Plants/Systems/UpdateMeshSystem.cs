@@ -1,10 +1,8 @@
-﻿using Assets.Scripts.Plants.ECS.Components;
-using Unity.Entities;
-using Unity.Transforms;
-using Unity.Jobs;
+﻿using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.ECS.Services
+namespace Assets.Scripts.Plants.Systems
 {
     class UpdateMeshSystem : SystemBase
     {
@@ -37,7 +35,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                     (ref Rotation rotation, ref Translation translation, ref NonUniformScale scale, ref NodeReference nodeRef, in LocalToWorld l2w) =>
                     {
                         var l2wQuery = GetComponentDataFromEntity<LocalToWorld>(true);
-                        var nodeQuery = GetComponentDataFromEntity<Components.Node>(true);
+                        var nodeQuery = GetComponentDataFromEntity<Node>(true);
 
                         var node = nodeQuery[nodeRef.Entity];
                         translation.Value = l2wQuery[nodeRef.Entity].Position;

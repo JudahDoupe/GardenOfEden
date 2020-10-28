@@ -26,24 +26,11 @@ public class ObservationCamera : MonoBehaviour, ICameraState
     {
         var lerpSpeed = Time.deltaTime * MoveSpeedMultiplier * 2;
 
-        if ((_controller.FocusedPlant == null || Input.GetKeyDown(KeyCode.Q))
-            && !FocusOnRandomPlant())
-        {
-            _controller.CameraState.SetState(FindObjectOfType<ExplorationCamera>());
-            return;
-        }
-
-        _controller.FocusPoint = Vector3.Lerp(_controller.FocusPoint, CameraUtils.GetPlantBounds(_controller.FocusedPlant).center, lerpSpeed);
-
         if (!Move())
         {
             Drift();
         }
 
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            _controller.UiState.SetState(FindObjectOfType<PlantEvolutionUi>());
-        }
         if (Input.GetKeyDown(KeyCode.F))
         {
             _controller.CameraState.SetState(FindObjectOfType<ExplorationCamera>());
@@ -56,6 +43,7 @@ public class ObservationCamera : MonoBehaviour, ICameraState
 
     public void Enable()
     {
+        /*
         if (_controller.FocusedPlant == null && !FocusOnClosestPlant())
         {
             _controller.CameraState.SetState(FindObjectOfType<ExplorationCamera>());
@@ -63,6 +51,7 @@ public class ObservationCamera : MonoBehaviour, ICameraState
         }
 
         _offset = _camera.transform.position - CameraUtils.GetPlantBounds(_controller.FocusedPlant).center;
+        */
     }
 
     public void Disable() { }
@@ -115,26 +104,5 @@ public class ObservationCamera : MonoBehaviour, ICameraState
             targetPosition = Quaternion.AngleAxis(DriftSpeedMultiplier, _camera.transform.right) * targetPosition;
         }
         _offset = targetPosition;
-    }
-
-    private bool FocusOnRandomPlant()
-    {
-        var plants = Singleton.PlantSearchService.GetPlantsWithinRadius(_controller.FocusPoint, _offset.magnitude);
-        if (plants.Any())
-        {
-            var plantIndex = Mathf.FloorToInt(UnityEngine.Random.Range(0, plants.Count()));
-            _controller.FocusedPlant = plants.ElementAt(plantIndex);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    private bool FocusOnClosestPlant()
-    {
-        _controller.FocusedPlant = Singleton.PlantSearchService.GetClosestPlant(_controller.FocusPoint);
-        return _controller.FocusedPlant != null;
     }
 }

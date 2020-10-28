@@ -1,5 +1,4 @@
-﻿using Assets.Scripts.Plants.ECS.Components;
-using Assets.Scripts.Plants.ECS.Services;
+﻿using Assets.Scripts.Plants.Systems;
 using NUnit.Framework;
 using Unity.Entities;
 using Unity.Entities.Tests;
@@ -15,14 +14,14 @@ namespace Tests
         public void GrowsNodeByGrowthRate()
         {
             var node = CreateNode(100, true, false);
-            var oldVolume = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Volume;
-            var oldSize = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Size;
+            var oldVolume = m_Manager.GetComponentData<Node>(node).Volume;
+            var oldSize = m_Manager.GetComponentData<Node>(node).Size;
             Assert.AreEqual(new float3(0,0,0), oldSize);
 
             World.CreateSystem<GrowthSystem>().Update();
 
-            var newVolume = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Volume;
-            var newSize = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Size;
+            var newVolume = m_Manager.GetComponentData<Node>(node).Volume;
+            var newSize = m_Manager.GetComponentData<Node>(node).Size;
             var growth = newVolume - oldVolume;
             var energyCost = growth / 4;
             Assert.AreEqual(new float3(1,1,1), newSize);
@@ -34,26 +33,26 @@ namespace Tests
         {
             var node = CreateNode(0.25f, true, false);
             Assert.AreEqual(0.25f, m_Manager.GetComponentData<EnergyStore>(node).Quantity);
-            Assert.AreEqual(0, m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Volume, 0.001f);
+            Assert.AreEqual(0, m_Manager.GetComponentData<Node>(node).Volume, 0.001f);
 
             World.CreateSystem<GrowthSystem>().Update();
 
             Assert.AreEqual(0.125f, m_Manager.GetComponentData<EnergyStore>(node).Quantity);
-            Assert.AreEqual(0.5f, m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Volume, 0.001f);
+            Assert.AreEqual(0.5f, m_Manager.GetComponentData<Node>(node).Volume, 0.001f);
         }
 
         [Test]
         public void DoesNotGrowNodePastMaxSize()
         {
             var node = CreateNode(100, true, false);
-            var volume1 = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Volume;
-            var size1 = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Size;
+            var volume1 = m_Manager.GetComponentData<Node>(node).Volume;
+            var size1 = m_Manager.GetComponentData<Node>(node).Size;
             Assert.AreEqual(new float3(0,0,0), size1);
 
             World.CreateSystem<GrowthSystem>().Update();
 
-            var volume2 = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Volume;
-            var size2 = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Size;
+            var volume2 = m_Manager.GetComponentData<Node>(node).Volume;
+            var size2 = m_Manager.GetComponentData<Node>(node).Size;
             var growth = volume2 - volume1;
             var energyCost = growth / 4;
             Assert.AreEqual(new float3(1, 1, 1), size2);
@@ -61,7 +60,7 @@ namespace Tests
 
             World.CreateSystem<GrowthSystem>().Update();
 
-            var size3 = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Size;
+            var size3 = m_Manager.GetComponentData<Node>(node).Size;
             Assert.AreEqual(new float3(1, 1, 1), size3);
             Assert.AreEqual(100 - energyCost, m_Manager.GetComponentData<EnergyStore>(node).Quantity);
         }
@@ -157,19 +156,19 @@ namespace Tests
         public void GrowsNodeAndInternode()
         {
             var node = CreateNode(100, true, true);
-            var oldNodeVolume = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Volume;
+            var oldNodeVolume = m_Manager.GetComponentData<Node>(node).Volume;
             var oldInternodeVolume = m_Manager.GetComponentData<Internode>(node).Volume;
             var l1 = m_Manager.GetComponentData<Internode>(node).Length;
             var r1 = m_Manager.GetComponentData<Internode>(node).Radius;
-            var oldSize = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Size;
+            var oldSize = m_Manager.GetComponentData<Node>(node).Size;
             Assert.AreEqual(new float3(0, 0, 0), oldSize);
             Assert.AreEqual(0, l1);
             Assert.AreEqual(0, r1);
 
             World.CreateSystem<GrowthSystem>().Update();
 
-            var newNodeVolume = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Volume;
-            var newSize = m_Manager.GetComponentData<Assets.Scripts.Plants.ECS.Components.Node>(node).Size;
+            var newNodeVolume = m_Manager.GetComponentData<Node>(node).Volume;
+            var newSize = m_Manager.GetComponentData<Node>(node).Size;
             var newInternodeVolume = m_Manager.GetComponentData<Internode>(node).Volume;
             var l2 = m_Manager.GetComponentData<Internode>(node).Length;
             var r2 = m_Manager.GetComponentData<Internode>(node).Radius;
@@ -194,7 +193,7 @@ namespace Tests
             }
             if (includeNode)
             {
-                m_Manager.AddComponentData(entity, new Assets.Scripts.Plants.ECS.Components.Node());
+                m_Manager.AddComponentData(entity, new Node());
             }
             return entity;
         }

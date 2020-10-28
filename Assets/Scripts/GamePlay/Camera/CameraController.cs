@@ -6,7 +6,6 @@ public class CameraController : MonoBehaviour
     public StateMachine<ICameraState> CameraState { get; private set; }
     public StateMachine<IUiState> UiState { get; private set; }
 
-    public Plant FocusedPlant { get; set; }
     public Vector3 FocusPoint { get; set; }
 
     public GameObject FocusObject;

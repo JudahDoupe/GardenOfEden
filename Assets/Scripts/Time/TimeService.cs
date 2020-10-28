@@ -17,10 +17,8 @@ public class TimeService : MonoBehaviour
     {
         _dailyProcesses = new List<IDailyProcess>
         {
-            Singleton.LightService,
             Singleton.WaterService,
             Singleton.LandService,
-            Singleton.GrowthService,
             //Singleton.WorldService,
         };
         _processQueue = new Queue<IDailyProcess>();

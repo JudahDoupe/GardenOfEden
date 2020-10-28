@@ -1,9 +1,8 @@
-﻿using Assets.Scripts.Plants.ECS.Components;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.ECS.Services
+namespace Assets.Scripts.Plants.Systems
 {
     public struct EnergyStore : IComponentData
     {
@@ -66,7 +65,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                 .ForEach(
                     (ref EnergyStore energyStore, in Entity entity) =>
                     {
-                        var nodeQuery = GetComponentDataFromEntity<Components.Node>(true);
+                        var nodeQuery = GetComponentDataFromEntity<Node>(true);
                         var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                         var energyFlowQuery = GetComponentDataFromEntity<EnergyFlow>(true);
 

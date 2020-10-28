@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using Assets.Scripts.Plants.ECS.Components;
-using Assets.Scripts.Plants.ECS.Services;
+﻿using Assets.Scripts.Plants.Systems;
 using NUnit.Framework;
 using Unity.Entities;
 using Unity.Entities.Tests;
@@ -105,7 +103,7 @@ namespace Tests
         private Entity CreateNode()
         {
             var entity = m_Manager.CreateEntity();
-            m_Manager.AddComponentData(entity, new Assets.Scripts.Plants.ECS.Components.Node { Size = new float3(0.5f, 0.5f, 0.5f) });
+            m_Manager.AddComponentData(entity, new Node { Size = new float3(0.5f, 0.5f, 0.5f) });
             m_Manager.AddComponentData(entity, new Translation());
             m_Manager.AddComponentData(entity, new Rotation());
             m_Manager.AddComponentData(entity, new Parent());
@@ -120,7 +118,7 @@ namespace Tests
         {
             var entity = m_Manager.CreateEntity();
             m_Manager.AddComponentData(entity, new Dormant());
-            m_Manager.AddComponentData(entity, new Assets.Scripts.Plants.ECS.Components.Node());
+            m_Manager.AddComponentData(entity, new Node());
             m_Manager.AddComponentData(entity, new Internode());
             m_Manager.AddComponentData(entity, new Translation());
             m_Manager.AddComponentData(entity, new Rotation());

@@ -33,7 +33,7 @@ public class WorldDataStore : MonoBehaviour, IDailyProcess
     public void ProcessDay()
     {
         _hasDayBeenProcessed = false;
-        StartCoroutine(SaveWorld());
+        SaveWorld();
     }
 
     public void LoadWorld()
@@ -43,38 +43,21 @@ public class WorldDataStore : MonoBehaviour, IDailyProcess
         {
 
             save = db.GetCollection<WorldSaveDto>("WorldSave").FindOne(x => x.WorldName == WorldName) ??
-                new WorldSaveDto { Day = 0, WorldName = WorldName, Plants = new PlantDto[] { } };
+                new WorldSaveDto { Day = 0, WorldName = WorldName };
         }
 
         Singleton.TimeService.Day = save.Day;
-        foreach(var plant in save.Plants)
-        {
-            PlantFactory.Build(plant);
-        }
     } 
 
-    public IEnumerator SaveWorld()
+    public void SaveWorld()
     {
         var timer = new Stopwatch();
         timer.Restart();
-
-        var plants = Singleton.PlantSearchService.GetAllPlants();
-        var plantDtos = new List<PlantDto>();
-        foreach (var plant in plants)
-        {
-            yield return new WaitForEndOfFrame();
-            if (timer.ElapsedMilliseconds > UpdateMilliseconds)
-            {
-                timer.Restart();
-            }
-            plantDtos.Add(plant.ToDto());
-        }
 
         var save = new WorldSaveDto
         {
             WorldName = WorldName,
             Day = Singleton.TimeService.Day,
-            Plants = Singleton.PlantSearchService.GetAllPlants().Select(x => x.ToDto()).ToArray(),
         };
 
         var task = Task.Factory.StartNew(() => SaveWorld(save));
@@ -99,5 +82,4 @@ public class WorldSaveDto
 {
     public string WorldName { get; set; }
     public int Day { get; set; }
-    public PlantDto[] Plants { get; set; }
 }

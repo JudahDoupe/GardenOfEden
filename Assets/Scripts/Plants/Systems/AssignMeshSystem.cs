@@ -1,11 +1,9 @@
-﻿using System.Linq;
-using Assets.Scripts.Plants.ECS.Components;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Entities;
 using Unity.Rendering;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.ECS.Services
+namespace Assets.Scripts.Plants.Systems
 {
     public struct AssignNodeMesh : IComponentData
     {

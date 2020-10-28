@@ -1,10 +1,10 @@
-﻿using Unity.Entities;
-using Unity.Transforms;
-using Unity.Collections;
+﻿using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 
-namespace Assets.Scripts.Plants.ECS.Services
+namespace Assets.Scripts.Plants.Systems
 {
     public struct Dormant : IComponentData { }
 

@@ -1,11 +1,9 @@
-﻿using Unity.Entities;
-using Unity.Transforms;
+﻿using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Rendering;
-using Unity.Collections;
-using Assets.Scripts.Plants.ECS.Components;
+using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.ECS.Services
+namespace Assets.Scripts.Plants.Systems
 {
     public struct LightAbsorption : IComponentData
     {
@@ -33,7 +31,7 @@ namespace Assets.Scripts.Plants.ECS.Services
                 .ForEach((ref LightAbsorption absorber, in Entity entity, in LocalToWorld l2w) =>
                 {
                     var internodeQuery = GetComponentDataFromEntity<Internode>(true);
-                    var nodeQuery = GetComponentDataFromEntity<Components.Node>(true);
+                    var nodeQuery = GetComponentDataFromEntity<Node>(true);
 
                     absorber.SurfaceArea = 0;
                     if (internodeQuery.HasComponent(entity))
