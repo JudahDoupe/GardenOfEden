@@ -65,18 +65,16 @@ namespace Assets.Scripts.Plants.Systems
                     var lightQuery = GetComponentDataFromEntity<LightAbsorption>(true);
 
                     var availableLight = cellSize * cellSize;
-                    if (lightCells.TryGetFirstValue(absorber.CellId, out var shadingEntity, out var iterator))
+
+                    foreach (var shadingEntity in lightCells.GetValuesForKey(absorber.CellId))
                     {
-                        do
+                        if (l2wQuery[shadingEntity].Position.y > l2w.Position.y)
                         {
-                            if (l2wQuery[shadingEntity].Position.y > l2w.Position.y)
-                            {
-                                availableLight -= lightQuery[shadingEntity].SurfaceArea;
-                            }
-                        } while (availableLight > 0 && lightCells.TryGetNextValue(out shadingEntity, ref iterator));
+                            availableLight -= lightQuery[shadingEntity].SurfaceArea;
+                        }
                     }
 
-                    energyStore.Quantity += math.clamp(availableLight, absorber.SurfaceArea, 0) * photosynthesis.Efficiency;
+                    energyStore.Quantity += math.clamp(availableLight, 0, absorber.SurfaceArea) * photosynthesis.Efficiency;
                 })
                 .WithDisposeOnCompletion(lightCells)
                 .WithName("Photosynthesis")
