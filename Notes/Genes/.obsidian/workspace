@@ -8,8 +8,11 @@
         "type": "leaf",
         "active": true,
         "state": {
-          "type": "graph",
-          "state": {}
+          "type": "markdown",
+          "state": {
+            "file": "Reproduction Trigger.md",
+            "mode": "source"
+          }
         }
       }
     ],
@@ -60,14 +63,16 @@
             "type": "leaf",
             "state": {
               "type": "backlink",
-              "state": {}
+              "state": {
+                "file": "Reproduction Trigger.md"
+              }
             }
           },
           {
             "id": "c845fa0567e34452",
             "type": "leaf",
             "state": {
-              "type": "tag",
+              "type": "empty",
               "state": {}
             }
           }
@@ -79,6 +84,11 @@
     "collapsed": true
   },
   "lastOpenFiles": [
+    "Reproduction Trigger.md",
+    "Seeds.md",
+    "Flowers.md",
+    "Ring Flowers.md",
+    "Spores.md",
     "Untitled.md",
     "Rossette.md",
     "Spiraling Leaves.md",
