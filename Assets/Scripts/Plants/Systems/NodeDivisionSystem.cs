@@ -9,11 +9,22 @@ namespace Assets.Scripts.Plants.Systems
     public struct Dormant : IComponentData { }
 
     [InternalBufferCapacity(8)]
-    public struct NodeDivision : IBufferElementData
+    public struct EmbryoNode : IBufferElementData
     {
         public Entity Entity;
         public Quaternion Rotation;
+        public EmbryoNodeType Type;
         public DivisionOrder Order;
+    }
+
+    public struct DnaReference : IComponentData
+    {
+        public Entity Entity;
+    }
+
+    public struct NodeDivision : IComponentData
+    {
+        public EmbryoNodeType Type;
         public int RemainingDivisions;
     }
 
@@ -22,6 +33,12 @@ namespace Assets.Scripts.Plants.Systems
         InPlace,
         PreNode,
         PostNode,
+    }
+    public enum EmbryoNodeType
+    {
+        Seedling,
+        Vegetation,
+        Reproduction,
     }
 
     public class NodeDivisionSystem : SystemBase
@@ -36,19 +53,20 @@ namespace Assets.Scripts.Plants.Systems
 
             var job = Entities
                 .WithNone<Dormant>()
-                .ForEach((ref DynamicBuffer<NodeDivision> embryoNodes, ref EnergyStore energyStore, in Entity entity, in int entityInQueryIndex) =>
+                .ForEach((ref NodeDivision nodeDivision, ref EnergyStore energyStore, in DnaReference dnaRef, in Entity entity, in int entityInQueryIndex) =>
                 {
-                    if (energyStore.Quantity / (energyStore.Capacity + float.Epsilon) < 0.5f)
+                    if (energyStore.Quantity / (energyStore.Capacity + float.Epsilon) < 0.5f
+                        || nodeDivision.RemainingDivisions < 0)
                         return;
 
                     var parentQuery = GetComponentDataFromEntity<Parent>(true);
+                    var embryoNodes = GetBufferFromEntity<EmbryoNode>(true)[dnaRef.Entity];
 
                     for (var i = 0; i < embryoNodes.Length; i++)
                     {
                         var embryo = embryoNodes[i];
-                        if (embryo.RemainingDivisions < 0)
+                        if (embryo.Type != nodeDivision.Type)
                         {
-                            embryoNodes.RemoveAt(i);
                             continue;
                         }
 
@@ -71,9 +89,8 @@ namespace Assets.Scripts.Plants.Systems
                                 break;
                         }
 
-                        embryo.RemainingDivisions--;
-                        embryoNodes[i] = embryo;
-                    }
+                    } 
+                    nodeDivision.RemainingDivisions--;
                 })
                 .ScheduleParallel(Dependency);
 

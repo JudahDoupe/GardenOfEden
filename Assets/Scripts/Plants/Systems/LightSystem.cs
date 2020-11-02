@@ -66,11 +66,12 @@ namespace Assets.Scripts.Plants.Systems
 
                     var availableLight = cellSize * cellSize;
 
-                    foreach (var shadingEntity in lightCells.GetValuesForKey(absorber.CellId))
+                    var absorbers = lightCells.GetValuesForKey(absorber.CellId);
+                    while (absorbers.MoveNext())
                     {
-                        if (l2wQuery[shadingEntity].Position.y > l2w.Position.y)
+                        if (l2wQuery[absorbers.Current].Position.y > l2w.Position.y)
                         {
-                            availableLight -= lightQuery[shadingEntity].SurfaceArea;
+                            availableLight -= lightQuery[absorbers.Current].SurfaceArea;
                         }
                     }
 
