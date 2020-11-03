@@ -70,8 +70,26 @@ public class GameService : MonoBehaviour
             em.AddComponentData(budEmbryo, new EnergyStore());
             em.AddComponentData(budEmbryo, new EnergyFlow());
             em.AddComponentData(budEmbryo, new LightAbsorption());
-            em.AddComponentData(budEmbryo, new NodeDivision {RemainingDivisions = 10, Type = EmbryoNodeType.Vegetation});
+            em.AddComponentData(budEmbryo, new DeterministicReproductionTrigger());
+            em.AddComponentData(budEmbryo, new NodeDivision {RemainingDivisions = 6, Type = EmbryoNodeType.Vegetation});
             em.AddComponentData(budEmbryo, new DnaReference { Entity = dna });
+
+            var sporangiaEmbryo = em.CreateEntity();
+            em.AddComponentData(sporangiaEmbryo, new Dormant());
+            em.AddComponentData(sporangiaEmbryo, new Node());
+            em.AddComponentData(sporangiaEmbryo, new Internode());
+            em.AddComponentData(sporangiaEmbryo, new Translation());
+            em.AddComponentData(sporangiaEmbryo, new Rotation());
+            em.AddComponentData(sporangiaEmbryo, new Parent());
+            em.AddComponentData(sporangiaEmbryo, new LocalToParent());
+            em.AddComponentData(sporangiaEmbryo, new LocalToWorld());
+            em.AddComponentData(sporangiaEmbryo, new EnergyStore());
+            em.AddComponentData(sporangiaEmbryo, new EnergyFlow());
+            em.AddComponentData(sporangiaEmbryo, new LightAbsorption());
+            em.AddComponentData(sporangiaEmbryo, new AssignInternodeMesh { MeshName = "GreenStem" });
+            em.AddComponentData(sporangiaEmbryo, new AssignNodeMesh { MeshName = "Sporangia" });
+            em.AddComponentData(sporangiaEmbryo, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1 });
+            em.AddComponentData(sporangiaEmbryo, new DnaReference { Entity = dna });
 
             var spore = em.CreateEntity();
             em.AddComponentData(spore, new Node{Size = new float3(0.5f,0.5f,0.5f)});
@@ -111,6 +129,13 @@ public class GameService : MonoBehaviour
                 Entity = budEmbryo,
                 Type = EmbryoNodeType.Seedling,
                 Order = DivisionOrder.PostNode,
+                Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right)
+            });
+            embryoBuffer.Add(new EmbryoNode
+            {
+                Entity = sporangiaEmbryo,
+                Type = EmbryoNodeType.Reproduction,
+                Order = DivisionOrder.Replace,
                 Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right)
             });
         }

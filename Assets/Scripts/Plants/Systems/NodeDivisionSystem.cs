@@ -31,6 +31,7 @@ namespace Assets.Scripts.Plants.Systems
     public enum DivisionOrder
     {
         InPlace,
+        Replace,
         PreNode,
         PostNode,
     }
@@ -79,6 +80,10 @@ namespace Assets.Scripts.Plants.Systems
                         {
                             case DivisionOrder.InPlace:
                                 writer.SetComponent(entityInQueryIndex, newNode, new Parent {Value = parent});
+                                break;
+                            case DivisionOrder.Replace:
+                                writer.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
+                                writer.DestroyEntity(entityInQueryIndex, entity);
                                 break;
                             case DivisionOrder.PreNode:
                                 writer.SetComponent(entityInQueryIndex, newNode, new Parent {Value = parent});
