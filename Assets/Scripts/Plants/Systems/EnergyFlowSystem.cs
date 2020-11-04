@@ -22,7 +22,6 @@ namespace Assets.Scripts.Plants.Systems
         protected override void OnUpdate()
         {
             Entities
-                .WithNone<Dormant>()
                 .ForEach(
                     (ref EnergyFlow energyFlow, in EnergyStore energyStore, in Entity entity) =>
                     {
@@ -61,7 +60,6 @@ namespace Assets.Scripts.Plants.Systems
                 .ScheduleParallel();
 
             Entities
-                .WithNone<Dormant>()
                 .ForEach(
                     (ref EnergyStore energyStore, in Entity entity) =>
                     {

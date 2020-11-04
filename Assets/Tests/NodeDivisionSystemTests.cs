@@ -14,20 +14,24 @@ namespace Tests
         [TestCase(DivisionOrder.InPlace)]
         [TestCase(DivisionOrder.PreNode)]
         [TestCase(DivisionOrder.PostNode)]
+        [TestCase(DivisionOrder.Replace)]
         public void ShouldReparentNodesCorrectly(DivisionOrder order)
         {
             var dna = CreateDna();
             var bottom = CreateNode(dna);
             var top = CreateNode(dna);
             m_Manager.SetComponentData(top, new Parent { Value = bottom });
-            var embryo = CreateEmbryoNode(dna, order, EmbryoNodeType.Vegetation);
-            m_Manager.AddComponentData(top, new NodeDivision{Type = EmbryoNodeType.Vegetation});
+            var embryo = CreateEmbryoNode(dna, order, NodeType.Vegetation);
+            m_Manager.AddComponentData(top, new NodeDivision{Type = NodeType.Vegetation});
 
             World.CreateSystem<NodeDivisionSystem>().Update();
             World.CreateSystem<EndFrameParentSystem>().Update();
 
             switch (order)
             {
+                case DivisionOrder.Replace:
+                    Assert.AreEqual(1, m_Manager.GetBuffer<Child>(bottom).Length);
+                    break;
                 case DivisionOrder.InPlace:
                     Assert.AreEqual(2, m_Manager.GetBuffer<Child>(bottom).Length);
                     break;
@@ -52,8 +56,8 @@ namespace Tests
             var top = CreateNode(dna);
             m_Manager.SetComponentData(top, new Parent { Value = bottom });
             m_Manager.SetComponentData(top, new EnergyStore { Capacity = 1, Quantity = quantity });
-            var embryo = CreateEmbryoNode(dna, DivisionOrder.InPlace, EmbryoNodeType.Vegetation);
-            m_Manager.AddComponentData(top, new NodeDivision { Type = EmbryoNodeType.Vegetation });
+            var embryo = CreateEmbryoNode(dna, DivisionOrder.InPlace, NodeType.Vegetation);
+            m_Manager.AddComponentData(top, new NodeDivision { Type = NodeType.Vegetation });
 
             World.CreateSystem<NodeDivisionSystem>().Update();
             World.CreateSystem<EndFrameParentSystem>().Update();
@@ -67,8 +71,8 @@ namespace Tests
         {
             var dna = CreateDna();
             var baseNode = CreateNode(dna);
-            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, EmbryoNodeType.Vegetation);
-            m_Manager.AddComponentData(baseNode, new NodeDivision { RemainingDivisions = divisions, Type = EmbryoNodeType.Vegetation });
+            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, NodeType.Vegetation);
+            m_Manager.AddComponentData(baseNode, new NodeDivision { RemainingDivisions = divisions, Type = NodeType.Vegetation });
 
             for (int i = 0; i < divisions + 5; i++)
             {
@@ -84,8 +88,8 @@ namespace Tests
         {
             var dna = CreateDna();
             var baseNode = CreateNode(dna);
-            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, EmbryoNodeType.Vegetation);
-            m_Manager.AddComponentData(baseNode, new NodeDivision { Type = EmbryoNodeType.Vegetation });
+            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, NodeType.Vegetation);
+            m_Manager.AddComponentData(baseNode, new NodeDivision { Type = NodeType.Vegetation });
 
             for (int i = 0; i <  5; i++)
             {
@@ -94,6 +98,24 @@ namespace Tests
             }
 
             Assert.AreEqual( 1, m_Manager.GetBuffer<Child>(baseNode).Length);
+        }
+
+        [Test]
+        public void EmbryoNodesRemainDormantAfterDivision()
+        {
+            var dna = CreateDna();
+            var baseNode = CreateNode(dna);
+            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, NodeType.Embryo);
+            m_Manager.AddComponentData(baseNode, new NodeDivision { Type = NodeType.Embryo });
+
+            for (int i = 0; i < 5; i++)
+            {
+                World.CreateSystem<NodeDivisionSystem>().Update();
+                World.CreateSystem<EndFrameParentSystem>().Update();
+            }
+
+            Assert.AreEqual(1, m_Manager.GetBuffer<Child>(baseNode).Length);
+            Assert.True(m_Manager.HasComponent<Dormant>(m_Manager.GetBuffer<Child>(baseNode)[0].Value));
         }
 
         private Entity CreateNode(Entity dna)
@@ -111,7 +133,7 @@ namespace Tests
             return entity;
         }
 
-        private Entity CreateEmbryoNode(Entity dna, DivisionOrder order, EmbryoNodeType type)
+        private Entity CreateEmbryoNode(Entity dna, DivisionOrder order, NodeType type)
         {
             var entity = m_Manager.CreateEntity();
             m_Manager.AddComponentData(entity, new Dormant());

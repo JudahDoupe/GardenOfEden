@@ -13,7 +13,7 @@ namespace Assets.Scripts.Plants.Systems
     {
         public Entity Entity;
         public Quaternion Rotation;
-        public EmbryoNodeType Type;
+        public NodeType Type;
         public DivisionOrder Order;
     }
 
@@ -24,7 +24,7 @@ namespace Assets.Scripts.Plants.Systems
 
     public struct NodeDivision : IComponentData
     {
-        public EmbryoNodeType Type;
+        public NodeType Type;
         public int RemainingDivisions;
     }
 
@@ -35,11 +35,12 @@ namespace Assets.Scripts.Plants.Systems
         PreNode,
         PostNode,
     }
-    public enum EmbryoNodeType
+    public enum NodeType
     {
-        Seedling,
         Vegetation,
         Reproduction,
+        Embryo,
+        Seedling,
     }
 
     public class NodeDivisionSystem : SystemBase
@@ -75,7 +76,10 @@ namespace Assets.Scripts.Plants.Systems
                         var parent = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
                         var newNode = writer.Instantiate(entityInQueryIndex, embryo.Entity);
                         writer.SetComponent(entityInQueryIndex, newNode, new Rotation {Value = embryo.Rotation * RandomQuaternion(0.05f, seed)});
-                        writer.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
+                        if (nodeDivision.Type != NodeType.Embryo)
+                        {
+                            writer.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
+                        }
                         switch (embryo.Order)
                         {
                             case DivisionOrder.InPlace:

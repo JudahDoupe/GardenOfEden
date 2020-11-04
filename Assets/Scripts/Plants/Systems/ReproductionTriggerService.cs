@@ -17,7 +17,7 @@ namespace Assets.Scripts.Plants.Systems
                 {
                     if (nodeDivision.RemainingDivisions >= 0) return;
                     nodeDivision.RemainingDivisions = 0;
-                    nodeDivision.Type = EmbryoNodeType.Reproduction;
+                    nodeDivision.Type = NodeType.Reproduction;
                 })
                 .ScheduleParallel();
         }

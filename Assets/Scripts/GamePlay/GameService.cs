@@ -20,124 +20,141 @@ public class GameService : MonoBehaviour
 
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
 
+        var dna = em.CreateEntity();
+
+        var vegNode = em.CreateEntity();
+        em.AddComponentData(vegNode, new Dormant());
+        em.AddComponentData(vegNode, new Node());
+        em.AddComponentData(vegNode, new Internode());
+        em.AddComponentData(vegNode, new Translation());
+        em.AddComponentData(vegNode, new Rotation());
+        em.AddComponentData(vegNode, new Parent ());
+        em.AddComponentData(vegNode, new LocalToParent());
+        em.AddComponentData(vegNode, new LocalToWorld());
+        em.AddComponentData(vegNode, new EnergyStore());
+        em.AddComponentData(vegNode, new EnergyFlow());
+        em.AddComponentData(vegNode, new LightAbsorption());
+        em.AddComponentData(vegNode, new Photosynthesis { Efficiency = 1 });
+        em.AddComponentData(vegNode, new AssignInternodeMesh { MeshName = "GreenStem" });
+        em.AddComponentData(vegNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 1, InternodeRadius = 0.1f });
+        em.AddComponentData(vegNode, new DnaReference { Entity = dna });
+
+        var leaf = em.CreateEntity();
+        em.AddComponentData(leaf, new Dormant());
+        em.AddComponentData(leaf, new Node());
+        em.AddComponentData(leaf, new Internode());
+        em.AddComponentData(leaf, new Translation());
+        em.AddComponentData(leaf, new Rotation());
+        em.AddComponentData(leaf, new Parent ());
+        em.AddComponentData(leaf, new LocalToParent());
+        em.AddComponentData(leaf, new LocalToWorld());
+        em.AddComponentData(leaf, new EnergyStore());
+        em.AddComponentData(leaf, new EnergyFlow());
+        em.AddComponentData(leaf, new LightAbsorption());
+        em.AddComponentData(leaf, new Photosynthesis { Efficiency = 1 });
+        em.AddComponentData(leaf, new AssignInternodeMesh { MeshName = "GreenStem" });
+        em.AddComponentData(leaf, new AssignNodeMesh { MeshName = "Leaf" });
+        em.AddComponentData(leaf, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1 });
+        em.AddComponentData(leaf, new DnaReference { Entity = dna });
+
+        var bud = em.CreateEntity();
+        em.AddComponentData(bud, new Dormant());
+        em.AddComponentData(bud, new Node { Size = new float3(0.01f, 0.01f, 0.01f) });
+        em.AddComponentData(bud, new Translation());
+        em.AddComponentData(bud, new Rotation());
+        em.AddComponentData(bud, new Parent());
+        em.AddComponentData(bud, new LocalToParent());
+        em.AddComponentData(bud, new LocalToWorld());
+        em.AddComponentData(bud, new EnergyStore());
+        em.AddComponentData(bud, new EnergyFlow());
+        em.AddComponentData(bud, new LightAbsorption());
+        em.AddComponentData(bud, new DeterministicReproductionTrigger());
+        em.AddComponentData(bud, new NodeDivision {RemainingDivisions = 6, Type = NodeType.Vegetation});
+        em.AddComponentData(bud, new DnaReference { Entity = dna });
+
+        var sporangia = em.CreateEntity();
+        em.AddComponentData(sporangia, new Dormant());
+        em.AddComponentData(sporangia, new Node());
+        em.AddComponentData(sporangia, new Translation());
+        em.AddComponentData(sporangia, new Rotation());
+        em.AddComponentData(sporangia, new Parent());
+        em.AddComponentData(sporangia, new LocalToParent());
+        em.AddComponentData(sporangia, new LocalToWorld());
+        em.AddComponentData(sporangia, new EnergyStore());
+        em.AddComponentData(sporangia, new EnergyFlow());
+        em.AddComponentData(sporangia, new LightAbsorption());
+        em.AddComponentData(sporangia, new AssignNodeMesh { MeshName = "Sporangia" });
+        em.AddComponentData(sporangia, new PrimaryGrowth { GrowthRate = 0.1f,NodeSize = 1 });
+        em.AddComponentData(sporangia, new NodeDivision { Type = NodeType.Embryo, RemainingDivisions = 15 });
+        em.AddComponentData(sporangia, new DnaReference { Entity = dna });
+
+        var spore = em.CreateEntity();
+        em.AddComponentData(spore, new Dormant());
+        em.AddComponentData(spore, new Node{Size = new float3(0.5f,0.5f,0.5f)});
+        em.AddComponentData(spore, new Translation());
+        em.AddComponentData(spore, new Rotation());
+        em.AddComponentData(spore, new Parent());
+        em.AddComponentData(spore, new LocalToParent());
+        em.AddComponentData(spore, new LocalToWorld());
+        em.AddComponentData(spore, new EnergyStore());
+        em.AddComponentData(spore, new EnergyFlow());
+        em.AddComponentData(spore, new LightAbsorption ());
+        em.AddComponentData(spore, new NodeDivision { Type = NodeType.Seedling });
+        em.AddComponentData(spore, new DnaReference { Entity = dna });
+
+        var embryoBuffer = em.AddBuffer<EmbryoNode>(dna);
+        embryoBuffer.Add(new EmbryoNode
+        {
+            Entity = vegNode,
+            Type = NodeType.Vegetation,
+            Order = DivisionOrder.PreNode,
+            Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right)
+        });
+        embryoBuffer.Add(new EmbryoNode
+        {
+            Entity = leaf,
+            Type = NodeType.Vegetation,
+            Order = DivisionOrder.InPlace,
+            Rotation = Quaternion.LookRotation(Vector3.left, Vector3.forward)
+        }); 
+        embryoBuffer.Add(new EmbryoNode
+        {
+            Entity = leaf,
+            Type = NodeType.Vegetation,
+            Order = DivisionOrder.InPlace,
+            Rotation = Quaternion.LookRotation(Vector3.right, Vector3.forward)
+        });
+        embryoBuffer.Add(new EmbryoNode
+        {
+            Entity = bud,
+            Type = NodeType.Seedling,
+            Order = DivisionOrder.PostNode,
+            Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right)
+        });
+        embryoBuffer.Add(new EmbryoNode
+        {
+            Entity = sporangia,
+            Type = NodeType.Reproduction,
+            Order = DivisionOrder.Replace,
+            Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right)
+        });
+        embryoBuffer.Add(new EmbryoNode
+        {
+            Entity = spore,
+            Type = NodeType.Embryo,
+            Order = DivisionOrder.PostNode,
+            Rotation = Quaternion.LookRotation(Vector3.up)
+        });
+
         for (var i = 0; i < 500; i++)
         {
-            var dna = em.CreateEntity();
-
-            var vegEmbryo = em.CreateEntity();
-            em.AddComponentData(vegEmbryo, new Dormant());
-            em.AddComponentData(vegEmbryo, new Node());
-            em.AddComponentData(vegEmbryo, new Internode());
-            em.AddComponentData(vegEmbryo, new Translation());
-            em.AddComponentData(vegEmbryo, new Rotation { Value = Quaternion.LookRotation(Vector3.forward) });
-            em.AddComponentData(vegEmbryo, new Parent ());
-            em.AddComponentData(vegEmbryo, new LocalToParent());
-            em.AddComponentData(vegEmbryo, new LocalToWorld());
-            em.AddComponentData(vegEmbryo, new EnergyStore());
-            em.AddComponentData(vegEmbryo, new EnergyFlow());
-            em.AddComponentData(vegEmbryo, new LightAbsorption());
-            em.AddComponentData(vegEmbryo, new Photosynthesis { Efficiency = 1 });
-            em.AddComponentData(vegEmbryo, new AssignInternodeMesh { MeshName = "GreenStem" });
-            em.AddComponentData(vegEmbryo, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 1, InternodeRadius = 0.1f });
-            em.AddComponentData(vegEmbryo, new DnaReference { Entity = dna });
-
-            var leafEmbryo = em.CreateEntity();
-            em.AddComponentData(leafEmbryo, new Dormant());
-            em.AddComponentData(leafEmbryo, new Node());
-            em.AddComponentData(leafEmbryo, new Internode());
-            em.AddComponentData(leafEmbryo, new Translation());
-            em.AddComponentData(leafEmbryo, new Rotation());
-            em.AddComponentData(leafEmbryo, new Parent ());
-            em.AddComponentData(leafEmbryo, new LocalToParent());
-            em.AddComponentData(leafEmbryo, new LocalToWorld());
-            em.AddComponentData(leafEmbryo, new EnergyStore());
-            em.AddComponentData(leafEmbryo, new EnergyFlow());
-            em.AddComponentData(leafEmbryo, new LightAbsorption());
-            em.AddComponentData(leafEmbryo, new Photosynthesis { Efficiency = 1 });
-            em.AddComponentData(leafEmbryo, new AssignInternodeMesh { MeshName = "GreenStem" });
-            em.AddComponentData(leafEmbryo, new AssignNodeMesh { MeshName = "Leaf" });
-            em.AddComponentData(leafEmbryo, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1 });
-            em.AddComponentData(leafEmbryo, new DnaReference { Entity = dna });
-
-            var budEmbryo = em.CreateEntity();
-            em.AddComponentData(budEmbryo, new Dormant());
-            em.AddComponentData(budEmbryo, new Node { Size = new float3(0.01f, 0.01f, 0.01f) });
-            em.AddComponentData(budEmbryo, new Translation());
-            em.AddComponentData(budEmbryo, new Rotation());
-            em.AddComponentData(budEmbryo, new Parent());
-            em.AddComponentData(budEmbryo, new LocalToParent());
-            em.AddComponentData(budEmbryo, new LocalToWorld());
-            em.AddComponentData(budEmbryo, new EnergyStore());
-            em.AddComponentData(budEmbryo, new EnergyFlow());
-            em.AddComponentData(budEmbryo, new LightAbsorption());
-            em.AddComponentData(budEmbryo, new DeterministicReproductionTrigger());
-            em.AddComponentData(budEmbryo, new NodeDivision {RemainingDivisions = 6, Type = EmbryoNodeType.Vegetation});
-            em.AddComponentData(budEmbryo, new DnaReference { Entity = dna });
-
-            var sporangiaEmbryo = em.CreateEntity();
-            em.AddComponentData(sporangiaEmbryo, new Dormant());
-            em.AddComponentData(sporangiaEmbryo, new Node());
-            em.AddComponentData(sporangiaEmbryo, new Internode());
-            em.AddComponentData(sporangiaEmbryo, new Translation());
-            em.AddComponentData(sporangiaEmbryo, new Rotation());
-            em.AddComponentData(sporangiaEmbryo, new Parent());
-            em.AddComponentData(sporangiaEmbryo, new LocalToParent());
-            em.AddComponentData(sporangiaEmbryo, new LocalToWorld());
-            em.AddComponentData(sporangiaEmbryo, new EnergyStore());
-            em.AddComponentData(sporangiaEmbryo, new EnergyFlow());
-            em.AddComponentData(sporangiaEmbryo, new LightAbsorption());
-            em.AddComponentData(sporangiaEmbryo, new AssignInternodeMesh { MeshName = "GreenStem" });
-            em.AddComponentData(sporangiaEmbryo, new AssignNodeMesh { MeshName = "Sporangia" });
-            em.AddComponentData(sporangiaEmbryo, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1 });
-            em.AddComponentData(sporangiaEmbryo, new DnaReference { Entity = dna });
-
-            var spore = em.CreateEntity();
-            em.AddComponentData(spore, new Node{Size = new float3(0.5f,0.5f,0.5f)});
-            em.AddComponentData(spore, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(Random.Range(-100f, 100f), 50, Random.Range(-200f, 0f))) });
-            em.AddComponentData(spore, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
-            em.AddComponentData(spore, new LocalToWorld());
-            em.AddComponentData(spore, new EnergyStore {Capacity = 1, Quantity = 1});
-            em.AddComponentData(spore, new EnergyFlow());
-            em.AddComponentData(spore, new LightAbsorption ());
-            em.AddComponentData(spore, new NodeDivision { Type = EmbryoNodeType.Seedling });
-            em.AddComponentData(spore, new DnaReference { Entity = dna });
-
-            var embryoBuffer = em.AddBuffer<EmbryoNode>(dna);
-            embryoBuffer.Add(new EmbryoNode
-            {
-                Entity = vegEmbryo,
-                Type = EmbryoNodeType.Vegetation,
-                Order = DivisionOrder.PreNode,
-                Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right)
-            });
-            embryoBuffer.Add(new EmbryoNode
-            {
-                Entity = leafEmbryo,
-                Type = EmbryoNodeType.Vegetation,
-                Order = DivisionOrder.InPlace,
-                Rotation = Quaternion.LookRotation(Vector3.left, Vector3.forward)
-            }); 
-            embryoBuffer.Add(new EmbryoNode
-            {
-                Entity = leafEmbryo,
-                Type = EmbryoNodeType.Vegetation,
-                Order = DivisionOrder.InPlace,
-                Rotation = Quaternion.LookRotation(Vector3.right, Vector3.forward)
-            });
-            embryoBuffer.Add(new EmbryoNode
-            {
-                Entity = budEmbryo,
-                Type = EmbryoNodeType.Seedling,
-                Order = DivisionOrder.PostNode,
-                Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right)
-            });
-            embryoBuffer.Add(new EmbryoNode
-            {
-                Entity = sporangiaEmbryo,
-                Type = EmbryoNodeType.Reproduction,
-                Order = DivisionOrder.Replace,
-                Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right)
-            });
+            var plant = em.Instantiate(spore);
+            em.RemoveComponent<Dormant>(plant);
+            em.RemoveComponent<Parent>(plant);
+            em.RemoveComponent<LocalToParent>(plant);
+            em.SetComponentData(plant, new EnergyStore {Capacity = 1, Quantity = 1});
+            em.SetComponentData(plant, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(Random.Range(-100f, 100f), 50, Random.Range(-200f, 0f))) });
+            em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
         }
 
     }
