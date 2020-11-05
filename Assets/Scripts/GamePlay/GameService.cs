@@ -99,6 +99,7 @@ public class GameService : MonoBehaviour
         em.AddComponentData(spore, new EnergyStore());
         em.AddComponentData(spore, new EnergyFlow());
         em.AddComponentData(spore, new LightAbsorption ());
+        em.AddComponentData(spore, new WindDispersal ());
         em.AddComponentData(spore, new NodeDivision { Type = NodeType.Seedling });
         em.AddComponentData(spore, new DnaReference { Entity = dna });
 

@@ -2,7 +2,17 @@
 using System.Linq;
 using UnityEngine;
 
-public class LandService : MonoBehaviour, IDailyProcess
+public interface ILandService : IDailyProcess
+{
+    float SampleSoilDepth(Vector3 location);
+    float SampleWaterDepth(Vector3 location);
+    float SampleRootDepth(Vector3 location);
+    float SampleTerrainHeight(Vector3 location);
+    Vector3 ClampAboveTerrain(Vector3 location);
+    Vector3 ClampToTerrain(Vector3 location);
+}
+
+public class LandService : MonoBehaviour, ILandService
 {
     [Header("Render Textures")]
     public RenderTexture LandMap;

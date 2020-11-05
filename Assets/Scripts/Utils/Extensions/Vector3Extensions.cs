@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Mathematics;
+using UnityEngine;
 
 public static class Vector3Extensions
 {
@@ -13,7 +14,9 @@ public static class Vector3Extensions
     {
         return new[] {t.x, t.y, t.z};
     }
-    
+
+    public static float3 ToFloat3(this Vector3 t) => new float3(t.x, t.y, t.z);
+
     public static Vector3 ClampMagnitude(this Vector3 v, float max, float min)
     {
         double sm = v.sqrMagnitude;

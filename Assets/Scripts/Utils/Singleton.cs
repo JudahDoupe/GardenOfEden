@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Singleton : MonoBehaviour
 {
-    public static LandService LandService;
+    public static ILandService LandService;
     public static WaterService WaterService;
 
     public static GameService GameService;

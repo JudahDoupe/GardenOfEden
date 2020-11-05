@@ -8,6 +8,7 @@ namespace Assets.Scripts.Plants.Systems
     {
         public float Quantity;
         public float Capacity;
+        public float Preassure => Quantity / (Capacity + float.Epsilon);
     }
 
     public struct EnergyFlow : IComponentData
@@ -43,16 +44,14 @@ namespace Assets.Scripts.Plants.Systems
 
                             var resistance = 0f;
                             var flowRate = (1f / numBranches) / (1 + resistance);
-                            var headPressure = headStore.Quantity / (headStore.Capacity + float.Epsilon);
-                            var tailPressure = tailStore.Quantity / (tailStore.Capacity + float.Epsilon);
 
-                            if (tailPressure > headPressure)
+                            if (tailStore.Preassure > headStore.Preassure)
                             {
-                                energyFlow.Throughput = flowRate * tailStore.Quantity * (tailPressure - headPressure);
+                                energyFlow.Throughput = flowRate * tailStore.Quantity * (tailStore.Preassure - headStore.Preassure);
                             }
                             else
                             {
-                                energyFlow.Throughput = flowRate * headStore.Quantity * (tailPressure - headPressure);
+                                energyFlow.Throughput = flowRate * headStore.Quantity * (tailStore.Preassure - headStore.Preassure);
                             }
                         }
                     })
