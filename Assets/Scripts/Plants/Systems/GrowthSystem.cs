@@ -25,10 +25,10 @@ namespace Assets.Scripts.Plants.Systems
         public float3 NodeSize;
     }
 
-    [UpdateAfter(typeof(EnergyFlowSystem))]
-    public class GrowthSystem : SystemBase
+    public class GrowthSystem : SystemBase, IDailyProcess
     {
-        protected override void OnUpdate()
+        public bool HasDayBeenProccessed() => true;
+        public void ProcessDay()
         {
             Entities
                 .WithNone<Dormant>()
@@ -38,18 +38,20 @@ namespace Assets.Scripts.Plants.Systems
                         if (node.Size.Equals(growth.NodeSize))
                             return;
 
-                        var desiredNode = new Node { 
-                            Size = math.min(node.Size + growth.GrowthRate, growth.NodeSize) 
+                        var desiredNode = new Node
+                        {
+                            Size = math.min(node.Size + growth.GrowthRate, growth.NodeSize)
                         };
                         var desiredVolumeGrowth = desiredNode.Volume - node.Volume;
                         var constrainedVolumeGrowth = math.min(energyStore.Quantity * 2, desiredVolumeGrowth);
-                        var constrainedGrowthRate = math.pow(constrainedVolumeGrowth / (1.333f * math.PI), 1f/3f);
+                        var constrainedGrowthRate = math.pow(constrainedVolumeGrowth / (1.333f * math.PI), 1f / 3f);
 
                         node.Size = math.min(node.Size + constrainedGrowthRate, growth.NodeSize);
                         energyStore.Quantity -= constrainedVolumeGrowth / 4;
                     })
                 .WithName("GrowNode")
-                .ScheduleParallel();
+                .ScheduleParallel(Dependency)
+                .Complete();
 
             Entities
                 .WithNone<Dormant>()
@@ -59,9 +61,10 @@ namespace Assets.Scripts.Plants.Systems
                         if (internode.Length.Equals(growth.InternodeLength) && internode.Radius.Equals(growth.InternodeRadius))
                             return;
 
-                        var desiredInternode = new Internode {
+                        var desiredInternode = new Internode
+                        {
                             Radius = math.min(internode.Radius + growth.GrowthRate, growth.InternodeRadius),
-                            Length = math.min(internode.Length + growth.GrowthRate, growth.InternodeLength), 
+                            Length = math.min(internode.Length + growth.GrowthRate, growth.InternodeLength),
                         };
                         var desiredVolumeGrowth = desiredInternode.Volume - internode.Volume;
                         var constrainedVolumeGrowth = math.min(energyStore.Quantity * 2, desiredVolumeGrowth);
@@ -73,7 +76,10 @@ namespace Assets.Scripts.Plants.Systems
                         energyStore.Quantity -= constrainedVolumeGrowth / 4;
                     })
                 .WithName("GrowInternode")
-                .ScheduleParallel();
+                .ScheduleParallel(Dependency)
+                .Complete();
         }
+
+        protected override void OnUpdate() { }
     }
 }

@@ -16,11 +16,10 @@ namespace Assets.Scripts.Plants.Systems
         public float Throughput;
     }
 
-    [UpdateAfter(typeof(LightSystem))]
-
-    public class EnergyFlowSystem : SystemBase
+    public class EnergyFlowSystem : SystemBase, IDailyProcess
     {
-        protected override void OnUpdate()
+        public bool HasDayBeenProccessed() => true;
+        public void ProcessDay()
         {
             Entities
                 .ForEach(
@@ -30,8 +29,8 @@ namespace Assets.Scripts.Plants.Systems
                         var parentQuery = GetComponentDataFromEntity<Parent>(true);
                         var childrenQuery = GetBufferFromEntity<Child>(true);
 
-                        if (!parentQuery.HasComponent(entity) 
-                            || parentQuery[entity].Value == Entity.Null 
+                        if (!parentQuery.HasComponent(entity)
+                            || parentQuery[entity].Value == Entity.Null
                             || !energyStoreQuery.HasComponent(parentQuery[entity].Value))
                         {
                             energyFlow.Throughput = 0;
@@ -56,7 +55,8 @@ namespace Assets.Scripts.Plants.Systems
                         }
                     })
                 .WithName("UpdateEnergyThroughput")
-                .ScheduleParallel();
+                .ScheduleParallel(Dependency)
+                .Complete();
 
             Entities
                 .ForEach(
@@ -99,7 +99,10 @@ namespace Assets.Scripts.Plants.Systems
                         energyStore.Quantity = math.clamp(energyStore.Quantity, 0, energyStore.Capacity);
                     })
                 .WithName("UpdateEnergyQuantities")
-                .ScheduleParallel();
+                .ScheduleParallel(Dependency)
+                .Complete();
         }
+
+        protected override void OnUpdate() { }
     }
 }

@@ -43,17 +43,17 @@ namespace Assets.Scripts.Plants.Systems
         Seedling,
     }
 
-    public class NodeDivisionSystem : SystemBase
+    public class NodeDivisionSystem : SystemBase, IDailyProcess
     {
-
-        protected override void OnUpdate()
+        public bool HasDayBeenProccessed() => true;
+        public void ProcessDay()
         {
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
             var writer = ecb.AsParallelWriter();
 
             var genericSeed = new System.Random().Next();
 
-            var job = Entities
+            Entities
                 .WithNone<Dormant>()
                 .ForEach((ref NodeDivision nodeDivision, ref EnergyStore energyStore, in DnaReference dnaRef, in Entity entity, in int entityInQueryIndex) =>
                 {
@@ -75,7 +75,7 @@ namespace Assets.Scripts.Plants.Systems
                         var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
                         var parent = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
                         var newNode = writer.Instantiate(entityInQueryIndex, embryo.Entity);
-                        writer.SetComponent(entityInQueryIndex, newNode, new Rotation {Value = embryo.Rotation * RandomQuaternion(0.05f, seed)});
+                        writer.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
                         if (nodeDivision.Type != NodeType.Embryo)
                         {
                             writer.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
@@ -83,30 +83,32 @@ namespace Assets.Scripts.Plants.Systems
                         switch (embryo.Order)
                         {
                             case DivisionOrder.InPlace:
-                                writer.SetComponent(entityInQueryIndex, newNode, new Parent {Value = parent});
+                                writer.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
                                 break;
                             case DivisionOrder.Replace:
                                 writer.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
                                 writer.DestroyEntity(entityInQueryIndex, entity);
                                 break;
                             case DivisionOrder.PreNode:
-                                writer.SetComponent(entityInQueryIndex, newNode, new Parent {Value = parent});
-                                writer.SetComponent(entityInQueryIndex, entity, new Parent {Value = newNode});
+                                writer.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
+                                writer.SetComponent(entityInQueryIndex, entity, new Parent { Value = newNode });
                                 break;
                             case DivisionOrder.PostNode:
-                                writer.SetComponent(entityInQueryIndex, newNode, new Parent {Value = entity});
+                                writer.SetComponent(entityInQueryIndex, newNode, new Parent { Value = entity });
                                 break;
                         }
 
-                    } 
+                    }
                     nodeDivision.RemainingDivisions--;
                 })
-                .ScheduleParallel(Dependency);
+                .ScheduleParallel(Dependency)
+                .Complete();
 
-            job.Complete();
             ecb.Playback(EntityManager);
             ecb.Dispose();
         }
+
+        protected override void OnUpdate() { }
 
         private static Quaternion RandomQuaternion(float maxAngle, uint seed)
         {

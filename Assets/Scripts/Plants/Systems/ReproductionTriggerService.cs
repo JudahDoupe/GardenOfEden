@@ -5,10 +5,10 @@ namespace Assets.Scripts.Plants.Systems
 {
     public struct DeterministicReproductionTrigger : IComponentData { }
 
-    public class ReproductionTriggerSystem : SystemBase
+    public class ReproductionTriggerSystem : SystemBase, IDailyProcess
     {
-
-        protected override void OnUpdate()
+        public bool HasDayBeenProccessed() => true;
+        public void ProcessDay()
         {
             Entities
                 .WithNone<Dormant>()
@@ -19,8 +19,11 @@ namespace Assets.Scripts.Plants.Systems
                     nodeDivision.RemainingDivisions = 0;
                     nodeDivision.Type = NodeType.Reproduction;
                 })
-                .ScheduleParallel();
+                .ScheduleParallel(Dependency)
+                .Complete();
         }
+
+        protected override void OnUpdate() { }
     }
 }
 

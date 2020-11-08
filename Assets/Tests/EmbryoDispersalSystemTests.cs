@@ -24,7 +24,7 @@ namespace Tests
             var baseNode = CreateNode();
             var embryo = CreateEmbryoNode(baseNode, energyQuantity);
 
-            World.CreateSystem<EmbryoDispersalService>().Update();
+            World.CreateSystem<EmbryoDispersalSystem>().Update();
 
             Assert.AreEqual(!hasDisconected, m_Manager.HasComponent<Parent>(embryo));
         }

@@ -7,10 +7,11 @@ namespace Assets.Scripts.Plants.Systems
 {
     public struct WindDispersal : IComponentData { }
 
-    public class EmbryoDispersalService : SystemBase
+    [DisableAutoCreation]
+    public class EmbryoDispersalSystem : SystemBase, IDailyProcess
     {
-
-        protected override void OnUpdate()
+        public bool HasDayBeenProccessed() => true;
+        public void ProcessDay()
         {
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
@@ -24,7 +25,7 @@ namespace Assets.Scripts.Plants.Systems
                     ecb.RemoveComponent<WindDispersal>(entity);
                     ecb.RemoveComponent<Parent>(entity);
                     ecb.RemoveComponent<LocalToParent>(entity);
-                    ecb.RemoveComponent<Dormant>( entity);
+                    ecb.RemoveComponent<Dormant>(entity);
 
                     var height = l2w.Position.y - Singleton.LandService.SampleTerrainHeight(l2w.Position);
                     var position = l2w.Position + new Vector3(Random.Range(-height, height), 0, Random.Range(-height, height)).ToFloat3();
@@ -37,6 +38,8 @@ namespace Assets.Scripts.Plants.Systems
             ecb.Playback(EntityManager);
             ecb.Dispose();
         }
+
+        protected override void OnUpdate() { }
     }
 }
 

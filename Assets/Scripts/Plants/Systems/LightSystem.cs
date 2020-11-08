@@ -16,9 +16,10 @@ namespace Assets.Scripts.Plants.Systems
         public float Efficiency;
     }
 
-    public class LightSystem : SystemBase
+    public class LightSystem : SystemBase, IDailyProcess
     {
-        protected override void OnUpdate()
+        public bool HasDayBeenProccessed() => true;
+        public void ProcessDay()
         {
             float cellSize = 5;
 
@@ -26,7 +27,7 @@ namespace Assets.Scripts.Plants.Systems
             var lightCells = new NativeMultiHashMap<int2, Entity>(query.CalculateEntityCount(), Allocator.TempJob);
             var lightCellsWriter = lightCells.AsParallelWriter();
 
-            var job = Entities
+            Entities
                 .ForEach((ref LightAbsorption absorber, in Entity entity, in LocalToWorld l2w) =>
                 {
                     var internodeQuery = GetComponentDataFromEntity<Internode>(true);
@@ -51,9 +52,8 @@ namespace Assets.Scripts.Plants.Systems
 
                 })
                 .WithName("UpdateLightAbsorber")
-                .ScheduleParallel(Dependency);
-
-            job.Complete();
+                .ScheduleParallel(Dependency)
+                .Complete();
 
             Entities
                 .WithNativeDisableParallelForRestriction(lightCells)
@@ -77,10 +77,11 @@ namespace Assets.Scripts.Plants.Systems
                 })
                 .WithDisposeOnCompletion(lightCells)
                 .WithName("Photosynthesis")
-                .ScheduleParallel();
-
-
+                .ScheduleParallel(Dependency)
+                .Complete();
         }
+
+        protected override void OnUpdate() { }
 
         public static int2 GetCellIdFromPosition(float3 position, float cellSize)
         {
