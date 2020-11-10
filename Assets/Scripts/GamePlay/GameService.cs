@@ -38,6 +38,7 @@ public class GameService : MonoBehaviour
         em.AddComponentData(vegNode, new AssignInternodeMesh { MeshName = "GreenStem" });
         em.AddComponentData(vegNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 1, InternodeRadius = 0.1f });
         em.AddComponentData(vegNode, new DnaReference { Entity = dna });
+        em.AddSharedComponentData(vegNode, new Batch { Id = 0 });
 
         var leaf = em.CreateEntity();
         em.AddComponentData(leaf, new Dormant());
@@ -56,6 +57,7 @@ public class GameService : MonoBehaviour
         em.AddComponentData(leaf, new AssignNodeMesh { MeshName = "Leaf" });
         em.AddComponentData(leaf, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1 });
         em.AddComponentData(leaf, new DnaReference { Entity = dna });
+        em.AddSharedComponentData(leaf, new Batch { Id = 0 });
 
         var bud = em.CreateEntity();
         em.AddComponentData(bud, new Dormant());
@@ -71,6 +73,7 @@ public class GameService : MonoBehaviour
         em.AddComponentData(bud, new DeterministicReproductionTrigger());
         em.AddComponentData(bud, new NodeDivision {RemainingDivisions = 6, Type = NodeType.Vegetation});
         em.AddComponentData(bud, new DnaReference { Entity = dna });
+        em.AddSharedComponentData(bud, new Batch { Id = 0 });
 
         var sporangia = em.CreateEntity();
         em.AddComponentData(sporangia, new Dormant());
@@ -87,6 +90,7 @@ public class GameService : MonoBehaviour
         em.AddComponentData(sporangia, new PrimaryGrowth { GrowthRate = 0.1f,NodeSize = 1 });
         em.AddComponentData(sporangia, new NodeDivision { Type = NodeType.Embryo, RemainingDivisions = 15 });
         em.AddComponentData(sporangia, new DnaReference { Entity = dna });
+        em.AddSharedComponentData(sporangia, new Batch { Id = 0 });
 
         var spore = em.CreateEntity();
         em.AddComponentData(spore, new Dormant());
@@ -102,6 +106,7 @@ public class GameService : MonoBehaviour
         em.AddComponentData(spore, new WindDispersal ());
         em.AddComponentData(spore, new NodeDivision { Type = NodeType.Seedling });
         em.AddComponentData(spore, new DnaReference { Entity = dna });
+        em.AddSharedComponentData(spore, new Batch { Id = 0 });
 
         var embryoBuffer = em.AddBuffer<EmbryoNode>(dna);
         embryoBuffer.Add(new EmbryoNode

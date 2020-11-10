@@ -32,19 +32,13 @@ namespace Assets.Scripts.Plants.Systems
         public Entity Entity;
     }
 
-    class AssignMeshSystem : SystemBase
+    class AssignMeshSystem : SystemBase, IDailyProcess
     {
-        private EndSimulationEntityCommandBufferSystem ecbSystem;
+        public bool HasDayBeenProccessed() => true;
 
-        protected override void OnCreate()
+        public void ProcessDay()
         {
-            base.OnCreate();
-            ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-        }
-
-        protected override void OnUpdate()
-        {
-            var ecb = ecbSystem.CreateCommandBuffer();
+            var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
             Entities
                 .WithNone<Dormant>()
@@ -113,7 +107,7 @@ namespace Assets.Scripts.Plants.Systems
                             {
                                 meshEntity = ecb.CreateEntity();
                                 ecb.AddComponent(entity, typeof(InternodeMeshReference));
-                                ecb.SetComponent(entity, new InternodeMeshReference {Entity = meshEntity} );
+                                ecb.SetComponent(entity, new InternodeMeshReference { Entity = meshEntity });
                                 ecb.AddComponent(meshEntity, typeof(InternodeReference));
                                 ecb.SetComponent(meshEntity, new InternodeReference { Entity = entity });
                                 ecb.AddComponent(meshEntity, typeof(RenderMesh));
@@ -139,7 +133,12 @@ namespace Assets.Scripts.Plants.Systems
                 .WithoutBurst()
                 .WithName("AddInternodeMesh")
                 .Run();
+
+            ecb.Playback(EntityManager);
+            ecb.Dispose();
         }
+
+        protected override void OnUpdate() { }
 
     }
 }
