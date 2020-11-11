@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -46,8 +47,7 @@ namespace Assets.Scripts.Plants.Systems
 
     public class NodeDivisionSystem : SystemBase, IDailyProcess
     {
-        public bool HasDayBeenProccessed() => true;
-        public void ProcessDay()
+        public void ProcessDay(Action callback)
         {
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
             var writer = ecb.AsParallelWriter();
@@ -107,6 +107,7 @@ namespace Assets.Scripts.Plants.Systems
 
             ecb.Playback(EntityManager);
             ecb.Dispose();
+            callback();
         }
 
         protected override void OnUpdate() { }

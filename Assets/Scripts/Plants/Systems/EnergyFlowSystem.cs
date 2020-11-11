@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -8,7 +9,7 @@ namespace Assets.Scripts.Plants.Systems
     {
         public float Quantity;
         public float Capacity;
-        public float Preassure => Quantity / (Capacity + float.Epsilon);
+        public float Pressure => Quantity / (Capacity + float.Epsilon);
     }
 
     public struct EnergyFlow : IComponentData
@@ -18,8 +19,7 @@ namespace Assets.Scripts.Plants.Systems
 
     public class EnergyFlowSystem : SystemBase, IDailyProcess
     {
-        public bool HasDayBeenProccessed() => true;
-        public void ProcessDay()
+        public void ProcessDay(Action callback)
         {
             Entities
                 .ForEach(
@@ -31,7 +31,8 @@ namespace Assets.Scripts.Plants.Systems
 
                         if (!parentQuery.HasComponent(entity)
                             || parentQuery[entity].Value == Entity.Null
-                            || !energyStoreQuery.HasComponent(parentQuery[entity].Value))
+                            || !energyStoreQuery.HasComponent(parentQuery[entity].Value)
+                            || !childrenQuery.HasComponent(parentQuery[entity].Value))
                         {
                             energyFlow.Throughput = 0;
                         }
@@ -44,13 +45,13 @@ namespace Assets.Scripts.Plants.Systems
                             var resistance = 0f;
                             var flowRate = (1f / numBranches) / (1 + resistance);
 
-                            if (tailStore.Preassure > headStore.Preassure)
+                            if (tailStore.Pressure > headStore.Pressure)
                             {
-                                energyFlow.Throughput = flowRate * tailStore.Quantity * (tailStore.Preassure - headStore.Preassure);
+                                energyFlow.Throughput = flowRate * tailStore.Quantity * (tailStore.Pressure - headStore.Pressure);
                             }
                             else
                             {
-                                energyFlow.Throughput = flowRate * headStore.Quantity * (tailStore.Preassure - headStore.Preassure);
+                                energyFlow.Throughput = flowRate * headStore.Quantity * (tailStore.Pressure - headStore.Pressure);
                             }
                         }
                     })
@@ -101,6 +102,8 @@ namespace Assets.Scripts.Plants.Systems
                 .WithName("UpdateEnergyQuantities")
                 .ScheduleParallel(Dependency)
                 .Complete();
+
+            callback();
         }
 
         protected override void OnUpdate() { }

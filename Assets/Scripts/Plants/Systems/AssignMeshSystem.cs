@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -34,9 +35,7 @@ namespace Assets.Scripts.Plants.Systems
 
     class AssignMeshSystem : SystemBase, IDailyProcess
     {
-        public bool HasDayBeenProccessed() => true;
-
-        public void ProcessDay()
+        public void ProcessDay(Action callback)
         {
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
@@ -136,6 +135,7 @@ namespace Assets.Scripts.Plants.Systems
 
             ecb.Playback(EntityManager);
             ecb.Dispose();
+            callback();
         }
 
         protected override void OnUpdate() { }

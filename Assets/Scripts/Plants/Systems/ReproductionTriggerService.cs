@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Entities;
 
 namespace Assets.Scripts.Plants.Systems
@@ -7,8 +8,7 @@ namespace Assets.Scripts.Plants.Systems
 
     public class ReproductionTriggerSystem : SystemBase, IDailyProcess
     {
-        public bool HasDayBeenProccessed() => true;
-        public void ProcessDay()
+        public void ProcessDay(Action callback)
         {
             Entities
                 .WithNone<Dormant>()
@@ -21,6 +21,8 @@ namespace Assets.Scripts.Plants.Systems
                 })
                 .ScheduleParallel(Dependency)
                 .Complete();
+
+            callback();
         }
 
         protected override void OnUpdate() { }

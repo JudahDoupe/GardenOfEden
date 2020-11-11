@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class WaterService : MonoBehaviour, IDailyProcess
 {
@@ -60,13 +61,9 @@ public class WaterService : MonoBehaviour, IDailyProcess
         WaterShader.Dispatch(updateKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
     }
 
-    public void ProcessDay()
+    public void ProcessDay(Action callback)
     {
         WaterMap.UpdateTextureCache();
-    }
-
-    public bool HasDayBeenProccessed()
-    {
-        return true;
+        callback();
     }
 }

@@ -1,7 +1,9 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Assets.Scripts.Plants.Systems
 {
@@ -10,8 +12,7 @@ namespace Assets.Scripts.Plants.Systems
     [DisableAutoCreation]
     public class EmbryoDispersalSystem : SystemBase, IDailyProcess
     {
-        public bool HasDayBeenProccessed() => true;
-        public void ProcessDay()
+        public void ProcessDay(Action callback)
         {
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
@@ -20,7 +21,7 @@ namespace Assets.Scripts.Plants.Systems
                 .WithAll<Translation, Parent, LocalToParent>()
                 .ForEach((in EnergyStore energyStore, in LocalToWorld l2w, in Entity entity) =>
                 {
-                    if (energyStore.Preassure < 0.99f) return;
+                    if (energyStore.Pressure < 0.99f) return;
 
                     ecb.RemoveComponent<WindDispersal>(entity);
                     ecb.RemoveComponent<Parent>(entity);
@@ -37,6 +38,7 @@ namespace Assets.Scripts.Plants.Systems
 
             ecb.Playback(EntityManager);
             ecb.Dispose();
+            callback();
         }
 
         protected override void OnUpdate() { }

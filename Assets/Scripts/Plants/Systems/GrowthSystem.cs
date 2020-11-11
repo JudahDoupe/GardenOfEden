@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -27,8 +28,7 @@ namespace Assets.Scripts.Plants.Systems
 
     public class GrowthSystem : SystemBase, IDailyProcess
     {
-        public bool HasDayBeenProccessed() => true;
-        public void ProcessDay()
+        public void ProcessDay(Action callback)
         {
             Entities
                 .WithNone<Dormant>()
@@ -78,6 +78,8 @@ namespace Assets.Scripts.Plants.Systems
                 .WithName("GrowInternode")
                 .ScheduleParallel(Dependency)
                 .Complete();
+
+            callback();
         }
 
         protected override void OnUpdate() { }

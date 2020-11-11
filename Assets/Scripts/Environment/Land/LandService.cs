@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -90,14 +91,10 @@ public class LandService : MonoBehaviour, ILandService
         SoilShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
     }
 
-    public void ProcessDay()
+    public void ProcessDay(Action callback)
     {
         LandMap.UpdateTextureCache();
         SoilWaterMap.UpdateTextureCache();
-    }
-
-    public bool HasDayBeenProccessed()
-    {
-        return true;
+        callback();
     }
 }

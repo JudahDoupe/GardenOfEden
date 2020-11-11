@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Plants.Systems;
+﻿using System;
+using Assets.Scripts.Plants.Systems;
 using NUnit.Framework;
 using Unity.Entities;
 using Unity.Entities.Tests;
@@ -60,9 +61,10 @@ namespace Tests
 
         public Vector3 ClampToTerrain(Vector3 location) => location;
 
-        public bool HasDayBeenProccessed() => true;
-
-        public void ProcessDay() { }
+        public void ProcessDay(Action callback)
+        {
+            callback();
+        }
 
         public float SampleRootDepth(Vector3 location) => 0;
 

@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -18,8 +19,7 @@ namespace Assets.Scripts.Plants.Systems
 
     public class LightSystem : SystemBase, IDailyProcess
     {
-        public bool HasDayBeenProccessed() => true;
-        public void ProcessDay()
+        public void ProcessDay(Action callback)
         {
             float cellSize = 5;
 
@@ -79,6 +79,8 @@ namespace Assets.Scripts.Plants.Systems
                 .WithName("Photosynthesis")
                 .ScheduleParallel(Dependency)
                 .Complete();
+
+            callback();
         }
 
         protected override void OnUpdate() { }

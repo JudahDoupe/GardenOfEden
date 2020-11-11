@@ -1,5 +1,6 @@
-﻿public interface IDailyProcess
+﻿using System;
+
+public interface IDailyProcess
 {
-    void ProcessDay();
-    bool HasDayBeenProccessed();
+    void ProcessDay(Action callback);
 }
