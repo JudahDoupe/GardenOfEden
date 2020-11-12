@@ -9,14 +9,15 @@ namespace Assets.Scripts.Plants.Systems
 {
     public struct WindDispersal : IComponentData { }
 
-    [DisableAutoCreation]
-    public class EmbryoDispersalSystem : SystemBase, IDailyProcess
+    public class EmbryoDispersalSystem : SystemBase
     {
-        public void ProcessDay(Action callback)
+
+        protected override void OnUpdate()
         {
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
             Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithAll<WindDispersal, Dormant>()
                 .WithAll<Translation, Parent, LocalToParent>()
                 .ForEach((in EnergyStore energyStore, in LocalToWorld l2w, in Entity entity) =>
@@ -38,10 +39,7 @@ namespace Assets.Scripts.Plants.Systems
 
             ecb.Playback(EntityManager);
             ecb.Dispose();
-            callback();
         }
-
-        protected override void OnUpdate() { }
     }
 }
 

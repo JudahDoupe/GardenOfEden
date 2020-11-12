@@ -6,11 +6,13 @@ namespace Assets.Scripts.Plants.Systems
 {
     public struct DeterministicReproductionTrigger : IComponentData { }
 
-    public class ReproductionTriggerSystem : SystemBase, IDailyProcess
+    public class ReproductionTriggerSystem : SystemBase
     {
-        public void ProcessDay(Action callback)
+
+        protected override void OnUpdate()
         {
             Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .WithAll<DeterministicReproductionTrigger>()
                 .ForEach((ref NodeDivision nodeDivision) =>
@@ -19,13 +21,8 @@ namespace Assets.Scripts.Plants.Systems
                     nodeDivision.RemainingDivisions = 0;
                     nodeDivision.Type = NodeType.Reproduction;
                 })
-                .ScheduleParallel(Dependency)
-                .Complete();
-
-            callback();
+                .ScheduleParallel();
         }
-
-        protected override void OnUpdate() { }
     }
 }
 

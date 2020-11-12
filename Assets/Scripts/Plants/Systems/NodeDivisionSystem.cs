@@ -45,9 +45,9 @@ namespace Assets.Scripts.Plants.Systems
         Seedling,
     }
 
-    public class NodeDivisionSystem : SystemBase, IDailyProcess
+    public class NodeDivisionSystem : SystemBase
     {
-        public void ProcessDay(Action callback)
+        protected override void OnUpdate() 
         {
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
             var writer = ecb.AsParallelWriter();
@@ -55,8 +55,10 @@ namespace Assets.Scripts.Plants.Systems
             var genericSeed = new System.Random().Next();
 
             Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
-                .ForEach((ref NodeDivision nodeDivision, ref EnergyStore energyStore, in DnaReference dnaRef, in Entity entity, in int entityInQueryIndex) =>
+                .ForEach((ref NodeDivision nodeDivision, ref EnergyStore energyStore, in DnaReference dnaRef,
+                    in Entity entity, in int entityInQueryIndex) =>
                 {
                     if (energyStore.Quantity / (energyStore.Capacity + float.Epsilon) < 0.5f
                         || nodeDivision.RemainingDivisions < 0)
@@ -76,11 +78,13 @@ namespace Assets.Scripts.Plants.Systems
                         var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
                         var parent = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
                         var newNode = writer.Instantiate(entityInQueryIndex, embryo.Entity);
-                        writer.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
+                        writer.SetComponent(entityInQueryIndex, newNode,
+                            new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
                         if (nodeDivision.Type != NodeType.Embryo)
                         {
                             writer.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
                         }
+
                         switch (embryo.Order)
                         {
                             case DivisionOrder.InPlace:
@@ -100,6 +104,7 @@ namespace Assets.Scripts.Plants.Systems
                         }
 
                     }
+
                     nodeDivision.RemainingDivisions--;
                 })
                 .ScheduleParallel(Dependency)
@@ -107,10 +112,7 @@ namespace Assets.Scripts.Plants.Systems
 
             ecb.Playback(EntityManager);
             ecb.Dispose();
-            callback();
         }
-
-        protected override void OnUpdate() { }
 
         private static Quaternion RandomQuaternion(float maxAngle, uint seed)
         {

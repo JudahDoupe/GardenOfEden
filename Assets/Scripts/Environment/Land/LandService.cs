@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public interface ILandService : IDailyProcess
+public interface ILandService
 {
     float SampleSoilDepth(Vector3 location);
     float SampleWaterDepth(Vector3 location);
@@ -81,6 +81,7 @@ public class LandService : MonoBehaviour, ILandService
         SoilShader.SetTexture(kernelId, "SoilWaterMap", SoilWaterMap);
         SoilShader.SetTexture(kernelId, "LandMap", LandMap);
         SoilShader.SetTexture(kernelId, "WaterMap", WaterMap);
+        Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
     }
 
     void FixedUpdate()
@@ -91,10 +92,9 @@ public class LandService : MonoBehaviour, ILandService
         SoilShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
     }
 
-    public void ProcessDay(Action callback)
+    public void ProcessDay()
     {
         LandMap.UpdateTextureCache();
         SoilWaterMap.UpdateTextureCache();
-        callback();
     }
 }

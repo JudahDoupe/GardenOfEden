@@ -26,11 +26,12 @@ namespace Assets.Scripts.Plants.Systems
         public float3 NodeSize;
     }
 
-    public class GrowthSystem : SystemBase, IDailyProcess
+    public class GrowthSystem : SystemBase
     {
-        public void ProcessDay(Action callback)
+        protected override void OnUpdate()
         {
             Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
                     (ref EnergyStore energyStore, ref Node node, in PrimaryGrowth growth) =>
@@ -50,15 +51,17 @@ namespace Assets.Scripts.Plants.Systems
                         energyStore.Quantity -= constrainedVolumeGrowth / 4;
                     })
                 .WithName("GrowNode")
-                .ScheduleParallel(Dependency)
-                .Complete();
+                .ScheduleParallel();
 
             Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
-                    (ref EnergyStore energyStore, ref Internode internode, ref Translation translation, in PrimaryGrowth growth) =>
+                    (ref EnergyStore energyStore, ref Internode internode, ref Translation translation,
+                        in PrimaryGrowth growth) =>
                     {
-                        if (internode.Length.Equals(growth.InternodeLength) && internode.Radius.Equals(growth.InternodeRadius))
+                        if (internode.Length.Equals(growth.InternodeLength) &&
+                            internode.Radius.Equals(growth.InternodeRadius))
                             return;
 
                         var desiredInternode = new Internode
@@ -76,12 +79,7 @@ namespace Assets.Scripts.Plants.Systems
                         energyStore.Quantity -= constrainedVolumeGrowth / 4;
                     })
                 .WithName("GrowInternode")
-                .ScheduleParallel(Dependency)
-                .Complete();
-
-            callback();
+                .ScheduleParallel();
         }
-
-        protected override void OnUpdate() { }
     }
 }

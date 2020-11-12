@@ -17,11 +17,12 @@ namespace Assets.Scripts.Plants.Systems
         public float Throughput;
     }
 
-    public class EnergyFlowSystem : SystemBase, IDailyProcess
+    public class EnergyFlowSystem : SystemBase
     {
-        public void ProcessDay(Action callback)
+        protected override void OnUpdate()
         {
             Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .ForEach(
                     (ref EnergyFlow energyFlow, in EnergyStore energyStore, in Entity entity) =>
                     {
@@ -47,19 +48,21 @@ namespace Assets.Scripts.Plants.Systems
 
                             if (tailStore.Pressure > headStore.Pressure)
                             {
-                                energyFlow.Throughput = flowRate * tailStore.Quantity * (tailStore.Pressure - headStore.Pressure);
+                                energyFlow.Throughput = flowRate * tailStore.Quantity *
+                                                        (tailStore.Pressure - headStore.Pressure);
                             }
                             else
                             {
-                                energyFlow.Throughput = flowRate * headStore.Quantity * (tailStore.Pressure - headStore.Pressure);
+                                energyFlow.Throughput = flowRate * headStore.Quantity *
+                                                        (tailStore.Pressure - headStore.Pressure);
                             }
                         }
                     })
                 .WithName("UpdateEnergyThroughput")
-                .ScheduleParallel(Dependency)
-                .Complete();
+                .ScheduleParallel();
 
             Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .ForEach(
                     (ref EnergyStore energyStore, in Entity entity) =>
                     {
@@ -74,16 +77,19 @@ namespace Assets.Scripts.Plants.Systems
                         {
                             energyStore.Capacity += nodeQuery[entity].Volume;
                         }
+
                         if (internodeQuery.HasComponent(entity))
                         {
                             energyStore.Capacity += internodeQuery[entity].Volume;
                         }
+
                         energyStore.Capacity = math.max(0.001f, energyStore.Capacity);
 
                         if (energyFlowQuery.HasComponent(entity))
                         {
                             energyStore.Quantity += energyFlowQuery[entity].Throughput;
                         }
+
                         if (childrenQuery.HasComponent(entity))
                         {
                             var branches = childrenQuery[entity];
@@ -100,12 +106,7 @@ namespace Assets.Scripts.Plants.Systems
                         energyStore.Quantity = math.clamp(energyStore.Quantity, 0, energyStore.Capacity);
                     })
                 .WithName("UpdateEnergyQuantities")
-                .ScheduleParallel(Dependency)
-                .Complete();
-
-            callback();
+                .ScheduleParallel();
         }
-
-        protected override void OnUpdate() { }
     }
 }

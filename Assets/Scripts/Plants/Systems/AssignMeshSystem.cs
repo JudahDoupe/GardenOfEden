@@ -33,13 +33,14 @@ namespace Assets.Scripts.Plants.Systems
         public Entity Entity;
     }
 
-    class AssignMeshSystem : SystemBase, IDailyProcess
+    class AssignMeshSystem : SystemBase
     {
-        public void ProcessDay(Action callback)
+        protected override void OnUpdate()
         {
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
             Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
                     (in AssignNodeMesh assignMesh, in Entity entity) =>
@@ -135,10 +136,7 @@ namespace Assets.Scripts.Plants.Systems
 
             ecb.Playback(EntityManager);
             ecb.Dispose();
-            callback();
         }
-
-        protected override void OnUpdate() { }
 
     }
 }

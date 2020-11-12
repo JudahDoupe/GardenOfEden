@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-public class WaterService : MonoBehaviour, IDailyProcess
+public class WaterService : MonoBehaviour
 {
     [Header("Variables")]
     public float Rain_MetersPerSecond = 0.1f;
@@ -43,6 +43,8 @@ public class WaterService : MonoBehaviour, IDailyProcess
 
         var rainKernel = WaterShader.FindKernel("Rain");
         WaterShader.SetTexture(rainKernel, "WaterMap", WaterMap);
+
+        Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
     }
 
     void FixedUpdate()
@@ -61,9 +63,8 @@ public class WaterService : MonoBehaviour, IDailyProcess
         WaterShader.Dispatch(updateKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
     }
 
-    public void ProcessDay(Action callback)
+    public void ProcessDay()
     {
         WaterMap.UpdateTextureCache();
-        callback();
     }
 }

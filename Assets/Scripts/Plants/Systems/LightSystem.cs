@@ -17,17 +17,23 @@ namespace Assets.Scripts.Plants.Systems
         public float Efficiency;
     }
 
-    public class LightSystem : SystemBase, IDailyProcess
+    public class LightSystem : SystemBase
     {
-        public void ProcessDay(Action callback)
+        protected override void OnUpdate()
         {
             float cellSize = 5;
 
-            var query = GetEntityQuery(typeof(LightAbsorption), typeof(LocalToWorld));
-            var lightCells = new NativeMultiHashMap<int2, Entity>(query.CalculateEntityCount(), Allocator.TempJob);
+            var query = GetEntityQuery(typeof(LightAbsorption), typeof(LocalToWorld), typeof(UpdateChunk));
+            query.ResetFilter();
+            query.AddSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk);
+            var entityCount = query.CalculateEntityCount();
+            if(entityCount == 0) return;
+
+            var lightCells = new NativeMultiHashMap<int2, Entity>(entityCount, Allocator.TempJob);
             var lightCellsWriter = lightCells.AsParallelWriter();
 
             Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .ForEach((ref LightAbsorption absorber, in Entity entity, in LocalToWorld l2w) =>
                 {
                     var internodeQuery = GetComponentDataFromEntity<Internode>(true);
@@ -37,9 +43,11 @@ namespace Assets.Scripts.Plants.Systems
                     if (internodeQuery.HasComponent(entity))
                     {
                         var internode = internodeQuery[entity];
-                        var globalSize = math.mul(l2w.Rotation, new float3(internode.Radius, internode.Radius, internode.Length));
+                        var globalSize = math.mul(l2w.Rotation,
+                            new float3(internode.Radius, internode.Radius, internode.Length));
                         absorber.SurfaceArea += math.abs(globalSize.x * globalSize.z);
                     }
+
                     if (nodeQuery.HasComponent(entity))
                     {
                         var node = nodeQuery[entity];
@@ -52,12 +60,13 @@ namespace Assets.Scripts.Plants.Systems
 
                 })
                 .WithName("UpdateLightAbsorber")
-                .ScheduleParallel(Dependency)
-                .Complete();
+                .ScheduleParallel();
 
             Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNativeDisableParallelForRestriction(lightCells)
-                .ForEach((ref EnergyStore energyStore, in LightAbsorption absorber, in LocalToWorld l2w, in Photosynthesis photosynthesis) =>
+                .ForEach((ref EnergyStore energyStore, in LightAbsorption absorber, in LocalToWorld l2w,
+                    in Photosynthesis photosynthesis) =>
                 {
                     var l2wQuery = GetComponentDataFromEntity<LocalToWorld>(true);
                     var lightQuery = GetComponentDataFromEntity<LightAbsorption>(true);
@@ -73,17 +82,13 @@ namespace Assets.Scripts.Plants.Systems
                         }
                     }
 
-                    energyStore.Quantity += math.clamp(availableLight, 0, absorber.SurfaceArea) * photosynthesis.Efficiency;
+                    energyStore.Quantity +=
+                        math.clamp(availableLight, 0, absorber.SurfaceArea) * photosynthesis.Efficiency;
                 })
                 .WithDisposeOnCompletion(lightCells)
                 .WithName("Photosynthesis")
-                .ScheduleParallel(Dependency)
-                .Complete();
-
-            callback();
+                .ScheduleParallel();
         }
-
-        protected override void OnUpdate() { }
 
         public static int2 GetCellIdFromPosition(float3 position, float cellSize)
         {

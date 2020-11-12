@@ -61,9 +61,8 @@ namespace Tests
 
         public Vector3 ClampToTerrain(Vector3 location) => location;
 
-        public void ProcessDay(Action callback)
+        public void ProcessDay()
         {
-            callback();
         }
 
         public float SampleRootDepth(Vector3 location) => 0;
