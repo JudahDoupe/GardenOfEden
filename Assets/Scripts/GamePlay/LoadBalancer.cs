@@ -20,14 +20,15 @@ public class LoadBalancer : MonoBehaviour
     private LinkedListNode<UpdateChunk> _currentChunk;
     private LinkedList<UpdateChunk> _updateChunks = new LinkedList<UpdateChunk>();
     public Dictionary<int, double[]> ChunkProcessingTimes = new Dictionary<int, double[]>();
-    private int lastId = 1;
+    private int _lastId = 1;
+    private bool _shouldBalanceChunks = false;
 
     public void Start()
     {
         //This is the environment chunk
         AddChunk(-1, Vector3.zero);
         //This is the main entities chunk
-        AddChunk(lastId++, Camera.main.transform.position);
+        AddChunk(_lastId++, Camera.main.transform.position);
 
         _currentChunk = _updateChunks.First;
     }
@@ -39,9 +40,7 @@ public class LoadBalancer : MonoBehaviour
             foreach (var runEnvironmentalSystem in _environmentalSystems)
             {
                 runEnvironmentalSystem();
-            } 
-
-            BalanceChunks();
+            }
         }
         else
         {
@@ -56,6 +55,21 @@ public class LoadBalancer : MonoBehaviour
         _environmentalSystems.Add(action);
     }
 
+    public void BalanceChunks()
+    {
+        foreach (var chunkResult in ChunkProcessingTimes.ToArray())
+        {
+            if (chunkResult.Value.Average() > DesiredChunkMilliseconds)
+            {
+                SplitChunk(_updateChunks.Single(x => x.Id == chunkResult.Key));
+            }
+            else if (chunkResult.Value.Average() < DesiredChunkMilliseconds / 10)
+            {
+                CoalesceChunk(_updateChunks.Single(x => x.Id == chunkResult.Key));
+            }
+        }
+    }
+
     private double CalculateChunkProcessingTime()
     {
         var sum = 0d;
@@ -67,33 +81,6 @@ public class LoadBalancer : MonoBehaviour
         }
 
         return sum;
-    }
-
-    private void BalanceChunks()
-    {
-        var chunkIdToSplit = -1;
-        var chunkIdToCoalesce = -1;
-        var maxProcessingTime = 0;
-        foreach (var chunkResult in ChunkProcessingTimes)
-        {
-            if (chunkResult.Value.Average() > DesiredChunkMilliseconds && chunkResult.Value.Average() > maxProcessingTime)
-            {
-                chunkIdToSplit = chunkResult.Key;
-            }
-            if (chunkResult.Value.Average() < DesiredChunkMilliseconds / 10)
-            {
-                chunkIdToCoalesce = chunkResult.Key;
-            }
-        }
-
-        if (chunkIdToSplit >= 0 && Singleton.TimeService.DayOfTheYear > 30)
-        {
-            SplitChunk(_updateChunks.Single(x => x.Id == chunkIdToSplit));
-        }
-        if (chunkIdToCoalesce >= 0 && _updateChunks.Count > 2)
-        {
-            CoalesceChunk(_updateChunks.Single(x => x.Id == chunkIdToCoalesce));
-        }
     }
 
     private bool splitDirection;
@@ -117,8 +104,8 @@ public class LoadBalancer : MonoBehaviour
         offset.Scale(splitDirection ? new Vector3(0, 0.3f, 0) : new Vector3(0.3f, 0, 0));
         splitDirection = !splitDirection;
 
-        AddChunk(lastId++, bounds.center + offset);
-        AddChunk(lastId++, bounds.center - offset);
+        AddChunk(_lastId++, bounds.center + offset);
+        AddChunk(_lastId++, bounds.center - offset);
         CoalesceChunk(chunkBeingSplit);
     }
 
@@ -131,7 +118,8 @@ public class LoadBalancer : MonoBehaviour
     private void AddChunk(int id, float3 position)
     {
         _updateChunks.AddLast(new UpdateChunk { Id = id, Position = position });
-        ChunkProcessingTimes[id] = new double[7];
+        var val = DesiredChunkMilliseconds / 2d;
+        ChunkProcessingTimes[id] = new double[]{ val, val, val, val, val, val, val };
     }
 
 }
@@ -142,6 +130,12 @@ public class LoadBalancerEditor : Editor
     public override void OnInspectorGUI()
     {
         var service = (LoadBalancer)target;
+
+        DrawDefaultInspector();
+
+        EditorGUILayout.Space(5);
+        EditorGUILayout.LabelField($"Chunks/Frames Per Day: {service.UpdateChunks.Count}");
+        EditorGUILayout.Space(5);
 
         foreach (var chunkData in service.ChunkProcessingTimes)
         {

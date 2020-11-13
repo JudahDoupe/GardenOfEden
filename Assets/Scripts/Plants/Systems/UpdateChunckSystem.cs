@@ -59,6 +59,7 @@ namespace Assets.Scripts.Plants.Systems
             _chunks.Remove(_currentChunk);
             if (!_chunks.Any())
             {
+                Singleton.LoadBalancer.BalanceChunks();
                 EntityManager.GetAllUniqueSharedComponentData(_chunks);
             }
             _currentChunk = _chunks.First();

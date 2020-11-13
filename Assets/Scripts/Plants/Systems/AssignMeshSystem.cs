@@ -58,17 +58,10 @@ namespace Assets.Scripts.Plants.Systems
                             }
                             else
                             {
-                                meshEntity = ecb.CreateEntity();
+                                meshEntity = ecb.CreateEntity(Singleton.RenderMeshLibrary.NodeMeshArchetype);
                                 ecb.AddComponent(entity, typeof(NodeMeshReference));
                                 ecb.SetComponent(entity, new NodeMeshReference { Entity = meshEntity });
-                                ecb.AddComponent(meshEntity, typeof(NodeReference));
                                 ecb.SetComponent(meshEntity, new NodeReference { Entity = entity });
-                                ecb.AddComponent(meshEntity, typeof(RenderMesh));
-                                ecb.AddComponent(meshEntity, typeof(RenderBounds));
-                                ecb.AddComponent(meshEntity, typeof(Translation));
-                                ecb.AddComponent(meshEntity, typeof(Rotation));
-                                ecb.AddComponent(meshEntity, typeof(NonUniformScale));
-                                ecb.AddComponent(meshEntity, typeof(LocalToWorld));
                             }
 
                             ecb.SetSharedComponent(meshEntity, mesh.Mesh);
@@ -105,17 +98,10 @@ namespace Assets.Scripts.Plants.Systems
                             }
                             else
                             {
-                                meshEntity = ecb.CreateEntity();
+                                meshEntity = ecb.CreateEntity(Singleton.RenderMeshLibrary.InternodeMeshArchetype);
                                 ecb.AddComponent(entity, typeof(InternodeMeshReference));
                                 ecb.SetComponent(entity, new InternodeMeshReference { Entity = meshEntity });
-                                ecb.AddComponent(meshEntity, typeof(InternodeReference));
                                 ecb.SetComponent(meshEntity, new InternodeReference { Entity = entity });
-                                ecb.AddComponent(meshEntity, typeof(RenderMesh));
-                                ecb.AddComponent(meshEntity, typeof(RenderBounds));
-                                ecb.AddComponent(meshEntity, typeof(Translation));
-                                ecb.AddComponent(meshEntity, typeof(Rotation));
-                                ecb.AddComponent(meshEntity, typeof(NonUniformScale));
-                                ecb.AddComponent(meshEntity, typeof(LocalToWorld));
                             }
 
                             ecb.SetSharedComponent(meshEntity, mesh.Mesh);
