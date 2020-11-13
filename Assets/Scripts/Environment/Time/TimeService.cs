@@ -16,11 +16,11 @@ public class TimeService : MonoBehaviour
 
     private void IncrementDay()
     {
-        DayOfTheWeek += 1 % 7;
-        DayOfTheMonth += 1 % 30;
-        DayOfTheYear += 1 % 360;
-        MonthOfTheYear += DayOfTheMonth == 0 ? 1 : 0;
-        Year += DayOfTheYear == 0 ? 1 : 0;
+        DayOfTheWeek = (DayOfTheWeek + 1) % 7;
+        DayOfTheMonth  = (DayOfTheMonth + 1) % 30;
+        DayOfTheYear  = (DayOfTheYear + 1) % 360;
+        MonthOfTheYear += (DayOfTheMonth == 0) ? 1 : 0;
+        Year += (DayOfTheYear == 0) ? 1 : 0;
     }
 }
 

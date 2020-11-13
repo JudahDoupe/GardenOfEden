@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace Assets.Scripts.Plants.Systems
 {
@@ -11,12 +14,18 @@ namespace Assets.Scripts.Plants.Systems
     {
         public int Id;
         public float3 Position;
+        public bool IsEnvironmental => Id < 0;
     }
 
     class UpdateChunkSystem : SystemBase
     {
+        private List<UpdateChunk> _chunks = new List<UpdateChunk>();
+        private UpdateChunk _currentChunk = new UpdateChunk();
+
         protected override void OnUpdate()
         {
+            if (Singleton.LoadBalancer.CurrentChunk.Id != -1) return;
+
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
             var writer = ecb.AsParallelWriter();
             var chunks = Singleton.LoadBalancer.UpdateChunks
@@ -24,7 +33,7 @@ namespace Assets.Scripts.Plants.Systems
                 .ToNativeArray(Allocator.TempJob);
 
             Entities
-                .WithAll<UpdateChunk>()
+                .WithSharedComponentFilter(_currentChunk)
                 .WithNativeDisableParallelForRestriction(chunks)
                 .ForEach((in Entity entity, in LocalToWorld l2w, in int entityInQueryIndex) =>
                 {
@@ -46,6 +55,13 @@ namespace Assets.Scripts.Plants.Systems
 
             ecb.Playback(EntityManager);
             ecb.Dispose();
+
+            _chunks.Remove(_currentChunk);
+            if (!_chunks.Any())
+            {
+                EntityManager.GetAllUniqueSharedComponentData(_chunks);
+            }
+            _currentChunk = _chunks.First();
         }
     }
 }
