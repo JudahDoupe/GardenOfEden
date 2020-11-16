@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Assets.Scripts.Plants.Systems;
 using Unity.Collections;
@@ -12,6 +13,7 @@ using UnityEngine;
 public class LoadBalancer : MonoBehaviour
 {
     public float DesiredChunkMilliseconds = 5;
+    public float MsPerDay { get; private set; }
 
     public UpdateChunk CurrentChunk => _currentChunk.Value; 
     public List<UpdateChunk> UpdateChunks => _updateChunks.ToList(); 
@@ -21,7 +23,7 @@ public class LoadBalancer : MonoBehaviour
     private LinkedList<UpdateChunk> _updateChunks = new LinkedList<UpdateChunk>();
     public Dictionary<int, double[]> ChunkProcessingTimes = new Dictionary<int, double[]>();
     private int _lastId = 1;
-    private bool _shouldBalanceChunks = false;
+    private Stopwatch _dayLengthTimer = new Stopwatch();
 
     public void Start()
     {
@@ -31,6 +33,7 @@ public class LoadBalancer : MonoBehaviour
         AddChunk(_lastId++, Camera.main.transform.position);
 
         _currentChunk = _updateChunks.First;
+        _dayLengthTimer.Start();
     }
 
     public void Update()
@@ -41,6 +44,9 @@ public class LoadBalancer : MonoBehaviour
             {
                 runEnvironmentalSystem();
             }
+
+            MsPerDay = _dayLengthTimer.ElapsedMilliseconds;
+            _dayLengthTimer.Restart();
         }
         else
         {
@@ -63,7 +69,7 @@ public class LoadBalancer : MonoBehaviour
             {
                 SplitChunk(_updateChunks.Single(x => x.Id == chunkResult.Key));
             }
-            else if (chunkResult.Value.Average() < DesiredChunkMilliseconds / 10)
+            else if (chunkResult.Value.Average() < DesiredChunkMilliseconds / 2 && _updateChunks.Count(x => x.Id > 0) > 1)
             {
                 CoalesceChunk(_updateChunks.Single(x => x.Id == chunkResult.Key));
             }
@@ -134,7 +140,8 @@ public class LoadBalancerEditor : Editor
         DrawDefaultInspector();
 
         EditorGUILayout.Space(5);
-        EditorGUILayout.LabelField($"Chunks/Frames Per Day: {service.UpdateChunks.Count}");
+        EditorGUILayout.LabelField($"Chunks Per Day: {service.UpdateChunks.Count}");
+        EditorGUILayout.LabelField($"Ms Per Day: {service.MsPerDay}");
         EditorGUILayout.Space(5);
 
         foreach (var chunkData in service.ChunkProcessingTimes)

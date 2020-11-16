@@ -57,8 +57,7 @@ namespace Assets.Scripts.Plants.Systems
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
-                    (ref EnergyStore energyStore, ref Internode internode, ref Translation translation,
-                        in PrimaryGrowth growth) =>
+                    (ref EnergyStore energyStore, ref Internode internode, ref Translation translation, in PrimaryGrowth growth) =>
                     {
                         if (internode.Length.Equals(growth.InternodeLength) &&
                             internode.Radius.Equals(growth.InternodeRadius))

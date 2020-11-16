@@ -22,12 +22,18 @@ namespace Assets.Scripts.Plants.Systems
         private List<UpdateChunk> _chunks = new List<UpdateChunk>();
         private UpdateChunk _currentChunk = new UpdateChunk();
 
+        EndSimulationEntityCommandBufferSystem _ecbSystem;
+        protected override void OnCreate()
+        {
+            base.OnCreate();
+            _ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        }
+
         protected override void OnUpdate()
         {
             if (Singleton.LoadBalancer.CurrentChunk.Id != -1) return;
 
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
-            var writer = ecb.AsParallelWriter();
+            var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             var chunks = Singleton.LoadBalancer.UpdateChunks
                 .Where(x => x.Id >= 0).ToList()
                 .ToNativeArray(Allocator.TempJob);
@@ -46,15 +52,14 @@ namespace Assets.Scripts.Plants.Systems
                             closestChunk = chunks[i];
                         }
                     }
-                    writer.SetSharedComponent(entityInQueryIndex, entity, closestChunk);
+
+                    ecb.SetSharedComponent(entityInQueryIndex, entity, closestChunk);
                 })
                 .WithName("UpdateChunk")
                 .WithDisposeOnCompletion(chunks)
-                .ScheduleParallel(Dependency)
-                .Complete();
+                .ScheduleParallel();
 
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
+            _ecbSystem.AddJobHandleForProducer(Dependency);
 
             _chunks.Remove(_currentChunk);
             if (!_chunks.Any())

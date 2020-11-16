@@ -11,10 +11,16 @@ namespace Assets.Scripts.Plants.Systems
 
     public class EmbryoDispersalSystem : SystemBase
     {
+        EndSimulationEntityCommandBufferSystem _ecbSystem;
+        protected override void OnCreate()
+        {
+            base.OnCreate();
+            _ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        }
 
         protected override void OnUpdate()
         {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var ecb = _ecbSystem.CreateCommandBuffer();
 
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
@@ -37,8 +43,7 @@ namespace Assets.Scripts.Plants.Systems
                 .WithoutBurst()
                 .Run();
 
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
+            _ecbSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }

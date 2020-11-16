@@ -51,7 +51,8 @@ public class GameService : MonoBehaviour
             typeof(LightAbsorption),
             typeof(Dormant),
             typeof(UpdateChunk),
-            typeof(DnaReference)
+            typeof(DnaReference),
+            typeof(Health)
         );
 
 
@@ -63,6 +64,7 @@ public class GameService : MonoBehaviour
         em.AddComponentData(vegNode, new AssignInternodeMesh { MeshName = "GreenStem" });
         em.AddComponentData(vegNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 1, InternodeRadius = 0.1f });
         em.SetComponentData(vegNode, new DnaReference { Entity = dna });
+        em.SetComponentData(vegNode, new Health { Value = 1 });
 
         var leaf = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(leaf, new Internode());
@@ -71,24 +73,28 @@ public class GameService : MonoBehaviour
         em.AddComponentData(leaf, new AssignNodeMesh { MeshName = "Leaf" });
         em.AddComponentData(leaf, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1 });
         em.SetComponentData(leaf, new DnaReference { Entity = dna });
+        em.SetComponentData(leaf, new Health { Value = 1 });
 
         var bud = em.CreateEntity(plantNodeArchetype);
         em.SetComponentData(bud, new Node { Size = new float3(0.01f, 0.01f, 0.01f) });
         em.AddComponentData(bud, new DeterministicReproductionTrigger());
         em.AddComponentData(bud, new NodeDivision { RemainingDivisions = 6, Type = NodeType.Vegetation });
         em.SetComponentData(bud, new DnaReference { Entity = dna });
+        em.SetComponentData(bud, new Health { Value = 1 });
 
         var sporangia = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(sporangia, new AssignNodeMesh { MeshName = "Sporangia" });
         em.AddComponentData(sporangia, new PrimaryGrowth { GrowthRate = 0.1f, NodeSize = 1 });
-        em.AddComponentData(sporangia, new NodeDivision { Type = NodeType.Embryo, RemainingDivisions = 15 });
+        em.AddComponentData(sporangia, new NodeDivision { Type = NodeType.Embryo, RemainingDivisions = 5 });
         em.SetComponentData(sporangia, new DnaReference { Entity = dna });
+        em.SetComponentData(sporangia, new Health { Value = 1 });
 
         var spore = em.CreateEntity(plantNodeArchetype);
         em.SetComponentData(spore, new Node { Size = new float3(0.25f, 0.25f, 0.25f) });
         em.AddComponentData(spore, new WindDispersal());
         em.AddComponentData(spore, new NodeDivision { Type = NodeType.Seedling });
         em.SetComponentData(spore, new DnaReference { Entity = dna });
+        em.SetComponentData(spore, new Health { Value = 1 });
 
         var embryoBuffer = em.AddBuffer<EmbryoNode>(dna);
         embryoBuffer.Add(new EmbryoNode

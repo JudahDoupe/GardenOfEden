@@ -47,10 +47,16 @@ namespace Assets.Scripts.Plants.Systems
 
     public class NodeDivisionSystem : SystemBase
     {
+        EndSimulationEntityCommandBufferSystem _ecbSystem;
+        protected override void OnCreate()
+        {
+            base.OnCreate();
+            _ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        }
+
         protected override void OnUpdate() 
         {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
-            var writer = ecb.AsParallelWriter();
+            var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
 
             var genericSeed = new System.Random().Next();
 
@@ -77,29 +83,29 @@ namespace Assets.Scripts.Plants.Systems
 
                         var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
                         var parent = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
-                        var newNode = writer.Instantiate(entityInQueryIndex, embryo.Entity);
-                        writer.SetComponent(entityInQueryIndex, newNode,
+                        var newNode = ecb.Instantiate(entityInQueryIndex, embryo.Entity);
+                        ecb.SetComponent(entityInQueryIndex, newNode,
                             new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
                         if (nodeDivision.Type != NodeType.Embryo)
                         {
-                            writer.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
+                            ecb.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
                         }
 
                         switch (embryo.Order)
                         {
                             case DivisionOrder.InPlace:
-                                writer.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
                                 break;
                             case DivisionOrder.Replace:
-                                writer.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
-                                writer.DestroyEntity(entityInQueryIndex, entity);
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
+                                ecb.DestroyEntity(entityInQueryIndex, entity);
                                 break;
                             case DivisionOrder.PreNode:
-                                writer.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
-                                writer.SetComponent(entityInQueryIndex, entity, new Parent { Value = newNode });
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
+                                ecb.SetComponent(entityInQueryIndex, entity, new Parent { Value = newNode });
                                 break;
                             case DivisionOrder.PostNode:
-                                writer.SetComponent(entityInQueryIndex, newNode, new Parent { Value = entity });
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = entity });
                                 break;
                         }
 
@@ -107,11 +113,9 @@ namespace Assets.Scripts.Plants.Systems
 
                     nodeDivision.RemainingDivisions--;
                 })
-                .ScheduleParallel(Dependency)
-                .Complete();
+                .ScheduleParallel();
 
-            ecb.Playback(EntityManager);
-            ecb.Dispose();
+            _ecbSystem.AddJobHandleForProducer(Dependency);
         }
 
         private static Quaternion RandomQuaternion(float maxAngle, uint seed)

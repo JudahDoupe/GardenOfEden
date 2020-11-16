@@ -65,8 +65,7 @@ namespace Assets.Scripts.Plants.Systems
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNativeDisableParallelForRestriction(lightCells)
-                .ForEach((ref EnergyStore energyStore, in LightAbsorption absorber, in LocalToWorld l2w,
-                    in Photosynthesis photosynthesis) =>
+                .ForEach((ref EnergyStore energyStore, in LightAbsorption absorber, in LocalToWorld l2w, in Photosynthesis photosynthesis) =>
                 {
                     var l2wQuery = GetComponentDataFromEntity<LocalToWorld>(true);
                     var lightQuery = GetComponentDataFromEntity<LightAbsorption>(true);
@@ -82,8 +81,8 @@ namespace Assets.Scripts.Plants.Systems
                         }
                     }
 
-                    energyStore.Quantity +=
-                        math.clamp(availableLight, 0, absorber.SurfaceArea) * photosynthesis.Efficiency;
+                    energyStore.Quantity -= absorber.SurfaceArea * math.pow(photosynthesis.Efficiency / 2, 2);
+                    energyStore.Quantity += math.clamp(availableLight, 0, absorber.SurfaceArea) * photosynthesis.Efficiency;
                 })
                 .WithDisposeOnCompletion(lightCells)
                 .WithName("Photosynthesis")
