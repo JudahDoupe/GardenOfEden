@@ -57,7 +57,6 @@ namespace Assets.Scripts.Plants.Systems
         protected override void OnUpdate() 
         {
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
-
             var genericSeed = new System.Random().Next();
 
             Entities

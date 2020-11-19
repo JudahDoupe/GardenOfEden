@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 using UnityEngine;
 
 public interface ILandService
@@ -9,6 +10,7 @@ public interface ILandService
     float SampleWaterDepth(Vector3 location);
     float SampleRootDepth(Vector3 location);
     float SampleTerrainHeight(Vector3 location);
+    Texture2D GetLandMap();
     Vector3 ClampAboveTerrain(Vector3 location);
     Vector3 ClampToTerrain(Vector3 location);
 }
@@ -56,6 +58,11 @@ public class LandService : MonoBehaviour, ILandService
         var uv = ComputeShaderUtils.LocationToUv(location);
         var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         return color.a;
+    }
+
+    public Texture2D GetLandMap()
+    {
+        return LandMap.CachedTexture();
     }
 
     public Vector3 ClampAboveTerrain(Vector3 location)

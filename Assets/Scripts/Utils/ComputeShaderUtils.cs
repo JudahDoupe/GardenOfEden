@@ -1,33 +1,28 @@
-﻿using Assets.Scripts.Utils;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 public class ComputeShaderUtils : MonoBehaviour
 {
-    public static int TextureSize = 512;
-    public static int WorldSizeInMeters = 400;
+    public const int TextureSize = 512;
+    public const int ChunkSizeInMeters = 400;
 
-    public static Vector2 LocationToUv(Vector3 location)
+    public static float2 LocationToUv(float3 location) => new float2((location.x % ChunkSizeInMeters) / ChunkSizeInMeters, (location.z % ChunkSizeInMeters) / ChunkSizeInMeters);
+    public static float2 LocationToNormalizedUv(float3 location) => (LocationToUv(location) + new float2(1, 1)) / 2;
+    public static float2 LocationToXy(float3 location) => LocationToUv(location) * TextureSize;
+
+    public static int LocationToIndex(float3 location)
     {
-        var relativePosition = location - new Vector3(0, 0, -100);
-        var uvPos = relativePosition / (WorldSizeInMeters / 2.0f);
-        var uv = new Vector2(uvPos.x, uvPos.z);
-        return (uv + new Vector2(1, 1)) / 2;
-    }
-    public static Vector2 LocationToXy(Vector3 location)
-    {
-        var uv = LocationToUv(location);
-        return new Vector2(Mathf.FloorToInt(uv.x * 512), Mathf.FloorToInt(uv.y * 512));
+        var xy = math.int2(math.round(LocationToXy(location)));
+        return xy.y * TextureSize + xy.x;
     }
 }
 
-public static class RenderTextureExtentions
+public static class RenderTextureExtensions
 {
     public static Dictionary<RenderTexture, Texture2D> RTCache = new Dictionary<RenderTexture, Texture2D>();
-    public static Dictionary<RenderTexture, Subject<Texture2D>> RTSubjects = new Dictionary<RenderTexture, Subject<Texture2D>>();
     public static Dictionary<RenderTexture, AsyncGPUReadbackRequest> RTRequest = new Dictionary<RenderTexture, AsyncGPUReadbackRequest>();
 
     public static Texture2D CachedTexture(this RenderTexture rt)
@@ -37,7 +32,6 @@ public static class RenderTextureExtentions
         {
             tex = rt.ToTexture2D();
             RTCache.Add(rt, tex);
-            RTSubjects.Add(rt, new Subject<Texture2D>());
         }
         return tex;
     }

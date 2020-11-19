@@ -1,6 +1,5 @@
-﻿using System;
-using Unity.Collections;
-using Unity.Entities;
+﻿using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -20,28 +19,34 @@ namespace Assets.Scripts.Plants.Systems
 
         protected override void OnUpdate()
         {
-            var ecb = _ecbSystem.CreateCommandBuffer();
+            var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
+            var landMap = Singleton.LandService.GetLandMap();
+            var landMapNativeArray = landMap.GetRawTextureData<Color>();
+            var genericSeed = new System.Random().Next();
 
             Entities
+                .WithNativeDisableParallelForRestriction(landMapNativeArray)
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithAll<WindDispersal, Dormant>()
                 .WithAll<Translation, Parent, LocalToParent>()
-                .ForEach((in EnergyStore energyStore, in LocalToWorld l2w, in Entity entity) =>
+                .ForEach((in EnergyStore energyStore, in LocalToWorld l2w, in Entity entity, in int entityInQueryIndex) =>
                 {
                     if (energyStore.Pressure < 0.99f) return;
 
-                    ecb.RemoveComponent<WindDispersal>(entity);
-                    ecb.RemoveComponent<Parent>(entity);
-                    ecb.RemoveComponent<LocalToParent>(entity);
-                    ecb.RemoveComponent<Dormant>(entity);
+                    ecb.RemoveComponent<WindDispersal>(entityInQueryIndex, entity);
+                    ecb.RemoveComponent<Parent>(entityInQueryIndex, entity);
+                    ecb.RemoveComponent<LocalToParent>(entityInQueryIndex, entity);
+                    ecb.RemoveComponent<Dormant>(entityInQueryIndex, entity);
 
-                    var height = l2w.Position.y - Singleton.LandService.SampleTerrainHeight(l2w.Position);
-                    var position = l2w.Position + new Vector3(Random.Range(-height, height), 0, Random.Range(-height, height)).ToFloat3();
-                    position = Singleton.LandService.ClampToTerrain(position).ToFloat3();
-                    ecb.SetComponent(entity, new Translation { Value = position });
+                    var seed = math.asuint((genericSeed * entityInQueryIndex) % uint.MaxValue) + 1;
+                    var rand = new Unity.Mathematics.Random(seed);
+                    var height = l2w.Position.y - landMapNativeArray[ComputeShaderUtils.LocationToIndex(l2w.Position)].a;
+                    var position = l2w.Position + new float3(rand.NextFloat(-height, height), 0, rand.NextFloat(-height, height));
+                    position.y = landMapNativeArray[ComputeShaderUtils.LocationToIndex(position)].a;
+                    ecb.SetComponent(entityInQueryIndex, entity, new Translation { Value = position });
                 })
-                .WithoutBurst()
-                .Run();
+                .WithName("WindEmbryoDispersal")
+                .ScheduleParallel();
 
             _ecbSystem.AddJobHandleForProducer(Dependency);
         }

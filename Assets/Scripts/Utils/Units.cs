@@ -12,7 +12,7 @@ public struct Volume
 
     public static Volume FromPixel(float depth)
     {
-        var metersPerPixel = (float)ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
+        var metersPerPixel = (float)ComputeShaderUtils.ChunkSizeInMeters / ComputeShaderUtils.TextureSize;
         var cubicMeters = metersPerPixel * metersPerPixel * depth;
         return new Volume(cubicMeters);
     }
@@ -24,7 +24,7 @@ public struct Volume
 
     public float ToPixel()
     {
-        var metersPerPixel = (float)ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
+        var metersPerPixel = (float)ComputeShaderUtils.ChunkSizeInMeters / ComputeShaderUtils.TextureSize;
         return (_cubicMeters / metersPerPixel) / metersPerPixel;
     }
 
@@ -51,7 +51,7 @@ public struct Area
 
     public static Area FromPixel(float pixels)
     {
-        var metersPerPixel = (float)ComputeShaderUtils.WorldSizeInMeters / ComputeShaderUtils.TextureSize;
+        var metersPerPixel = (float)ComputeShaderUtils.ChunkSizeInMeters / ComputeShaderUtils.TextureSize;
         var SquareMeters = metersPerPixel * metersPerPixel;
         return new Area(SquareMeters);
     }

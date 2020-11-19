@@ -1,6 +1,7 @@
 ﻿using System;
 using Assets.Scripts.Plants.Systems;
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Entities.Tests;
 using Unity.Mathematics;
@@ -57,13 +58,14 @@ namespace Tests
 
     public class MockLandService : ILandService
     {
+        public Texture2D GetLandMap()
+        {
+            throw new NotImplementedException();
+        }
+
         public Vector3 ClampAboveTerrain(Vector3 location) => location;
 
         public Vector3 ClampToTerrain(Vector3 location) => location;
-
-        public void ProcessDay()
-        {
-        }
 
         public float SampleRootDepth(Vector3 location) => 0;
 

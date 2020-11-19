@@ -147,7 +147,7 @@ public class GameService : MonoBehaviour
             em.RemoveComponent<Parent>(plant);
             em.RemoveComponent<LocalToParent>(plant);
             em.SetComponentData(plant, new EnergyStore { Capacity = 0.5f, Quantity = 0.5f });
-            em.SetComponentData(plant, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(Random.Range(-100f, 100f), 50, Random.Range(-200f, 0f))) });
+            em.SetComponentData(plant, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(Random.Range(100f, 300f), 50, Random.Range(100f, 300f))) });
             em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
         }
     }
