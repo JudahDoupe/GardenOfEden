@@ -8,11 +8,11 @@ namespace Assets.Scripts.Plants.Systems
 {
     public struct AssignNodeMesh : IComponentData
     {
-        public FixedString64 MeshName { get; set; }
+        public Entity Entity;
     }
     public struct AssignInternodeMesh : IComponentData
     {
-        public FixedString64 MeshName { get; set; }
+        public Entity Entity;
     }
 
     public struct NodeMeshReference : IComponentData
@@ -44,88 +44,60 @@ namespace Assets.Scripts.Plants.Systems
 
         protected override void OnUpdate()
         {
-            var ecb = _ecbSystem.CreateCommandBuffer();
+            var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
 
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
-                    (in AssignNodeMesh assignMesh, in Entity entity) =>
+                    (in AssignNodeMesh assignMesh, in Entity entity, in int entityInQueryIndex) =>
                     {
                         var refQuery = GetComponentDataFromEntity<NodeMeshReference>(true);
 
-                        if (assignMesh.MeshName.Length > 0)
+                        var meshEntity = ecb.Instantiate(entityInQueryIndex, assignMesh.Entity);
+
+                        if (refQuery.HasComponent(entity))
                         {
-                            var mesh = Singleton.RenderMeshLibrary.Library[assignMesh.MeshName.ToString()];
-
-                            Entity meshEntity;
-                            if (refQuery.HasComponent(entity))
-                            {
-                                meshEntity = refQuery[entity].Entity;
-                            }
-                            else
-                            {
-                                meshEntity = ecb.CreateEntity(Singleton.RenderMeshLibrary.NodeMeshArchetype);
-                                ecb.AddComponent(entity, typeof(NodeMeshReference));
-                                ecb.SetComponent(entity, new NodeMeshReference { Entity = meshEntity });
-                                ecb.SetComponent(meshEntity, new NodeReference { Entity = entity });
-                            }
-
-                            ecb.SetSharedComponent(meshEntity, mesh.Mesh);
-                            ecb.SetComponent(meshEntity, mesh.Bounds);
+                            ecb.DestroyEntity(entityInQueryIndex, refQuery[entity].Entity);
                         }
-                        else if (refQuery.HasComponent(entity))
+                        else
                         {
-                            var meshEntity = refQuery[entity].Entity;
-                            ecb.RemoveComponent(entity, typeof(NodeMeshReference));
-                            ecb.DestroyEntity(meshEntity);
+                            ecb.AddComponent<NodeMeshReference>(entityInQueryIndex, entity);
                         }
 
-                        ecb.RemoveComponent(entity, typeof(AssignNodeMesh));
+                        ecb.AddComponent<NodeReference>(entityInQueryIndex, meshEntity);
+                        ecb.SetComponent(entityInQueryIndex, meshEntity, new NodeReference {Entity = entity}); 
+                        ecb.SetComponent(entityInQueryIndex, entity, new NodeMeshReference { Entity = meshEntity });
+                        ecb.RemoveComponent<AssignNodeMesh>(entityInQueryIndex, entity);
                     })
-                .WithoutBurst()
                 .WithName("AddNodeMesh")
-                .Run();
+                .ScheduleParallel();
 
             Entities
                 .WithNone<Dormant>()
                 .ForEach(
-                    (in AssignInternodeMesh assignMesh, in Entity entity) =>
+                    (in AssignInternodeMesh assignMesh, in Entity entity, in int entityInQueryIndex) =>
                     {
                         var refQuery = GetComponentDataFromEntity<InternodeMeshReference>(true);
 
-                        if (assignMesh.MeshName.Length > 0)
+                        var meshEntity = ecb.Instantiate(entityInQueryIndex, assignMesh.Entity);
+
+                        if (refQuery.HasComponent(entity))
                         {
-                            var mesh = Singleton.RenderMeshLibrary.Library[assignMesh.MeshName.ToString()];
-
-                            Entity meshEntity;
-                            if (refQuery.HasComponent(entity))
-                            {
-                                meshEntity = refQuery[entity].Entity;
-                            }
-                            else
-                            {
-                                meshEntity = ecb.CreateEntity(Singleton.RenderMeshLibrary.InternodeMeshArchetype);
-                                ecb.AddComponent(entity, typeof(InternodeMeshReference));
-                                ecb.SetComponent(entity, new InternodeMeshReference { Entity = meshEntity });
-                                ecb.SetComponent(meshEntity, new InternodeReference { Entity = entity });
-                            }
-
-                            ecb.SetSharedComponent(meshEntity, mesh.Mesh);
-                            ecb.SetComponent(meshEntity, mesh.Bounds);
+                            ecb.DestroyEntity(entityInQueryIndex, refQuery[entity].Entity);
                         }
-                        else if (refQuery.HasComponent(entity))
+                        else
                         {
-                            var meshEntity = refQuery[entity].Entity;
-                            ecb.RemoveComponent(entity, typeof(InternodeMeshReference));
-                            ecb.DestroyEntity(meshEntity);
+                            ecb.AddComponent<InternodeMeshReference>(entityInQueryIndex, entity);
                         }
 
-                        ecb.RemoveComponent(entity, typeof(AssignInternodeMesh));
+                        ecb.AddComponent<InternodeReference>(entityInQueryIndex, meshEntity);
+                        ecb.SetComponent(entityInQueryIndex, meshEntity, new InternodeReference { Entity = entity });
+                        ecb.SetComponent(entityInQueryIndex, entity, new InternodeMeshReference { Entity = meshEntity });
+                        ecb.RemoveComponent<AssignInternodeMesh>(entityInQueryIndex, entity);
                     })
-                .WithoutBurst()
                 .WithName("AddInternodeMesh")
-                .Run();
+                .ScheduleParallel();
 
             _ecbSystem.AddJobHandleForProducer(Dependency);
         }

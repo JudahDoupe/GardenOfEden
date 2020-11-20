@@ -3,6 +3,7 @@ using Unity.Transforms;
 using UnityEngine;
 using Assets.Scripts.Plants.Systems;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Random = UnityEngine.Random;
 
 public class GameService : MonoBehaviour
@@ -55,22 +56,40 @@ public class GameService : MonoBehaviour
             typeof(Health)
         );
 
+        var meshArchetype = em.CreateArchetype(
+            typeof(RenderMesh),
+            typeof(RenderBounds),
+            typeof(Translation),
+            typeof(Rotation),
+            typeof(NonUniformScale),
+            typeof(LocalToWorld)
+        );
 
         var dna = em.CreateEntity();
+
+        var stemMesh = em.CreateEntity(meshArchetype);
+        var meshData = Singleton.RenderMeshLibrary.Library["GreenStem"];
+        em.SetSharedComponentData(stemMesh, meshData.Mesh);
+        em.SetComponentData(stemMesh, meshData.Bounds);
 
         var vegNode = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(vegNode, new Internode());
         em.AddComponentData(vegNode, new Photosynthesis { Efficiency = 1 });
-        em.AddComponentData(vegNode, new AssignInternodeMesh { MeshName = "GreenStem" });
+        em.AddComponentData(vegNode, new AssignInternodeMesh { Entity = stemMesh });
         em.AddComponentData(vegNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 1, InternodeRadius = 0.1f });
         em.SetComponentData(vegNode, new DnaReference { Entity = dna });
         em.SetComponentData(vegNode, new Health { Value = 1 });
 
+        var leafMesh = em.CreateEntity(meshArchetype);
+        meshData = Singleton.RenderMeshLibrary.Library["Leaf"];
+        em.SetSharedComponentData(leafMesh, meshData.Mesh);
+        em.SetComponentData(leafMesh, meshData.Bounds);
+
         var leaf = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(leaf, new Internode());
         em.AddComponentData(leaf, new Photosynthesis { Efficiency = 1 });
-        em.AddComponentData(leaf, new AssignInternodeMesh { MeshName = "GreenStem" });
-        em.AddComponentData(leaf, new AssignNodeMesh { MeshName = "Leaf" });
+        em.AddComponentData(leaf, new AssignInternodeMesh { Entity = stemMesh });
+        em.AddComponentData(leaf, new AssignNodeMesh { Entity = leafMesh });
         em.AddComponentData(leaf, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1 });
         em.SetComponentData(leaf, new DnaReference { Entity = dna });
         em.SetComponentData(leaf, new Health { Value = 1 });
@@ -82,8 +101,13 @@ public class GameService : MonoBehaviour
         em.SetComponentData(bud, new DnaReference { Entity = dna });
         em.SetComponentData(bud, new Health { Value = 1 });
 
+        var sporangiaMesh = em.CreateEntity(meshArchetype);
+        meshData = Singleton.RenderMeshLibrary.Library["Sporangia"];
+        em.SetSharedComponentData(sporangiaMesh, meshData.Mesh);
+        em.SetComponentData(sporangiaMesh, meshData.Bounds);
+
         var sporangia = em.CreateEntity(plantNodeArchetype);
-        em.AddComponentData(sporangia, new AssignNodeMesh { MeshName = "Sporangia" });
+        em.AddComponentData(sporangia, new AssignNodeMesh { Entity = sporangiaMesh });
         em.AddComponentData(sporangia, new PrimaryGrowth { GrowthRate = 0.1f, NodeSize = 1 });
         em.AddComponentData(sporangia, new NodeDivision { Type = NodeType.Embryo, RemainingDivisions = 5 });
         em.SetComponentData(sporangia, new DnaReference { Entity = dna });
