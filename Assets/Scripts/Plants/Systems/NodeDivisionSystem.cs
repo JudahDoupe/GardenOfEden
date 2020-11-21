@@ -83,8 +83,7 @@ namespace Assets.Scripts.Plants.Systems
                         var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
                         var parent = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
                         var newNode = ecb.Instantiate(entityInQueryIndex, embryo.Entity);
-                        ecb.SetComponent(entityInQueryIndex, newNode,
-                            new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
+                        ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
                         if (nodeDivision.Type != NodeType.Embryo)
                         {
                             ecb.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
@@ -100,6 +99,7 @@ namespace Assets.Scripts.Plants.Systems
                                 ecb.DestroyEntity(entityInQueryIndex, entity);
                                 break;
                             case DivisionOrder.PreNode:
+                                if (!parentQuery.HasComponent(entity)) ecb.AddComponent<Parent>(entityInQueryIndex, entity);
                                 ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
                                 ecb.SetComponent(entityInQueryIndex, entity, new Parent { Value = newNode });
                                 break;

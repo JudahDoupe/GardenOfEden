@@ -1,20 +1,22 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Assets.Scripts.Plants.Systems
 {
-    public struct UpdateChunk : ISharedComponentData
+    [MaximumChunkCapacity(4096)]
+    public struct UpdateChunk : ISharedComponentData, IEquatable<UpdateChunk>
     {
         public int Id;
         public float3 Position;
         public bool IsEnvironmental => Id < 0;
+
+        public bool Equals(UpdateChunk other) => other.Id == Id;
+        public override int GetHashCode() => Id;
     }
 
     class UpdateChunkSystem : SystemBase
@@ -37,6 +39,7 @@ namespace Assets.Scripts.Plants.Systems
             var chunks = Singleton.LoadBalancer.UpdateChunks
                 .Where(x => x.Id >= 0).ToList()
                 .ToNativeArray(Allocator.TempJob);
+            var currentChunk = _currentChunk;
 
             Entities
                 .WithSharedComponentFilter(_currentChunk)
@@ -53,7 +56,10 @@ namespace Assets.Scripts.Plants.Systems
                         }
                     }
 
-                    ecb.SetSharedComponent(entityInQueryIndex, entity, closestChunk);
+                    if (!currentChunk.Equals(closestChunk))
+                    {
+                        ecb.SetSharedComponent(entityInQueryIndex, entity, closestChunk);
+                    }
                 })
                 .WithName("UpdateChunk")
                 .WithDisposeOnCompletion(chunks)

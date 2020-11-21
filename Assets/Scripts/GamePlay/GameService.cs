@@ -19,7 +19,7 @@ public class GameService : MonoBehaviour
     {
         IsGameInProgress = true;
 
-        SpawnSpagooter();
+        SpawnSpagooter(50);
     }
 
     private void EndGame()
@@ -36,7 +36,7 @@ public class GameService : MonoBehaviour
 #endif
     }
 
-    public void SpawnSpagooter()
+    public void SpawnSpagooter(int amount)
     {
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
 
@@ -164,14 +164,14 @@ public class GameService : MonoBehaviour
             Rotation = Quaternion.LookRotation(Vector3.up)
         });
 
-        for (var i = 0; i < 500; i++)
+        for (var i = 0; i < amount; i++)
         {
             var plant = em.Instantiate(spore);
             em.RemoveComponent<Dormant>(plant);
             em.RemoveComponent<Parent>(plant);
             em.RemoveComponent<LocalToParent>(plant);
             em.SetComponentData(plant, new EnergyStore { Capacity = 0.5f, Quantity = 0.5f });
-            em.SetComponentData(plant, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(Random.Range(100f, 300f), 50, Random.Range(100f, 300f))) });
+            em.SetComponentData(plant, new Translation { Value = Singleton.LandService.ClampToTerrain(new Vector3(Random.Range(50f, 350f), 50, Random.Range(50f, 350f))) });
             em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
         }
     }

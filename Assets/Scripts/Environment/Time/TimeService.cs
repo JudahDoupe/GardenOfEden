@@ -19,7 +19,7 @@ public class TimeService : MonoBehaviour
         DayOfTheWeek = (DayOfTheWeek + 1) % 7;
         DayOfTheMonth  = (DayOfTheMonth + 1) % 30;
         DayOfTheYear  = (DayOfTheYear + 1) % 360;
-        MonthOfTheYear += (DayOfTheMonth == 0) ? 1 : 0;
+        MonthOfTheYear = (MonthOfTheYear + ((DayOfTheMonth == 0) ? 1 : 0)) % 12;
         Year += (DayOfTheYear == 0) ? 1 : 0;
     }
 }
