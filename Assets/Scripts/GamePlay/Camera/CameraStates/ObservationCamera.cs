@@ -31,7 +31,7 @@ public class ObservationCamera : MonoBehaviour, ICameraState
             Drift();
         }
 
-        if (Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.E))
         {
             _controller.CameraState.SetState(FindObjectOfType<ExplorationCamera>());
         }
@@ -43,15 +43,7 @@ public class ObservationCamera : MonoBehaviour, ICameraState
 
     public void Enable()
     {
-        /*
-        if (_controller.FocusedPlant == null && !FocusOnClosestPlant())
-        {
-            _controller.CameraState.SetState(FindObjectOfType<ExplorationCamera>());
-            return;
-        }
-
-        _offset = _camera.transform.position - CameraUtils.GetPlantBounds(_controller.FocusedPlant).center;
-        */
+        _offset = _camera.transform.position - _controller.FocusPoint;
     }
 
     public void Disable() { }
