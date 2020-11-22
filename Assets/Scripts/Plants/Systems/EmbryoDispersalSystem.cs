@@ -33,17 +33,26 @@ namespace Assets.Scripts.Plants.Systems
                 {
                     if (energyStore.Pressure < 0.99f) return;
 
-                    ecb.RemoveComponent<WindDispersal>(entityInQueryIndex, entity);
-                    ecb.RemoveComponent<Parent>(entityInQueryIndex, entity);
-                    ecb.RemoveComponent<LocalToParent>(entityInQueryIndex, entity);
-                    ecb.RemoveComponent<Dormant>(entityInQueryIndex, entity);
 
                     var seed = math.asuint((genericSeed * entityInQueryIndex) % uint.MaxValue) + 1;
                     var rand = new Unity.Mathematics.Random(seed);
                     var height = l2w.Position.y - landMapNativeArray[ComputeShaderUtils.LocationToIndex(l2w.Position)].a;
                     var position = l2w.Position + new float3(rand.NextFloat(-height, height), 0, rand.NextFloat(-height, height));
                     position.y = landMapNativeArray[ComputeShaderUtils.LocationToIndex(position)].a;
-                    ecb.SetComponent(entityInQueryIndex, entity, new Translation { Value = position });
+
+                    var soil = landMapNativeArray[ComputeShaderUtils.LocationToIndex(position)].r;
+                    if (soil > 0.0001f)
+                    {
+                        ecb.RemoveComponent<WindDispersal>(entityInQueryIndex, entity);
+                        ecb.RemoveComponent<Parent>(entityInQueryIndex, entity);
+                        ecb.RemoveComponent<LocalToParent>(entityInQueryIndex, entity);
+                        ecb.RemoveComponent<Dormant>(entityInQueryIndex, entity);
+                        ecb.SetComponent(entityInQueryIndex, entity, new Translation { Value = position });
+                    }
+                    else
+                    {
+                        ecb.DestroyEntity(entityInQueryIndex, entity);
+                    }
                 })
                 .WithName("WindEmbryoDispersal")
                 .ScheduleParallel();
