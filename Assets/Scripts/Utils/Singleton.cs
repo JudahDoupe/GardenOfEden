@@ -8,7 +8,7 @@ public class Singleton : MonoBehaviour
 
     public static GameService GameService;
     public static TimeService TimeService;
-    public static LoadBalancer LoadBalancer;
+    public static ILoadBalancer LoadBalancer;
 
     public static CameraController CameraController;
     public static RenderMeshLibrary RenderMeshLibrary;

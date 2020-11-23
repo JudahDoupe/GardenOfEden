@@ -10,7 +10,15 @@ using Unity.Transforms;
 using UnityEditor;
 using UnityEngine;
 
-public class LoadBalancer : MonoBehaviour
+public interface ILoadBalancer
+{
+    public UpdateChunk CurrentChunk { get; }
+    public List<UpdateChunk> UpdateChunks { get; }
+    public void RegisterEndSimulationAction(Action action);
+    public void BalanceChunks();
+}
+
+public class LoadBalancer : MonoBehaviour, ILoadBalancer
 {
     public float DesiredChunkMilliseconds = 5;
     public float MsPerDay { get; private set; }

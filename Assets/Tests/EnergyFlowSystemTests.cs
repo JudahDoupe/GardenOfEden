@@ -9,7 +9,7 @@ using Unity.Transforms;
 namespace Tests
 {
     [Category("Systems")]
-    public class EnergyFlowSystemTests : ECSTestsFixture
+    public class EnergyFlowSystemTests : SystemTestBase
     {
         const float InternodeCapacity = 3.141529f;
         const float NodeCapacity = 4.187743f;
@@ -92,6 +92,7 @@ namespace Tests
             m_Manager.AddComponentData(entity, new Node{Size = new float3(1,1,1)});
             m_Manager.AddComponentData(entity, new Internode {Length = 1, Radius = 1});
             m_Manager.AddBuffer<Child>(entity);
+            m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
 
             if (parent != Entity.Null)
             {

@@ -1,14 +1,13 @@
 ﻿using Assets.Scripts.Plants.Systems;
 using NUnit.Framework;
 using Unity.Entities;
-using Unity.Entities.Tests;
 using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Tests
 {
     [Category("Systems")]
-    public class LightSystemTests : ECSTestsFixture
+    public class LightSystemTests : SystemTestBase
     {
         [Test]
         public void LightAbsorbersShouldBlockLight()
@@ -92,6 +91,7 @@ namespace Tests
             m_Manager.AddComponentData(entity, new LocalToWorld());
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 100 });
             m_Manager.AddComponentData(entity, new Photosynthesis { Efficiency = 1 });
+            m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
 
             if (includeInternode)
             {

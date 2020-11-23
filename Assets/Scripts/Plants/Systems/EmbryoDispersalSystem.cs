@@ -40,18 +40,10 @@ namespace Assets.Scripts.Plants.Systems
                     var position = l2w.Position + new float3(rand.NextFloat(-height, height), 0, rand.NextFloat(-height, height));
                     position.y = landMapNativeArray[ComputeShaderUtils.LocationToIndex(position)].a;
 
-                    var soil = landMapNativeArray[ComputeShaderUtils.LocationToIndex(position)].r;
-                    if (soil > 0.0001f)
-                    {
-                        ecb.RemoveComponent<WindDispersal>(entityInQueryIndex, entity);
-                        ecb.RemoveComponent<Parent>(entityInQueryIndex, entity);
-                        ecb.RemoveComponent<LocalToParent>(entityInQueryIndex, entity);
-                        ecb.SetComponent(entityInQueryIndex, entity, new Translation { Value = position });
-                    }
-                    else
-                    {
-                        ecb.DestroyEntity(entityInQueryIndex, entity);
-                    }
+                    ecb.RemoveComponent<WindDispersal>(entityInQueryIndex, entity);
+                    ecb.RemoveComponent<Parent>(entityInQueryIndex, entity);
+                    ecb.RemoveComponent<LocalToParent>(entityInQueryIndex, entity);
+                    ecb.SetComponent(entityInQueryIndex, entity, new Translation { Value = position });
                 })
                 .WithName("WindEmbryoDispersal")
                 .ScheduleParallel();

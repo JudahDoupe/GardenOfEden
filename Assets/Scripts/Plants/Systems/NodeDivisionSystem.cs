@@ -110,7 +110,8 @@ namespace Assets.Scripts.Plants.Systems
                                         ecb.SetComponent(entityInQueryIndex, children[c].Value, new Parent { Value = newNode });
                                     }
                                 }
-                                ecb.SetComponent(entityInQueryIndex, newNode, GetComponentDataFromEntity<Rotation>(true)[currentNode]);
+                                ecb.SetComponent(entityInQueryIndex, newNode, GetComponentDataFromEntity<Rotation>(true)[currentNode]); 
+                                ecb.RemoveComponent<Parent>(entityInQueryIndex, currentNode);
                                 ecb.DestroyEntity(entityInQueryIndex, currentNode);
                                 currentNode = newNode;
                                 break;
@@ -131,6 +132,7 @@ namespace Assets.Scripts.Plants.Systems
 
                     nodeDivision.RemainingDivisions--;
                 })
+                .WithoutBurst()
                 .ScheduleParallel();
 
             _ecbSystem.AddJobHandleForProducer(Dependency);

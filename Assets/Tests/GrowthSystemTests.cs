@@ -8,8 +8,9 @@ using Unity.Transforms;
 namespace Tests
 {
     [Category("Systems")]
-    public class GrowthSystemTests : ECSTestsFixture
+    public class GrowthSystemTests : SystemTestBase
     {
+
         [Test]
         public void GrowsNodeByGrowthRate()
         {
@@ -186,6 +187,7 @@ namespace Tests
             m_Manager.AddComponentData(entity, new PrimaryGrowth {GrowthRate = 1, InternodeLength = 2, InternodeRadius = 1, NodeSize = new float3(1,1,1) });
             m_Manager.AddComponentData(entity, new Translation());
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 100, Quantity = energy });
+            m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
 
             if (includeInternode)
             {

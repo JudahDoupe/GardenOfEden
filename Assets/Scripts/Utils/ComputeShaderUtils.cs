@@ -9,18 +9,31 @@ public class ComputeShaderUtils : MonoBehaviour
     public const int TextureSize = 512;
     public const int ChunkSizeInMeters = 400;
 
-    public static float2 LocationToUv(float3 location) => new float2(((location.x + ChunkSizeInMeters) % ChunkSizeInMeters) / ChunkSizeInMeters, ((location.z + ChunkSizeInMeters) % ChunkSizeInMeters) / ChunkSizeInMeters);
-    public static float2 LocationToNormalizedUv(float3 location) => (LocationToUv(location) + new float2(1, 1)) / 2;
-    public static float2 LocationToXy(float3 location) => LocationToUv(location) * TextureSize;
+    public static float2 LocationToUv(float3 location)
+    {
+        var modLoc = location.xz % ChunkSizeInMeters;
+        var positiveLoc = modLoc + new float2(ChunkSizeInMeters);
+        var clampedLoc = positiveLoc % ChunkSizeInMeters;
+        var uv = clampedLoc / ChunkSizeInMeters;
+        return uv;
+    }
+
+    public static float2 LocationToNormalizedUv(float3 location)
+    {
+        var uv = LocationToUv(location);
+        return (uv + new float2(1, 1)) / 2;
+    }
+
+    public static float2 LocationToXy(float3 location)
+    {
+        var uv = LocationToUv(location);
+        return uv * TextureSize;
+    }
 
     public static int LocationToIndex(float3 location)
     {
         var xy = math.int2(math.floor(LocationToXy(location)));
         var i = xy.y * TextureSize + xy.x;
-        if (i > TextureSize * TextureSize || i < 0)
-        {
-            Debug.Log($"Location: {location}, index: {i}");
-        }
         return i;
     }
 }

@@ -1,34 +1,25 @@
-﻿using System;
-using Assets.Scripts.Plants.Systems;
+﻿using Assets.Scripts.Plants.Systems;
 using NUnit.Framework;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.Tests;
-using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Tests
 {
     [Category("Systems")]
-    public class EmbryoDispersalSystemTests : ECSTestsFixture
+    public class EmbryoDispersalSystemTests : SystemTestBase
     {
-        [SetUp]
-        public void SetUp()
-        {
-            Singleton.LandService = new MockLandService();
-        }
 
         [TestCase(0.5f, false)]
         [TestCase(1f, true)]
-        public void EmbryoOnlyDispersesWhenItIsFullyGrown(float energyQuantity, bool hasDisconected)
+        public void EmbryoOnlyDispersesWhenItIsFullyGrown(float energyQuantity, bool hasDisconnected)
         {
             var baseNode = CreateNode();
             var embryo = CreateEmbryoNode(baseNode, energyQuantity);
 
             World.CreateSystem<EmbryoDispersalSystem>().Update();
+            World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().Update();
 
-            Assert.AreEqual(!hasDisconected, m_Manager.HasComponent<Parent>(embryo));
+            Assert.AreEqual(!hasDisconnected, m_Manager.HasComponent<Parent>(embryo));
         }
 
         private Entity CreateNode()
@@ -38,6 +29,7 @@ namespace Tests
             m_Manager.AddComponentData(entity, new Rotation());
             m_Manager.AddComponentData(entity, new LocalToWorld());
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 1, Quantity = 1 });
+            m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
             return entity;
         }
 
@@ -52,27 +44,8 @@ namespace Tests
             m_Manager.AddComponentData(entity, new LocalToParent());
             m_Manager.AddComponentData(entity, new LocalToWorld());
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 1, Quantity = energyQuantity });
+            m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
             return entity;
         }
-    }
-
-    public class MockLandService : ILandService
-    {
-        public Texture2D GetLandMap()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Vector3 ClampAboveTerrain(Vector3 location) => location;
-
-        public Vector3 ClampToTerrain(Vector3 location) => location;
-
-        public float SampleRootDepth(Vector3 location) => 0;
-
-        public float SampleSoilDepth(Vector3 location) => 0;
-
-        public float SampleTerrainHeight(Vector3 location) => 0;
-
-        public float SampleWaterDepth(Vector3 location) => 0;
     }
 }
