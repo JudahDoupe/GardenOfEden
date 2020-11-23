@@ -46,7 +46,6 @@ namespace Assets.Scripts.Plants.Systems
                         ecb.RemoveComponent<WindDispersal>(entityInQueryIndex, entity);
                         ecb.RemoveComponent<Parent>(entityInQueryIndex, entity);
                         ecb.RemoveComponent<LocalToParent>(entityInQueryIndex, entity);
-                        ecb.RemoveComponent<Dormant>(entityInQueryIndex, entity);
                         ecb.SetComponent(entityInQueryIndex, entity, new Translation { Value = position });
                     }
                     else

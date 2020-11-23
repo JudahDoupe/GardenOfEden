@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Plants.Systems
 {
-    public struct Dormant : IComponentData { }
+    public struct Dormant : IComponentData {}
 
     [InternalBufferCapacity(8)]
     public struct EmbryoNode : IBufferElementData
@@ -17,6 +17,7 @@ namespace Assets.Scripts.Plants.Systems
         public Quaternion Rotation;
         public NodeType Type;
         public DivisionOrder Order;
+        public bool RemainDormantAfterDivision;
     }
 
     public struct DnaReference : IComponentData
@@ -28,6 +29,7 @@ namespace Assets.Scripts.Plants.Systems
     {
         public NodeType Type;
         public int RemainingDivisions;
+        public float MinEnergyPressure;
     }
 
     public enum DivisionOrder
@@ -65,13 +67,16 @@ namespace Assets.Scripts.Plants.Systems
                 .ForEach((ref NodeDivision nodeDivision, ref EnergyStore energyStore, in DnaReference dnaRef,
                     in Entity entity, in int entityInQueryIndex) =>
                 {
-                    if (energyStore.Quantity / (energyStore.Capacity + float.Epsilon) < 0.5f
+                    if (energyStore.Quantity / (energyStore.Capacity + float.Epsilon) < nodeDivision.MinEnergyPressure
                         || nodeDivision.RemainingDivisions < 0)
                         return;
 
                     var parentQuery = GetComponentDataFromEntity<Parent>(true);
+                    var childrenQuery = GetBufferFromEntity<Child>(true);
                     var embryoNodes = GetBufferFromEntity<EmbryoNode>(true)[dnaRef.Entity];
 
+                    var parentNode = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
+                    var currentNode = entity;
                     for (var i = 0; i < embryoNodes.Length; i++)
                     {
                         var embryo = embryoNodes[i];
@@ -80,11 +85,11 @@ namespace Assets.Scripts.Plants.Systems
                             continue;
                         }
 
-                        var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
-                        var parent = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
                         var newNode = ecb.Instantiate(entityInQueryIndex, embryo.Entity);
-                        ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
-                        if (nodeDivision.Type != NodeType.Embryo)
+
+                        var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
+
+                        if (!embryo.RemainDormantAfterDivision)
                         {
                             ecb.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
                         }
@@ -92,19 +97,33 @@ namespace Assets.Scripts.Plants.Systems
                         switch (embryo.Order)
                         {
                             case DivisionOrder.InPlace:
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
                                 break;
                             case DivisionOrder.Replace:
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
-                                ecb.DestroyEntity(entityInQueryIndex, entity);
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
+                                if (childrenQuery.HasComponent(currentNode))
+                                {
+                                    var children = childrenQuery[currentNode];
+                                    for (int c = 0; c < children.Length; c++)
+                                    {
+                                        ecb.SetComponent(entityInQueryIndex, children[c].Value, new Parent { Value = newNode });
+                                    }
+                                }
+                                ecb.SetComponent(entityInQueryIndex, newNode, GetComponentDataFromEntity<Rotation>(true)[currentNode]);
+                                ecb.DestroyEntity(entityInQueryIndex, currentNode);
+                                currentNode = newNode;
                                 break;
                             case DivisionOrder.PreNode:
-                                if (!parentQuery.HasComponent(entity)) ecb.AddComponent<Parent>(entityInQueryIndex, entity);
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parent });
-                                ecb.SetComponent(entityInQueryIndex, entity, new Parent { Value = newNode });
+                                if (!parentQuery.HasComponent(currentNode)) ecb.AddComponent<Parent>(entityInQueryIndex, currentNode);
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
+                                ecb.SetComponent(entityInQueryIndex, currentNode, new Parent { Value = newNode });
+                                ecb.SetComponent(entityInQueryIndex, newNode, GetComponentDataFromEntity<Rotation>(true)[currentNode]);
+                                parentNode = newNode;
                                 break;
                             case DivisionOrder.PostNode:
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = entity });
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = currentNode });
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
                                 break;
                         }
 
