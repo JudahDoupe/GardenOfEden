@@ -50,7 +50,7 @@ public class GameService : MonoBehaviour
     {
         IsGameInProgress = true;
 
-        SpawnSpagooter (50);
+        //SpawnSpagooter (50);
     }
 
     private void EndGame()

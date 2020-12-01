@@ -34,6 +34,12 @@ public class ExplorationCamera : MonoBehaviour, ICameraState
 
         Move();
 
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            var height = _camera.position.y - Singleton.LandService.SampleTerrainHeight(_controller.FocusPoint);  //Flat World Only
+            Singleton.LandService.PullMountain(_controller.FocusPoint, height);
+        }
+
         var offsetDirection = (Vector3.Scale(_camera.transform.position, new Vector3(1, 0, 1)) - Vector3.Scale(_controller.FocusPoint, new Vector3(1, 0, 1))).normalized;
         var offset = offsetDirection * _offset.x;
         var newPos = _controller.FocusPoint + offset;

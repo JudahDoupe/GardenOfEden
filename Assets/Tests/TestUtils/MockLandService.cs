@@ -22,5 +22,10 @@ namespace Tests
         public float SampleTerrainHeight(Vector3 location) => 0;
 
         public float SampleWaterDepth(Vector3 location) => 0;
+
+        public void PullMountain(Vector3 location, float height)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
