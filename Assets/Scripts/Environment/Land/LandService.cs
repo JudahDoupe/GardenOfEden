@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -60,14 +61,34 @@ public class LandService : MonoBehaviour, ILandService
 
     public void PullMountain(Vector3 location, float height)
     {
+        if (isPullingMountain) return;
+
         var kernelId = SmoothAdd.FindKernel("SmoothAdd");
-        SmoothAdd.SetTexture(kernelId, "Map", LandMap);
-        SmoothAdd.SetFloats("Channels", 1,1,1,1);
-        SmoothAdd.SetFloat("Strength", height);
-        SmoothAdd.SetFloats("TextureCenter", 200,0,200);
+        SmoothAdd.SetTexture(kernelId, "Map", LandMap); 
+        SmoothAdd.SetFloat("Radius", height);
+        SmoothAdd.SetFloats("Channels", 0, 0, 0, 1);
+        SmoothAdd.SetFloats("TextureCenter", 200, 0, 200);
         SmoothAdd.SetFloats("AdditionCenter", location.x, location.y, location.z);
-        SmoothAdd.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
-        LandMap.UpdateTextureCache();
+
+        StartCoroutine(SmoothPullMountain(height, 2f));
+    }
+    private bool isPullingMountain = false;
+    private IEnumerator SmoothPullMountain(float height, float seconds)
+    {
+        isPullingMountain = true;
+        var kernelId = SmoothAdd.FindKernel("SmoothAdd");
+        var realHeight = 0f;
+        while (realHeight < height)
+        {
+            var maxSpeed = height / seconds * Time.deltaTime;
+            var growth = Mathj.Tween(realHeight, height) * maxSpeed;
+            realHeight += growth;
+            SmoothAdd.SetFloat("Strength", growth);
+            SmoothAdd.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+            LandMap.UpdateTextureCache();
+            yield return new WaitForEndOfFrame();
+        }
+        isPullingMountain = false;
     }
 
     /* Inner Mechanations */

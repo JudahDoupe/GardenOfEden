@@ -1,8 +1,9 @@
 ﻿#pragma kernel SmoothAdd
 
 RWTexture2D<float4> Map;
-int4 Channels;
+float4 Channels;
 float Strength = 10;
+float Radius = 10;
 float3 TextureCenter;
 float3 AdditionCenter;
 
@@ -13,9 +14,9 @@ static float TextureWidthInPixels = 512.0f;
 [numthreads(8, 8, 1)]
 void SmoothAdd(uint3 id : SV_DispatchThreadID)
 {
-    float pixelRadius = (Strength / TextureWidthInMeters);
+    float pixelRadius = (Radius / TextureWidthInMeters);
     float d = distance(id.xy / TextureWidthInPixels, AdditionCenter.xz / TextureWidthInMeters);
     float addend = smoothstep(pixelRadius, 0, d) * Strength;
     
-    Map[id.xy] += float4(0, 0, 0, addend); // * Channels;  
+    Map[id.xy] += Channels * addend;
 }
