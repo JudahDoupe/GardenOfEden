@@ -34,7 +34,7 @@ public class LandService : MonoBehaviour, ILandService
 
     public float SampleTerrainHeight(Vector3 location)
     {
-        var uv = ComputeShaderUtils.LocationToUv(location);
+        var uv = EnvironmentalChunkService.LocationToUv(location);
         var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         return color.a;
     }
@@ -46,14 +46,14 @@ public class LandService : MonoBehaviour, ILandService
 
     public Vector3 ClampAboveTerrain(Vector3 location)
     {
-        var uv = ComputeShaderUtils.LocationToUv(location);
+        var uv = EnvironmentalChunkService.LocationToUv(location);
         var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         location.y = Mathf.Max(color.a, location.y);
         return location;
     }
     public Vector3 ClampToTerrain(Vector3 location)
     {
-        var uv = ComputeShaderUtils.LocationToUv(location);
+        var uv = EnvironmentalChunkService.LocationToUv(location);
         var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         location.y = color.a;
         return location;
@@ -84,7 +84,7 @@ public class LandService : MonoBehaviour, ILandService
             var growth = Mathj.Tween(realHeight, height) * maxSpeed;
             realHeight += growth;
             SmoothAdd.SetFloat("Strength", growth);
-            SmoothAdd.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+            SmoothAdd.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
             LandMap.UpdateTextureCache();
             yield return new WaitForEndOfFrame();
         }
@@ -107,7 +107,7 @@ public class LandService : MonoBehaviour, ILandService
         int kernelId = SoilShader.FindKernel("UpdateSoil");
         SoilShader.SetFloat("RootPullSpeed", RootPullSpeed);
         SoilShader.SetFloat("WaterAbsorptionRate", WaterAbsorptionRate);
-        SoilShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+        SoilShader.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
     }
 
     public void ProcessDay()

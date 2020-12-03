@@ -20,7 +20,7 @@ public class WaterService : MonoBehaviour
 
     public float SampleWaterDepth(Vector3 location)
     {
-        var uv = ComputeShaderUtils.LocationToUv(location);
+        var uv = EnvironmentalChunkService.LocationToUv(location);
         var color = WaterMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         return color.b;
     }
@@ -29,7 +29,7 @@ public class WaterService : MonoBehaviour
     {
         int kernelId = WaterShader.FindKernel("Rain");
         WaterShader.SetFloat("RainDepthInMeters", meters);
-        WaterShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+        WaterShader.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
     }
 
     /* Inner Mechanations */
@@ -60,7 +60,7 @@ public class WaterService : MonoBehaviour
     private void UpdateWaterTable()
     {
         int updateKernel = WaterShader.FindKernel("Update");
-        WaterShader.Dispatch(updateKernel, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+        WaterShader.Dispatch(updateKernel, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
     }
 
     public void ProcessDay()

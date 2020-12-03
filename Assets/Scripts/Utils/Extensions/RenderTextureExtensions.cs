@@ -4,40 +4,6 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class ComputeShaderUtils : MonoBehaviour
-{
-    public const int TextureSize = 512;
-    public const int ChunkSizeInMeters = 400;
-
-    public static float2 LocationToUv(float3 location)
-    {
-        var modLoc = location.xz % ChunkSizeInMeters;
-        var positiveLoc = modLoc + new float2(ChunkSizeInMeters);
-        var clampedLoc = positiveLoc % ChunkSizeInMeters;
-        var uv = clampedLoc / ChunkSizeInMeters;
-        return uv;
-    }
-
-    public static float2 LocationToNormalizedUv(float3 location)
-    {
-        var uv = LocationToUv(location);
-        return (uv + new float2(1, 1)) / 2;
-    }
-
-    public static float2 LocationToXy(float3 location)
-    {
-        var uv = LocationToUv(location);
-        return uv * TextureSize;
-    }
-
-    public static int LocationToIndex(float3 location)
-    {
-        var xy = math.int2(math.floor(LocationToXy(location)));
-        var i = xy.y * TextureSize + xy.x;
-        return i;
-    }
-}
-
 public static class RenderTextureExtensions
 {
     public static Dictionary<RenderTexture, Texture2D> RTCache = new Dictionary<RenderTexture, Texture2D>();
@@ -56,10 +22,10 @@ public static class RenderTextureExtensions
     public static Texture2D ToTexture2D(this RenderTexture rt, TextureFormat format = TextureFormat.RGBAFloat)
     {
         RenderTexture currentRt = RenderTexture.active;
-        Texture2D rtnTex = new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, format, false);
+        Texture2D rtnTex = new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, format, false);
         RenderTexture.active = rt;
 
-        rtnTex.ReadPixels(new Rect(0, 0, ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize), 0, 0);
+        rtnTex.ReadPixels(new Rect(0, 0, EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize), 0, 0);
         rtnTex.Apply();
 
         RenderTexture.active = currentRt;
@@ -81,9 +47,9 @@ public static class RenderTextureExtensions
                     var buffer = request.GetData<Color>();
 
                     if (!RTCache.TryGetValue(rt, out Texture2D tex))
-                        tex = new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, TextureFormat.RGBAFloat, false);
+                        tex = new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, TextureFormat.RGBAFloat, false);
 
-                    tex.SetPixels(0, 0, ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, buffer.ToArray());
+                    tex.SetPixels(0, 0, EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, buffer.ToArray());
                     tex.Apply();
                     RTCache[rt] = tex;
                 }
@@ -106,7 +72,7 @@ public static class RenderTextureExtensions
     public static void LoadFromFile(this RenderTexture rt, string path, TextureFormat format = TextureFormat.RGBAFloat)
     {
         Texture2D tex;  
-        tex = new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, format, false);
+        tex = new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, format, false);
         tex.LoadRawTextureData(File.ReadAllBytes(Application.persistentDataPath + '/' + path));
         tex.Apply();
         Graphics.Blit(tex, rt);

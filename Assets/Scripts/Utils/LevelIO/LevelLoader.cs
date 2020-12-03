@@ -62,7 +62,7 @@ public class LevelLoader : MonoBehaviour
         RenderMapsShader.SetTexture(kernelId, "BedrockHeightMap", BedrockHeightMap);
         RenderMapsShader.SetTexture(kernelId, "WaterSourceMap", WaterSourceMap);
         RenderMapsShader.SetTexture(kernelId, "WaterSourceHeightMap", WaterSourceHeightMap);
-        RenderMapsShader.Dispatch(kernelId, ComputeShaderUtils.TextureSize / 8, ComputeShaderUtils.TextureSize / 8, 1);
+        RenderMapsShader.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
     }
     public void SetRenderersEnabled(bool enable)
     {

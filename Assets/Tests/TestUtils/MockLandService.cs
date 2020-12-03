@@ -8,7 +8,7 @@ namespace Tests
     {
         public Texture2D GetLandMap()
         {
-            return new Texture2D(ComputeShaderUtils.TextureSize, ComputeShaderUtils.TextureSize, TextureFormat.RGBAFloat, false);
+            return new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, TextureFormat.RGBAFloat, false);
         }
 
         public Vector3 ClampAboveTerrain(Vector3 location) => location;
