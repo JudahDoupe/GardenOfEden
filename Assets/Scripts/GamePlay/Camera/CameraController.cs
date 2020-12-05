@@ -16,7 +16,7 @@ public class CameraController : MonoBehaviour
         FocusPoint = FocusObject.transform.position;
 
         CameraState = new StateMachine<ICameraState>();
-        CameraState.SetState(FindObjectOfType<ObservationCamera>());
+        CameraState.SetState(FindObjectOfType<EnvironmentalCamera>());
 
         UiState = new StateMachine<IUiState>();
         UiState.SetState(FindObjectOfType<CinematicUi>());
