@@ -20,7 +20,8 @@ namespace Assets.Scripts.Plants.Systems
         protected override void OnUpdate()
         {
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
-            var landMap = Singleton.LandService.GetLandMap();
+            //TODO: Fix the bug when plants overlap chunk boundries
+            var landMap = Singleton.EnvironmentalChunkService.GetChunk(Singleton.LoadBalancer.CurrentChunk.Position).LandMap.CachedTexture();
             var landMapNativeArray = landMap.GetRawTextureData<Color>();
             var genericSeed = new System.Random().Next();
 

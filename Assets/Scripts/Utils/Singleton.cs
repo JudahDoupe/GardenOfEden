@@ -9,6 +9,7 @@ public class Singleton : MonoBehaviour
     public static GameService GameService;
     public static TimeService TimeService;
     public static ILoadBalancer LoadBalancer;
+    public static EnvironmentalChunkService EnvironmentalChunkService;
 
     public static CameraController CameraController;
     public static RenderMeshLibrary RenderMeshLibrary;
@@ -22,6 +23,7 @@ public class Singleton : MonoBehaviour
         GameService = FindObjectOfType<GameService>();
         TimeService = FindObjectOfType<TimeService>();
         LoadBalancer = FindObjectOfType<LoadBalancer>();
+        EnvironmentalChunkService = FindObjectOfType<EnvironmentalChunkService>();
 
         CameraController = FindObjectOfType<CameraController>();
         RenderMeshLibrary = FindObjectOfType<RenderMeshLibrary>();

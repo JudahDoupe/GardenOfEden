@@ -6,13 +6,6 @@ public class WaterService : MonoBehaviour
     [Header("Variables")]
     public float Rain_MetersPerSecond = 0.1f;
 
-
-    [Header("Render Textures")]
-
-    public RenderTexture LandMap;
-    public RenderTexture WaterSourceMap;
-    public RenderTexture WaterMap;
-
     [Header("Compute Shader")]
     public ComputeShader WaterShader;
 
@@ -21,29 +14,25 @@ public class WaterService : MonoBehaviour
     public float SampleWaterDepth(Vector3 location)
     {
         var uv = EnvironmentalChunkService.LocationToUv(location);
-        var color = WaterMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
+        var color = Singleton.EnvironmentalChunkService.GetChunk(location).WaterMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         return color.b;
     }
 
     public void Rain(float meters)
     {
-        int kernelId = WaterShader.FindKernel("Rain");
-        WaterShader.SetFloat("RainDepthInMeters", meters);
-        WaterShader.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
+        foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
+        {
+            int kernelId = WaterShader.FindKernel("Rain");
+            WaterShader.SetFloat("RainDepthInMeters", meters);
+            WaterShader.SetTexture(kernelId, "WaterMap", chunk.WaterMap);
+            WaterShader.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
+        }
     }
 
     /* Inner Mechanations */
 
     void Start()
     {
-        var updateKernel = WaterShader.FindKernel("Update");
-        WaterShader.SetTexture(updateKernel, "LandMap", LandMap);
-        WaterShader.SetTexture(updateKernel, "WaterMap", WaterMap);
-        WaterShader.SetTexture(updateKernel, "WaterSourceMap", WaterSourceMap);
-
-        var rainKernel = WaterShader.FindKernel("Rain");
-        WaterShader.SetTexture(rainKernel, "WaterMap", WaterMap);
-
         Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
     }
 
@@ -59,12 +48,21 @@ public class WaterService : MonoBehaviour
 
     private void UpdateWaterTable()
     {
-        int updateKernel = WaterShader.FindKernel("Update");
-        WaterShader.Dispatch(updateKernel, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
+        foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
+        {
+            int updateKernel = WaterShader.FindKernel("Update");
+            WaterShader.SetTexture(updateKernel, "LandMap", chunk.LandMap);
+            WaterShader.SetTexture(updateKernel, "WaterMap", chunk.WaterMap);
+            WaterShader.SetTexture(updateKernel, "WaterSourceMap", chunk.WaterSourceMap);
+            WaterShader.Dispatch(updateKernel, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
+        }
     }
 
     public void ProcessDay()
     {
-        WaterMap.UpdateTextureCache();
+        foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
+        {
+            chunk.WaterMap.UpdateTextureCache();
+        }
     }
 }

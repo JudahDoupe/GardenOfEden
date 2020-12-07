@@ -8,7 +8,6 @@ using UnityEngine;
 public interface ILandService
 {
     float SampleTerrainHeight(Vector3 location);
-    Texture2D GetLandMap();
     Vector3 ClampAboveTerrain(Vector3 location);
     Vector3 ClampToTerrain(Vector3 location);
     public void PullMountain(Vector3 location, float height);
@@ -16,12 +15,6 @@ public interface ILandService
 
 public class LandService : MonoBehaviour, ILandService
 {
-    [Header("Render Textures")]
-    public RenderTexture LandMap;
-    public RenderTexture SoilWaterMap;
-    public RenderTexture WaterMap;
-    //Bring back terrain cameras
-
     [Header("Compute Shaders")]
     public ComputeShader SoilShader;
     public ComputeShader SmoothAdd;
@@ -35,26 +28,21 @@ public class LandService : MonoBehaviour, ILandService
     public float SampleTerrainHeight(Vector3 location)
     {
         var uv = EnvironmentalChunkService.LocationToUv(location);
-        var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
+        var color = Singleton.EnvironmentalChunkService.GetChunk(location).LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         return color.a;
-    }
-
-    public Texture2D GetLandMap()
-    {
-        return LandMap.CachedTexture();
     }
 
     public Vector3 ClampAboveTerrain(Vector3 location)
     {
         var uv = EnvironmentalChunkService.LocationToUv(location);
-        var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
+        var color = Singleton.EnvironmentalChunkService.GetChunk(location).LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         location.y = Mathf.Max(color.a, location.y);
         return location;
     }
     public Vector3 ClampToTerrain(Vector3 location)
     {
         var uv = EnvironmentalChunkService.LocationToUv(location);
-        var color = LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
+        var color = Singleton.EnvironmentalChunkService.GetChunk(location).LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
         location.y = color.a;
         return location;
     }
@@ -63,8 +51,6 @@ public class LandService : MonoBehaviour, ILandService
     {
         if (isPullingMountain) return;
 
-        var kernelId = SmoothAdd.FindKernel("SmoothAdd");
-        SmoothAdd.SetTexture(kernelId, "Map", LandMap); 
         SmoothAdd.SetFloat("Radius", height);
         SmoothAdd.SetFloats("Channels", 0, 0, 0, 1);
         SmoothAdd.SetFloats("TextureCenter", 200, 0, 200);
@@ -83,9 +69,13 @@ public class LandService : MonoBehaviour, ILandService
             var maxSpeed = height / seconds * Time.deltaTime;
             var growth = Mathj.Tween(realHeight, height) * maxSpeed;
             realHeight += growth;
-            SmoothAdd.SetFloat("Strength", growth);
-            SmoothAdd.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
-            LandMap.UpdateTextureCache();
+            foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
+            {
+                SmoothAdd.SetFloat("Strength", growth);
+                SmoothAdd.SetTexture(kernelId, "Map", chunk.LandMap);
+                SmoothAdd.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
+                chunk.LandMap.UpdateTextureCache();
+            }
             yield return new WaitForEndOfFrame();
         }
         isPullingMountain = false;
@@ -95,24 +85,29 @@ public class LandService : MonoBehaviour, ILandService
 
     void Start()
     {
-        var kernelId = SoilShader.FindKernel("UpdateSoil");
-        SoilShader.SetTexture(kernelId, "SoilWaterMap", SoilWaterMap);
-        SoilShader.SetTexture(kernelId, "LandMap", LandMap);
-        SoilShader.SetTexture(kernelId, "WaterMap", WaterMap);
         Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
     }
 
     void FixedUpdate()
     {
-        int kernelId = SoilShader.FindKernel("UpdateSoil");
-        SoilShader.SetFloat("RootPullSpeed", RootPullSpeed);
-        SoilShader.SetFloat("WaterAbsorptionRate", WaterAbsorptionRate);
-        SoilShader.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
+        foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
+        {
+            int kernelId = SoilShader.FindKernel("UpdateSoil");
+            SoilShader.SetTexture(kernelId, "SoilWaterMap", chunk.SoilWaterMap);
+            SoilShader.SetTexture(kernelId, "LandMap", chunk.LandMap);
+            SoilShader.SetTexture(kernelId, "WaterMap", chunk.WaterMap);
+            SoilShader.SetFloat("RootPullSpeed", RootPullSpeed);
+            SoilShader.SetFloat("WaterAbsorptionRate", WaterAbsorptionRate);
+            SoilShader.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
+        }
     }
 
     public void ProcessDay()
     {
-        LandMap.UpdateTextureCache();
-        SoilWaterMap.UpdateTextureCache();
+        foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
+        {
+            chunk.LandMap.UpdateTextureCache();
+            chunk.SoilWaterMap.UpdateTextureCache();
+        }
     }
 }

@@ -1,9 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Assets.Scripts.Plants.Systems;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 public class EnvironmentalChunkService : MonoBehaviour
 {
@@ -26,6 +28,10 @@ public class EnvironmentalChunkService : MonoBehaviour
     public EnvironmentalChunk GetChunk(float3 location)
     {
         return Chunks[LocationToChunkId(location)];
+    }
+    public List<EnvironmentalChunk> GetAllChunks()
+    {
+        return Chunks.Values.ToList();
     }
 
     public static int LocationToChunkId(float3 location)
@@ -63,15 +69,31 @@ public class EnvironmentalChunkService : MonoBehaviour
     {
         var obj = Instantiate(ChunkPrefab);
         obj.transform.position = new Vector3((id % WorldChunkWidth) * ChunkSize, 0, (id / WorldChunkWidth) * ChunkSize);
+        obj.name = $"Environment Chunk {id}";
 
         Chunks[id] = new EnvironmentalChunk
         {
             Id = id,
             GameObject = obj,
-            //WaterMap = "",
-            //LandMap = ""
-            //SoilWaterMap = ""
+            WaterMap = CreateRT(),
+            WaterSourceMap = CreateRT(),
+            LandMap = CreateRT(),
+            SoilWaterMap = CreateRT(),
         };
+
+        var landMaterial = obj.transform.Find("Land").GetComponent<MeshRenderer>().material;
+        landMaterial.SetTexture("_LandMap", Chunks[id].LandMap);
+        landMaterial.SetTexture("_SoilWaterMap", Chunks[id].SoilWaterMap);
+
+        var waterMaterial = obj.transform.Find("Water").GetComponent<MeshRenderer>().material;
+        waterMaterial.SetTexture("_WaterMap", Chunks[id].WaterMap);
+    }
+
+    private RenderTexture CreateRT()
+    {
+        var rtn = new RenderTexture(TextureSize, TextureSize, 4, GraphicsFormat.R32G32B32A32_SFloat);
+        rtn.enableRandomWrite = true;
+        return rtn;
     }
 }
 
