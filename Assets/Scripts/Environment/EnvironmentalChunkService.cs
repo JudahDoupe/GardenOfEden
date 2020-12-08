@@ -74,12 +74,20 @@ public class EnvironmentalChunkService : MonoBehaviour
         Chunks[id] = new EnvironmentalChunk
         {
             Id = id,
+            Location = obj.transform.position,
             GameObject = obj,
             WaterMap = CreateRT(),
             WaterSourceMap = CreateRT(),
             LandMap = CreateRT(),
             SoilWaterMap = CreateRT(),
         };
+
+        /*
+        Chunks[id].WaterMap.LoadFromFile($"Map/Hills/water.tex");
+        Chunks[id].WaterSourceMap.LoadFromFile($"Map/Hills/waterSource.tex", TextureFormat.RFloat);
+        Chunks[id].LandMap.LoadFromFile($"Map/Hills/land.tex");
+        Chunks[id].SoilWaterMap.LoadFromFile($"Map/Hills/soilWater.tex");
+        */
 
         var landMaterial = obj.transform.Find("Land").GetComponent<MeshRenderer>().material;
         landMaterial.SetTexture("_LandMap", Chunks[id].LandMap);
@@ -92,7 +100,7 @@ public class EnvironmentalChunkService : MonoBehaviour
     private RenderTexture CreateRT()
     {
         var rtn = new RenderTexture(TextureSize, TextureSize, 4, GraphicsFormat.R32G32B32A32_SFloat);
-        rtn.enableRandomWrite = true;
+        rtn.ResetTexture();
         return rtn;
     }
 }
@@ -100,6 +108,7 @@ public class EnvironmentalChunkService : MonoBehaviour
 public class EnvironmentalChunk
 {
     public int Id;
+    public float3 Location;
     public GameObject GameObject;
     public RenderTexture WaterSourceMap;
     public RenderTexture WaterMap;

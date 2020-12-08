@@ -44,14 +44,11 @@ public static class RenderTextureExtensions
                 }
                 else if (request.done)
                 {
-                    var buffer = request.GetData<Color>();
+                    if (!RTCache.ContainsKey(rt))
+                        RTCache[rt] = new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, TextureFormat.RGBAFloat, false);
 
-                    if (!RTCache.TryGetValue(rt, out Texture2D tex))
-                        tex = new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, TextureFormat.RGBAFloat, false);
-
-                    tex.SetPixels(0, 0, EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, buffer.ToArray());
-                    tex.Apply();
-                    RTCache[rt] = tex;
+                    RTCache[rt].SetPixelData(request.GetData<Color>(), 0);
+                    RTCache[rt].Apply();
                 }
             });
         }

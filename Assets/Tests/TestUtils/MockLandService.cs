@@ -27,5 +27,10 @@ namespace Tests
         {
             throw new NotImplementedException();
         }
+
+        public void AddSpring(Vector3 location)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

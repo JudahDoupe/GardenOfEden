@@ -2,7 +2,7 @@
 #pragma kernel Rain
 
 Texture2D<float4> LandMap;
-Texture2D<float> WaterSourceMap;
+Texture2D<float4> WaterSourceMap;
 RWTexture2D<float4> WaterMap;
 
 static float MaxHeight = 200.0f;
@@ -26,7 +26,7 @@ float GetTerrainHeight(int2 xy)
 float GetWaterSouceDepth(int2 xy)
 {
 	uint2 pos = clamp(xy, 0, 511);
-	return WaterSourceMap[pos];
+	return WaterSourceMap[pos].r;
 }
 float GetHeight(int2 xy)
 {

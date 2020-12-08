@@ -15,7 +15,9 @@ static float TextureWidthInPixels = 512.0f;
 void SmoothAdd(uint3 id : SV_DispatchThreadID)
 {
     float pixelRadius = (Radius / TextureWidthInMeters);
-    float d = distance(id.xy / TextureWidthInPixels, AdditionCenter.xz / TextureWidthInMeters);
+    float2 pixelUV = (id.xy / TextureWidthInPixels) + (TextureCenter.xz / TextureWidthInMeters);
+    float2 additionUV = AdditionCenter.xz / TextureWidthInMeters;
+    float d = distance(pixelUV, additionUV);
     float addend = smoothstep(pixelRadius, 0, d) * Strength;
     
     Map[id.xy] += Channels * addend;

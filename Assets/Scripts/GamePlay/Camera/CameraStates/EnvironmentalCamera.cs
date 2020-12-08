@@ -42,6 +42,10 @@ public class EnvironmentalCamera : MonoBehaviour, ICameraState
             var height = _camera.position.y - Singleton.LandService.SampleTerrainHeight(_controller.FocusPoint);  //Flat World Only
             Singleton.LandService.PullMountain(_controller.FocusPoint, height);
         }
+        if (Input.GetKeyDown(KeyCode.N))
+        {
+            Singleton.LandService.AddSpring(_controller.FocusPoint);
+        }
 
         _controller.FocusPoint = Singleton.LandService.ClampToTerrain(Vector3.Lerp(_controller.FocusPoint, _center, lerpSpeed));
         _camera.position = Vector3.Lerp(_camera.position, _controller.FocusPoint + _offset, lerpSpeed);
