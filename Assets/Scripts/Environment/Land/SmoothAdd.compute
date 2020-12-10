@@ -7,7 +7,7 @@ float Radius = 10;
 float3 TextureCenter;
 float3 AdditionCenter;
 
-static float TextureWidthInMeters = 400.0f;
+static float TextureWidthInMeters = 401.568627451f;
 static float TextureWidthInPixels = 512.0f; 
 
 

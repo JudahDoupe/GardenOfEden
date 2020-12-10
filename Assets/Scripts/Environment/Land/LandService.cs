@@ -76,7 +76,7 @@ public class LandService : MonoBehaviour, ILandService
             shader.SetFloat("Radius", 3);
             shader.SetFloats("Channels", 1, 0, 0, 0);
             shader.SetFloats("AdditionCenter", location.x, location.y, location.z);
-            shader.SetFloats("TextureCenter", chunk.Location.x, chunk.Location.y, chunk.Location.z);
+            shader.SetFloats("TextureCenter", chunk.Location.x - 0.78431372549f, chunk.Location.y, chunk.Location.z - 0.78431372549f);
             shader.SetTexture(kernelId, "Map", chunk.WaterSourceMap);
             data.Add(Tuple.Create(shader, chunk.WaterSourceMap));
         }

@@ -21,7 +21,7 @@ public class EnvironmentalChunkService : MonoBehaviour
     {
         for (int i = 0; i < WorldChunkWidth * WorldChunkWidth; i++)
         {
-            CreateChunk(i);
+            //CreateChunk(i);
         }
     }
 

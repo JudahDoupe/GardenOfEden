@@ -11,6 +11,7 @@
         _LandMap ("Land Map", 2D) = "white" {}
         _SoilWaterMap ("Soil Water Map", 2D) = "white" {}
 		_EdgeLength("Edge length", Range(2,50)) = 15
+		_Cutoff("Cutoff", Range(0,1)) = 0.5
     }
     SubShader
     {
@@ -18,7 +19,7 @@
         LOD 200
 
 		CGPROGRAM
-		#pragma surface surf Standard addshadow fullforwardshadows vertex:disp tessellate:tess nolightmap
+		#pragma surface surf Standard alphatest:_Cutoff addshadow fullforwardshadows vertex:disp tessellate:tess nolightmap
 		#pragma target 4.6
 		#include "Tessellation.cginc"
 		#include "UnityShaderVariables.cginc"
@@ -139,6 +140,14 @@
             o.Albedo = lerp(bedrockColor, soilColor, saturate(soilDepth * 10));
 			o.Normal = normal.xzy;
 			o.Metallic = 0;
+			o.Alpha = 1;
+
+			if(i.uv_LandMap.x < (1.0 / 512.0) || i.uv_LandMap.x > (511.0 / 512.0)
+			 || i.uv_LandMap.y < (1.0 / 512.0) || i.uv_LandMap.y > (511.0 / 512.0))
+			{
+				o.Alpha = 0;
+			}
+
 			o.Smoothness = 0;
         }
         ENDCG
