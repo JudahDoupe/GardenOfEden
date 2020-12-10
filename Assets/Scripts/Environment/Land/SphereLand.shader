@@ -10,7 +10,7 @@ Shader "Custom/SphereLand"
         _LandMapZNeg ("Land Map Z-", 2D) = "white" {}
 
 		_BedRockColor("Bedrock Color", color) = (1,1,1,0)
-	    _SoilColor("Live Soil Color", color) = (1,1,1,0)
+	    _SoilColor("Soil Color", color) = (1,1,1,0)
 
 		_EdgeLength("Tesselation Edge length", Range(2,50)) = 15
 
@@ -24,7 +24,7 @@ Shader "Custom/SphereLand"
         LOD 200
 
         CGPROGRAM
-		#pragma surface surf Standard alphatest:_Cutoff addshadow fullforwardshadows vertex:disp tessellate:tess nolightmap
+		#pragma surface surf Standard alphatest:_Cutoff addshadow fullforwardshadows vertex:disp nolightmap
 		#pragma target 4.6 //TODO: try 3.0
 		#include "Tessellation.cginc"
 		#include "UnityShaderVariables.cginc"
@@ -36,9 +36,13 @@ Shader "Custom/SphereLand"
         sampler2D _LandMapZPos;
         sampler2D _LandMapZNeg;
 
+		float4 _SoilColor;
+		float4 _BedRockColor;
+
         half _TopographyWidth;
         half _TopographyFrequency;
 		half _TopographyDarkening;
+
 		float _EdgeLength;
 		float Epsilon = 1e-10;
 
@@ -48,15 +52,42 @@ Shader "Custom/SphereLand"
 			float4 tangent : TANGENT;
 			float3 normal : NORMAL;
 			float2 texcoord : TEXCOORD0;
-			float4 color : COLOR;
 		};
 
 		struct Input 
 		{
-			float2 uv_LandMap : TEXCOORD0;
-			float4 screenPos : TEXCOORD1;
-			float4 color : COLOR;
+			float2 uv_LandMapXPos : TEXCOORD0;
+            int textureId;
 		};
+
+        float3 HUEtoRGB(in float H)
+		{
+			float R = abs(H * 6 - 3) - 1;
+			float G = 2 - abs(H * 6 - 2);
+			float B = 2 - abs(H * 6 - 4);
+			return saturate(float3(R, G, B));
+		}
+		float3 HSLtoRGB(in float3 HSL)
+		{
+			float3 RGB = HUEtoRGB(HSL.x);
+			float C = (1 - abs(2 * HSL.z - 1)) * HSL.y;
+			return (RGB - 0.5) * C + HSL.z;
+		}
+		float3 RGBtoHCV(in float3 RGB)
+		{
+			float4 P = (RGB.g < RGB.b) ? float4(RGB.bg, -1.0, 2.0/3.0) : float4(RGB.gb, 0.0, -1.0/3.0);
+			float4 Q = (RGB.r < P.x) ? float4(P.xyw, RGB.r) : float4(RGB.r, P.yzx);
+			float C = Q.x - min(Q.w, Q.y);
+			float H = abs((Q.w - Q.y) / (6 * C + Epsilon) + Q.z);
+			return float3(H, C, Q.x);
+		}
+		float3 RGBtoHSL(in float3 RGB)
+		{
+			float3 HCV = RGBtoHCV(RGB);
+			float L = HCV.z - HCV.y * 0.5;
+			float S = HCV.y / (1 - abs(L * 2 - 1) + Epsilon);
+			return float3(HCV.x, S, L);
+		}
 
         float3 FindNormal(float4 uv, sampler2D map, int channel)
 		{
@@ -72,31 +103,105 @@ Shader "Custom/SphereLand"
 			n.y = 2;
 			return normalize(n);
 		}
-        
-        float4 tess(appdata v0, appdata v1, appdata v2)
-		{
-			return UnityEdgeLengthBasedTess(v0.vertex, v1.vertex, v2.vertex, _EdgeLength);
-		} 
 
-		void disp(inout appdata v)
+		void disp(inout appdata v, out Input o)
 		{	
-			sampler2D map = _LandMapXPos;
-			float4 soil = tex2Dlod(map, float4(v.texcoord, 0, 0));
+            UNITY_INITIALIZE_OUTPUT(Input,o);
 			int channel = 3;
+            float3 textureNormal;
+			float4 soil;
 
-			float3 textureNormal = FindNormal(float4(v.texcoord,0,0), map, channel);
+            float3 absV = abs(v.vertex);
+            int greatestIndex = 0;
+            for (int i = 1; i < 3; i++){
+                if (absV[i] > absV[greatestIndex]) {
+                    greatestIndex = i;
+                }
+            }
+            float3 cv = v.vertex / absV[greatestIndex];
 
+            if (greatestIndex == 0) {
+                if (cv.x > 0) {
+                    textureNormal = FindNormal(float4(v.texcoord,0,0), _LandMapXPos, channel);
+                    soil = tex2Dlod(_LandMapXPos, float4(v.texcoord, 0, 0));
+                    v.texcoord = float2(cv.z, cv.y);
+                    o.textureId = 0;
+                }
+                else {
+                    textureNormal = FindNormal(float4(v.texcoord,0,0), _LandMapXNeg, channel);
+                    soil = tex2Dlod(_LandMapXNeg, float4(v.texcoord, 0, 0));
+                    v.texcoord = float2(-cv.z, cv.y);
+                    o.textureId = 1;
+                }
+            }
+            else if (greatestIndex == 1) {
+                if (cv.y > 0) {
+                    textureNormal = FindNormal(float4(v.texcoord,0,0), _LandMapYPos, channel);
+                    soil = tex2Dlod(_LandMapYPos, float4(v.texcoord, 0, 0));
+                    v.texcoord = float2(-cv.x, cv.z);
+                    o.textureId = 2;
+                }
+                else {
+                    textureNormal = FindNormal(float4(v.texcoord,0,0), _LandMapYNeg, channel);
+                    soil = tex2Dlod(_LandMapYNeg, float4(v.texcoord, 0, 0));
+                    v.texcoord = float2(-cv.x, -cv.z);
+                    o.textureId = 3;
+                }
+            }
+            else if (greatestIndex == 2) {
+                if (cv.z > 0) {
+                    textureNormal = FindNormal(float4(v.texcoord,0,0), _LandMapZPos, channel);
+                    soil = tex2Dlod(_LandMapZPos, float4(v.texcoord, 0, 0));
+                    v.texcoord = float2(-cv.x, cv.y);
+                    o.textureId = 4;
+                }
+                else {
+                    textureNormal = FindNormal(float4(v.texcoord,0,0), _LandMapZNeg, channel);
+                    soil = tex2Dlod(_LandMapZNeg, float4(v.texcoord, 0, 0));
+                    v.texcoord = float2(cv.x, cv.y);
+                    o.textureId = 5;
+                }
+            }
+            
 			v.vertex += float4(v.normal * soil[channel], 0);
 			v.normal = normalize(textureNormal.x * v.tangent + textureNormal.y * v.normal + textureNormal.z * cross(v.tangent, v.normal));
-			v.color = float4(0,0,0,0);
 		}
 
-        void surf (Input IN, inout SurfaceOutputStandard o)
+        void surf (Input i, inout SurfaceOutputStandard o)
         {
-            o.Albedo = 0.5;
-            o.Metallic = 0;
-            o.Smoothness = 0;
-            o.Alpha = 0;
+            float4 soil;
+
+            if (i.textureId == 0) {
+                soil = tex2D(_LandMapXPos, i.uv_LandMapXPos);
+            } else if (i.textureId == 1){
+                soil = tex2D(_LandMapXNeg, i.uv_LandMapXPos);
+            } else if (i.textureId == 2){
+                soil = tex2D(_LandMapYPos, i.uv_LandMapXPos);
+            } else if (i.textureId == 3){
+                soil = tex2D(_LandMapYNeg, i.uv_LandMapXPos);
+            } else if (i.textureId == 4){
+                soil = tex2D(_LandMapZPos, i.uv_LandMapXPos);
+            } else{
+                soil = tex2D(_LandMapZNeg, i.uv_LandMapXPos);
+            }
+            
+			float soilDepth = max(soil.r, Epsilon);
+			float landHeight = soil.a;
+
+			float3 bedrockHSL = RGBtoHSL(_BedRockColor.xyz);
+			float3 soilHSL = RGBtoHSL(_SoilColor.xyz);
+
+			float3 angle = float3(0,1,0);
+			float angleDist = length(angle - o.Normal);
+			if (landHeight % _TopographyFrequency < angleDist * _TopographyWidth){
+				bedrockHSL.z -= _TopographyDarkening;
+				soilHSL.z -= _TopographyDarkening;
+			}
+
+			float4 bedrockColor = float4(HSLtoRGB(bedrockHSL),1);
+			float4 soilColor = float4(HSLtoRGB(soilHSL),1);
+
+            o.Albedo = lerp(bedrockColor, soilColor, saturate(soilDepth * 10));
         }
         ENDCG
     }
