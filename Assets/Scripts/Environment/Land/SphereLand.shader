@@ -163,6 +163,7 @@ Shader "Custom/SphereLand"
                 }
             }
             
+            v.texcoord = ((v.texcoord+1)/2);
 			v.vertex += float4(v.normal * soil[channel], 0);
 			v.normal = normalize(textureNormal.x * v.tangent + textureNormal.y * v.normal + textureNormal.z * cross(v.tangent, v.normal));
 		}
@@ -202,6 +203,8 @@ Shader "Custom/SphereLand"
 			float4 soilColor = float4(HSLtoRGB(soilHSL),1);
 
             o.Albedo = lerp(bedrockColor, soilColor, saturate(soilDepth * 10));
+            float2 id = floor(i.uv_LandMapXPos * 16);
+            o.Albedo = float4(id / 16 ,0.5,0);
         }
         ENDCG
     }

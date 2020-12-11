@@ -11,24 +11,27 @@ namespace Tests
             return new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, TextureFormat.RGBAFloat, false);
         }
 
-        public Vector3 ClampAboveTerrain(Vector3 location) => location;
-
-        public Vector3 ClampToTerrain(Vector3 location) => location;
-
-        public float SampleRootDepth(Vector3 location) => 0;
-
-        public float SampleSoilDepth(Vector3 location) => 0;
-
-        public float SampleTerrainHeight(Vector3 location) => 0;
-
-        public float SampleWaterDepth(Vector3 location) => 0;
-
-        public void PullMountain(Vector3 location, float height)
+        public float SampleTerrainHeight(SphericalCoord location)
         {
             throw new NotImplementedException();
         }
 
-        public void AddSpring(Vector3 location)
+        public CartesianCoord ClampAboveTerrain(CartesianCoord location)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CartesianCoord ClampToTerrain(CartesianCoord location)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void PullMountain(SphericalCoord location, float height)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddSpring(SphericalCoord location)
         {
             throw new NotImplementedException();
         }

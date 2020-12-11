@@ -16,6 +16,7 @@ public static class Vector3Extensions
     }
 
     public static float3 ToFloat3(this Vector3 t) => new float3(t.x, t.y, t.z);
+    public static Vector3 ToVector3(this float3 t) => new Vector3(t.x, t.y, t.z);
 
     public static Vector3 ClampMagnitude(this Vector3 v, float max, float min)
     {

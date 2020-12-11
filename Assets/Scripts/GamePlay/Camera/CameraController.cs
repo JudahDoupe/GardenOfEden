@@ -6,17 +6,17 @@ public class CameraController : MonoBehaviour
     public StateMachine<ICameraState> CameraState { get; private set; }
     public StateMachine<IUiState> UiState { get; private set; }
 
-    public Vector3 FocusPoint { get; set; }
+    public CartesianCoord FocusPoint { get; set; }
 
     public GameObject FocusObject;
     public PostProcessProfile PostProccessing;
 
     private void Start()
     {
-        FocusPoint = FocusObject.transform.position;
+        FocusPoint = new CartesianCoord(FocusObject.transform.position);
 
         CameraState = new StateMachine<ICameraState>();
-        CameraState.SetState(FindObjectOfType<EnvironmentalCamera>());
+        CameraState.SetState(FindObjectOfType<PlanetaryCamera>());
 
         UiState = new StateMachine<IUiState>();
         UiState.SetState(FindObjectOfType<CinematicUi>());
@@ -30,7 +30,7 @@ public class CameraController : MonoBehaviour
 
         if (FocusObject != null)
         {
-            FocusObject.transform.position = FocusPoint;
+            FocusObject.transform.position = FocusPoint.XYZ;
         }
     }
 }

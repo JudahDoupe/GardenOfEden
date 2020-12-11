@@ -7,11 +7,11 @@ using UnityEngine;
 
 public interface ILandService
 {
-    float SampleTerrainHeight(Vector3 location);
-    Vector3 ClampAboveTerrain(Vector3 location);
-    Vector3 ClampToTerrain(Vector3 location);
-    public void PullMountain(Vector3 location, float height);
-    public void AddSpring(Vector3 location);
+    float SampleTerrainHeight(SphericalCoord location);
+    CartesianCoord ClampAboveTerrain(CartesianCoord location);
+    CartesianCoord ClampToTerrain(CartesianCoord location);
+    public void PullMountain(SphericalCoord location, float height);
+    public void AddSpring(SphericalCoord location);
 }
 
 public class LandService : MonoBehaviour, ILandService
@@ -26,30 +26,27 @@ public class LandService : MonoBehaviour, ILandService
 
     /* Publicly Accessible Methods */
 
-    public float SampleTerrainHeight(Vector3 location)
+    public float SampleTerrainHeight(SphericalCoord location)
     {
-        var uv = EnvironmentalChunkService.LocationToUv(location);
-        var color = Singleton.EnvironmentalChunkService.GetChunk(location).LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
-        return color.a;
+        throw new NotImplementedException();
     }
 
-    public Vector3 ClampAboveTerrain(Vector3 location)
+    public CartesianCoord ClampAboveTerrain(CartesianCoord location)
     {
-        var uv = EnvironmentalChunkService.LocationToUv(location);
-        var color = Singleton.EnvironmentalChunkService.GetChunk(location).LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
-        location.y = Mathf.Max(color.a, location.y);
-        return location;
+        throw new NotImplementedException();
     }
-    public Vector3 ClampToTerrain(Vector3 location)
+    public CartesianCoord ClampToTerrain(CartesianCoord location)
     {
-        var uv = EnvironmentalChunkService.LocationToUv(location);
-        var color = Singleton.EnvironmentalChunkService.GetChunk(location).LandMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
-        location.y = color.a;
-        return location;
+        var sphereicalCoord = location.ToSpherical();
+        sphereicalCoord.Altitude = SphericalCoord.PlanetRadius;
+        //sphereicalCoord.Height += SampleTerrainHeight(sphereicalCoord);
+        return sphereicalCoord.ToCartesian();
     }
 
-    public void PullMountain(Vector3 location, float height)
+    public void PullMountain(SphericalCoord location, float height)
     {
+        throw new NotImplementedException();
+        /*
         var data = new List<Tuple<ComputeShader, RenderTexture>>();
         foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
         {
@@ -64,10 +61,13 @@ public class LandService : MonoBehaviour, ILandService
         }
 
         StartCoroutine(SmoothAdd(height, 2f, data));
+        */
     }
 
-    public void AddSpring(Vector3 location)
+    public void AddSpring(SphericalCoord location)
     {
+        throw new NotImplementedException();
+        /*
         var data = new List<Tuple<ComputeShader, RenderTexture>>();
         foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
         {
@@ -82,6 +82,7 @@ public class LandService : MonoBehaviour, ILandService
         }
 
         StartCoroutine(SmoothAdd(2, 1f, data));
+        */
     }
 
     /* Inner Mechanations */
