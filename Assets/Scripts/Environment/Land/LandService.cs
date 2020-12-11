@@ -28,7 +28,7 @@ public class LandService : MonoBehaviour, ILandService
 
     public float SampleTerrainHeight(Coordinate coord)
     {
-        throw new NotImplementedException();
+        return Coordinate.PlanetRadius;// += SampleTerrainHeight(sphereicalCoord);
     }
 
     public Coordinate ClampAboveTerrain(Coordinate coord)

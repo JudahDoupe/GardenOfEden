@@ -30,7 +30,7 @@ public struct Coordinate
     }
     public float phi
     {
-        get => math.atan(y / x);
+        get => math.atan2(y, x);
         set => SetSphericalCoordinates(theta, value, Altitude);
     }
     public float Altitude
@@ -64,9 +64,9 @@ public struct Coordinate
 
     private void SetSphericalCoordinates(float theta, float phi, float altitude)
     {
-        x = math.cos(phi) * math.cos(theta) * altitude;
-        y = math.sin(phi) * altitude;
-        z = math.cos(phi) * math.sin(theta) * altitude;
+        x = altitude * math.sin(theta) * math.cos(phi);
+        y = altitude * math.sin(theta) * math.sin(phi);
+        z = altitude * math.cos(theta);
     }
     private Tuple<float2, CubemapFace> GetCubeMapCoordinates(float3 v)
     {
