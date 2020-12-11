@@ -7,11 +7,11 @@ using UnityEngine;
 
 public interface ILandService
 {
-    float SampleTerrainHeight(SphericalCoord location);
-    CartesianCoord ClampAboveTerrain(CartesianCoord location);
-    CartesianCoord ClampToTerrain(CartesianCoord location);
-    public void PullMountain(SphericalCoord location, float height);
-    public void AddSpring(SphericalCoord location);
+    float SampleTerrainHeight(Coordinate coord);
+    Coordinate ClampAboveTerrain(Coordinate coord);
+    Coordinate ClampToTerrain(Coordinate coord);
+    public void PullMountain(Coordinate coord, float height);
+    public void AddSpring(Coordinate coord);
 }
 
 public class LandService : MonoBehaviour, ILandService
@@ -26,24 +26,23 @@ public class LandService : MonoBehaviour, ILandService
 
     /* Publicly Accessible Methods */
 
-    public float SampleTerrainHeight(SphericalCoord location)
+    public float SampleTerrainHeight(Coordinate coord)
     {
         throw new NotImplementedException();
     }
 
-    public CartesianCoord ClampAboveTerrain(CartesianCoord location)
+    public Coordinate ClampAboveTerrain(Coordinate coord)
     {
         throw new NotImplementedException();
     }
-    public CartesianCoord ClampToTerrain(CartesianCoord location)
+    public Coordinate ClampToTerrain(Coordinate coord)
     {
-        var sphereicalCoord = location.ToSpherical();
-        sphereicalCoord.Altitude = SphericalCoord.PlanetRadius;
-        //sphereicalCoord.Height += SampleTerrainHeight(sphereicalCoord);
-        return sphereicalCoord.ToCartesian();
+        coord.Altitude = Coordinate.PlanetRadius;
+        //coord.Altitude += SampleTerrainHeight(sphereicalCoord);
+        return coord;
     }
 
-    public void PullMountain(SphericalCoord location, float height)
+    public void PullMountain(Coordinate location, float height)
     {
         throw new NotImplementedException();
         /*
@@ -64,7 +63,7 @@ public class LandService : MonoBehaviour, ILandService
         */
     }
 
-    public void AddSpring(SphericalCoord location)
+    public void AddSpring(Coordinate location)
     {
         throw new NotImplementedException();
         /*

@@ -9,9 +9,9 @@ using UnityEngine.Experimental.Rendering;
 
 public class EnvironmentalChunkService : MonoBehaviour
 {
-    public static int WorldChunkWidth = 3;
-    public static float ChunkSize = 400;
-    public static int TextureSize = 512;
+    public const int WorldChunkWidth = 3;
+    public const float ChunkSize = 400;
+    public const int TextureSize = 512;
 
     public GameObject ChunkPrefab;
 

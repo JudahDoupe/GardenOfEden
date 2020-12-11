@@ -20,7 +20,7 @@ public class PlanetaryCamera : MonoBehaviour, ICameraState
     private CameraController _controller;
     private Transform _camera;
     private float3 _offset;
-    private CartesianCoord _center;
+    private Coordinate _center;
     private float _directionSign = 1;
 
     private void Start()
@@ -39,24 +39,24 @@ public class PlanetaryCamera : MonoBehaviour, ICameraState
 
         if (Input.GetKeyDown(KeyCode.M))
         {
-            var height = _camera.position.y - Singleton.LandService.SampleTerrainHeight(_controller.FocusPoint.ToSpherical());  //Flat World Only
-            Singleton.LandService.PullMountain(_controller.FocusPoint.ToSpherical(), height);
+            var height = _camera.position.y - Singleton.LandService.SampleTerrainHeight(_controller.FocusPoint);  //Flat World Only
+            Singleton.LandService.PullMountain(_controller.FocusPoint, height);
         }
         if (Input.GetKeyDown(KeyCode.N))
         {
-            Singleton.LandService.AddSpring(_controller.FocusPoint.ToSpherical());
+            Singleton.LandService.AddSpring(_controller.FocusPoint);
         }
 
-        var newCoord = new CartesianCoord(Vector3.Lerp(_controller.FocusPoint.XYZ, _center.XYZ, lerpSpeed));
+        var newCoord = Vector3.Lerp(_controller.FocusPoint.xyz, _center.xyz, lerpSpeed);
         _controller.FocusPoint = Singleton.LandService.ClampToTerrain(newCoord);
-        _camera.position = Vector3.Lerp(_camera.position, _controller.FocusPoint.XYZ + _offset, lerpSpeed);
-        _camera.LookAt(_controller.FocusPoint.XYZ);
-        _controller.PostProccessing.GetSetting<DepthOfField>().focusDistance.value = Vector3.Distance(_camera.transform.position, _controller.FocusPoint.XYZ);
+        _camera.position = Vector3.Lerp(_camera.position, _controller.FocusPoint.xyz + _offset, lerpSpeed);
+        _camera.LookAt(_controller.FocusPoint.xyz);
+        _controller.PostProccessing.GetSetting<DepthOfField>().focusDistance.value = Vector3.Distance(_camera.transform.position, _controller.FocusPoint.xyz);
     }
 
     public void Enable()
     {
-        _offset = _camera.transform.position.ToFloat3() - _controller.FocusPoint.XYZ;
+        _offset = _camera.transform.position.ToFloat3() - _controller.FocusPoint.xyz;
         _center = _controller.FocusPoint;
     }
 
@@ -84,8 +84,8 @@ public class PlanetaryCamera : MonoBehaviour, ICameraState
             targetoffset.Scale(new Vector3(1 - depthMovement, 1 - depthMovement, 1 - depthMovement));
         }
 
-        var target = new CartesianCoord(_controller.FocusPoint.XYZ + targetoffset.ToFloat3()).ToSpherical();
-        if (Singleton.LandService.SampleTerrainHeight(target) < (target).Altitude
+        Coordinate target = _controller.FocusPoint.xyz + targetoffset.ToFloat3();
+        if (Singleton.LandService.SampleTerrainHeight(target) < target.Altitude
             && targetoffset.normalized.y < 0.9f)
         {
             _offset = targetoffset;
@@ -115,7 +115,7 @@ public class PlanetaryCamera : MonoBehaviour, ICameraState
         if (lastMousePos.HasValue)
         {
             var movementVector = Quaternion.FromToRotation(_camera.forward, Vector3.down) * (lastMousePos.Value - currentMousePos);
-            _center.XYZ += movementVector.ToFloat3() * MoveSpeedMultiplier;
+            _center.xyz += movementVector.ToFloat3() * MoveSpeedMultiplier;
             _center = Singleton.LandService.ClampToTerrain(_center);
         }
 
