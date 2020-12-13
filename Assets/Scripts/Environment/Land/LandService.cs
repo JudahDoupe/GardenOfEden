@@ -28,17 +28,18 @@ public class LandService : MonoBehaviour, ILandService
 
     public float SampleTerrainHeight(Coordinate coord)
     {
-        return Coordinate.PlanetRadius;// += SampleTerrainHeight(sphereicalCoord);
+        return Coordinate.PlanetRadius;
     }
 
     public Coordinate ClampAboveTerrain(Coordinate coord)
     {
-        throw new NotImplementedException();
+        var minAltitude = Coordinate.PlanetRadius + 1;
+        coord.Altitude = coord.Altitude < minAltitude ? minAltitude : coord.Altitude;
+        return coord;
     }
     public Coordinate ClampToTerrain(Coordinate coord)
     {
         coord.Altitude = Coordinate.PlanetRadius;
-        //coord.Altitude += SampleTerrainHeight(sphereicalCoord);
         return coord;
     }
 

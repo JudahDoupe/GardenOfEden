@@ -7,43 +7,47 @@ using UnityEngine.Rendering.PostProcessing;
 
 public class PlanetaryCamera : MonoBehaviour, ICameraState
 {
-    public static bool LockMovement;
-    public static bool LockRotation;
+    public bool LockMovement;
+    public bool LockRotation;
 
+    public float LerpSpeed = 22f;
+    public float MovementSpeed = 2f;
+    public float RotationSpeed = 22f;
+    public float ZoomSpeed = 1f;
     public float MinDistance = 1f;
     public float MaxDistance = 100f;
-    public float MoveSpeedMultiplier = 2f;
-    public float RotateSpeedMultiplier = 2f;
 
     private CameraController _controller;
     private Transform _camera;
-    private float3 _offset;
-    private Coordinate _center;
 
-    private ILandService _land;
+    private Coordinate _focusTarget;
+    private Coordinate _cameraTarget;
+
+    private Vector3 Up => _controller.FocusPoint.xyz.ToVector3().normalized;
+    private Vector3 Forward => (_focusTarget.xyz - new Coordinate(_cameraTarget.xyz) { Altitude = _focusTarget.Altitude }.xyz).ToVector3().normalized;
 
     private void Start()
     {
         _camera = Camera.main.transform;
         _controller = FindObjectOfType<CameraController>();
-        _center = _controller.FocusPoint;
-        _land = Singleton.LandService;
+        _focusTarget = _controller.FocusPoint;
     }
 
     public void Enable()
     {
-        _offset = _camera.transform.position.ToFloat3() - _controller.FocusPoint.xyz;
-        _center = _controller.FocusPoint;
+        _cameraOffset = new Vector3(0, 25, -50);
+        _focusTarget = _controller.FocusPoint;
+        _cameraTarget = new Coordinate(_camera.position);
     }
 
     public void Disable() { }
 
     public void UpdateCamera()
     {
-        var lerpSpeed = Time.deltaTime * MoveSpeedMultiplier * 2;
-        
-        TryRotate();
-        TryMove();
+        var lerpSpeed = Time.deltaTime * LerpSpeed * 2;
+
+        UpdateFocusTarget();
+        UpdateCameraTarget();
 
         if (Input.GetKeyDown(KeyCode.M))
         {
@@ -55,56 +59,53 @@ public class PlanetaryCamera : MonoBehaviour, ICameraState
             Singleton.LandService.AddSpring(_controller.FocusPoint);
         }
 
-        var up = _controller.FocusPoint.xyz.ToVector3().normalized;
-        var forward = (_controller.FocusPoint.xyz - _land.ClampToTerrain(new Coordinate(_camera.transform.position)).xyz).ToVector3().normalized;
-        var sphericalOffset = up * _offset.y + forward * _offset.z;
-
-        _controller.FocusPoint = _land.ClampToTerrain(Vector3.Lerp(_controller.FocusPoint.xyz, _center.xyz, lerpSpeed));
-        _camera.position = Vector3.Lerp(_camera.position, _controller.FocusPoint.xyz + sphericalOffset.ToFloat3(), lerpSpeed);
-        _camera.LookAt(_controller.FocusPoint.xyz, up);
+        _controller.FocusPoint = Singleton.LandService.ClampToTerrain(Vector3.Lerp(_controller.FocusPoint.xyz, _focusTarget.xyz, lerpSpeed));
+        _camera.position = Singleton.LandService.ClampAboveTerrain(Vector3.Lerp(_camera.position, _cameraTarget.xyz, lerpSpeed)).xyz;
+        _camera.LookAt(_controller.FocusPoint.xyz, Up);
         _controller.PostProccessing.GetSetting<DepthOfField>().focusDistance.value = Vector3.Distance(_camera.transform.position, _controller.FocusPoint.xyz);
     }
 
-    private void TryRotate()
+    private Vector3 _cameraOffset;
+    private void UpdateCameraTarget()
     {
-        if (!Input.GetMouseButton(0) || LockMovement)
+        var forward = Forward;
+        if (!LockRotation)
         {
-            return;
+            var timeFactor = Time.deltaTime * 30;
+
+            if (Input.GetMouseButton(0))
+            {
+                var horizontalMovement = Input.GetAxis("Mouse X") * RotationSpeed * timeFactor;
+                var invertDirectiom = Input.mousePosition.y > (Screen.height / 2) ? -1 : 1;
+                forward = Quaternion.AngleAxis(horizontalMovement * invertDirectiom, Up) * forward;
+
+                var verticalMovement = Input.GetAxis("Mouse Y") * RotationSpeed * timeFactor;
+                var targetOffset = Quaternion.AngleAxis(-verticalMovement, Vector3.right) * _cameraOffset;
+                if (0.05 < targetOffset.normalized.y && targetOffset.normalized.y < 0.9995)
+                    _cameraOffset = targetOffset;
+            }
+
+            if (Input.mouseScrollDelta.y != 0)
+            {
+                var depthMovement = 1 - Input.mouseScrollDelta.y * ZoomSpeed * timeFactor;
+                _cameraOffset = (_cameraOffset * depthMovement).ClampMagnitude(MaxDistance, MinDistance);
+            }
         }
 
-        var timeFactor = Time.deltaTime * 30;
-        var verticalMovement = Input.GetAxis("Mouse Y") * (RotateSpeedMultiplier) * timeFactor;
-        var horizontalMovement = Input.GetAxis("Mouse X") * (RotateSpeedMultiplier) * timeFactor;
-        var depthMovement = Input.mouseScrollDelta.y * MoveSpeedMultiplier / 10 * timeFactor;
-
-        var targetoffset = Quaternion.AngleAxis(-horizontalMovement, _controller.FocusPoint.xyz.ToVector3().normalized) 
-            * (Quaternion.AngleAxis(verticalMovement, _camera.transform.right) * _offset);
-
-        if (targetoffset.magnitude * (1 - depthMovement) > MinDistance
-            && targetoffset.magnitude * (1 - depthMovement) < MaxDistance)
-        {
-            targetoffset.Scale(new Vector3(1 - depthMovement, 1 - depthMovement, 1 - depthMovement));
-        }
-
-        Coordinate target = _controller.FocusPoint.xyz + targetoffset.ToFloat3();
-        if (Singleton.LandService.SampleTerrainHeight(target) < target.Altitude
-            && targetoffset.normalized.y < 0.9f)
-        {
-            _offset = targetoffset;
-        }
+        _cameraTarget = _focusTarget.xyz.ToVector3() + (Quaternion.LookRotation(forward, Up) * _cameraOffset);
     }
 
-    private void TryMove()
+    private void UpdateFocusTarget()
     {
-        var timeFactor = Time.deltaTime * 30;
-        var verticalMovement = Input.GetAxis("Vertical") * (MoveSpeedMultiplier) * timeFactor;
-        var horizontalMovement = Input.GetAxis("Horizontal") * (MoveSpeedMultiplier) * timeFactor;
-        var movementVector = _camera.right * horizontalMovement + (_camera.up + _camera.forward).normalized * verticalMovement;
+        var forward = Forward;
+        var right = -Vector3.Cross(forward.normalized, Up.normalized);
+        var movementMultiplier = MovementSpeed * Time.deltaTime * 30 * math.sqrt(_cameraOffset.magnitude);
+        var movementVector = (right * Input.GetAxis("Horizontal") + forward * Input.GetAxis("Vertical")) * movementMultiplier;
         
-        if (movementVector.magnitude > float.Epsilon)
+        if (movementVector.magnitude > float.Epsilon && !LockMovement)
         {
-            _center.xyz += movementVector.ToFloat3() * MoveSpeedMultiplier;
-            _center = Singleton.LandService.ClampToTerrain(_center);
+            _focusTarget.xyz += movementVector.ToFloat3();
+            _focusTarget = Singleton.LandService.ClampToTerrain(_focusTarget);
         }
     }
 }
