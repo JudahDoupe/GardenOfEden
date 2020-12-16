@@ -23,7 +23,7 @@ namespace Tests
 
         public Texture2D GetLandMap()
         {
-            return new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, TextureFormat.RGBAFloat, false);
+            return new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false);
         }
 
         public void PullMountain(Coordinate coord, float height)

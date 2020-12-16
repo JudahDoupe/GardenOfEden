@@ -39,10 +39,10 @@ public struct Coordinate
         set => SetSphericalCoordinates(theta, phi, value);
     }
 
-    public CubemapFace face { get => GetCubeMapCoordinates(xyz).Item2; }
-    public float2 uv { get => GetCubeMapCoordinates(xyz).Item1; }
-    public float u { get => uv.x; }
-    public float v { get => uv.y; }
+    public float3 uvw { get => GetUvw(); }
+    public float u { get => uvw.x; }
+    public float v { get => uvw.y; }
+    public int side { get => math.int3(math.round(uvw)).z; }
 
     public Coordinate(float x, float y, float z)
     {
@@ -68,34 +68,36 @@ public struct Coordinate
         y = altitude * math.sin(theta) * math.sin(phi);
         z = altitude * math.cos(theta);
     }
-    private Tuple<float2, CubemapFace> GetCubeMapCoordinates(float3 v)
-    {
-        var abs = math.abs(v);
-        int greatestIndex = 0;
-        for (int i = 1; i < 3; i++)
-            if (abs[i] > abs[greatestIndex])
-                greatestIndex = i;
-        v /= abs[greatestIndex];
 
-        switch (greatestIndex)
-        {
-            case 0:
-                if (v.x > 0)
-                    return Tuple.Create(new float2(v.z, v.y), CubemapFace.PositiveX);
-                else
-                    return Tuple.Create(new float2(-v.z, v.y), CubemapFace.NegativeX);
-            case 1:
-                if (v.y > 0)
-                    return Tuple.Create(new float2(-v.x, v.z), CubemapFace.PositiveY);
-                else
-                    return Tuple.Create(new float2(-v.x, -v.z), CubemapFace.NegativeY);
-            case 2:
-                if (v.z > 0)
-                    return Tuple.Create(new float2(-v.x, v.y), CubemapFace.PositiveZ);
-                else
-                    return Tuple.Create(new float2(v.x, v.y), CubemapFace.NegativeZ);
-            default:
-                return Tuple.Create(new float2(v.z, v.y), CubemapFace.PositiveX);
-        }
+    private float3 GetUvw()
+    {
+        // Find which dimension we're pointing at the most
+        Vector3 abs = math.abs(xyz);
+        bool xMoreY = abs.x > abs.y;
+        bool yMoreZ = abs.y > abs.z;
+        bool zMoreX = abs.z > abs.x;
+        bool xMost = (xMoreY) && (!zMoreX);
+        bool yMost = (!xMoreY) && (yMoreZ);
+        bool zMost = (zMoreX) && (!yMoreZ);
+
+        // Determine which index belongs to each +- dimension
+        // 0: +X; 1: -X; 2: +Y; 3: -Y; 4: +Z; 5: -Z;
+        int xSideIdx = xyz.x < 0 ? 1 : 0;
+        int ySideIdx = xyz.y < 0 ? 3 : 2;
+        int zSideIdx = xyz.z < 0 ? 5 : 4;
+
+        // Composite it all together to get our side
+        var side = (xMost ? xSideIdx : 0) + (yMost ? ySideIdx : 0) + (zMost ? zSideIdx : 0);
+
+        // Depending on side, we use different components for UV and project to square
+        float2 uv = new float2(side < 2 ? xyz.y : xyz.x, side >= 4 ? xyz.y : xyz.z);
+        uv /= xyz[side / 2];
+
+        // Transform uv from [-1,1] to [0,1]
+        uv = uv * 0.5f + new float2(0.5f, 0.5f);
+        // Account for buffer pixel
+        uv = uv * (510.0f / 512.0f) + (2.0f / 512.0f);
+
+        return new float3(uv.x, uv.y, side);
     }
 }

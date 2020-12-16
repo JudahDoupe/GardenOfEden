@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 public interface ILandService
 {
@@ -19,6 +20,8 @@ public class LandService : MonoBehaviour, ILandService
     [Header("Compute Shaders")]
     public ComputeShader SoilShader;
     public ComputeShader SmoothAddShader;
+    public Renderer LandRenderer;
+
     [Range(0.1f,0.5f)]
     public float RootPullSpeed = 0.1f;
     [Range(0.01f, 0.5f)]
@@ -90,10 +93,14 @@ public class LandService : MonoBehaviour, ILandService
     void Start()
     {
         Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
+
+        LandRenderer.material = new Material((Shader)Resources.Load("Shaders/SphereLand"));
+        LandRenderer.material.SetTexture("_LandMap", EnvironmentDataStore.LandMap);
     }
 
     void FixedUpdate()
     {
+        /*
         foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
         {
             int kernelId = SoilShader.FindKernel("UpdateSoil");
@@ -102,17 +109,20 @@ public class LandService : MonoBehaviour, ILandService
             SoilShader.SetTexture(kernelId, "WaterMap", chunk.WaterMap);
             SoilShader.SetFloat("RootPullSpeed", RootPullSpeed);
             SoilShader.SetFloat("WaterAbsorptionRate", WaterAbsorptionRate);
-            SoilShader.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
+            SoilShader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
         }
+        */
     }
 
     public void ProcessDay()
     {
+        /*
         foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
         {
             chunk.LandMap.UpdateTextureCache();
             chunk.SoilWaterMap.UpdateTextureCache();
         }
+        */
     }
 
     private IEnumerator SmoothAdd(float height, float seconds, List<Tuple<ComputeShader, RenderTexture>> data)
@@ -127,7 +137,7 @@ public class LandService : MonoBehaviour, ILandService
             {
                 var kernelId = shader.FindKernel("SmoothAdd");
                 shader.SetFloat("Strength", growth);
-                shader.Dispatch(kernelId, EnvironmentalChunkService.TextureSize / 8, EnvironmentalChunkService.TextureSize / 8, 1);
+                shader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
             }
             yield return new WaitForEndOfFrame();
             foreach (var map in data.Select(x => x.Item2))

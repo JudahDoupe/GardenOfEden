@@ -19,6 +19,7 @@ namespace Assets.Scripts.Plants.Systems
 
         protected override void OnUpdate()
         {
+            /*
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             //TODO: Fix the bug when plants overlap chunk boundries
             var landMap = Singleton.EnvironmentalChunkService.GetChunk(Singleton.LoadBalancer.CurrentChunk.Position).LandMap.CachedTexture();
@@ -37,9 +38,9 @@ namespace Assets.Scripts.Plants.Systems
 
                     var seed = math.asuint((genericSeed * entityInQueryIndex) % uint.MaxValue) + 1;
                     var rand = new Unity.Mathematics.Random(seed);
-                    var height = l2w.Position.y - landMapNativeArray[EnvironmentalChunkService.LocationToTextureIndex(l2w.Position)].a;
+                    var height = l2w.Position.y - landMapNativeArray[EnvironmentDataStore.LocationToTextureIndex(l2w.Position)].a;
                     var position = l2w.Position + new float3(rand.NextFloat(-height, height), 0, rand.NextFloat(-height, height));
-                    position.y = landMapNativeArray[EnvironmentalChunkService.LocationToTextureIndex(position)].a;
+                    position.y = landMapNativeArray[EnvironmentDataStore.LocationToTextureIndex(position)].a;
 
                     ecb.RemoveComponent<WindDispersal>(entityInQueryIndex, entity);
                     ecb.RemoveComponent<Parent>(entityInQueryIndex, entity);
@@ -50,6 +51,7 @@ namespace Assets.Scripts.Plants.Systems
                 .ScheduleParallel();
 
             _ecbSystem.AddJobHandleForProducer(Dependency);
+            */
         }
     }
 }

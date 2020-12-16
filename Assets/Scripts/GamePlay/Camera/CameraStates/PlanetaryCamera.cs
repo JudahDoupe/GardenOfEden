@@ -79,6 +79,7 @@ public class PlanetaryCamera : MonoBehaviour, ICameraState
                 var invertDirectiom = Input.mousePosition.y > (Screen.height / 2) ? -1 : 1;
                 forward = Quaternion.AngleAxis(horizontalMovement * invertDirectiom, Up) * forward;
 
+
                 var verticalMovement = Input.GetAxis("Mouse Y") * RotationSpeed * timeFactor;
                 var targetOffset = Quaternion.AngleAxis(-verticalMovement, Vector3.right) * _cameraOffset;
                 if (0.05 < targetOffset.normalized.y && targetOffset.normalized.y < 0.9995)

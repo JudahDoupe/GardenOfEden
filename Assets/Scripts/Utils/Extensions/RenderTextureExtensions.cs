@@ -2,6 +2,7 @@
 using System.IO;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 public static class RenderTextureExtensions
@@ -22,10 +23,10 @@ public static class RenderTextureExtensions
     public static Texture2D ToTexture2D(this RenderTexture rt, TextureFormat format = TextureFormat.RGBAFloat)
     {
         RenderTexture currentRt = RenderTexture.active;
-        Texture2D rtnTex = new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, format, false);
+        Texture2D rtnTex = new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, format, false);
         RenderTexture.active = rt;
 
-        rtnTex.ReadPixels(new Rect(0, 0, EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize), 0, 0);
+        rtnTex.ReadPixels(new Rect(0, 0, EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize), 0, 0);
         rtnTex.Apply();
 
         RenderTexture.active = currentRt;
@@ -45,7 +46,7 @@ public static class RenderTextureExtensions
                 else if (request.done)
                 {
                     if (!RTCache.ContainsKey(rt))
-                        RTCache[rt] = new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, TextureFormat.RGBAFloat, false);
+                        RTCache[rt] = new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false);
 
                     RTCache[rt].SetPixelData(request.GetData<Color>(), 0);
                     RTCache[rt].Apply();
@@ -54,11 +55,23 @@ public static class RenderTextureExtensions
         }
 
     }
-    public static void ResetTexture(this RenderTexture tex)
+    public static RenderTexture ResetTexture(this RenderTexture tex)
     {
-        tex.Release();
+        tex.Release(); 
+        tex.dimension = TextureDimension.Tex2DArray;
+        tex.volumeDepth = 6;
+        tex.wrapMode = TextureWrapMode.Clamp;
+        tex.filterMode = FilterMode.Trilinear;
         tex.enableRandomWrite = true;
+        tex.isPowerOfTwo = true;
         tex.Create();
+
+        ComputeShader cs = (ComputeShader)Resources.Load("Shaders/Clear");
+        var kernelId = cs.FindKernel("Clear");
+        cs.SetTexture(kernelId, "Map", tex);
+        cs.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+
+        return tex;
     }
     public static bool IsTextureBeingUpdated(this RenderTexture rt)
     {
@@ -69,7 +82,7 @@ public static class RenderTextureExtensions
     public static void LoadFromFile(this RenderTexture rt, string path, TextureFormat format = TextureFormat.RGBAFloat)
     {
         Texture2D tex;  
-        tex = new Texture2D(EnvironmentalChunkService.TextureSize, EnvironmentalChunkService.TextureSize, format, false);
+        tex = new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, format, false);
         tex.LoadRawTextureData(File.ReadAllBytes(Application.persistentDataPath + '/' + path));
         tex.Apply();
         Graphics.Blit(tex, rt);
