@@ -4,7 +4,6 @@ RWTexture2DArray<float4> Map;
 float4 Channels;
 float Strength = 10;
 float Radius = 10;
-float3 TextureCenter;
 float3 AdditionCenter;
 
 static float TextureWidthInMeters = 401.568627451f;
@@ -18,30 +17,12 @@ void SmoothAdd(uint3 id : SV_DispatchThreadID)
     [unroll]
     for (int i = 0; i < 6; ++i)
     {
-        float3 uvw = float3(float(id.x) / (TextureWidthInPixels - 1), float(id.y) / (TextureWidthInPixels - 1), i);
-        float3 xyz = abs(uvw_to_xyz(uvw));
- 
-         // This just puts a unique colored dot in the middle of the texture for each side
-         // (Not important)
-         {
-            float dist = length(xyz);
-            float3 centerColor = float3( // Find the color of the dot for this side
-                 i / 2 == 0 || (i & 1 && i / 2 == 1),
-                 i / 2 == 1 || (i & 1 && i / 2 == 2),
-                 i / 2 == 2 || (i & 1 && i / 2 == 0));
-            if (dist < 1.03)
-                xyz = float3(0, 0, 0); // Outline
-            if (dist < 1.02)
-                xyz = centerColor; // Dot
-        }
- 
-
-        float pixelRadius = (Radius / TextureWidthInMeters);
-        float2 pixelUV = (id.xy / TextureWidthInPixels) + (TextureCenter.xz / TextureWidthInMeters);
-        float2 additionUV = AdditionCenter.xz / TextureWidthInMeters;
-        float d = distance(pixelUV, additionUV);
-        float addend = smoothstep(pixelRadius, 0, d) * Strength;
-    
+        float2 uv = (id.xy - 1) / (TextureWidthInPixels - 2);
+        float3 uvw = float3(uv, i);
+        float3 xyz = normalize(uvw_to_xyz(uvw)) * 1000;
+        float d = distance(AdditionCenter, xyz);
+        float addend = (1 - smoothstep(0, Radius, d)) * Strength;
+        
         Map[int3(id.xy, i)] += Channels * addend;
     }
 }

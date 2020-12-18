@@ -88,7 +88,6 @@ float3 uvw_to_xyz(float3 uvw)
     int wasNegative = side & 1;
  
     // Insert a constant plane value for the dominant dimension in here
-    uvw = (uvw - (2.0 / 512.0)) / (510.0 / 512.0);
     uvw.z = 1;
  
     // Depending on the side we swizzle components back (NOTE: uvw.z is 1)

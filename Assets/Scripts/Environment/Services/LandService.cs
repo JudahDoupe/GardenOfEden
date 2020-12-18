@@ -48,23 +48,16 @@ public class LandService : MonoBehaviour, ILandService
 
     public void PullMountain(Coordinate location, float height)
     {
-        throw new NotImplementedException();
-        /*
-        var data = new List<Tuple<ComputeShader, RenderTexture>>();
-        foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
-        {
-            var shader = Instantiate(SmoothAddShader);
-            var kernelId = shader.FindKernel("SmoothAdd");
-            shader.SetFloat("Radius", height);
-            shader.SetFloats("Channels", 0, 0, 0, 1);
-            shader.SetFloats("AdditionCenter", location.x, location.y, location.z);
-            shader.SetFloats("TextureCenter", chunk.Location.x, chunk.Location.y, chunk.Location.z);
-            shader.SetTexture(kernelId, "Map", chunk.LandMap); 
-            data.Add(Tuple.Create(shader, chunk.LandMap));
-        }
+        var shader = Instantiate(SmoothAddShader);
+        var kernelId = shader.FindKernel("SmoothAdd");
+        shader.SetFloat("Radius", height);
+        shader.SetFloats("Channels", 1, 0, 0, 0);
+        shader.SetFloats("AdditionCenter", location.x, location.y, location.z);
+        shader.SetTexture(kernelId, "Map", EnvironmentDataStore.LandMap);
+        shader.SetFloat("Strength", height);
+        shader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
 
-        StartCoroutine(SmoothAdd(height, 2f, data));
-        */
+        //StartCoroutine(SmoothAdd(height, 2f, new[] { Tuple.Create(shader, EnvironmentDataStore.LandMap) }));
     }
 
     public void AddSpring(Coordinate location)
@@ -94,8 +87,8 @@ public class LandService : MonoBehaviour, ILandService
     {
         Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
 
-        LandRenderer.material = new Material((Shader)Resources.Load("Shaders/SphereLand"));
         LandRenderer.material.SetTexture("_LandMap", EnvironmentDataStore.LandMap);
+        LandRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000,2000,2000));
     }
 
     void FixedUpdate()
@@ -125,7 +118,7 @@ public class LandService : MonoBehaviour, ILandService
         */
     }
 
-    private IEnumerator SmoothAdd(float height, float seconds, List<Tuple<ComputeShader, RenderTexture>> data)
+    private IEnumerator SmoothAdd(float height, float seconds, IEnumerable<Tuple<ComputeShader, RenderTexture>> data)
     {
         var realHeight = 0f;
         while (realHeight < height)
@@ -142,7 +135,7 @@ public class LandService : MonoBehaviour, ILandService
             yield return new WaitForEndOfFrame();
             foreach (var map in data.Select(x => x.Item2))
             {
-                map.UpdateTextureCache();
+                //map.UpdateTextureCache();
             }
         }
     }

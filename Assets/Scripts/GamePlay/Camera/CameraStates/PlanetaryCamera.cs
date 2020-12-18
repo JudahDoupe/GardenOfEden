@@ -52,7 +52,7 @@ public class PlanetaryCamera : MonoBehaviour, ICameraState
         if (Input.GetKeyDown(KeyCode.M))
         {
             var height = new Coordinate(_camera.position).Altitude - _controller.FocusPoint.Altitude;
-            Singleton.LandService.PullMountain(_controller.FocusPoint, height);
+            Singleton.LandService.PullMountain(_controller.FocusPoint, height / 2f);
         }
         if (Input.GetKeyDown(KeyCode.N))
         {
