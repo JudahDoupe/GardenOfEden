@@ -16,6 +16,11 @@ namespace Tests
             throw new NotImplementedException();
         }
 
+        public Coordinate ClampAboveTerrain(Coordinate coord, float minHeight)
+        {
+            throw new NotImplementedException();
+        }
+
         public Coordinate ClampToTerrain(Coordinate coord)
         {
             throw new NotImplementedException();

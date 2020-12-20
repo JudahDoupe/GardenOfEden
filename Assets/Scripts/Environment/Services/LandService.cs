@@ -9,7 +9,7 @@ using UnityEngine.Experimental.Rendering;
 public interface ILandService
 {
     float SampleTerrainHeight(Coordinate coord);
-    Coordinate ClampAboveTerrain(Coordinate coord);
+    Coordinate ClampAboveTerrain(Coordinate coord, float minHeight);
     Coordinate ClampToTerrain(Coordinate coord);
     public void PullMountain(Coordinate coord, float height);
     public void AddSpring(Coordinate coord);
@@ -34,9 +34,9 @@ public class LandService : MonoBehaviour, ILandService
         return Coordinate.PlanetRadius;
     }
 
-    public Coordinate ClampAboveTerrain(Coordinate coord)
+    public Coordinate ClampAboveTerrain(Coordinate coord, float minHeight = 1)
     {
-        var minAltitude = Coordinate.PlanetRadius + 1;
+        var minAltitude = Coordinate.PlanetRadius + minHeight;
         coord.Altitude = coord.Altitude < minAltitude ? minAltitude : coord.Altitude;
         return coord;
     }
