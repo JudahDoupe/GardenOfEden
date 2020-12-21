@@ -4,7 +4,6 @@ using UnityEngine;
 public class WaterService : MonoBehaviour
 {
     [Header("Variables")]
-    public float Rain_MetersPerSecond = 0.1f;
 
     [Header("Compute Shader")]
     public ComputeShader WaterShader;
@@ -48,25 +47,15 @@ public class WaterService : MonoBehaviour
     void FixedUpdate()
     {
         UpdateWaterTable();
-
-        if (Input.GetKey(KeyCode.R))
-        {
-            Rain(Rain_MetersPerSecond / 60.0f);
-        }
     }
 
     private void UpdateWaterTable()
     {
-        /*
-        foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
-        {
-            int updateKernel = WaterShader.FindKernel("Update");
-            WaterShader.SetTexture(updateKernel, "LandMap", chunk.LandMap);
-            WaterShader.SetTexture(updateKernel, "WaterMap", chunk.WaterMap);
-            WaterShader.SetTexture(updateKernel, "WaterSourceMap", chunk.WaterSourceMap);
-            WaterShader.Dispatch(updateKernel, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
-        }
-        */
+        int updateKernel = WaterShader.FindKernel("Update");
+        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandMap);
+        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentDataStore.WaterMap);
+        WaterShader.SetTexture(updateKernel, "WaterSourceMap", EnvironmentDataStore.WaterSourceMap);
+        WaterShader.Dispatch(updateKernel, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
     }
 
     public void ProcessDay()

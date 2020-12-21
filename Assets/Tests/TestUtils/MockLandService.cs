@@ -1,17 +1,11 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 
 namespace Tests
 {
     public class MockLandService : ILandService
     {
         public void AddSpring(Coordinate coord)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Coordinate ClampAboveTerrain(Coordinate coord)
         {
             throw new NotImplementedException();
         }
@@ -31,7 +25,7 @@ namespace Tests
             return new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false);
         }
 
-        public void PullMountain(Coordinate coord, float height)
+        public void PullMountain(Coordinate coord, float radius, float height)
         {
             throw new NotImplementedException();
         }

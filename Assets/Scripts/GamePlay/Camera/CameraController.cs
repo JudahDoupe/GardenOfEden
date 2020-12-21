@@ -99,10 +99,10 @@ public class CameraController : MonoBehaviour
 
     private void TryInputs()
     {
-        if (Input.GetKeyDown(KeyCode.M))
+        if (Input.GetKey(KeyCode.M))
         {
             var height = _camera.localPosition.y;
-            Singleton.LandService.PullMountain(_focusTarget, height / 2f);
+            Singleton.LandService.PullMountain(_focusTarget, height, height / 100);
         }
         if (Input.GetKeyDown(KeyCode.N))
         {

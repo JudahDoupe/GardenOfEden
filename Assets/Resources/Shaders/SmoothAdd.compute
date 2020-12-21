@@ -1,4 +1,5 @@
 ﻿#pragma kernel SmoothAdd
+#include "CoordinateTransforms.hlsl"
 
 RWTexture2DArray<float4> Map;
 float4 Channels;
@@ -6,23 +7,17 @@ float Strength = 10;
 float Radius = 10;
 float3 AdditionCenter;
 
-static float TextureWidthInMeters = 401.568627451f;
-static float TextureWidthInPixels = 512.0f; 
-
- #include "CoordinateTransforms.hlsl"
-
 [numthreads(8, 8, 1)]
 void SmoothAdd(uint3 id : SV_DispatchThreadID)
 {
     [unroll]
     for (int i = 0; i < 6; ++i)
     {
-        float2 uv = (id.xy - 1) / (TextureWidthInPixels - 2);
-        float3 uvw = float3(uv, i);
-        float3 xyz = normalize(uvw_to_xyz(uvw)) * 1000;
+        int3 xyw = int3(id.xy, i);
+        float3 xyz = xyw_to_xyz(xyw, 1000);
         float d = distance(AdditionCenter, xyz);
         float addend = (1 - smoothstep(0, Radius, d)) * Strength;
         
-        Map[int3(id.xy, i)] += Channels * addend;
+        Map[xyw] += Channels * addend;
     }
 }

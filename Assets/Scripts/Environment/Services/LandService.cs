@@ -11,7 +11,7 @@ public interface ILandService
     float SampleTerrainHeight(Coordinate coord);
     Coordinate ClampAboveTerrain(Coordinate coord, float minHeight);
     Coordinate ClampToTerrain(Coordinate coord);
-    public void PullMountain(Coordinate coord, float height);
+    public void PullMountain(Coordinate coord, float radius, float height);
     public void AddSpring(Coordinate coord);
 }
 
@@ -21,11 +21,6 @@ public class LandService : MonoBehaviour, ILandService
     public ComputeShader SoilShader;
     public ComputeShader SmoothAddShader;
     public Renderer LandRenderer;
-
-    [Range(0.1f,0.5f)]
-    public float RootPullSpeed = 0.1f;
-    [Range(0.01f, 0.5f)]
-    public float WaterAbsorptionRate = 0.02f;
 
     /* Publicly Accessible Methods */
 
@@ -46,18 +41,16 @@ public class LandService : MonoBehaviour, ILandService
         return coord;
     }
 
-    public void PullMountain(Coordinate location, float height)
+    public void PullMountain(Coordinate location, float radius, float height)
     {
         var shader = Instantiate(SmoothAddShader);
         var kernelId = shader.FindKernel("SmoothAdd");
-        shader.SetFloat("Radius", height);
+        shader.SetFloat("Radius", radius);
         shader.SetFloats("Channels", 1, 0, 0, 0);
         shader.SetFloats("AdditionCenter", location.x, location.y, location.z);
         shader.SetTexture(kernelId, "Map", EnvironmentDataStore.LandMap);
         shader.SetFloat("Strength", height);
         shader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
-
-        //StartCoroutine(SmoothAdd(height, 2f, new[] { Tuple.Create(shader, EnvironmentDataStore.LandMap) }));
     }
 
     public void AddSpring(Coordinate location)
@@ -116,27 +109,5 @@ public class LandService : MonoBehaviour, ILandService
             chunk.SoilWaterMap.UpdateTextureCache();
         }
         */
-    }
-
-    private IEnumerator SmoothAdd(float height, float seconds, IEnumerable<Tuple<ComputeShader, RenderTexture>> data)
-    {
-        var realHeight = 0f;
-        while (realHeight < height)
-        {
-            var maxSpeed = height / seconds * Time.deltaTime;
-            var growth = Mathj.Tween(realHeight, height) * maxSpeed;
-            realHeight += growth;
-            foreach (var shader in data.Select(x => x.Item1))
-            {
-                var kernelId = shader.FindKernel("SmoothAdd");
-                shader.SetFloat("Strength", growth);
-                shader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
-            }
-            yield return new WaitForEndOfFrame();
-            foreach (var map in data.Select(x => x.Item2))
-            {
-                //map.UpdateTextureCache();
-            }
-        }
     }
 }

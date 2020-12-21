@@ -1,85 +1,76 @@
 ﻿#pragma kernel Update
-#pragma kernel Rain
+#include "CoordinateTransforms.hlsl"
 
-Texture2D<float4> LandMap;
-Texture2D<float4> WaterSourceMap;
-RWTexture2D<float4> WaterMap;
+Texture2DArray<float4> LandMap;
+Texture2DArray<float4> WaterSourceMap;
+RWTexture2DArray<float4> WaterMap;
 
-static float MaxHeight = 200.0f;
-static float WidthInMeters = 400.0f;
-static float WidthInPixels = 512.0f;
+static float MaxHeight = 1000.0f;
 
-static float GridSpacing = WidthInMeters / WidthInPixels;
+static float GridSpacing = TextureWidthInMeters / TextureWidthInPixels;
 static float SimulationSpeed = 1.0f / 50.0f; //speed in time steps per second. 1 = seconds | 50 = steps.  this is the speed of FixedUpdate
 static float Gravity = 9.8f;
 
-static float AmplitudeDampening = 0.5f;
+static float AmplitudeDampening = 0.6f;
 static float VelocityDampening = 2.0f;
 
 static float Eps = 0.00001f;
 
-float GetTerrainHeight(int2 xy)
+float GetTerrainHeight(int3 xyw)
 {
-	uint2 pos = clamp(xy, 0, 511);
-    return LandMap[pos].a;
+    return LandMap[xyw].r;
 }
-float GetWaterSouceDepth(int2 xy)
+float GetWaterSouceDepth(int3 xyw)
 {
-	uint2 pos = clamp(xy, 0, 511);
-	return WaterSourceMap[pos].r;
+    return WaterSourceMap[xyw].r;
 }
-float GetHeight(int2 xy)
+float GetHeight(int3 xyw)
 {
-	uint2 pos = clamp(xy, 0, 511);
-	return WaterMap[pos].a;
+    return WaterMap[xyw].a;
 }
-float GetDepth(int2 xy)
+float GetDepth(int3 xyw)
 {
-	uint2 pos = clamp(xy, 0, 511);
-    return WaterMap[pos].b;
+    return WaterMap[xyw].b;
 }
-float2 GetVelocity(int2 xy) 
+float2 GetVelocity(int3 xyw)
 {
-	uint2 pos = clamp(xy, 0, 511);
-    return WaterMap[pos].rg;
+    return WaterMap[xyw].rg;
 }
-float GetVelocityFace(int2 xy, int2 offset)
+float GetVelocityFace(int3 xyw, int3 offset)
 {
 	if (offset.x == 1) {
-		return GetVelocity(xy).x;
-	}else if (offset.y == 1) {
-		return GetVelocity(xy).y;
-	}else if (offset.x == -1) {
-		return GetVelocity(xy + offset).x;
-	}else if (offset.y == -1) {
-		return GetVelocity(xy + offset).y;
-	}else {
+        return GetVelocity(xyw).x;
+    }else if (offset.y == 1) {
+        return GetVelocity(xyw).y;
+    }else if (offset.x == -1) {
+        return GetVelocity(xyw + offset).x;
+    }else if (offset.y == -1) {
+        return GetVelocity(xyw + offset).y;
+    }else {
 		return 0;
 	}
 }
 
 // Velocity
 
-int ShouldPerserveVelocity(int2 xy, int2 offset)
+int ShouldPerserveVelocity(int3 xyw, int3 offset)
 {
-	int isReflective = (GetDepth(xy) <= Eps && GetTerrainHeight(xy) > GetHeight(xy + offset)) ||
-					   (GetDepth(xy + offset) <= Eps && GetTerrainHeight(xy + offset) > GetHeight(xy));
-	int isEdge = (xy + offset).x < 0 || (xy + offset).x >= 512 ||
-			     (xy + offset).y < 0 || (xy + offset).y >= 512;
+    int isReflective = (GetDepth(xyw) <= Eps && GetTerrainHeight(xyw) > GetHeight(xyw + offset)) ||
+					   (GetDepth(xyw + offset) <= Eps && GetTerrainHeight(xyw + offset) > GetHeight(xyw));
 	return !isReflective;
 }
-float2 GetNewVelocity(int2 xy)
+float2 GetNewVelocity(int3 xyw)
 {
 	float2 externalForce = 0;
 
-    float2 neighborHeights = float2(GetHeight(xy + int2(1, 0)), GetHeight(xy + int2(0, 1)));
-	float2 heightDiffs = neighborHeights - GetHeight(xy);
+    float2 neighborHeights = float2(GetHeight(xyw + int3(1, 0, 0)), GetHeight(xyw + int3(0, 1, 0)));
+    float2 heightDiffs = neighborHeights - GetHeight(xyw);
 
 	float relativeGravity = -Gravity / GridSpacing;
 	float2 changeInVelocity = (relativeGravity * heightDiffs + externalForce) * SimulationSpeed;
 	
-	int2 shouldPerserveVelocity = int2(ShouldPerserveVelocity(xy, int2(1, 0)), ShouldPerserveVelocity(xy, int2(0, 1)));
-	float2 newVelocity = (GetVelocity(xy) + changeInVelocity) * shouldPerserveVelocity;
+    int2 shouldPerserveVelocity = int2(ShouldPerserveVelocity(xyw, int3(1, 0, 0)), ShouldPerserveVelocity(xyw, int3(0, 1, 0)));
+    float2 newVelocity = (GetVelocity(xyw) + changeInVelocity) * shouldPerserveVelocity;
 
 	float maxVelocity = (GridSpacing / SimulationSpeed) / VelocityDampening;
 	return clamp(newVelocity, -maxVelocity, maxVelocity);
@@ -87,57 +78,55 @@ float2 GetNewVelocity(int2 xy)
 
 // Height
 
-float UpwindDepth(int2 xy, int2 offset)
+float UpwindDepth(int3 xyw, int3 offset)
 {
-	int dir = dot(offset, int2(1,1));
-	if (GetVelocityFace(xy, offset) * dir <= 0)
-		return GetDepth(xy + offset);
+    int dir = dot(xyw, int3(1, 1, 0));
+    if (GetVelocityFace(xyw, offset) * dir <= 0)
+        return GetDepth(xyw + offset);
     else
-		return GetDepth(xy);
+        return GetDepth(xyw);
 }
-float StabilizedUpwind(int2 xy, int2 offset)
+float StabilizedUpwind(int3 xyw, int3 offset)
 {
 	float averageMaxDepth = (GridSpacing / (Gravity * SimulationSpeed)) / AmplitudeDampening;
-	float averageUpwind = (UpwindDepth(xy, int2( 1,  0)) +
-						   UpwindDepth(xy, int2( 0,  1)) +
-						   UpwindDepth(xy, int2(-1,  0)) +
-						   UpwindDepth(xy, int2( 0, -1))) / 4;
+    float averageUpwind = (UpwindDepth(xyw, int3(1, 0, 0)) +
+						   UpwindDepth(xyw, int3(0, 1, 0)) +
+						   UpwindDepth(xyw, int3(-1, 0, 0)) +
+						   UpwindDepth(xyw, int3(0, -1, 0))) / 4;
 	float adjacentDepth = max(0, (averageUpwind - averageMaxDepth));
-	return UpwindDepth(xy, offset) - adjacentDepth;
+    return UpwindDepth(xyw, offset) - adjacentDepth;
 }
-float Runoff(int2 xy, int2 offset)
+float Runoff(int3 xyw, int3 offset)
 {
-	float runoff = StabilizedUpwind(xy, offset) * GetVelocityFace(xy, offset);
+    float runoff = StabilizedUpwind(xyw, offset) * GetVelocityFace(xyw, offset);
 	return runoff;
 }
-float GetChangeInDepth(int2 xy)
+float GetChangeInDepth(int3 xyw)
 {
-	float xRunoff = (Runoff(xy, int2(1, 0)) - Runoff(xy, int2(-1, 0))) / GridSpacing;
-    float yRunoff = (Runoff(xy, int2(0, 1)) - Runoff(xy, int2(0, -1))) / GridSpacing;
+    float xRunoff = (Runoff(xyw, int3(1, 0, 0)) - Runoff(xyw, int3(-1, 0, 0))) / GridSpacing;
+    float yRunoff = (Runoff(xyw, int3(0, 1, 0)) - Runoff(xyw, int3(0, -1, 0))) / GridSpacing;
 
     return -(xRunoff + yRunoff) * SimulationSpeed;
 }
-float GetNewDepth(int2 xy)
+float GetNewDepth(int3 xyw)
 {
-	float terrainHeight = GetTerrainHeight(xy);
-    int isOnTerrain = terrainHeight > 0;
-	float newDepth = GetDepth(xy) + GetChangeInDepth(xy);
-	float clampedDepth = clamp(newDepth * isOnTerrain, GetWaterSouceDepth(xy), MaxHeight - terrainHeight);
+    float newDepth = GetDepth(xyw) + GetChangeInDepth(xyw);
+    float clampedDepth = clamp(newDepth, GetWaterSouceDepth(xyw), MaxHeight);
 	return clampedDepth;
 }
 
 // High Frequency Suppression
 
-float EdgeSuppression(int2 xy, int2 offset) {
+float EdgeSuppression(int3 xyz, int3 offset) {
 	float maxEdge = 0.5f * GridSpacing;
 	float suppressionRation = 0.25f;
 
-	float myHeight = GetHeight(xy);
-	float edgeHeight = GetHeight(xy + offset);
-	float oppositeEdgeHeight = GetHeight(xy + (offset * -1));
+    float myHeight = GetHeight(xyz);
+    float edgeHeight = GetHeight(xyz + offset);
+    float oppositeEdgeHeight = GetHeight(xyz + (offset * -1));
 
-	float myDepth = GetDepth(xy);
-	float edgeDepth = GetDepth(xy + offset);
+    float myDepth = GetDepth(xyz);
+    float edgeDepth = GetDepth(xyz + offset);
 
 	if (myHeight - oppositeEdgeHeight > maxEdge && myHeight > edgeHeight) {
 		float avgDepth = (myDepth + edgeDepth) / 2.0f;
@@ -147,10 +136,10 @@ float EdgeSuppression(int2 xy, int2 offset) {
 		return 0.0f;
 	}
 }
-float HighFrequencySuppression(int2 xy) {
-
-	return EdgeSuppression(xy, int2(-1, 0)) + EdgeSuppression(xy, int2(1, 0)) +
-		EdgeSuppression(xy, int2(0, -1)) + EdgeSuppression(xy, int2(0, 1));
+float HighFrequencySuppression(int3 xyz)
+{
+    return EdgeSuppression(xyz, int3(-1, 0, 0)) + EdgeSuppression(xyz, int3(1, 0, 0)) +
+		EdgeSuppression(xyz, int3(0, -1, 0)) + EdgeSuppression(xyz, int3(0, 1, 0));
 }
 
 // Kernels
@@ -158,27 +147,27 @@ float HighFrequencySuppression(int2 xy) {
 [numthreads(8,8,1)]
 void Update (uint3 id : SV_DispatchThreadID)
 { 
-    float depth = GetNewDepth(id.xy);
-	float terrainHeight = GetTerrainHeight(id.xy);
-	float waterHeight = GetTerrainHeight(id.xy) + depth;
-    float2 velocity = GetNewVelocity(id.xy);
+	[unroll]
+    for (int i = 0; i < 6; ++i)
+    {
+        int3 xyw = int3(id.xy, i);  
 
+        float2 velocity = GetNewVelocity(xyw);
+        float depth = GetNewDepth(xyw);
+        float waterHeight = GetTerrainHeight(xyw) + depth;
+        
+        AllMemoryBarrierWithGroupSync();
+        WaterMap[xyw] = float4(velocity, depth, waterHeight);
     
-    AllMemoryBarrierWithGroupSync();
-    WaterMap[id.xy] = float4(velocity, depth, waterHeight);
-    AllMemoryBarrierWithGroupSync();
-    
-    //This does not conserve mass :(
-    float hfs = HighFrequencySuppression(id.xy);
-    WaterMap[id.xy] = float4(velocity, depth + hfs, waterHeight + hfs);
-}
-
-float RainDepthInMeters;
-
-[numthreads(8, 8, 1)]
-void Rain (uint3 id : SV_DispatchThreadID)
-{
-	float4 s = WaterMap[id.xy];
-	s.b += RainDepthInMeters;
-	WaterMap[id.xy] = s;
+		//This does not conserve mass :(
+        AllMemoryBarrierWithGroupSync();
+        float hfs = HighFrequencySuppression(xyw);
+        WaterMap[xyw] = float4(velocity, depth + hfs, waterHeight + hfs);
+        
+        AllMemoryBarrierWithGroupSync();
+        if (isBoundryPixel(id.xy))
+        {
+            WaterMap[xyw] = WaterMap[overlapping_xyw(xyw)];
+        }
+    }
 }
