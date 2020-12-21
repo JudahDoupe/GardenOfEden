@@ -31,6 +31,7 @@ public class CameraController : MonoBehaviour
         _focus = transform.parent;
         _camera = transform;
         _focusTarget = new Coordinate(_focus.position);
+        Camera.main.depthTextureMode = DepthTextureMode.Depth;
     }
 
     private void LateUpdate()

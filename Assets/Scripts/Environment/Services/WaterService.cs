@@ -8,6 +8,7 @@ public class WaterService : MonoBehaviour
 
     [Header("Compute Shader")]
     public ComputeShader WaterShader;
+    public Renderer WaterRenderer;
 
     /* Publicly Accessible Methods */
 
@@ -39,6 +40,9 @@ public class WaterService : MonoBehaviour
     void Start()
     {
         Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
+
+        WaterRenderer.material.SetTexture("_WaterMap", EnvironmentDataStore.WaterMap);
+        WaterRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000, 2000, 2000));
     }
 
     void FixedUpdate()

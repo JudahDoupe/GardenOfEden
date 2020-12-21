@@ -1,15 +1,17 @@
-﻿#pragma kernel Clear
+﻿#pragma kernel Initialize
 
 RWTexture2DArray<float4> Map;
+
+float4 Values;
 
 static float TextureWidthInPixels = 512.0f; 
 
 [numthreads(8, 8, 1)]
-void Clear(uint3 id : SV_DispatchThreadID)
+void Initialize(uint3 id : SV_DispatchThreadID)
 {
     [unroll]
     for (int i = 0; i < 6; ++i)
     {
-        Map[int3(id.xy, i)] = float4(0,0,0,0);
+        Map[int3(id.xy, i)] = Values;
     }
 }

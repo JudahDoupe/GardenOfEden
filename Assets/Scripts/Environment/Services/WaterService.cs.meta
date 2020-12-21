@@ -3,13 +3,8 @@ guid: f0471ac12bcc3444a94bf860156da02d
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences:
-  - LandMap: {fileID: 8600000, guid: c81425690323c0e47be8a8230e97a08f, type: 2}
-  - WaterSourceHeightMap: {fileID: 8600000, guid: 09c5e01c29e7340408e6154bcbe022f3,
-      type: 2}
-  - WaterMap: {fileID: 8600000, guid: 99838628972da224696fe5b851b90a7e, type: 2}
-  - WaterShader: {fileID: 7200000, guid: 64b336648617fb44697d012cd17ff071, type: 3}
-  executionOrder: -50
+  defaultReferences: []
+  executionOrder: 0
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 

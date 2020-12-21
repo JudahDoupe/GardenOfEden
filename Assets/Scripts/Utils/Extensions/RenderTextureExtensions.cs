@@ -66,9 +66,14 @@ public static class RenderTextureExtensions
         tex.isPowerOfTwo = true;
         tex.Create();
 
-        ComputeShader cs = (ComputeShader)Resources.Load("Shaders/Clear");
-        var kernelId = cs.FindKernel("Clear");
+        return tex;
+    }
+    public static RenderTexture Initialize(this RenderTexture tex, float r = 0, float g = 0, float b = 0, float a = 0)
+    {
+        ComputeShader cs = (ComputeShader)Resources.Load("Shaders/Initialize");
+        var kernelId = cs.FindKernel("Initialize");
         cs.SetTexture(kernelId, "Map", tex);
+        cs.SetFloats("Values", r, g, b, a);
         cs.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
 
         return tex;
