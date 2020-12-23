@@ -163,13 +163,13 @@ float SuppressHighFrequencies(int3 xyw)
 float DampenAmplitude(float depth, float terrainHeight)
 {
     float seaLevelDepth = max(-terrainHeight, 0);
-    float dampening = lerp(0, OceanAmplitudeDampening, clamp(seaLevelDepth / 50, 0, 1));
+    float dampening = lerp(0, OceanAmplitudeDampening, saturate(seaLevelDepth / 10));
     return lerp(depth, seaLevelDepth, dampening);
 }
 float2 DampenVelocity(float2 velocity, float terrainHeight)
 {
     float seaLevelDepth = max(-terrainHeight, 0);
-    float dampening = lerp(0, OceanVelocityDampening, clamp(seaLevelDepth / 50, 0, 1));
+    float dampening = lerp(0, OceanVelocityDampening, saturate(seaLevelDepth / 50));
     return lerp(velocity, float2(0,0), dampening);
 }
 
