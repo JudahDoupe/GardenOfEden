@@ -77,14 +77,17 @@ Shader "Custom/SphereLand"
 			int channel = 0;
             float4 uvw = float4(xyz_to_uvw(v.vertex),0);
 			float height = UNITY_SAMPLE_TEX2DARRAY_LOD(_LandMap, uvw, 0)[channel] + _SeaLevel;
-			v.vertex = normalize(float4(v.normal,0)) * height;
-			v.normal = getDisplacedNormal(v.normal, v.tangent, channel);
+			v.vertex.xyz = normalize(v.normal) * height;
+			v.normal = getDisplacedNormal(normalize(v.normal), normalize(v.tangent), channel);
 		}
 
         void surf (Input i, inout SurfaceOutputStandardSpecular o)
         {
 			float4 color = _BedRockColor;
 			color = addTopographyLines(color, i.worldPos, i.worldNormal);
+
+            float3 uvw = xyz_to_uvw(i.worldPos);
+            color = float4(uvw.xy, uvw.z / 6.0, 1);
 
             o.Albedo = color;
 			o.Specular = 0.0;

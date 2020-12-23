@@ -1,4 +1,6 @@
-﻿Shader "Custom/Water" 
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Custom/Water" 
 {
 	Properties{
 		_WaterMap ("Water Map", 2DArray) = "black" {}
@@ -42,6 +44,7 @@
 				float4 position : SV_POSITION;
 				float4 screenPos : TEXCOORD1;
 				float3 normal : TEXCOORD2;
+				float4 globalPosition : TEXCOORD3;
 			};
 			struct ControlPoint
 			{
@@ -131,7 +134,8 @@
 				v.vertex.xyz = v.normal * height;
 				v.normal = getDisplacedNormal(v.normal, v.tangent, channel);
 
-				o.position = mul(UNITY_MATRIX_VP, v.vertex);
+                o.globalPosition = v.vertex;
+                o.position = UnityObjectToClipPos(v.vertex);
 				o.normal = UnityObjectToWorldNormal(v.normal);
 				o.screenPos = ComputeScreenPos(o.position);
 				return o;
@@ -162,13 +166,14 @@
 				float opticalWaterDepth = saturate((opticalTerrainDepth - i.screenPos.w) / _DeepWaterDepth);
 				float alpha = clamp((opticalTerrainDepth - i.screenPos.w) / _Clarity, 0.1, 0.9);
 
-				float3 cameraDirection = normalize(i.position - _WorldSpaceCameraPos);
+				float3 cameraDirection = normalize(i.globalPosition - _WorldSpaceCameraPos);
 				float specularAngle = acos(dot(normalize(_SunDirection - cameraDirection), i.normal));
 				float specularExponent = specularAngle / (1-_Smoothness);
 				float specularHighlight = exp(-specularExponent * specularExponent);
 				float diffuseLighting = (saturate(dot(_SunDirection, i.normal))  * (_Diffuse/1)) + ((1-_Diffuse) / 1);
 				float4 color = lerp(_ShallowWaterColor, _DeepWaterColor, opticalWaterDepth) * diffuseLighting + specularHighlight;
 				color.a = alpha;
+
 				return color;
 			}
 			ENDCG

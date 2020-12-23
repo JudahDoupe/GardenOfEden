@@ -14,8 +14,8 @@ static float Gravity = 9.8f;
 static float MaxAmplitude = 2.0f;
 static float MaxVelocity = 2.0f;
 
-static float OceanAmplitudeDampening = 0.015f;
-static float OceanVelocityDampening = 0.005f;
+static float OceanAmplitudeDampening = 0.0;//15f;
+static float OceanVelocityDampening = 0.0;//05f;
 
 static float Eps = 0.00001f;
 
@@ -193,11 +193,21 @@ void Update(uint3 id : SV_DispatchThreadID)
         depth = SuppressHighFrequencies(xyw); 
         waterHeight = terrainHeight + depth;
         WaterMap[xyw] = float4(velocity, depth, waterHeight);
-        AllMemoryBarrierWithGroupSync();
+    }
+
         
-        if (isBoundryPixel(id.xy))
+    [unroll]
+    for (int i = 0; i < 6; ++i)
+    {
+        int3 dst_xyw = int3(id.xy, i);
+        int3 src_xyw = source_xyw(dst_xyw);
+        
+        if (is_boundry_pixel(id.xy))
         {
-            WaterMap[xyw] = WaterMap[overlapping_xyw(xyw)];
+            float4 srcWater = WaterMap[src_xyw];
+            float2 velocity = rotate_vector(src_xyw.z, dst_xyw.z, srcWater.xy);
+            WaterMap[dst_xyw] = float4(velocity, srcWater.ba);
+            
         }
     }
 }
