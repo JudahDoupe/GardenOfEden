@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class Singleton : MonoBehaviour
 {
-    public static ILandService LandService;
-    public static WaterService WaterService;
+    public static ILandService Land;
+    public static WaterService Water;
 
     public static GameService GameService;
     public static TimeService TimeService;
@@ -17,8 +17,8 @@ public class Singleton : MonoBehaviour
 
     private void Awake()
     {
-        LandService = FindObjectOfType<LandService>();
-        WaterService = FindObjectOfType<WaterService>();
+        Land = FindObjectOfType<LandService>();
+        Water = FindObjectOfType<WaterService>();
 
         GameService = FindObjectOfType<GameService>();
         TimeService = FindObjectOfType<TimeService>();

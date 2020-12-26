@@ -1,38 +1,25 @@
-﻿using System;
-using UnityEngine;
-
-namespace Tests
+﻿namespace Tests
 {
     public class MockLandService : ILandService
     {
-        public void AddSpring(Coordinate coord)
+        public void ChangeBedrockHeight(Coordinate location, float radius, float height)
         {
-            throw new NotImplementedException();
+            
         }
 
-        public Coordinate ClampAboveTerrain(Coordinate coord, float minHeight)
+        public Coordinate ClampAboveLand(Coordinate coord, float minHeight = 1)
         {
-            throw new NotImplementedException();
+            return coord;
         }
 
-        public Coordinate ClampToTerrain(Coordinate coord)
+        public Coordinate ClampToLand(Coordinate coord)
         {
-            throw new NotImplementedException();
+            return coord;
         }
 
-        public Texture2D GetLandMap()
+        public float SampleHeight(Coordinate coord)
         {
-            return new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false);
-        }
-
-        public void PullMountain(Coordinate coord, float radius, float height)
-        {
-            throw new NotImplementedException();
-        }
-
-        public float SampleTerrainHeight(Coordinate coord)
-        {
-            throw new NotImplementedException();
+            return coord.Altitude;
         }
     }
 }

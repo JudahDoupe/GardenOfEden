@@ -42,7 +42,7 @@ public struct Coordinate
     public float3 uvw { get => GetUvw(); }
     public float u { get => uvw.x; }
     public float v { get => uvw.y; }
-    public int side { get => math.int3(math.round(uvw)).z; }
+    public int w { get => math.int3(math.round(uvw)).z; }
 
     public Coordinate(float x, float y, float z)
     {
@@ -95,8 +95,9 @@ public struct Coordinate
 
         // Transform uv from [-1,1] to [0,1]
         uv = uv * 0.5f + new float2(0.5f, 0.5f);
-        // Account for buffer pixel
-        uv = uv * (510.0f / 512.0f) + (2.0f / 512.0f);
+
+        //Account for buffer pixels
+        uv = ((EnvironmentDataStore.TextureSize - 2) / EnvironmentDataStore.TextureSize) * uv + (1 / EnvironmentDataStore.TextureSize);
 
         return new float3(uv.x, uv.y, side);
     }

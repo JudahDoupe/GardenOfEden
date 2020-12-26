@@ -35,7 +35,7 @@ float3 uvw_to_xyz(float3 uvw, float altitude)
 }
 int3 uvw_to_xyw(float3 uvw)
 {
-    int2 xy = round(uvw.xy * (TextureWidthInPixels - 1.0));
+    int2 xy = floor(uvw.xy * (TextureWidthInPixels - 1.0));
     return int3(xy, round(uvw.z));
 }
 

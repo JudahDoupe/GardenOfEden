@@ -54,10 +54,10 @@ public class CameraController : MonoBehaviour
         if (movementVector.magnitude > float.Epsilon && !LockMovement)
         {
             _focusTarget.xyz += movementVector.ToFloat3();
-            _focusTarget = Singleton.LandService.ClampToTerrain(_focusTarget);
+            _focusTarget = Singleton.Land.ClampToLand(_focusTarget);
         }
 
-        _focus.position = Singleton.LandService.ClampToTerrain(Vector3.Lerp(_focus.position, _focusTarget.xyz, lerpSpeed)).xyz;
+        _focus.position = Singleton.Land.ClampToLand(Vector3.Lerp(_focus.position, _focusTarget.xyz, lerpSpeed)).xyz;
         var upward = _focus.position.normalized;
         var forward = Vector3.Cross(_focus.right, upward);
         _focus.rotation = Quaternion.LookRotation(forward, upward);
@@ -93,20 +93,20 @@ public class CameraController : MonoBehaviour
         minDir = Vector3.Lerp(minDir, maxDir, _distance / _maxDistance);
         var targetLocalPos = Vector3.Lerp(minDir, maxDir, _angle) * _distance;
         _camera.localPosition = Vector3.Lerp(_camera.localPosition, targetLocalPos, lerpSpeed);
-        _camera.position = Singleton.LandService.ClampAboveTerrain(_camera.position, _minDistance).xyz;
+        _camera.position = Singleton.Land.ClampAboveLand(_camera.position, _minDistance).xyz;
         _camera.LookAt(_focus.position, _focus.up);
     }
 
     private void TryInputs()
     {
+        var height = _camera.localPosition.y;
         if (Input.GetKey(KeyCode.M))
         {
-            var height = _camera.localPosition.y;
-            Singleton.LandService.PullMountain(_focusTarget, height, height / 100);
+            Singleton.Land.ChangeBedrockHeight(_focusTarget, height, height / 100);
         }
         if (Input.GetKeyDown(KeyCode.N))
         {
-            Singleton.LandService.AddSpring(_focusTarget);
+            Singleton.Water.ChangeWaterHeight(_focusTarget, height, height / 100);
         }
     }
 }

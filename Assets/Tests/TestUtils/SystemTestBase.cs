@@ -12,7 +12,7 @@ namespace Tests
         public void SetUp()
         {
             base.Setup();
-            Singleton.LandService = new MockLandService();
+            Singleton.Land = new MockLandService();
             Singleton.LoadBalancer = new MockLoadBalancer();
         }
     }

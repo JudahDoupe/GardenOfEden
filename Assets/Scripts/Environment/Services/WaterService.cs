@@ -1,45 +1,50 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class WaterService : MonoBehaviour
 {
-    [Header("Variables")]
-
-    [Header("Compute Shader")]
-    public ComputeShader WaterShader;
-    public Renderer WaterRenderer;
-
     /* Publicly Accessible Methods */
 
-    public float SampleWaterDepth(Vector3 location)
+    public float SampleDepth(Coordinate coord)
     {
-        /*
-        var uv = EnvironmentDataStore.LocationToUv(location);
-        var color = Singleton.EnvironmentalChunkService.GetChunk(location).WaterMap.CachedTexture().GetPixelBilinear(uv.x, uv.y);
-        return color.b;
-        */
-        return 0;
+        return EnvironmentDataStore.WaterMap.Sample(coord).b;
+    }
+
+    public float SampleHeight(Coordinate coord)
+    {
+        return EnvironmentDataStore.WaterMap.Sample(coord).a;
+    }
+
+    public void ChangeWaterHeight(Coordinate location, float radius, float height)
+    {
+        var shader = Resources.Load<ComputeShader>("Shaders/SmoothAdd");
+        var kernelId = shader.FindKernel("SmoothAdd");
+        shader.SetFloat("Radius", radius);
+        shader.SetFloats("Channels", 1, 1, 1, 1);
+        shader.SetFloats("AdditionCenter", location.x, location.y, location.z);
+        shader.SetTexture(kernelId, "Map", EnvironmentDataStore.WaterSourceMap);
+        shader.SetFloat("Strength", height);
+        shader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
     }
 
     public void Rain(float meters)
     {
-        /*
-        foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
-        {
-            int kernelId = WaterShader.FindKernel("Rain");
-            WaterShader.SetFloat("RainDepthInMeters", meters);
-            WaterShader.SetTexture(kernelId, "WaterMap", chunk.WaterMap);
-            WaterShader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
-        }
-        */
+        int kernelId = WaterShader.FindKernel("Rain");
+        WaterShader.SetFloat("RainDepthInMeters", meters);
+        WaterShader.SetTexture(kernelId, "WaterMap", EnvironmentDataStore.WaterMap);
+        WaterShader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
     }
 
     /* Inner Mechanations */
+
+    private ComputeShader WaterShader;
+    private Renderer WaterRenderer;
 
     void Start()
     {
         Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
 
+        WaterShader = Resources.Load<ComputeShader>("Shaders/Water");
+        WaterRenderer = GetComponent<Renderer>();
         WaterRenderer.material.SetTexture("_WaterMap", EnvironmentDataStore.WaterMap);
         WaterRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000, 2000, 2000));
     }
@@ -60,11 +65,6 @@ public class WaterService : MonoBehaviour
 
     public void ProcessDay()
     {
-        /*
-        foreach (var chunk in Singleton.EnvironmentalChunkService.GetAllChunks())
-        {
-            chunk.WaterMap.UpdateTextureCache();
-        }
-        */
+        EnvironmentDataStore.WaterMap.UpdateTextureCache();
     }
 }
