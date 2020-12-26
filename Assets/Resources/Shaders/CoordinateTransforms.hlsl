@@ -105,53 +105,54 @@ int3 xyz_to_xyw(float3 xyz)
 
 bool is_boundry_pixel(int2 xy)
 {
-    return xy.x < BoundryPixels
-        || xy.x >= (TextureWidthInPixels - BoundryPixels)
-        || xy.y < BoundryPixels
-        || xy.y >= (TextureWidthInPixels - BoundryPixels);
+    return (xy.x == 0
+        + xy.x == (TextureWidthInPixels - 1)
+        + xy.y  == 0
+        + xy.y == (TextureWidthInPixels - 1)) == 1;
 }
 
 float2 rotate_vector(int src_w, int dst_w, float2 v)
 {
+    // 0: +X; 1: -X; 2: +Y; 3: -Y; 4: +Z; 5: -Z;
     float degrees = 0;
-    degrees -= 90 * (src_w == 1 || src_w == 2);
+    degrees -= 90 * (src_w == 1 || src_w == 4);
     degrees -= 180 * (src_w == 3 || src_w == 5);
-    degrees -= 270 * (src_w == 4);
+    degrees -= 270 * (src_w == 2);
     
-    degrees += 90 * (dst_w == 1 || dst_w == 2);
+    degrees += 90 * (dst_w == 1 || dst_w == 4);
     degrees += 180 * (dst_w == 3 || dst_w == 5);
-    degrees += 270 * (dst_w == 4);
+    degrees += 270 * (dst_w == 2);
     
     float rad = radians(degrees);
     float ca = cos(rad);
     float sa = sin(rad);
     return float2(ca * v.x - sa * v.y, sa * v.x + ca * v.y);
 }
-uint3 source_xyw(int3 xyw)
+int3 source_xyw(int3 xyw)
 {
-    float2 uv = xyw_to_uvw(xyw).xy;
     int w = xyw.z;
     
-    int up = uv.x > 0.9999;
-    int right = uv.y > 0.9999;
-    int down = uv.x < 0.0001;
-    int left = uv.y < 0.0001;
+    int up = xyw.y == (TextureWidthInPixels - 1);
+    int right = xyw.x == (TextureWidthInPixels - 1);
+    int down = xyw.y == 0;
+    int left = xyw.x == 0;
     
     // 0: +X; 1: -X; 2: +Y; 3: -Y; 4: +Z; 5: -Z;
-    int xp = (w == 2 && right) || (w == 3 && down)  || (w == 4 && up)    || (w == 5 && left);
-    int xn = (w == 2 && left)  || (w == 3 && up)    || (w == 4 && down)  || (w == 5 && right);
-    int yp = (w == 0 && up)    || (w == 1 && left)  || (w == 4 && right) || (w == 5 && down);
-    int yn = (w == 0 && down)  || (w == 1 && right) || (w == 4 && left)  || (w == 5 && up);
-    int zp = (w == 0 && right) || (w == 1 && down)  || (w == 2 && up)    || (w == 3 && left);
-    int zn = (w == 0 && left)  || (w == 1 && up)    || (w == 2 && down)  || (w == 3 && right);
+    int Xp = w == 0;
+    int Xn = w == 1;
+    int Yp = w == 2;
+    int Yn = w == 3;
+    int Zp = w == 4;
+    int Zn = w == 5;
     
-    int src_w = 0 * xp +
-                1 * xn +
-                2 * yp +
-                3 * yn +
-                4 * zp +
-                5 * zn;
-    
-    float3 src_uvw = float3(rotate_vector(w, src_w, uv), src_w);
-    return uvw_to_xyw(src_uvw);
+    int2 src_xy = xyw.xy + int2(left - right, down - up);
+    int src_w = 0 * ((Zp && right) || (Yp && right) || (Yn && left) || (Zn && left)) +
+                1 * ((Yn && right) || (Zn && right) || (Yp && left) || (Zp && left)) +
+                2 * ((Xp && right) || (Zn && down) || (Zp && up) || (Xn && left)) +
+                3 * ((Xn && right) || (Zp && down) || (Zn && up) || (Xp && left)) +
+                4 * ((Xp && up) || (Xn && down) || (Yn && down) || (Yp && up)) +
+                5 * ((Xn && up) || (Xp && down) || (Yp && down) || (Yn && up));
+    int3 src_xyw = int3(src_xy, src_w);
+    src_xyw.xy = rotate_vector(src_w, w, xyw_to_uvw(src_xyw).xy);
+    return src_xyw;
 }

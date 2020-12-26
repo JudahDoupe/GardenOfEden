@@ -199,14 +199,13 @@ void Update(uint3 id : SV_DispatchThreadID)
     [unroll]
     for (int i = 0; i < 6; ++i)
     {
-        int3 dst_xyw = int3(id.xy, i);
-        int3 src_xyw = source_xyw(dst_xyw);
-        
         if (is_boundry_pixel(id.xy))
         {
-            float4 srcWater = WaterMap[src_xyw];
-            float2 velocity = rotate_vector(src_xyw.z, dst_xyw.z, srcWater.xy);
-            WaterMap[dst_xyw] = float4(velocity, srcWater.ba);
+            int3 xyw = int3(id.xy, i);
+            int3 src_xyw = source_xyw(xyw);
+            float4 water = WaterMap[src_xyw];
+            //water.xy = rotate_vector(src_xyw.z, xyw.z, water.xy);
+            WaterMap[xyw] = water;
             
         }
     }
