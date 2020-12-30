@@ -183,7 +183,7 @@ public class GameService : MonoBehaviour
             em.RemoveComponent<Parent>(plant);
             em.RemoveComponent<LocalToParent>(plant);
             em.SetComponentData(plant, new EnergyStore { Capacity = 0.5f, Quantity = 0.5f });
-            em.SetComponentData(plant, new Translation { Value = Singleton.Land.ClampToLand(new Coordinate(Random.Range(50f, 350f), 50, Random.Range(50f, 350f))).xyz });
+            em.SetComponentData(plant, new Translation { Value = ClampToLand(new Coordinate(Random.Range(50f, 350f), 50, Random.Range(50f, 350f))) });
             em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
         }
     }
@@ -288,8 +288,14 @@ public class GameService : MonoBehaviour
             em.RemoveComponent<Parent>(plant);
             em.RemoveComponent<LocalToParent>(plant);
             em.SetComponentData(plant, new EnergyStore { Capacity = 0.25f, Quantity = 0.25f });
-            em.SetComponentData(plant, new Translation { Value = Singleton.Land.ClampToLand(new Coordinate(Random.Range(50f, 350f), 50, Random.Range(50f, 350f))).xyz });
+            em.SetComponentData(plant, new Translation { Value = ClampToLand(new Coordinate(Random.Range(50f, 350f), 50, Random.Range(50f, 350f))) });
             em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
         }
+    }
+
+    private float3 ClampToLand(Coordinate coord)
+    {
+        coord.Altitude = Singleton.Land.SampleHeight(coord);
+        return coord.xyz;
     }
 }

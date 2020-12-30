@@ -1,6 +1,4 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-Shader "Custom/Water" 
+﻿Shader "Custom/Water" 
 {
 	Properties{
 		_WaterMap ("Water Map", 2DArray) = "black" {}

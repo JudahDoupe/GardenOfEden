@@ -90,7 +90,8 @@ public static class RenderTextureExtensions
     public static Color Sample(this RenderTexture rt, Coordinate coord)
     {
         var uvw = coord.uvw;
+        int w = (int)math.round(uvw.z);
         var texArray = rt.CachedTextures();
-        return texArray[(int)math.round(uvw.z)].GetPixelBilinear(uvw.x, uvw.y);
+        return texArray[w].GetPixelBilinear(uvw.x, uvw.y);
     }
 }

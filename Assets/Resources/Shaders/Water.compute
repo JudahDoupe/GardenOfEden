@@ -11,11 +11,11 @@ static float GridSpacing = TextureWidthInMeters / TextureWidthInPixels;
 static float SimulationSpeed = 1.0f / 50.0f; //speed in time steps per second. 1 = seconds | 50 = steps.  this is the speed of FixedUpdate
 static float Gravity = 9.8f;
 
-static float MaxAmplitude = 2.0f;
-static float MaxVelocity = 2.0f;
+float MaxAmplitude = 2.0f;
+float MaxVelocity = 2.0f;
 
-static float OceanAmplitudeDampening = 0.0;//15f;
-static float OceanVelocityDampening = 0.0;//05f;
+float OceanAmplitudeDampening = 0.0;//15f;
+float OceanVelocityDampening = 0.0;//05f;
 
 static float Eps = 0.00001f;
 
@@ -163,7 +163,7 @@ float SuppressHighFrequencies(int3 xyw)
 float DampenAmplitude(float depth, float terrainHeight)
 {
     float seaLevelDepth = max(-terrainHeight, 0);
-    float dampening = lerp(0, OceanAmplitudeDampening, saturate(seaLevelDepth / 10));
+    float dampening = lerp(0, OceanAmplitudeDampening, saturate(seaLevelDepth / 50));
     return lerp(depth, seaLevelDepth, dampening);
 }
 float2 DampenVelocity(float2 velocity, float terrainHeight)

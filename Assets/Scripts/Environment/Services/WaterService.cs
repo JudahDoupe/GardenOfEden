@@ -2,6 +2,17 @@
 
 public class WaterService : MonoBehaviour
 {
+    [Range(0, 10f)]
+    public float MaxAmplitude = 2;
+    [Range(0, 10f)]
+    public float MaxVelocity = 2;
+    [Range(0, 0.2f)]
+    public float OceanAmplitudeDampening = 0.1f;
+    [Range(0, 0.2f)]
+    public float OceanVelocityDampening = 0.1f;
+
+    public float SeaLevel = 999.8f;
+
     /* Publicly Accessible Methods */
 
     public float SampleDepth(Coordinate coord)
@@ -11,7 +22,7 @@ public class WaterService : MonoBehaviour
 
     public float SampleHeight(Coordinate coord)
     {
-        return EnvironmentDataStore.WaterMap.Sample(coord).a;
+        return EnvironmentDataStore.WaterMap.Sample(coord).a + SeaLevel;
     }
 
     public void ChangeWaterHeight(Coordinate location, float radius, float height)
@@ -51,9 +62,22 @@ public class WaterService : MonoBehaviour
 
     void FixedUpdate()
     {
+        SetMaterialShaderVariables();
+        SetComputeShaderVariables();
         UpdateWaterTable();
     }
 
+    private void SetMaterialShaderVariables()
+    {
+        WaterRenderer.material.SetFloat("_SeaLevel", SeaLevel);
+    }
+    private void SetComputeShaderVariables()
+    {
+        WaterShader.SetFloat("MaxAmplitude", MaxAmplitude);
+        WaterShader.SetFloat("MaxVelocity", MaxVelocity);
+        WaterShader.SetFloat("OceanAmplitudeDampening", OceanAmplitudeDampening);
+        WaterShader.SetFloat("OceanVelocityDampening", OceanVelocityDampening);
+    }
     private void UpdateWaterTable()
     {
         int updateKernel = WaterShader.FindKernel("Update");

@@ -1,14 +1,12 @@
 ﻿static float TextureWidthInPixels = 512.0f;
 static float TextureWidthInMeters = 1500.0f;
 
-static int BoundryPixels = 1;
-
 /* Cube Map Coordinates */
 
 float3 uvw_to_xyz(float3 uvw, float altitude)
 {
     //Account for buffer pixels
-    uvw.xy = (uvw.xy - (BoundryPixels / TextureWidthInPixels)) / ((TextureWidthInPixels - 2 * BoundryPixels) / TextureWidthInPixels);
+    uvw.xy = (uvw.xy - (1 / TextureWidthInPixels)) / ((TextureWidthInPixels - 2) / TextureWidthInPixels);
     
     // Use side to decompose primary dimension and negativity
     int side = uvw.z;
@@ -91,7 +89,7 @@ float3 xyz_to_uvw(float3 xyz)
     uv = uv * 0.5 + float2(0.5, 0.5);
     
     //Account for buffer pixels
-    uv = ((TextureWidthInPixels - 2 * BoundryPixels) / TextureWidthInPixels) * uv + (BoundryPixels / TextureWidthInPixels);
+    uv = ((TextureWidthInPixels - 2.0) / TextureWidthInPixels) * uv + (1.0 / TextureWidthInPixels);
     
     return float3(uv, side);
 }

@@ -5,29 +5,17 @@ public interface ILandService
 {
     float SampleHeight(Coordinate coord);
     void ChangeBedrockHeight(Coordinate location, float radius, float height);
-    Coordinate ClampAboveLand(Coordinate coord, float minHeight = 1);
-    Coordinate ClampToLand(Coordinate coord);
 }
 
 public class LandService : MonoBehaviour, ILandService
 {
+    public float SeaLevel = 1000f;
+
     /* Publicly Accessible Methods */
 
     public float SampleHeight(Coordinate coord)
     {
-        return Coordinate.PlanetRadius + EnvironmentDataStore.LandMap.Sample(coord).r;
-    }
-
-    public Coordinate ClampAboveLand(Coordinate coord, float minHeight = 1)
-    {
-        var minAltitude = SampleHeight(coord) + minHeight;
-        coord.Altitude = coord.Altitude < minAltitude ? minAltitude : coord.Altitude;
-        return coord;
-    }
-    public Coordinate ClampToLand(Coordinate coord)
-    {
-        coord.Altitude = SampleHeight(coord);
-        return coord;
+        return EnvironmentDataStore.LandMap.Sample(coord).r + SeaLevel;
     }
 
     public void ChangeBedrockHeight(Coordinate location, float radius, float height)
@@ -57,8 +45,12 @@ public class LandService : MonoBehaviour, ILandService
 
     void FixedUpdate()
     {
+        SetMaterialShaderVariables();
     }
-
+    private void SetMaterialShaderVariables()
+    {
+        LandRenderer.material.SetFloat("_SeaLevel", SeaLevel);
+    }
     public void ProcessDay()
     {
         EnvironmentDataStore.LandMap.UpdateTextureCache();

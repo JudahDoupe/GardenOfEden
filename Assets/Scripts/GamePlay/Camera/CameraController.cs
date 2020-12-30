@@ -54,10 +54,10 @@ public class CameraController : MonoBehaviour
         if (movementVector.magnitude > float.Epsilon && !LockMovement)
         {
             _focusTarget.xyz += movementVector.ToFloat3();
-            _focusTarget = Singleton.Land.ClampToLand(_focusTarget);
+            _focusTarget = ClampToTerrain(_focusTarget);
         }
 
-        _focus.position = Singleton.Land.ClampToLand(Vector3.Lerp(_focus.position, _focusTarget.xyz, lerpSpeed)).xyz;
+        _focus.position = ClampToTerrain(Vector3.Lerp(_focus.position, _focusTarget.xyz, lerpSpeed)).xyz;
         var upward = _focus.position.normalized;
         var forward = Vector3.Cross(_focus.right, upward);
         _focus.rotation = Quaternion.LookRotation(forward, upward);
@@ -90,10 +90,10 @@ public class CameraController : MonoBehaviour
         }
 
         var lerpSpeed = Time.deltaTime * _lerpSpeed * 2;
-        minDir = Vector3.Lerp(minDir, maxDir, _distance / _maxDistance);
+        //minDir = Vector3.Lerp(minDir, maxDir, _distance / _maxDistance);
         var targetLocalPos = Vector3.Lerp(minDir, maxDir, _angle) * _distance;
         _camera.localPosition = Vector3.Lerp(_camera.localPosition, targetLocalPos, lerpSpeed);
-        _camera.position = Singleton.Land.ClampAboveLand(_camera.position, _minDistance).xyz;
+        _camera.position = ClampAboveTerrain(_camera.position).xyz;
         _camera.LookAt(_focus.position, _focus.up);
     }
 
@@ -108,5 +108,18 @@ public class CameraController : MonoBehaviour
         {
             Singleton.Water.ChangeWaterHeight(_focusTarget, height, height / 100);
         }
+    }
+
+    private Coordinate ClampAboveTerrain(Coordinate coord)
+    {
+        var minAltitude = math.max(Singleton.Land.SampleHeight(coord), Singleton.Water.SampleHeight(coord)) + _minDistance;
+        coord.Altitude = coord.Altitude < minAltitude ? minAltitude : coord.Altitude;
+        return coord;
+    }
+
+    private Coordinate ClampToTerrain(Coordinate coord)
+    {
+        coord.Altitude = math.max(Singleton.Land.SampleHeight(coord), Singleton.Water.SampleHeight(coord));
+        return coord;
     }
 }
