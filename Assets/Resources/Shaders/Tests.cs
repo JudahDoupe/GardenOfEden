@@ -10,6 +10,9 @@ public class Tests : MonoBehaviour
     public int3[] expectedOutput;
     public int3[] output;
 
+    public GameObject Dst;
+    public GameObject Src;
+
     void Update()
     {
         if (Run)
@@ -31,6 +34,19 @@ public class Tests : MonoBehaviour
                 if (!output[i].Equals(expectedOutput[i]))
                 {
                     Debug.Log($"Input:    {input[i]} \nOutput:   {output[i]} \nExpected: {expectedOutput[i]}");
+                }
+                else
+                {
+                    var src = new Coordinate(0, 1000, 0);
+                    src.xyw = output[i];
+                    var dst = new Coordinate(0, 1000, 0);
+                    dst.xyw = input[i];
+                    var dstObj = Instantiate(Dst);
+                    dstObj.transform.position = dst.xyz;
+                    dstObj.name = $"DST {i}";
+                    var secObj = Instantiate(Src);
+                    secObj.transform.position = src.xyz;
+                    secObj.name = $"SRC {i}";
                 }
             }
 
