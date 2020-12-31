@@ -1,0 +1,10 @@
+﻿#pragma kernel Test
+#include "CoordinateTransforms.hlsl"
+
+RWStructuredBuffer<int3> dataBuffer;
+
+[numthreads(1,1, 1)]
+void Test(uint3 id : SV_DispatchThreadID)
+{
+    dataBuffer[id.x] = source_xyw(dataBuffer[id.x]);
+}

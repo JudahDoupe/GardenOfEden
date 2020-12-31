@@ -88,6 +88,8 @@ Shader "Custom/SphereLand"
 			float4 color = _BedRockColor;
 			color = addTopographyLines(color, i.worldPos, i.worldNormal);
 
+            color = tex2D(_Tex, xyz_to_uvw(i.worldPos).xy);
+
             o.Albedo = color;
 			o.Specular = 0.0;
 			o.Smoothness = 0.0;
