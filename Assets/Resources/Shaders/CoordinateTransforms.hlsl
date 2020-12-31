@@ -103,33 +103,56 @@ int3 xyz_to_xyw(float3 xyz)
 
 bool is_boundry_pixel(int2 xy)
 {
-    int up = xy.y == (TextureWidthInPixels - 1);
-    int right = xy.x == (TextureWidthInPixels - 1);
-    int down = xy.y == 0;
-    int left = xy.x == 0;
-    return (up + down + left + right) == 1;
+    bool up = xy.y == (TextureWidthInPixels - 1);
+    bool right = xy.x == (TextureWidthInPixels - 1);
+    bool down = xy.y == 0;
+    bool left = xy.x == 0;
+    return up || down || left || right;
 }
 
 float2 rotate_vector(int src_w, int dst_w, float2 v)
 {
-    // 0: +X; 1: -X; 2: +Y; 3: -Y; 4: +Z; 5: -Z;
-    float degrees = 0;
-    degrees -= 90 * (src_w == 1 || src_w == 4);
-    degrees -= 180 * (src_w == 3 || src_w == 5);
-    degrees -= 270 * (src_w == 2);
+    float degrees =
+     90 * (
+        (src_w == 4 && dst_w == 1) ||
+        (src_w == 5 && dst_w == 0) ||
+        false)
+    + 180 * (
+        (src_w == 0 && dst_w == 3) ||
+        (src_w == 1 && dst_w == 2) ||
+        (src_w == 2 && dst_w == 1) ||
+        (src_w == 3 && dst_w == 0) ||
+        false)
+    + 270 * (
+        (src_w == 0 && dst_w == 4) ||
+        (src_w == 0 && dst_w == 5) ||
+        (src_w == 1 && dst_w == 4) ||
+        (src_w == 1 && dst_w == 5) ||
+        (src_w == 4 && dst_w == 0) ||
+        (src_w == 5 && dst_w == 1) ||
+        false);
     
-    degrees += 90 * (dst_w == 1 || dst_w == 4);
-    degrees += 180 * (dst_w == 3 || dst_w == 5);
-    degrees += 270 * (dst_w == 2);
+    bool flipX =
+        (src_w == 0 && dst_w == 3) ||
+        (src_w == 0 && dst_w == 4) ||
+        (src_w == 1 && dst_w == 2) ||
+        (src_w == 1 && dst_w == 5) ||
+        (src_w == 2 && dst_w == 1) ||
+        (src_w == 2 && dst_w == 5) ||
+        (src_w == 3 && dst_w == 0) ||
+        (src_w == 3 && dst_w == 4) ||
+        (src_w == 4 && dst_w == 0) ||
+        (src_w == 4 && dst_w == 3) ||
+        (src_w == 5 && dst_w == 1) ||
+        (src_w == 5 && dst_w == 2) ||
+        false;
     
     float rad = radians(degrees);
     float ca = cos(rad);
     float sa = sin(rad);
-    return float2(ca * v.x - sa * v.y, sa * v.x + ca * v.y);
-}
-int is_face_mirrored(int w)
-{
-    return w == 0 || w == 3 || w == 4;
+    float2 v2 = float2(ca * v.x - sa * v.y, sa * v.x + ca * v.y);
+    v2.x = (!flipX * v2.x) + (flipX * -v2.x);
+    return v2;
 }
 int3 rotate_xyw_clockwise(int3 xyw)
 {
@@ -145,7 +168,6 @@ int3 source_xyw(int3 xyw)
     int down = xyw.y == 0 && !right;
     int left = xyw.x == 0 && !down;
     
-    // 0: +X; 1: -X; 2: +Y; 3: -Y; 4: +Z; 5: -Z;
     int Xp = dst_w == 0;
     int Xn = dst_w == 1;
     int Yp = dst_w == 2;
@@ -160,6 +182,10 @@ int3 source_xyw(int3 xyw)
                 4 * ((Xp && up) || (Xn && down) || (Yn && down) || (Yp && up)) +
                 5 * ((Xn && up) || (Xp && down) || (Yp && down) || (Yn && up));
     
+    up = xyw.y == (TextureWidthInPixels - 1);
+    right = xyw.x == (TextureWidthInPixels - 1);
+    down = xyw.y == 0;
+    left = xyw.x == 0;
     int3 src_xyw = int3(xyw.xy + int2(left - right, down - up), src_w);
 
     float rotations =

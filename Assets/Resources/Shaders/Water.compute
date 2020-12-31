@@ -204,7 +204,7 @@ void Update(uint3 id : SV_DispatchThreadID)
             int3 dst_xyw = int3(id.xy, i);
             int3 src_xyw = source_xyw(dst_xyw);
             float4 water = WaterMap[src_xyw];
-            //water.xy = rotate_vector(src_xyw.z, dst_xyw.z, water.xy);
+            water.xy = rotate_vector(src_xyw.z, dst_xyw.z, water.xy);
             WaterMap[dst_xyw] = water;
             
         }
