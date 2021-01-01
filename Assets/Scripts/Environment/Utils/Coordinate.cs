@@ -5,6 +5,7 @@ using UnityEngine;
 public struct Coordinate
 {
     public static int TextureWidthInPixels = 512;
+    public static int BoundryPixels = 1;
 
     private float3 globalCoord;
     private float3 sphericalCoord;
@@ -46,7 +47,6 @@ public struct Coordinate
         get => sphericalCoord.z;
         set => SetSphericalCoordinates(sphericalCoord.x, sphericalCoord.y, value);
     }
-
 
     public int3 xyw
     {
@@ -127,7 +127,7 @@ public struct Coordinate
     {
         var uvw = new float3(u,v,w);
         //Account for buffer pixels
-        uvw.xy = (uvw.xy - (1f / TextureWidthInPixels)) / ((TextureWidthInPixels - 2f) / TextureWidthInPixels);
+        uvw.xy = (uvw.xy - (BoundryPixels * 1f / TextureWidthInPixels)) / ((TextureWidthInPixels - 2f * BoundryPixels) / TextureWidthInPixels);
 
         // Use side to decompose primary dimension and negativity
         bool xMost = w < 2;
@@ -185,7 +185,7 @@ public struct Coordinate
         uv = uv * 0.5f + new float2(0.5f, 0.5f);
 
         //Account for buffer pixels
-        uv = ((EnvironmentDataStore.TextureSize - 2.0f) / EnvironmentDataStore.TextureSize) * uv + (1.0f / EnvironmentDataStore.TextureSize);
+        uv = ((EnvironmentDataStore.TextureSize - 2.0f * BoundryPixels) / EnvironmentDataStore.TextureSize) * uv + (BoundryPixels * 1.0f / EnvironmentDataStore.TextureSize);
 
         return new float3(uv.x, uv.y, side);
     }

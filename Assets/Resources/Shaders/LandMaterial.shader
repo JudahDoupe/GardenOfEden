@@ -3,7 +3,6 @@ Shader "Custom/SphereLand"
     Properties
     {        
         _LandMap ("Land Map", 2DArray) = "black" {}
-        _Tex ("tex", 2D) = "black" {}
         _Tess ("Terrain Detail", Range(10,50)) = 40
         _SeaLevel ("Sea Level", Int) = 1000
 		_BedRockColor("Bedrock Color", color) = (0.7,0.7,0.7,1)
@@ -87,8 +86,6 @@ Shader "Custom/SphereLand"
         {
 			float4 color = _BedRockColor;
 			color = addTopographyLines(color, i.worldPos, i.worldNormal);
-
-            color = tex2D(_Tex, xyz_to_uvw(i.worldPos).xy);
 
             o.Albedo = color;
 			o.Specular = 0.0;

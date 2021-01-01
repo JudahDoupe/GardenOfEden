@@ -14,8 +14,8 @@ static float Gravity = 9.8f;
 float MaxAmplitude = 2.0f;
 float MaxVelocity = 2.0f;
 
-float OceanAmplitudeDampening = 0.0;//15f;
-float OceanVelocityDampening = 0.0;//05f;
+float OceanAmplitudeDampening = 0.0;
+float OceanVelocityDampening = 0.0;
 
 static float Eps = 0.00001f;
 
@@ -202,10 +202,23 @@ void Update(uint3 id : SV_DispatchThreadID)
         if (is_boundry_pixel(id.xy))
         {
             int3 dst_xyw = int3(id.xy, i);
-            int3 src_xyw = source_xyw(dst_xyw);
-            float4 water = WaterMap[src_xyw];
-            water.xy = rotate_vector(src_xyw.z, dst_xyw.z, water.xy);
-            WaterMap[dst_xyw] = water;
+            int3 src_xyw = get_source_xyw(dst_xyw);
+            float4 src_water = WaterMap[src_xyw];
+            
+            int rotations = get_src_rotations(src_xyw.z, dst_xyw.z);
+            int2 y_offset = rotate_clockwise(int2(0, 1), rotations);
+            int2 x_offset = rotate_clockwise(y_offset, 1); 
+            
+            int invert_x = !is_src_x_inverted(src_xyw.z, dst_xyw.z) * 2 - 1;
+            x_offset.x *= invert_x;
+            y_offset.x *= invert_x;
+            
+            src_water.x = GetVelocityFace(src_xyw, int3(x_offset,0));
+            src_water.y = GetVelocityFace(src_xyw, int3(y_offset, 0));
+            
+            src_water.xy = rotate_clockwise(src_water.xy, 2);
+            
+            WaterMap[dst_xyw] = src_water;
             
         }
     }

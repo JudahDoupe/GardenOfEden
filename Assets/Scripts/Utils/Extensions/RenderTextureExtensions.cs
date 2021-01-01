@@ -51,8 +51,11 @@ public static class RenderTextureExtensions
 
                     for (var i = 0; i < 6; i++)
                     {
-                        RTCache[rt][i].SetPixelData(request.GetData<Color>(i), 0);
-                        RTCache[rt][i].Apply();
+                        if(RTCache[rt][i] != null)
+                        {
+                            RTCache[rt][i].SetPixelData(request.GetData<Color>(i), 0);
+                            RTCache[rt][i].Apply();
+                        }
                     }
                 }
             });

@@ -172,7 +172,7 @@
 				float4 color = lerp(_ShallowWaterColor, _DeepWaterColor, opticalWaterDepth) * diffuseLighting + specularHighlight;
 				color.a = alpha;
 
-				return color;
+				return color; 
 			}
 			ENDCG
 		}
