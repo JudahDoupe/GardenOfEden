@@ -2,7 +2,7 @@
 {
     public class MockLandService : ILandService
     {
-        public void ChangeBedrockHeight(Coordinate location, float radius, float height)
+        public void AddBedrockHeight(Coordinate location, float radius, float height)
         {
             
         }

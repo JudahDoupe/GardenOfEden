@@ -4,7 +4,7 @@ using UnityEngine;
 public interface ILandService
 {
     float SampleHeight(Coordinate coord);
-    void ChangeBedrockHeight(Coordinate location, float radius, float height);
+    void AddBedrockHeight(Coordinate location, float radius, float height);
 }
 
 public class LandService : MonoBehaviour, ILandService
@@ -18,7 +18,7 @@ public class LandService : MonoBehaviour, ILandService
         return EnvironmentDataStore.LandMap.Sample(coord).r + SeaLevel;
     }
 
-    public void ChangeBedrockHeight(Coordinate location, float radius, float height)
+    public void AddBedrockHeight(Coordinate location, float radius, float height)
     {
         var shader = Resources.Load<ComputeShader>("Shaders/SmoothAdd");
         var kernelId = shader.FindKernel("SmoothAdd");
@@ -49,7 +49,10 @@ public class LandService : MonoBehaviour, ILandService
     }
     private void SetMaterialShaderVariables()
     {
+        var focusPos = Singleton.CameraController.FocusPos;
+        LandRenderer.sharedMaterial.SetVector("_FocusPosition", new Vector4(focusPos.x, focusPos.y, focusPos.z, 0));
         LandRenderer.material.SetFloat("_SeaLevel", SeaLevel);
+        LandRenderer.material.SetFloat("_FocusRadius", Singleton.CameraController.FocusRadius);
     }
     public void ProcessDay()
     {

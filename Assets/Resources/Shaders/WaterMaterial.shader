@@ -13,6 +13,9 @@
 		_Diffuse("Diffuse", Range(0,1)) = 0.3
 
 		_SunDirection("Sun Direction", Vector) = (0,1,0,0)
+		
+	    _FocusPosition("Focus Position",  Vector) = (0,0,0,0)
+	    _FocusRadius("Focus Radius",  Range(0,1000)) = 0
 	}
 	SubShader{
 		Tags { "Queue" = "Transparent" }
@@ -30,8 +33,7 @@
             #include "UnityCG.cginc"
 			#include "Tessellation.cginc"
 			#include "UnityShaderVariables.cginc"
-			#include "Colors.hlsl"
-			#include "CoordinateTransforms.hlsl"
+			#include "TerrainHelpers.hlsl"
 
 			struct appdata {
 				float4 vertex : POSITION;
@@ -43,6 +45,7 @@
 				float4 screenPos : TEXCOORD1;
 				float3 normal : TEXCOORD2;
 				float4 globalPosition : TEXCOORD3;
+				float4 waterMap : TEXCOORD4;
 			};
 			struct ControlPoint
 			{
@@ -69,6 +72,9 @@
 			float _Diffuse;
 
 			float3 _SunDirection;
+
+			float3 _FocusPosition;
+			float _FocusRadius;
 
 			float3 getDisplacedNormal(float3 normal, float3 tangent, int channel)
 			{
@@ -128,7 +134,8 @@
 				v2f o;
 				int channel = 3;
 				float4 uvw = float4(xyz_to_uvw(v.vertex),0);
-				float height = UNITY_SAMPLE_TEX2DARRAY_LOD(_WaterMap, uvw, 0)[channel] + _SeaLevel;
+				o.waterMap = UNITY_SAMPLE_TEX2DARRAY_LOD(_WaterMap, uvw, 0);
+				float height = o.waterMap[channel] + _SeaLevel;
 				v.vertex.xyz = v.normal * height;
 				v.normal = getDisplacedNormal(v.normal, v.tangent, channel);
 
@@ -160,19 +167,19 @@
 			 
 			fixed4 FragmentProgram  (v2f i) : SV_Target
 			{
+				float3 cameraDirection = normalize(i.globalPosition - _WorldSpaceCameraPos);
+
 				float opticalTerrainDepth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, i.screenPos)).r;
 				float opticalWaterDepth = saturate((opticalTerrainDepth - i.screenPos.w) / _DeepWaterDepth);
 				float alpha = clamp((opticalTerrainDepth - i.screenPos.w) / _Clarity, 0.1, 0.9);
 
-				float3 cameraDirection = normalize(i.globalPosition - _WorldSpaceCameraPos);
-				float specularAngle = acos(dot(normalize(_SunDirection - cameraDirection), i.normal));
-				float specularExponent = specularAngle / (1-_Smoothness);
-				float specularHighlight = exp(-specularExponent * specularExponent);
-				float diffuseLighting = (saturate(dot(_SunDirection, i.normal))  * (_Diffuse/1)) + ((1-_Diffuse) / 1);
-				float4 color = lerp(_ShallowWaterColor, _DeepWaterColor, opticalWaterDepth) * diffuseLighting + specularHighlight;
-				color.a = alpha;
+				float4 color = lerp(_ShallowWaterColor, _DeepWaterColor, opticalWaterDepth);
+				color = addDiffuseLighting(color, i.normal, _SunDirection, _Diffuse);
+				color = addSpecularHighlight(color, i.normal, _SunDirection, cameraDirection, _Smoothness);
+				color = addFocusRing(color, i.globalPosition, _FocusPosition, _FocusRadius);
+				color.a = alpha * (i.waterMap.b > 0.1);
 
-				return color; 
+				return saturate(color); 
 			}
 			ENDCG
 		}

@@ -5,8 +5,12 @@ Shader "Custom/SphereLand"
         _LandMap ("Land Map", 2DArray) = "black" {}
         _Tess ("Terrain Detail", Range(10,50)) = 40
         _SeaLevel ("Sea Level", Int) = 1000
+
 		_BedRockColor("Bedrock Color", color) = (0.7,0.7,0.7,1)
 	    _SoilColor("Soil Color", color) = (0.55,0.27,0.12,1)
+        
+	    _FocusPosition("Focus Position",  Vector) = (0,0,0,0)
+	    _FocusRadius("Focus Radius",  Range(0,1000)) = 0
     }
     SubShader
     {
@@ -18,16 +22,20 @@ Shader "Custom/SphereLand"
 		#pragma target 4.6
 		#include "Tessellation.cginc"
 		#include "UnityShaderVariables.cginc"
-		#include "LandHelpers.hlsl"
+		#include "TerrainHelpers.hlsl"
 
         /* --- DATA --- */
 
         UNITY_DECLARE_TEX2DARRAY(_LandMap);
-		float4 _SoilColor;
-		float4 _BedRockColor;
         float _Tess;
         int _SeaLevel;
         sampler2D _Tex;
+
+		float4 _SoilColor;
+		float4 _BedRockColor;
+
+        float3 _FocusPosition;
+        float _FocusRadius;
 
 		struct appdata 
 		{
@@ -86,6 +94,7 @@ Shader "Custom/SphereLand"
         {
 			float4 color = _BedRockColor;
 			color = addTopographyLines(color, i.worldPos, i.worldNormal);
+			color = addFocusRing(color, i.worldPos, _FocusPosition, _FocusRadius);
 
             o.Albedo = color;
 			o.Specular = 0.0;
