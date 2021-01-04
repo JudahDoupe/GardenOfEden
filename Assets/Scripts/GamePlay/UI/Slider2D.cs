@@ -7,6 +7,7 @@ public class Slider2D : MonoBehaviour
 
     public Vector2 LocalOffset => _slider.transform.localPosition;
     public Vector2 GlobalOffset => Vector3.Scale(_slider.transform.localPosition, transform.localScale);
+    public Vector3 GlobalPosition => _slider.transform.position;
     public bool IsActive => _slider.IsClicked;
 
     private Slider _slider;

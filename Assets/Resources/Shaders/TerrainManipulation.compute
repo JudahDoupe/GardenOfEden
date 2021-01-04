@@ -1,0 +1,27 @@
+﻿#pragma kernel SmoothLerp
+#include "CoordinateTransforms.hlsl"
+
+RWTexture2DArray<float4> Map;
+int Channel = 0;
+float Value = 10;
+float Speed = 0.3;
+float Radius = 10;
+float3 AdditionCenter;
+
+[numthreads(8, 8, 1)]
+void SmoothLerp(uint3 id : SV_DispatchThreadID)
+{
+    [unroll]
+    for (int i = 0; i < 6; ++i)
+    {
+        int3 xyw = int3(id.xy, i); 
+        float4 channels = float4(Channel == 0, Channel == 1, Channel == 2, Channel == 3);
+        float3 xyz = xyw_to_xyz(xyw, 1000);
+        float d = distance(AdditionCenter, xyz);
+        float current = Map[xyw][Channel];
+        float diff = Value - current;
+        float addend = (1 - smoothstep(0, Radius, d)) * diff * Speed;
+        
+        Map[xyw] += channels * addend;
+    }
+}
