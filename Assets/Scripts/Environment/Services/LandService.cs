@@ -9,7 +9,7 @@ public interface ILandService
 
 public class LandService : MonoBehaviour, ILandService
 {
-    public float SeaLevel = 1000f;
+    public static float SeaLevel = 1000f;
 
     /* Publicly Accessible Methods */
 
