@@ -12,8 +12,8 @@ public class EnvironmentDataStore : MonoBehaviour
 
     void Awake()
     {
-        LandMap = new RenderTexture(512, 512, 4, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture().Initialize(-100, 0, 0, 0);
-        WaterMap = new RenderTexture(512, 512, 4, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture().Initialize(0, 0, 100, 0);
+        LandMap = new RenderTexture(512, 512, 4, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture().Initialize(-50, 0, 0, 0);
+        WaterMap = new RenderTexture(512, 512, 4, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture().Initialize(0, 0, 50, 0);
         WaterSourceMap = new RenderTexture(512, 512, 4, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture().Initialize();
     }
 }

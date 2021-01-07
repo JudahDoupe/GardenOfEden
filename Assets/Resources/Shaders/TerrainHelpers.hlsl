@@ -40,7 +40,7 @@ float4 addFocusRing(float4 color, float3 xyz, float3 focusXyz, float radius)
     if (radius - (radius / 10) < d && d < radius)
     {
         float3 hsl = rgb_to_hsl(color.xyz);
-        hsl.z *= lightening;
+        hsl.z = saturate(hsl.z * lightening);
         color = float4(hsl_to_rgb(hsl), color.a);
     }
     return color;

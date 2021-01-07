@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Mathematics;
+using UnityEngine;
 
 public class WaterService : MonoBehaviour
 {
@@ -25,15 +26,16 @@ public class WaterService : MonoBehaviour
         return EnvironmentDataStore.WaterMap.Sample(coord).a + SeaLevel;
     }
 
-    public void ChangeWaterHeight(Coordinate location, float radius, float height)
+    public void SetWaterTableHeight(Coordinate location, float radius, float height)
     {
-        var shader = Resources.Load<ComputeShader>("Shaders/SmoothAdd");
-        var kernelId = shader.FindKernel("SmoothAdd");
+        var shader = Resources.Load<ComputeShader>("Shaders/TerrainManipulation");
+        var kernelId = shader.FindKernel("SmoothLerp");
+        shader.SetInt("Channel", 0);
+        shader.SetFloat("Value", math.max(height - SeaLevel, 0));
+        shader.SetFloat("Speed", Time.deltaTime * 1f);
         shader.SetFloat("Radius", radius);
-        shader.SetFloats("Channels", 1, 1, 1, 1);
         shader.SetFloats("AdditionCenter", location.x, location.y, location.z);
         shader.SetTexture(kernelId, "Map", EnvironmentDataStore.WaterSourceMap);
-        shader.SetFloat("Strength", height);
         shader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
     }
 
