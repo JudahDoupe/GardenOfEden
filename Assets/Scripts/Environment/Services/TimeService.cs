@@ -24,6 +24,7 @@ public class TimeService : MonoBehaviour
     }
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(TimeService))]
 public class TimeServiceEditor : Editor
 {
@@ -36,3 +37,4 @@ public class TimeServiceEditor : Editor
         EditorGUILayout.Space(5);
     }
 }
+#endif

@@ -18,7 +18,7 @@ Shader "Custom/SphereLand"
         LOD 200
 
         CGPROGRAM
-		#pragma surface surf StandardSpecular addshadow fullforwardshadows vertex:disp tessellate:tess nolightmap
+		#pragma surface surf Standard addshadow fullforwardshadows tessellate:tess vertex:disp nolightmap
 		#pragma target 4.6
 		#include "Tessellation.cginc"
 		#include "UnityShaderVariables.cginc"
@@ -90,14 +90,14 @@ Shader "Custom/SphereLand"
 			v.normal = getDisplacedNormal(normalize(v.normal), normalize(v.tangent), channel);
 		}
 
-        void surf (Input i, inout SurfaceOutputStandardSpecular o)
+        void surf (Input i, inout SurfaceOutputStandard o)
         {
 			float4 color = _BedRockColor;
 			color = addTopographyLines(color, i.worldPos, i.worldNormal);
 			color = addFocusRing(color, i.worldPos, _FocusPosition, _FocusRadius);
 
             o.Albedo = color;
-			o.Specular = 0.0;
+			o.Metallic = 0.0;
 			o.Smoothness = 0.0;
         }
         ENDCG

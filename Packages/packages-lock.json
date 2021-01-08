@@ -10,7 +10,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.burst": {
-      "version": "1.4.1",
+      "version": "1.4.3",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -171,6 +171,24 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.render-pipelines.core": {
+      "version": "11.0.0",
+      "depth": 1,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0"
+      }
+    },
+    "com.unity.render-pipelines.universal": {
+      "version": "11.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.mathematics": "1.1.0",
+        "com.unity.render-pipelines.core": "11.0.0",
+        "com.unity.shadergraph": "11.0.0"
+      }
+    },
     "com.unity.rendering.hybrid": {
       "version": "0.10.0-preview.21",
       "depth": 0,
@@ -187,6 +205,13 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.searcher": {
+      "version": "4.3.1",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.serialization": {
       "version": "1.5.0-preview",
       "depth": 1,
@@ -199,6 +224,15 @@
         "com.unity.test-framework.performance": "2.0.8-preview"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.unity.shadergraph": {
+      "version": "11.0.0",
+      "depth": 1,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.render-pipelines.core": "11.0.0",
+        "com.unity.searcher": "4.3.1"
+      }
     },
     "com.unity.test-framework": {
       "version": "1.1.19",

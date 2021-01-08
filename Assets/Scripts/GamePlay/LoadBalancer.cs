@@ -138,6 +138,7 @@ public class LoadBalancer : MonoBehaviour, ILoadBalancer
 
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(LoadBalancer))]
 public class LoadBalancerEditor : Editor
 {
@@ -161,3 +162,4 @@ public class LoadBalancerEditor : Editor
 
     }
 }
+#endif

@@ -15,8 +15,27 @@ namespace Assets.Scripts.Plants.Systems
         public float3 Position;
         public bool IsEnvironmental => Id < 0;
 
-        public bool Equals(UpdateChunk other) => other.Id == Id;
-        public override int GetHashCode() => Id;
+        public bool Equals(UpdateChunk other)
+        {
+            return other.Id == Id;
+        }
+        public override bool Equals(object compare)
+        {
+            return compare is UpdateChunk uc && uc.Equals(this);
+        }
+        public override int GetHashCode()
+        {
+            return Id;
+        }
+        public static bool operator ==(UpdateChunk lhs, UpdateChunk rhs)
+        {
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(UpdateChunk lhs, UpdateChunk rhs)
+        {
+            return !(lhs.Equals(rhs));
+        }
     }
 
     class UpdateChunkSystem : SystemBase
@@ -63,6 +82,7 @@ namespace Assets.Scripts.Plants.Systems
                 })
                 .WithName("UpdateChunk")
                 .WithDisposeOnCompletion(chunks)
+                .WithoutBurst()
                 .ScheduleParallel();
 
             _ecbSystem.AddJobHandleForProducer(Dependency);

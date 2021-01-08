@@ -75,7 +75,6 @@ public class GameService : MonoBehaviour
         var meshData = Singleton.RenderMeshLibrary.Library["GreenStem"];
         em.SetSharedComponentData(stemMesh, meshData.Mesh);
         em.SetComponentData(stemMesh, meshData.Bounds);
-        em.SetName(stemMesh, "StemMesh");
 
         var vegNode = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(vegNode, new Internode());
@@ -84,13 +83,11 @@ public class GameService : MonoBehaviour
         em.AddComponentData(vegNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 1, InternodeRadius = 0.1f });
         em.SetComponentData(vegNode, new DnaReference { Entity = dna });
         em.SetComponentData(vegNode, new Health { Value = 1 });
-        em.SetName(vegNode, "Node");
 
         var leafMesh = em.CreateEntity(meshArchetype);
         meshData = Singleton.RenderMeshLibrary.Library["Leaf"];
         em.SetSharedComponentData(leafMesh, meshData.Mesh);
         em.SetComponentData(leafMesh, meshData.Bounds);
-        em.SetName(leafMesh, "LeafMesh");
 
         var leaf = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(leaf, new Internode());
@@ -100,7 +97,6 @@ public class GameService : MonoBehaviour
         em.AddComponentData(leaf, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = 1 });
         em.SetComponentData(leaf, new DnaReference { Entity = dna });
         em.SetComponentData(leaf, new Health { Value = 1 });
-        em.SetName(leaf, "Leaf");
 
         var bud = em.CreateEntity(plantNodeArchetype);
         em.SetComponentData(bud, new Node { Size = new float3(0.01f, 0.01f, 0.01f) });
@@ -108,13 +104,11 @@ public class GameService : MonoBehaviour
         em.AddComponentData(bud, new NodeDivision { RemainingDivisions = 6, Type = NodeType.Vegetation, MinEnergyPressure = 0.5f});
         em.SetComponentData(bud, new DnaReference { Entity = dna });
         em.SetComponentData(bud, new Health { Value = 1 });
-        em.SetName(bud, "Bud");
 
         var sporangiaMesh = em.CreateEntity(meshArchetype);
         meshData = Singleton.RenderMeshLibrary.Library["Sporangia"];
         em.SetSharedComponentData(sporangiaMesh, meshData.Mesh);
         em.SetComponentData(sporangiaMesh, meshData.Bounds);
-        em.SetName(sporangiaMesh, "SporangiaMesh");
 
         var sporangia = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(sporangia, new AssignNodeMesh { Entity = sporangiaMesh });
@@ -122,7 +116,6 @@ public class GameService : MonoBehaviour
         em.AddComponentData(sporangia, new NodeDivision { Type = NodeType.Embryo, RemainingDivisions = 5, MinEnergyPressure = 0.5f});
         em.SetComponentData(sporangia, new DnaReference { Entity = dna });
         em.SetComponentData(sporangia, new Health { Value = 1 });
-        em.SetName(sporangia, "Sporangia");
 
         var spore = em.CreateEntity(plantNodeArchetype);
         em.SetComponentData(spore, new Node { Size = new float3(0.25f, 0.25f, 0.25f) });
@@ -131,7 +124,6 @@ public class GameService : MonoBehaviour
         em.AddComponentData(spore, new NodeDivision { Type = NodeType.Seedling });
         em.SetComponentData(spore, new DnaReference { Entity = dna });
         em.SetComponentData(spore, new Health { Value = 1 });
-        em.SetName(spore, "Spore");
 
         var embryoBuffer = em.AddBuffer<EmbryoNode>(dna);
         embryoBuffer.Add(new EmbryoNode
@@ -196,7 +188,6 @@ public class GameService : MonoBehaviour
         var meshData = Singleton.RenderMeshLibrary.Library["GreenStem"];
         em.SetSharedComponentData(stemMesh, meshData.Mesh);
         em.SetComponentData(stemMesh, meshData.Bounds);
-        em.SetName(stemMesh, "StemMesh");
 
         var vegNode = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(vegNode, new Internode());
@@ -205,7 +196,6 @@ public class GameService : MonoBehaviour
         em.AddComponentData(vegNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.5f, InternodeRadius = 0.1f });
         em.SetComponentData(vegNode, new DnaReference { Entity = dna });
         em.SetComponentData(vegNode, new Health { Value = 1 });
-        em.SetName(vegNode, "Node");
 
         var bud = em.CreateEntity(plantNodeArchetype);
         em.SetComponentData(bud, new Node { Size = new float3(0.1f, 0.1f, 0.1f) });
@@ -213,13 +203,11 @@ public class GameService : MonoBehaviour
         em.AddComponentData(bud, new NodeDivision { Type = NodeType.Vegetation, MinEnergyPressure = 0.9f});
         em.SetComponentData(bud, new DnaReference { Entity = dna });
         em.SetComponentData(bud, new Health { Value = 1 });
-        em.SetName(bud, "Bud");
 
         var sporangiaMesh = em.CreateEntity(meshArchetype);
         meshData = Singleton.RenderMeshLibrary.Library["Sporangia"];
         em.SetSharedComponentData(sporangiaMesh, meshData.Mesh);
         em.SetComponentData(sporangiaMesh, meshData.Bounds);
-        em.SetName(sporangiaMesh, "SporangiaMesh");
 
         var sporangia = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(sporangia, new AssignNodeMesh { Entity = sporangiaMesh });
@@ -227,7 +215,6 @@ public class GameService : MonoBehaviour
         em.AddComponentData(sporangia, new NodeDivision { Type = NodeType.Embryo, RemainingDivisions = 5, MinEnergyPressure = 0.1f });
         em.SetComponentData(sporangia, new DnaReference { Entity = dna });
         em.SetComponentData(sporangia, new Health { Value = 1 });
-        em.SetName(sporangia, "Sporangia");
 
         var spore = em.CreateEntity(plantNodeArchetype);
         em.SetComponentData(spore, new Node { Size = new float3(0.25f, 0.25f, 0.25f) });
@@ -236,7 +223,6 @@ public class GameService : MonoBehaviour
         em.AddComponentData(spore, new NodeDivision { Type = NodeType.Seedling });
         em.SetComponentData(spore, new DnaReference { Entity = dna });
         em.SetComponentData(spore, new Health { Value = 1 });
-        em.SetName(spore, "Spore");
 
         var embryoBuffer = em.AddBuffer<EmbryoNode>(dna);
         embryoBuffer.Add(new EmbryoNode
