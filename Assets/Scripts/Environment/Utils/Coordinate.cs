@@ -21,6 +21,7 @@ public struct Coordinate
         get => globalCoord.x;
         set => SetGlobalCoordCoordinates(value, globalCoord.y, globalCoord.z);
     }
+
     public float y
     {
         get => xyz.y;
@@ -155,7 +156,6 @@ public struct Coordinate
             math.atan2(y, x),
             altitude);
     }
-
     private float3 GetUvw(float3 xyz)
     {
         // Find which dimension we're pointing at the most

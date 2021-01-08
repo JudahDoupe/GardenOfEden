@@ -2,7 +2,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class Slider2D : MonoBehaviour
+public class Slider2D : Control
 {
     public Vector2 Min = new Vector2(-1,-1);
     public Vector2 Max = new Vector2(1,1);
@@ -15,12 +15,10 @@ public class Slider2D : MonoBehaviour
     public Vector2 LocalOffset => _slider.transform.localPosition;
     public Vector2 GlobalOffset => Vector3.Scale(_slider.transform.localPosition, transform.localScale);
     public Vector3 GlobalPosition => _slider.transform.position;
-    public bool IsInUse => _slider.IsClicked;
-    public bool IsActive;
+    public new bool IsInUse => _slider.IsClicked;
 
     private Slider _slider;
     private LineRenderer _heightLine;
-    private Vector3 _targetScale;
 
     private void Start()
     {
@@ -34,7 +32,6 @@ public class Slider2D : MonoBehaviour
     {
         if (IsActive)
         {
-            _targetScale = new Vector3(1, 1, 1) * Singleton.CameraController.CameraDistance / 10;
             Radius = math.abs(GlobalOffset.x) + (IsInUse ? 20 : 0);
             Height = new Coordinate(GlobalPosition).Altitude;
             Singleton.CameraController.FocusRadius = Radius;
@@ -45,12 +42,7 @@ public class Slider2D : MonoBehaviour
                 UpdateFunction(Singleton.CameraController.FocusCoord, Radius, Height);
             }
         }
-        else
-        {
-            _targetScale = Vector3.zero;
-        }
 
-        transform.localScale = Vector3.Lerp(transform.localScale, _targetScale, Time.deltaTime * 10);
         SetHeightLine();
     }
 

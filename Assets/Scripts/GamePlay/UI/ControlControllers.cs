@@ -8,17 +8,20 @@ public class ControlControllers : MonoBehaviour
 {
     public Slider2D BedrockControl;
     public Slider2D WaterTableControl;
+    public Button PlantButton;
 
-    private List<Slider2D> _controls;
+    private List<Control> _controls;
 
     void Start()
     {
         BedrockControl.UpdateFunction = Singleton.Land.SetBedrockHeight;
         WaterTableControl.UpdateFunction = Singleton.Water.SetWaterTableHeight;
+        PlantButton.ClickFunction = Singleton.GameService.SpawnSpagooter;
 
-        _controls = new List<Slider2D>
+        _controls = new List<Control>
         {
             WaterTableControl,
+            PlantButton,
             BedrockControl,
         };
     }
@@ -27,6 +30,9 @@ public class ControlControllers : MonoBehaviour
     {
         BedrockControl.IsActive = Singleton.CameraController.CameraDistance > 100 
                               && !_controls.Any(x => x.IsInUse && x != BedrockControl);
+        PlantButton.IsActive = Singleton.CameraController.CameraDistance < 100
+                                 && !_controls.Any(x => x.IsInUse && x != WaterTableControl)
+                                 && Singleton.Land.SampleHeight(Singleton.CameraController.FocusCoord) > LandService.SeaLevel;
         WaterTableControl.IsActive = Singleton.CameraController.CameraDistance > 100 
                                  && !_controls.Any(x => x.IsInUse && x != WaterTableControl)
                                  && Singleton.Land.SampleHeight(Singleton.CameraController.FocusCoord) > LandService.SeaLevel;
@@ -37,6 +43,10 @@ public class ControlControllers : MonoBehaviour
             var target = GetLocalPosition(i, activeControls.Count);
             target.Scale(activeControls[i].transform.localScale);
             activeControls[i].transform.localPosition = Vector3.Lerp(activeControls[i].transform.localPosition, target, Time.deltaTime * 10);
+        }
+        foreach(var inactiveControl in _controls.Where(x => !x.IsActive))
+        {
+            inactiveControl.transform.localPosition = Vector3.zero;
         }
     }
 

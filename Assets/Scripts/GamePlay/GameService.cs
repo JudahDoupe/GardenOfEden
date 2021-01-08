@@ -67,7 +67,7 @@ public class GameService : MonoBehaviour
 #endif
     }
 
-    public void SpawnSpagooter(int amount)
+    public void SpawnSpagooter(Coordinate coord)
     {
         var dna = em.CreateEntity();
 
@@ -168,19 +168,16 @@ public class GameService : MonoBehaviour
             RemainDormantAfterDivision = true
         });
 
-        for (var i = 0; i < amount; i++)
-        {
-            var plant = em.Instantiate(spore);
-            em.RemoveComponent<Dormant>(plant);
-            em.RemoveComponent<Parent>(plant);
-            em.RemoveComponent<LocalToParent>(plant);
-            em.SetComponentData(plant, new EnergyStore { Capacity = 0.5f, Quantity = 0.5f });
-            em.SetComponentData(plant, new Translation { Value = ClampToLand(new Coordinate(Random.Range(50f, 350f), 50, Random.Range(50f, 350f))) });
-            em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
-        }
+        var plant = em.Instantiate(spore);
+        em.RemoveComponent<Dormant>(plant);
+        em.RemoveComponent<Parent>(plant);
+        em.RemoveComponent<LocalToParent>(plant);
+        em.SetComponentData(plant, new EnergyStore { Capacity = 0.5f, Quantity = 0.5f });
+        em.SetComponentData(plant, new Translation { Value = coord.xyz });
+        em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.Normalize(coord.xyz)) });
     }
 
-    public void SpawnCooksporangia(int amount)
+    public void SpawnCooksporangia(Coordinate coord)
     {
         var dna = em.CreateEntity();
 
@@ -267,21 +264,13 @@ public class GameService : MonoBehaviour
             RemainDormantAfterDivision = true
         });
 
-        for (var i = 0; i < amount; i++)
-        {
-            var plant = em.Instantiate(spore);
-            em.RemoveComponent<Dormant>(plant);
-            em.RemoveComponent<Parent>(plant);
-            em.RemoveComponent<LocalToParent>(plant);
-            em.SetComponentData(plant, new EnergyStore { Capacity = 0.25f, Quantity = 0.25f });
-            em.SetComponentData(plant, new Translation { Value = ClampToLand(new Coordinate(Random.Range(50f, 350f), 50, Random.Range(50f, 350f))) });
-            em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.up) });
-        }
-    }
-
-    private float3 ClampToLand(Coordinate coord)
-    {
         coord.Altitude = Singleton.Land.SampleHeight(coord);
-        return coord.xyz;
+        var plant = em.Instantiate(spore);
+        em.RemoveComponent<Dormant>(plant);
+        em.RemoveComponent<Parent>(plant);
+        em.RemoveComponent<LocalToParent>(plant);
+        em.SetComponentData(plant, new EnergyStore { Capacity = 0.25f, Quantity = 0.25f });
+        em.SetComponentData(plant, new Translation { Value = coord.xyz });
+        em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.Normalize(coord.xyz)) });
     }
 }
