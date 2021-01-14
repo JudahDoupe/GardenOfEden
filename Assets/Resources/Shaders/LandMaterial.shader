@@ -1,4 +1,4 @@
-Shader "Custom/SphereLand"
+Shader "Custom/Land"
 {
     Properties
     {        
@@ -14,93 +14,111 @@ Shader "Custom/SphereLand"
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
-        LOD 200
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True" "ShaderModel"="2.0"}
+        LOD 300
 
-        CGPROGRAM
-		#pragma surface surf Standard addshadow fullforwardshadows tessellate:tess vertex:disp nolightmap
-		#pragma target 4.6
-		#include "Tessellation.cginc"
-		#include "UnityShaderVariables.cginc"
-		#include "TerrainHelpers.hlsl"
-
-        /* --- DATA --- */
-
-        UNITY_DECLARE_TEX2DARRAY(_LandMap);
-        float _Tess;
-        int _SeaLevel;
-        sampler2D _Tex;
-
-		float4 _SoilColor;
-		float4 _BedRockColor;
-
-        float3 _FocusPosition;
-        float _FocusRadius;
-
-		struct appdata 
-		{
-			float4 vertex : POSITION;
-			float4 tangent : TANGENT;
-			float3 normal : NORMAL;
-		};
-
-		struct Input 
-		{
-			float3 worldPos;
-			float3 worldNormal;
-		};
-
-        /* --- METHODS --- */
-
-		float3 getDisplacedNormal(float3 normal, float3 tangent, int channel)
+        Pass
         {
-            float3 up = normal;
-            float3 forward = cross(tangent, normal);
-            float offset = 0.004;
-     
-            float4 uvw0 = float4(xyz_to_uvw(normalize(normal + (forward * -offset))),0);
-            float4 uvw1 = float4(xyz_to_uvw(normalize(normal + (tangent * -offset))),0);
-            float4 uvw2 = float4(xyz_to_uvw(normalize(normal + (tangent * offset))),0);
-            float4 uvw3 = float4(xyz_to_uvw(normalize(normal + (forward * offset))),0);
+            Name "ForwardLit"
+            Tags { "LightMode" = "UniversalForward" }
 
-            float4 h;
-            float u = 1.0 / 512.0;
-            h[0] = UNITY_SAMPLE_TEX2DARRAY_LOD(_LandMap, uvw0, 0)[channel];
-            h[1] = UNITY_SAMPLE_TEX2DARRAY_LOD(_LandMap, uvw1, 0)[channel];
-            h[2] = UNITY_SAMPLE_TEX2DARRAY_LOD(_LandMap, uvw2, 0)[channel];
-            h[3] = UNITY_SAMPLE_TEX2DARRAY_LOD(_LandMap, uvw3, 0)[channel];
-            float3 n;
-            n.z = h[0] - h[3];
-            n.x = h[1] - h[2];
-            n.y = 2;
+            // Use same blending / depth states as Standard shader
+            Blend One Zero
+            ZWrite On
 
-            return normalize(n.x * tangent + n.y * normal + n.z * forward);
+            HLSLPROGRAM
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+
+		    #include "TerrainHelpers.hlsl"
+
+			#pragma vertex TessellationVertexProgram 
+			#pragma hull HullProgram
+			#pragma domain DomainProgram
+			#pragma fragment FragmentProgram 
+
+            TEXTURE2D_ARRAY(_LandMap);
+            SAMPLER(sampler_LandMap);
+            float _SeaLevel;
+			float _Tess;
+
+            float4 _BedRockColor;
+            float4 _SoilColor;
+
+            float4 _FocusPosition;
+            float _FocusRadius;
+
+            ControlPoint TessellationVertexProgram(VertexData v)
+            {
+                ControlPoint p;
+                p.positionOS = v.positionOS;
+                p.normalOS = v.normalOS;
+                p.tangentOS = v.tangentOS;
+                return p;
+            }
+
+            [domain("tri")]
+            [outputcontrolpoints(3)]
+            [outputtopology("triangle_cw")]
+            [partitioning("integer")]
+            [patchconstantfunc("PatchConstantFunction")]
+			ControlPoint HullProgram(InputPatch<ControlPoint, 3> patch, uint id : SV_OutputControlPointID)
+            {
+                return patch[id];
+            }
+            TessellationFactors PatchConstantFunction(InputPatch<ControlPoint, 3> patch)
+            {
+                TessellationFactors f;
+                f.edge[0] = _Tess;
+                f.edge[1] = _Tess;
+                f.edge[2] = _Tess;
+                f.inside = _Tess;
+                return f;
+            }
+
+            [domain("tri")]
+			FragmentData DomainProgram(TessellationFactors factors, OutputPatch<ControlPoint, 3> patch, float3 barycentricCoordinates : SV_DomainLocation)
+			{
+			    VertexData data;
+ 
+				#define PROGRAM_INTERPOLATE(fieldName) data.fieldName = \
+					patch[0].fieldName * barycentricCoordinates.x + \
+					patch[1].fieldName * barycentricCoordinates.y + \
+					patch[2].fieldName * barycentricCoordinates.z;
+
+				PROGRAM_INTERPOLATE(positionOS)
+				PROGRAM_INTERPOLATE(normalOS)
+				PROGRAM_INTERPOLATE(tangentOS)
+				data.normalOS = normalize(data.normalOS);
+				data.tangentOS = normalize(data.tangentOS);
+ 
+			   return DisplaceVertexProgram(_LandMap, sampler_LandMap, 0, data, _SeaLevel);
+			}
+
+            half4 FragmentProgram(FragmentData input) : SV_Target
+            {
+                InputData inputData = InitializeInputData(input);
+
+                float4 color = _BedRockColor;
+                color = UniversalFragmentBlinnPhong(inputData, color.xyz, 0, 0, 0, 1);
+	            color = addTopographyLines(color, inputData.positionWS, inputData.normalWS);
+	            color = addFocusRing(color, inputData.positionWS, _FocusPosition, _FocusRadius);
+
+                return color; 
+            }
+
+            ENDHLSL
         }
-
-		float4 tess (appdata v0, appdata v1, appdata v2) {
-            return _Tess;
-        }
-
-		void disp(inout appdata v)
-		{	
-			int channel = 0;
-            float4 uvw = float4(xyz_to_uvw(v.vertex),0);
-			float height = UNITY_SAMPLE_TEX2DARRAY_LOD(_LandMap, uvw, 0)[channel] + _SeaLevel;
-			v.vertex.xyz = normalize(v.normal) * height;
-			v.normal = getDisplacedNormal(normalize(v.normal), normalize(v.tangent), channel);
-		}
-
-        void surf (Input i, inout SurfaceOutputStandard o)
-        {
-			float4 color = _BedRockColor;
-			color = addTopographyLines(color, i.worldPos, i.worldNormal);
-			color = addFocusRing(color, i.worldPos, _FocusPosition, _FocusRadius);
-
-            o.Albedo = color;
-			o.Metallic = 0.0;
-			o.Smoothness = 0.0;
-        }
-        ENDCG
     }
-    FallBack "Diffuse"
 }
