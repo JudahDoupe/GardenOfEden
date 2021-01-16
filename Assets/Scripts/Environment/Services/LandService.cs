@@ -40,7 +40,7 @@ public class LandService : MonoBehaviour, ILandService
         Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
 
         LandRenderer = GetComponent<Renderer>();
-        LandRenderer.material.SetTexture("_LandMap", EnvironmentDataStore.LandMap);
+        LandRenderer.material.SetTexture("_HeightMap", EnvironmentDataStore.LandMap);
         LandRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000,2000,2000));
     }
 

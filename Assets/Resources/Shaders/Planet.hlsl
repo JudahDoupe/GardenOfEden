@@ -3,6 +3,15 @@
 #include "Colors.hlsl"
 #include "CoordinateTransforms.hlsl"
 
+TEXTURE2D_ARRAY(_HeightMap);
+SAMPLER(sampler_HeightMap);
+int _HeightChannel;
+float _Tessellation;
+float _SeaLevel;
+
+float3 _FocusPosition;
+float _FocusRadius;
+
 struct VertexData
 {
     float4 positionOS : POSITION;
@@ -53,18 +62,46 @@ float4 addTopographyLines(float4 color, float3 xyz, float3 normal)
     return saturate(color);
 }
 
-float4 addFocusRing(float4 color, float3 xyz, float3 focusXyz, float radius)
+float4 addFocusRing(float4 color, float3 xyz)
 {
     half lightening = 1.8;
     
-    float d = distance(xyz, focusXyz);
-    if (radius - (radius / 10) < d && d < radius)
+    float d = distance(xyz, _FocusPosition);
+    if (_FocusRadius - (_FocusRadius / 10) < d && d < _FocusRadius)
     {
         float3 hsl = rgb_to_hsl(color.xyz);
         hsl.z = saturate(hsl.z * lightening);
         color = float4(hsl_to_rgb(hsl), color.a);
     }
     return color;
+}
+
+ControlPoint TessellationVertexProgram(VertexData v)
+{
+    ControlPoint p;
+    p.positionOS = v.positionOS;
+    p.normalOS = v.normalOS;
+    p.tangentOS = v.tangentOS;
+    return p;
+}
+
+[domain("tri")]
+[outputcontrolpoints(3)]
+[outputtopology("triangle_cw")]
+[partitioning("integer")]
+[patchconstantfunc("PatchConstantFunction")]
+ControlPoint HullProgram(InputPatch<ControlPoint, 3> patch, uint id : SV_OutputControlPointID)
+{
+    return patch[id];
+}
+TessellationFactors PatchConstantFunction(InputPatch<ControlPoint, 3> patch)
+{
+    TessellationFactors f;
+    f.edge[0] = _Tessellation;
+    f.edge[1] = _Tessellation;
+    f.edge[2] = _Tessellation;
+    f.inside = _Tessellation;
+    return f;
 }
 
 float3 getDisplacedNormal(Texture2DArray tex, SamplerState sample, float3 normal, float3 tangent, int channel)
@@ -92,12 +129,12 @@ float3 getDisplacedNormal(Texture2DArray tex, SamplerState sample, float3 normal
     return normalize(n.x * tangent + n.y * normal + n.z * forward);
 }
 
-FragmentData DisplaceVertexProgram(Texture2DArray heightMap, SamplerState sample, int channel, VertexData input, float seaLevel)
+FragmentData DisplaceVertexProgram(VertexData input)
 {
     float4 uvw = float4(xyz_to_uvw(input.positionOS), 0);
-    float height = SAMPLE_TEXTURE2D_ARRAY_LOD(heightMap, sample, uvw.xy, uvw.z, 0)[channel] + seaLevel;
+    float height = SAMPLE_TEXTURE2D_ARRAY_LOD(_HeightMap, sampler_HeightMap, uvw.xy, uvw.z, 0)[_HeightChannel] + _SeaLevel;
     input.positionOS.xyz = input.normalOS * height;
-    input.normalOS = getDisplacedNormal(heightMap, sample, input.normalOS, input.tangentOS, channel);
+    input.normalOS = getDisplacedNormal(_HeightMap, sampler_HeightMap, input.normalOS, input.tangentOS, _HeightChannel);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
@@ -114,6 +151,25 @@ FragmentData DisplaceVertexProgram(Texture2DArray heightMap, SamplerState sample
     OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 
     return output;
+}
+
+[domain("tri")]
+FragmentData DomainProgram(TessellationFactors factors, OutputPatch<ControlPoint, 3> patch, float3 barycentricCoordinates : SV_DomainLocation)
+{
+    VertexData data;
+ 
+#define PROGRAM_INTERPOLATE(fieldName) data.fieldName = \
+					patch[0].fieldName * barycentricCoordinates.x + \
+					patch[1].fieldName * barycentricCoordinates.y + \
+					patch[2].fieldName * barycentricCoordinates.z;
+
+    PROGRAM_INTERPOLATE(positionOS)
+    PROGRAM_INTERPOLATE(normalOS)
+    PROGRAM_INTERPOLATE(tangentOS)
+    data.normalOS = normalize(data.normalOS);
+    data.tangentOS = normalize(data.tangentOS);
+ 
+    return DisplaceVertexProgram(data);
 }
 
 InputData InitializeInputData(FragmentData input)

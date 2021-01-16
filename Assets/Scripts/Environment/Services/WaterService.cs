@@ -58,7 +58,7 @@ public class WaterService : MonoBehaviour
 
         WaterShader = Resources.Load<ComputeShader>("Shaders/Water");
         WaterRenderer = GetComponent<Renderer>();
-        WaterRenderer.material.SetTexture("_WaterMap", EnvironmentDataStore.WaterMap);
+        WaterRenderer.material.SetTexture("_HeightMap", EnvironmentDataStore.WaterMap);
         WaterRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000, 2000, 2000));
     }
 
