@@ -1,11 +1,13 @@
 ﻿#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Colors.hlsl"
 #include "CoordinateTransforms.hlsl"
 
 TEXTURE2D_ARRAY(_HeightMap);
 SAMPLER(sampler_HeightMap);
-int _HeightChannel;
+int _HeightChannel; 
 float _Tessellation;
 float _SeaLevel;
 
@@ -45,36 +47,7 @@ struct TessellationFactors
     float inside : SV_InsideTessFactor;
 };
 
-float4 addTopographyLines(float4 color, float3 xyz, float3 normal)
-{
-    half lineWidth = 1;
-    half lineFrequency = 25;
-    half darkening = 0.8;
-    
-    float height = length(xyz);
-    float angleDist = length(normalize(xyz) - normal);
-    if (height % lineFrequency < angleDist * lineWidth)
-    {
-        float3 hsl = rgb_to_hsl(color.xyz);
-        hsl.z *= darkening;
-        color = float4(hsl_to_rgb(hsl), color.a);
-    }
-    return saturate(color);
-}
-
-float4 addFocusRing(float4 color, float3 xyz)
-{
-    half lightening = 1.8;
-    
-    float d = distance(xyz, _FocusPosition);
-    if (_FocusRadius - (_FocusRadius / 10) < d && d < _FocusRadius)
-    {
-        float3 hsl = rgb_to_hsl(color.xyz);
-        hsl.z = saturate(hsl.z * lightening);
-        color = float4(hsl_to_rgb(hsl), color.a);
-    }
-    return color;
-}
+/***** Tessellation Program *****/
 
 ControlPoint TessellationVertexProgram(VertexData v)
 {
@@ -129,7 +102,9 @@ float3 getDisplacedNormal(Texture2DArray tex, SamplerState sample, float3 normal
     return normalize(n.x * tangent + n.y * normal + n.z * forward);
 }
 
-FragmentData DisplaceVertexProgram(VertexData input)
+/***** Full Vertex Programs *****/
+
+FragmentData LitPassVertexProgram(VertexData input)
 {
     float4 uvw = float4(xyz_to_uvw(input.positionOS), 0);
     float height = SAMPLE_TEXTURE2D_ARRAY_LOD(_HeightMap, sampler_HeightMap, uvw.xy, uvw.z, 0)[_HeightChannel] + _SeaLevel;
@@ -154,7 +129,7 @@ FragmentData DisplaceVertexProgram(VertexData input)
 }
 
 [domain("tri")]
-FragmentData DomainProgram(TessellationFactors factors, OutputPatch<ControlPoint, 3> patch, float3 barycentricCoordinates : SV_DomainLocation)
+FragmentData LitPassDomainProgram(TessellationFactors factors, OutputPatch<ControlPoint, 3> patch, float3 barycentricCoordinates : SV_DomainLocation)
 {
     VertexData data;
  
@@ -169,19 +144,123 @@ FragmentData DomainProgram(TessellationFactors factors, OutputPatch<ControlPoint
     data.normalOS = normalize(data.normalOS);
     data.tangentOS = normalize(data.tangentOS);
  
-    return DisplaceVertexProgram(data);
+    return LitPassVertexProgram(data);
+}
+
+
+/***** Clip Space Vertex *****/
+
+
+// Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
+// For Directional lights, _LightDirection is used when applying shadow Normal Bias.
+// For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
+float3 _LightDirection;
+float3 _LightPosition;
+
+FragmentData ClipSpaceVertexProgram(VertexData input)
+{
+    float4 uvw = float4(xyz_to_uvw(input.positionOS.xyz), 0);
+    float height = SAMPLE_TEXTURE2D_ARRAY_LOD(_HeightMap, sampler_HeightMap, uvw.xy, uvw.z, 0)[_HeightChannel] + _SeaLevel;
+    input.positionOS.xyz = input.normalOS * height;
+    input.normalOS = getDisplacedNormal(_HeightMap, sampler_HeightMap, input.normalOS, input.tangentOS, _HeightChannel);
+
+    float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+
+    FragmentData output;
+    
+#if _CASTING_PUNCTUAL_LIGHT_SHADOW
+    float3 lightDirectionWS = normalize(_LightPosition - positionWS);
+#else
+    float3 lightDirectionWS = _LightDirection;
+#endif
+
+    output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
+
+#if UNITY_REVERSED_Z
+    output.positionCS.z = min(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
+#else
+    output.positionCS.z = max(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
+#endif
+    
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
+    
+    return output;
+}
+
+[domain("tri")]
+FragmentData ClipSpaceDomainProgram(TessellationFactors factors, OutputPatch<ControlPoint, 3> patch, float3 barycentricCoordinates : SV_DomainLocation)
+{
+    VertexData data;
+ 
+#define PROGRAM_INTERPOLATE(fieldName) data.fieldName = \
+					patch[0].fieldName * barycentricCoordinates.x + \
+					patch[1].fieldName * barycentricCoordinates.y + \
+					patch[2].fieldName * barycentricCoordinates.z;
+
+    PROGRAM_INTERPOLATE(positionOS)
+    PROGRAM_INTERPOLATE(normalOS)
+    PROGRAM_INTERPOLATE(tangentOS)
+    data.normalOS = normalize(data.normalOS);
+    data.tangentOS = normalize(data.tangentOS);
+ 
+    return ClipSpaceVertexProgram(data);
+}
+
+/***** Fragemnt Helpers *****/
+
+half4 ClipSpaceFragmentProgram(FragmentData input) : SV_TARGET
+{
+    return 0;
+}
+
+float4 DepthNormalsFragmentProgram(FragmentData input) : SV_TARGET
+{
+    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(input.normalWS, true)), 0.0, 0.0);
 }
 
 InputData InitializeInputData(FragmentData input)
 {
     InputData inputData = (InputData) 0;
     inputData.positionWS = input.positionWS;
-    inputData.normalWS = SafeNormalize(input.normalWS);
-    inputData.viewDirectionWS = NormalizeNormalPerPixel(input.viewDirectionWS);
-    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+    inputData.normalWS = NormalizeNormalPerPixel(input.normalWS);
+    inputData.viewDirectionWS = SafeNormalize(input.viewDirectionWS);
     inputData.vertexLighting = input.vertexLighting;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
+    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
 
     return inputData;
+}
+
+SurfaceData InitializeSurfaceData(float4 color, float smoothness)
+{
+    SurfaceData outSurfaceData = (SurfaceData) 0;
+
+    outSurfaceData.alpha = color.a;
+    outSurfaceData.albedo = color.rgb;
+    outSurfaceData.metallic = 0.0;
+    outSurfaceData.specular = float3(1,1,1);
+    outSurfaceData.smoothness = smoothness;
+    outSurfaceData.normalTS = float3(0,0,1);
+    outSurfaceData.occlusion = 1.0;
+    outSurfaceData.emission = 0;
+    
+    return outSurfaceData;
+}
+
+float4 addFocusRing(float4 color, float3 xyz)
+{
+    half lightening = 1.8;
+    
+    float d = distance(xyz, _FocusPosition);
+    if (_FocusRadius - (_FocusRadius / 10) < d && d < _FocusRadius)
+    {
+        float3 hsl = rgb_to_hsl(color.xyz);
+        hsl.z = saturate(hsl.z * lightening);
+        color = float4(hsl_to_rgb(hsl), color.a);
+    }
+    return color;
 }

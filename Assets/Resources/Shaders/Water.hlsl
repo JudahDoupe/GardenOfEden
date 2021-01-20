@@ -6,7 +6,7 @@ float _DeepWaterDepth;
 float _Clarity;
 float _Smoothness;
 			 
-half4 FragmentProgram(FragmentData input) : SV_Target
+half4 LitPassFragmentProgram(FragmentData input) : SV_Target
 {
 				//float opticalTerrainDepth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, input.screenPos)).r;
     float opticalWaterDepth = 0.5; //saturate((opticalTerrainDepth - input.screenPos.w) / _DeepWaterDepth);

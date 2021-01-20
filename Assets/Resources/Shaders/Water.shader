@@ -45,8 +45,8 @@
 
 			#pragma vertex TessellationVertexProgram 
 			#pragma hull HullProgram
-			#pragma domain DomainProgram
-			#pragma fragment FragmentProgram 
+			#pragma domain LitPassDomainProgram
+			#pragma fragment LitPassFragmentProgram 
 		    
 			#include "Water.hlsl"
 
