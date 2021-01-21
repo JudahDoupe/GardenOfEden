@@ -14,9 +14,9 @@ float4 addTopographyLines(float4 color, float3 xyz, float3 normal)
     float angleDist = length(normalize(xyz) - normal);
     if (height % lineFrequency < angleDist * lineWidth) 
     {
-        float3 hsl = rgb_to_hsl(color.xyz);
-        hsl.z *= darkening;
-        color = float4(hsl_to_rgb(hsl), color.a);
+        float3 hsv = RgbToHsv(color.xyz);
+        hsv.z *= darkening;
+        color = float4(HsvToRgb(hsv), color.a);
     }
     return saturate(color);
 }
@@ -29,7 +29,7 @@ half4 LitPassFragmentProgram(FragmentData input) : SV_Target
     color = addTopographyLines(color, inputData.positionWS, inputData.normalWS);
     color = addFocusRing(color, inputData.positionWS);
     
-    SurfaceData surfaceData = InitializeSurfaceData(color, 0, inputData);
+    SurfaceData surfaceData = InitializeSurfaceData(color, inputData);
     color = UniversalFragmentPBR(inputData, surfaceData);
     
     return color;
@@ -38,7 +38,7 @@ half4 LitPassFragmentProgram(FragmentData input) : SV_Target
 FragmentOutput GBufferFragmentProgram(FragmentData input)
 {
     InputData inputData = InitializeInputData(input);
-    SurfaceData surfaceData = InitializeSurfaceData(_BedRockColor, 0, inputData);
+    SurfaceData surfaceData = InitializeSurfaceData(_BedRockColor, inputData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);

@@ -2,7 +2,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
-#include "Colors.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "CoordinateTransforms.hlsl"
 
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
@@ -236,15 +236,17 @@ InputData InitializeInputData(FragmentData input)
     return inputData;
 }
 
-SurfaceData InitializeSurfaceData(float4 color, float smoothness, InputData input)
+SurfaceData InitializeSurfaceData(float4 color, InputData input)
 {
     SurfaceData outSurfaceData = (SurfaceData) 0;
 
+    color = saturate(color);
+    
     outSurfaceData.alpha = color.a;
     outSurfaceData.albedo = color.rgb;
     outSurfaceData.metallic = 0.0;
     outSurfaceData.specular = float3(1,1,1);
-    outSurfaceData.smoothness = smoothness;
+    outSurfaceData.smoothness = 0;
     outSurfaceData.normalTS = float3(0,0,1);
     outSurfaceData.occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, input.normalizedScreenSpaceUV).g;
     outSurfaceData.emission = 0;
@@ -259,9 +261,9 @@ float4 addFocusRing(float4 color, float3 xyz)
     float d = distance(xyz, _FocusPosition);
     if (_FocusRadius - (_FocusRadius / 10) < d && d < _FocusRadius)
     {
-        float3 hsl = rgb_to_hsl(color.xyz);
-        hsl.z = saturate(hsl.z * lightening);
-        color = float4(hsl_to_rgb(hsl), color.a);
+        float3 hsv = RgbToHsv(color.xyz);
+        hsv.z *= lightening;
+        color = float4(HsvToRgb(hsv), color.a);
     }
     return color;
 }

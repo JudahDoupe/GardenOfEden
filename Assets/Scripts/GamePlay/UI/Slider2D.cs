@@ -15,7 +15,6 @@ public class Slider2D : Control
     public Vector2 LocalOffset => _slider.transform.localPosition;
     public Vector2 GlobalOffset => Vector3.Scale(_slider.transform.localPosition, transform.localScale);
     public Vector3 GlobalPosition => _slider.transform.position;
-    public new bool IsInUse => _slider.IsClicked;
 
     private Slider _slider;
     private LineRenderer _heightLine;
@@ -30,6 +29,7 @@ public class Slider2D : Control
 
     private void Update()
     {
+        IsInUse = _slider.IsClicked;
         if (IsActive)
         {
             Radius = math.abs(GlobalOffset.x) + (IsInUse ? 20 : 0);

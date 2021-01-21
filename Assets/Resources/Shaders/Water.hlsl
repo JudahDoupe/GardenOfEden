@@ -22,9 +22,10 @@ half4 LitPassFragmentProgram(FragmentData input) : SV_Target
 
     float4 color = lerp(_ShallowWaterColor, _DeepWaterColor, saturate(opticalWaterDepth / _DeepWaterDepth));
     color = addFocusRing(color, inputData.positionWS);
-    color.a = clamp(opticalWaterDepth / _Clarity, 0, 0.9);
+    color.a = clamp(min(opticalWaterDepth / _Clarity, waterMap.b), 0, 0.9);
     
-    SurfaceData surfaceData = InitializeSurfaceData(color, _Smoothness, inputData);
+    SurfaceData surfaceData = InitializeSurfaceData(color, inputData);
+    surfaceData.smoothness = _Smoothness;
     color = UniversalFragmentPBR(inputData, surfaceData);
 
     return color;
@@ -33,7 +34,7 @@ half4 LitPassFragmentProgram(FragmentData input) : SV_Target
 FragmentOutput GBufferFragmentProgram(FragmentData input)
 {
     InputData inputData = InitializeInputData(input);
-    SurfaceData surfaceData = InitializeSurfaceData(_ShallowWaterColor, 0, inputData);
+    SurfaceData surfaceData = InitializeSurfaceData(_ShallowWaterColor, inputData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
