@@ -5,8 +5,9 @@
 #include "Colors.hlsl"
 #include "CoordinateTransforms.hlsl"
 
-TEXTURE2D_ARRAY(_HeightMap);
-SAMPLER(sampler_HeightMap);
+TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
+
+TEXTURE2D_ARRAY(_HeightMap);    SAMPLER(sampler_HeightMap);
 int _HeightChannel; 
 float _Tessellation;
 float _SeaLevel;
@@ -235,7 +236,7 @@ InputData InitializeInputData(FragmentData input)
     return inputData;
 }
 
-SurfaceData InitializeSurfaceData(float4 color, float smoothness)
+SurfaceData InitializeSurfaceData(float4 color, float smoothness, InputData input)
 {
     SurfaceData outSurfaceData = (SurfaceData) 0;
 
@@ -245,7 +246,7 @@ SurfaceData InitializeSurfaceData(float4 color, float smoothness)
     outSurfaceData.specular = float3(1,1,1);
     outSurfaceData.smoothness = smoothness;
     outSurfaceData.normalTS = float3(0,0,1);
-    outSurfaceData.occlusion = 1.0;
+    outSurfaceData.occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, input.normalizedScreenSpaceUV).g;
     outSurfaceData.emission = 0;
     
     return outSurfaceData;

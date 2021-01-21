@@ -10,7 +10,6 @@ Shader "Custom/Land"
 	    [HideInInspector] _FocusPosition("Focus Position",  Vector) = (0,0,0,0)
 	    [HideInInspector] _FocusRadius("Focus Radius",  Range(0,1000)) = 0
 
-		_BaseColor("Bedrock Color", color) = (0.7,0.7,0.7,1)
 		_BedRockColor("Bedrock Color", color) = (0.7,0.7,0.7,1)
 	    _SoilColor("Soil Color", color) = (0.55,0.27,0.12,1)
     }
@@ -51,14 +50,6 @@ Shader "Custom/Land"
 			#pragma fragment LitPassFragmentProgram 
 
             #include "Land.hlsl"
-
-            /*
-            #pragma vertex LitPassVertex
-            #pragma fragment LitPassFragment
-
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
-            */
             
             ENDHLSL
         }

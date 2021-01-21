@@ -1,26 +1,43 @@
-﻿#include "Planet.hlsl"
+﻿#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Planet.hlsl"
 
 float4 _ShallowWaterColor;
 float4 _DeepWaterColor;
 float _DeepWaterDepth;
 float _Clarity;
 float _Smoothness;
+float _Occlusion;
 			 
 half4 LitPassFragmentProgram(FragmentData input) : SV_Target
 {
-				//float opticalTerrainDepth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, input.screenPos)).r;
-    float opticalWaterDepth = 0.5; //saturate((opticalTerrainDepth - input.screenPos.w) / _DeepWaterDepth);
-    float alpha = 0.5; //clamp((opticalTerrainDepth - input.screenPos.w) / _Clarity, 0.1, 0.9);
+    float opticalTerrainDepth = LinearEyeDepth(LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x, _ZBufferParams);
+    float opticalWaterDepth = opticalTerrainDepth - input.positionCS.w;
 
     float3 uvw = xyz_to_uvw(input.positionOS);
     float4 waterMap = SAMPLE_TEXTURE2D_ARRAY_LOD(_HeightMap, sampler_HeightMap, uvw.xy, uvw.z, 0);
 
     InputData inputData = InitializeInputData(input);
 
-    float4 color = lerp(_ShallowWaterColor, _DeepWaterColor, opticalWaterDepth);
+    float4 color = lerp(_ShallowWaterColor, _DeepWaterColor, saturate(opticalWaterDepth / _DeepWaterDepth));
     color = addFocusRing(color, inputData.positionWS);
-    color.a = alpha * (waterMap.b > 0.1);
-    color = UniversalFragmentBlinnPhong(inputData, color.xyz, float4(1, 1, 1, 1), _Smoothness, 0, color.a);
+    color.a = clamp(opticalWaterDepth / _Clarity, 0, 0.9);
+    
+    SurfaceData surfaceData = InitializeSurfaceData(color, _Smoothness, inputData);
+    color = UniversalFragmentPBR(inputData, surfaceData);
 
     return color;
 }
+
+FragmentOutput GBufferFragmentProgram(FragmentData input)
+{
+    InputData inputData = InitializeInputData(input);
+    SurfaceData surfaceData = InitializeSurfaceData(_ShallowWaterColor, 0, inputData);
+
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
+    half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
+
+    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
+};
