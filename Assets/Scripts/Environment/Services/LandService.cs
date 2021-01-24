@@ -29,6 +29,11 @@ public class LandService : MonoBehaviour, ILandService
         shader.SetFloats("AdditionCenter", location.x, location.y, location.z);
         shader.SetTexture(kernelId, "Map", EnvironmentDataStore.LandMap);
         shader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+
+        var updateShader = Resources.Load<ComputeShader>("Shaders/Land");
+        int updateKernel = updateShader.FindKernel("Update");
+        updateShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandMap);
+        updateShader.Dispatch(updateKernel, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
     }
 
     /* Inner Mechanations */

@@ -1,0 +1,21 @@
+﻿#pragma kernel Update
+#include "CoordinateTransforms.hlsl"
+
+RWTexture2DArray<float4> LandMap;
+
+[numthreads(8, 8, 1)]
+void Update(uint3 id : SV_DispatchThreadID)
+{   
+    [unroll]
+    for (int i = 0; i < 6; ++i)
+    {
+        int3 xyw = int3(id.xy, i);
+        
+        if (is_boundry_pixel(id.xy))
+        {
+            int3 src_xyw = get_source_xyw(xyw);
+            
+            LandMap[xyw] = LandMap[src_xyw];
+        }
+    }
+}

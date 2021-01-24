@@ -5,7 +5,6 @@ using UnityEngine;
 public struct Coordinate
 {
     public static int TextureWidthInPixels = 512;
-    public static int BoundryPixels = 1;
 
     private float3 globalCoord;
     private float3 sphericalCoord;
@@ -51,7 +50,10 @@ public struct Coordinate
 
     public int3 xyw
     {
-        get => math.int3(math.round(uvw * new float3(TextureWidthInPixels - 1, TextureWidthInPixels - 1, 1)));
+        get {
+            var xy = math.floor((uvw.xy - 0.00001f) * TextureWidthInPixels);
+            return math.int3(new float3(xy.x, xy.y, math.round(uvw.z))); 
+        }
         set {
             var tex = value.xy / new float2(TextureWidthInPixels - 1.0f);
             SetTextureCoordinates(tex.x, tex.y, value.z, Altitude);
@@ -128,7 +130,7 @@ public struct Coordinate
     {
         var uvw = new float3(u,v,w);
         //Account for buffer pixels
-        uvw.xy = (uvw.xy - (BoundryPixels * 1f / TextureWidthInPixels)) / ((TextureWidthInPixels - 2f * BoundryPixels) / TextureWidthInPixels);
+        uvw.xy = (uvw.xy - (1f / TextureWidthInPixels)) / ((TextureWidthInPixels - 2f) / TextureWidthInPixels);
 
         // Use side to decompose primary dimension and negativity
         bool xMost = w < 2;
@@ -181,11 +183,11 @@ public struct Coordinate
         float2 uv = new float2(side < 2 ? v.y : v.x, side >= 4 ? v.y : v.z);
         uv /= v[side / 2];
 
+        //Account for buffer pixels
+        uv *= (EnvironmentDataStore.TextureSize - 2.0f) / EnvironmentDataStore.TextureSize;
+
         // Transform uv from [-1,1] to [0,1]
         uv = uv * 0.5f + new float2(0.5f, 0.5f);
-
-        //Account for buffer pixels
-        uv = ((EnvironmentDataStore.TextureSize - 2.0f * BoundryPixels) / EnvironmentDataStore.TextureSize) * uv + (BoundryPixels * 1.0f / EnvironmentDataStore.TextureSize);
 
         return new float3(uv.x, uv.y, side);
     }

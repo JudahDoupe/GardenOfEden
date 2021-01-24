@@ -7,7 +7,7 @@
 
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
 
-TEXTURE2D_ARRAY(_HeightMap);    SAMPLER(sampler_HeightMap);
+TEXTURE2D_ARRAY(_HeightMap);    SAMPLER(linear_clamp_sampler_HeightMap);
 int _HeightChannel; 
 float _Tessellation;
 float _SeaLevel;
@@ -78,26 +78,28 @@ TessellationFactors PatchConstantFunction(InputPatch<ControlPoint, 3> patch)
     return f;
 }
 
-float3 getDisplacedNormal(Texture2DArray tex, SamplerState sample, float3 normal, float3 tangent, int channel)
+float4 sampleHeightMap(float3 uvw)
 {
-    float3 up = normal;
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_HeightMap, linear_clamp_sampler_HeightMap, uvw.xy, uvw.z, 0);
+}
+float sampleHeight(float3 uvw)
+{
+    return sampleHeightMap(uvw)[_HeightChannel] + _SeaLevel;
+}
+
+float3 getDisplacedNormal(float3 normal, float3 tangent)
+{
     float3 forward = cross(tangent, normal);
     float offset = 0.004;
      
-    float4 uvw0 = float4(xyz_to_uvw(normalize(normal + (forward * -offset))), 0);
-    float4 uvw1 = float4(xyz_to_uvw(normalize(normal + (tangent * -offset))), 0);
-    float4 uvw2 = float4(xyz_to_uvw(normalize(normal + (tangent * offset))), 0);
-    float4 uvw3 = float4(xyz_to_uvw(normalize(normal + (forward * offset))), 0);
+    float3 uvw0 = xyz_to_uvw(normalize(normal + (forward * -offset)));
+    float3 uvw1 = xyz_to_uvw(normalize(normal + (tangent * -offset)));
+    float3 uvw2 = xyz_to_uvw(normalize(normal + (tangent * offset)));
+    float3 uvw3 = xyz_to_uvw(normalize(normal + (forward * offset)));
 
-    float4 h;
-    float u = 1.0 / 512.0;
-    h[0] = SAMPLE_TEXTURE2D_ARRAY_LOD(tex, sample, uvw0.xy, uvw0.z, 0)[channel];
-    h[1] = SAMPLE_TEXTURE2D_ARRAY_LOD(tex, sample, uvw1.xy, uvw1.z, 0)[channel];
-    h[2] = SAMPLE_TEXTURE2D_ARRAY_LOD(tex, sample, uvw2.xy, uvw2.z, 0)[channel];
-    h[3] = SAMPLE_TEXTURE2D_ARRAY_LOD(tex, sample, uvw3.xy, uvw3.z, 0)[channel];
     float3 n;
-    n.z = h[0] - h[3];
-    n.x = h[1] - h[2];
+    n.z = sampleHeight(uvw0) - sampleHeight(uvw3);
+    n.x = sampleHeight(uvw1) - sampleHeight(uvw2);
     n.y = 2;
 
     return normalize(n.x * tangent + n.y * normal + n.z * forward);
@@ -107,10 +109,9 @@ float3 getDisplacedNormal(Texture2DArray tex, SamplerState sample, float3 normal
 
 FragmentData LitPassVertexProgram(VertexData input)
 {
-    float4 uvw = float4(xyz_to_uvw(input.positionOS), 0);
-    float height = SAMPLE_TEXTURE2D_ARRAY_LOD(_HeightMap, sampler_HeightMap, uvw.xy, uvw.z, 0)[_HeightChannel] + _SeaLevel;
+    float height = sampleHeight(xyz_to_uvw(input.positionOS.xyz));
     input.positionOS.xyz = input.normalOS * height;
-    input.normalOS = getDisplacedNormal(_HeightMap, sampler_HeightMap, input.normalOS, input.tangentOS, _HeightChannel);
+    input.normalOS = getDisplacedNormal(input.normalOS, input.tangentOS);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
@@ -160,10 +161,9 @@ float3 _LightPosition;
 
 FragmentData ClipSpaceVertexProgram(VertexData input)
 {
-    float4 uvw = float4(xyz_to_uvw(input.positionOS.xyz), 0);
-    float height = SAMPLE_TEXTURE2D_ARRAY_LOD(_HeightMap, sampler_HeightMap, uvw.xy, uvw.z, 0)[_HeightChannel] + _SeaLevel;
+    float height = sampleHeight(xyz_to_uvw(input.positionOS.xyz));
     input.positionOS.xyz = input.normalOS * height;
-    input.normalOS = getDisplacedNormal(_HeightMap, sampler_HeightMap, input.normalOS, input.tangentOS, _HeightChannel);
+    input.normalOS = getDisplacedNormal(input.normalOS, input.tangentOS);
 
     float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);

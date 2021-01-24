@@ -15,8 +15,7 @@ half4 LitPassFragmentProgram(FragmentData input) : SV_Target
     float opticalTerrainDepth = LinearEyeDepth(LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x, _ZBufferParams);
     float opticalWaterDepth = opticalTerrainDepth - input.positionCS.w;
 
-    float3 uvw = xyz_to_uvw(input.positionOS);
-    float4 waterMap = SAMPLE_TEXTURE2D_ARRAY_LOD(_HeightMap, sampler_HeightMap, uvw.xy, uvw.z, 0);
+    float4 waterMap = sampleHeightMap(xyz_to_uvw(input.positionOS));
 
     InputData inputData = InitializeInputData(input);
 

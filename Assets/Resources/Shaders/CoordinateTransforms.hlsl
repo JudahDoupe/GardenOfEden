@@ -1,14 +1,12 @@
 ﻿static float TextureWidthInPixels = 512.0;
 static float TextureWidthInMeters = 1500.0;
 
-static float BoundryPixels = 1;
-
 /* Cube Map Coordinates */
 
 float3 uvw_to_xyz(float3 uvw, float altitude)
 {
     //Account for buffer pixels
-    uvw.xy = (uvw.xy - (BoundryPixels / TextureWidthInPixels)) / ((TextureWidthInPixels - 2 * BoundryPixels) / TextureWidthInPixels);
+    uvw.xy = (uvw.xy - (1 / TextureWidthInPixels)) / ((TextureWidthInPixels - 2) / TextureWidthInPixels);
     
     // Use side to decompose primary dimension and negativity
     int side = uvw.z;
@@ -35,7 +33,7 @@ float3 uvw_to_xyz(float3 uvw, float altitude)
 }
 int3 uvw_to_xyw(float3 uvw)
 {
-    int2 xy = round(uvw.xy * (TextureWidthInPixels - 1.0));
+    int2 xy = floor((uvw.xy - 0.00001f) * TextureWidthInPixels);
     return int3(xy, round(uvw.z));
 }
 
@@ -87,11 +85,11 @@ float3 xyz_to_uvw(float3 xyz)
         useComponents = v.xyz;
     float2 uv = useComponents.xy / useComponents.z;
  
+    //Account for buffer pixels
+    uv *= ((TextureWidthInPixels - 2) / (TextureWidthInPixels));
+    
     // Transform uv from [-1,1] to [0,1]
     uv = uv * 0.5 + float2(0.5, 0.5);
-    
-    //Account for buffer pixels
-    uv = ((TextureWidthInPixels - 2 * BoundryPixels) / TextureWidthInPixels) * uv + (BoundryPixels / TextureWidthInPixels);
     
     return float3(uv, side);
 }
@@ -109,7 +107,6 @@ int3 rotate_xyw_clockwise(int3 xyw, int rotations)
     for (int i = 0; i < rotations; i++)
     {
         xyw = int3(xyw.y, TextureWidthInPixels - xyw.x - 1, xyw.z);
-
     }
     return xyw;
 }
@@ -136,10 +133,10 @@ float2 rotate_clockwise(float2 v, int rotations)
 
 bool is_boundry_pixel(int2 xy)
 {
-    bool up = xy.y >= (TextureWidthInPixels - BoundryPixels);
-    bool right = xy.x >= (TextureWidthInPixels - BoundryPixels);
-    bool down = xy.y < BoundryPixels;
-    bool left = xy.x < BoundryPixels;
+    bool up = xy.y >= (TextureWidthInPixels - 1);
+    bool right = xy.x >= (TextureWidthInPixels - 1);
+    bool down = xy.y < 1;
+    bool left = xy.x < 1;
     return up || down || left || right;
 }
 bool is_src_x_inverted(int src_w, int dst_w)
@@ -163,10 +160,10 @@ int get_src_w(int3 xyw)
 {
     int dst_w = xyw.z;
     
-    bool up = xyw.y >= (TextureWidthInPixels - BoundryPixels);
-    bool right = xyw.x >= (TextureWidthInPixels - BoundryPixels) && !up;
-    bool down = xyw.y < BoundryPixels && !right;
-    bool left = xyw.x < BoundryPixels && !down;
+    bool up = xyw.y >= (TextureWidthInPixels - 1);
+    bool right = xyw.x >= (TextureWidthInPixels - 1) && !up;
+    bool down = xyw.y < 1 && !right;
+    bool left = xyw.x < 1 && !down;
     
     int Xp = dst_w == 0;
     int Xn = dst_w == 1;
@@ -208,11 +205,11 @@ int3 get_source_xyw(int3 xyw)
     int dst_w = xyw.z;
     int src_w = get_src_w(xyw);
     
-    int up = xyw.y >= (TextureWidthInPixels - BoundryPixels);
-    int right = xyw.x >= (TextureWidthInPixels - BoundryPixels);
-    int down = xyw.y < BoundryPixels;
-    int left = xyw.x < BoundryPixels;
-    int3 src_xyw = int3(xyw.xy + int2(left - right, down - up) * BoundryPixels, src_w);
+    int up = xyw.y >= (TextureWidthInPixels - 1);
+    int right = xyw.x >= (TextureWidthInPixels - 1);
+    int down = xyw.y < 1;
+    int left = xyw.x < 1;
+    int3 src_xyw = int3(xyw.xy + int2(left - right, down - up), src_w);
     
     int rotations = get_src_rotations(src_w, dst_w);
     src_xyw = rotate_xyw_clockwise(src_xyw, rotations);
