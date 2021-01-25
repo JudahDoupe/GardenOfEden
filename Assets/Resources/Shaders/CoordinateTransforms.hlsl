@@ -91,7 +91,7 @@ float3 xyz_to_uvw(float3 xyz)
     // Transform uv from [-1,1] to [0,1]
     uv = uv * 0.5 + float2(0.5, 0.5);
     
-    return float3(uv, side);
+    return float3(saturate(uv), side);
 }
 int3 xyz_to_xyw(float3 xyz)
 {

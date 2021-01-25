@@ -3,7 +3,7 @@
 	Properties{
 		[HideInInspector] _HeightMap ("Height Map", 2DArray) = "black" {}
 		[HideInInspector] _HeightChannel ("Height Channel", Int) = 3
-		_Tessellation ("Water Geometry Detail", Range(10,64)) = 40
+		_Tessellation ("Water Geometry Detail", Range(1,64)) = 40
         _SeaLevel ("Sea Level", Int) = 999.8
 		
 	    [HideInInspector] _FocusPosition("Focus Position",  Vector) = (0,0,0,0)

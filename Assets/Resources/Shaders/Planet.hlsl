@@ -90,7 +90,7 @@ float sampleHeight(float3 uvw)
 float3 getDisplacedNormal(float3 normal, float3 tangent)
 {
     float3 forward = cross(tangent, normal);
-    float offset = 0.004;
+    float offset = 3.0 / TextureWidthInPixels;
      
     float3 uvw0 = xyz_to_uvw(normalize(normal + (forward * -offset)));
     float3 uvw1 = xyz_to_uvw(normalize(normal + (tangent * -offset)));

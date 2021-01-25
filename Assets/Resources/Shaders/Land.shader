@@ -4,7 +4,7 @@ Shader "Custom/Land"
     {        
 		[HideInInspector] _HeightMap ("Height Map", 2DArray) = "black" {}
 		[HideInInspector] _HeightChannel ("Height Channel", Int) = 0
-        _Tessellation ("Terrain Detail", Range(0,64)) = 40
+        _Tessellation ("Terrain Detail", Range(1,64)) = 40
         _SeaLevel ("Sea Level", Int) = 1000
         
 	    [HideInInspector] _FocusPosition("Focus Position",  Vector) = (0,0,0,0)
