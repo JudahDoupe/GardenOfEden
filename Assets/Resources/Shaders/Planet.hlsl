@@ -111,6 +111,7 @@ FragmentData LitPassVertexProgram(VertexData input)
 {
     float height = sampleHeight(xyz_to_uvw(input.positionOS.xyz));
     input.positionOS.xyz = input.normalOS * height;
+    input.tangentOS.xyz = cross(float3(0, 1, 0), input.normalOS) * input.normalOS.y != 1 + float3(0,0,1) * input.normalOS.y == 1;
     input.normalOS = getDisplacedNormal(input.normalOS, input.tangentOS);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS);
