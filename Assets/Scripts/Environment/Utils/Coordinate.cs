@@ -1,15 +1,16 @@
 ﻿using System;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public struct Coordinate
+public struct Coordinate : IComponentData
 {
-    public static int TextureWidthInPixels = 512;
+    public static readonly int TextureWidthInPixels = 512;
 
     private float3 globalCoord;
     private float3 sphericalCoord;
     private float3 textureCoord;
-    
+
     public float3 xyz
     {
         get => globalCoord;
@@ -52,32 +53,41 @@ public struct Coordinate
     {
         get {
             var xy = math.floor((uvw.xy - 0.00001f) * TextureWidthInPixels);
-            return math.int3(new float3(xy.x, xy.y, math.round(uvw.z))); 
+            return math.int3(new float3(xy.x, xy.y, math.round(uvw.z)));
         }
         set {
             var tex = value.xy / new float2(TextureWidthInPixels - 1.0f);
             SetTextureCoordinates(tex.x, tex.y, value.z, Altitude);
         }
     }
-    public float3 uvw 
-    { 
+    public float3 uvw
+    {
         get => textureCoord;
         set => SetTextureCoordinates(value.x, value.y, (int)math.round(value.z), Altitude);
     }
-    public float u 
-    { 
+    public float u
+    {
         get => textureCoord.x;
         set => SetTextureCoordinates(value, v, w, Altitude);
     }
-    public float v 
-    { 
+    public float v
+    {
         get => textureCoord.y;
         set => SetTextureCoordinates(u, value, w, Altitude);
     }
-    public int w 
+    public int w
     {
         get => math.int3(math.round(textureCoord)).z;
         set => SetTextureCoordinates(u, v, (int)math.round(value), Altitude);
+    }
+
+    public int nativeArrayIndex
+    {
+        get
+        {
+            var xy = xyw.xy;
+            return xy.y * TextureWidthInPixels + xy.x;
+        }
     }
 
     public Coordinate(float x, float y, float z)

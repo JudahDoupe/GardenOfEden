@@ -30,10 +30,7 @@ public class LandService : MonoBehaviour, ILandService
         shader.SetTexture(kernelId, "Map", EnvironmentDataStore.LandMap);
         shader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
 
-        var updateShader = Resources.Load<ComputeShader>("Shaders/Land");
-        int updateKernel = updateShader.FindKernel("Update");
-        updateShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandMap);
-        updateShader.Dispatch(updateKernel, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+        UpdateLand();
     }
 
     /* Inner Mechanations */
@@ -59,6 +56,13 @@ public class LandService : MonoBehaviour, ILandService
         LandRenderer.sharedMaterial.SetVector("_FocusPosition", new Vector4(focusPos.x, focusPos.y, focusPos.z, 0));
         LandRenderer.material.SetFloat("_SeaLevel", SeaLevel);
         LandRenderer.material.SetFloat("_FocusRadius", Singleton.CameraController.FocusRadius);
+    }
+    private void UpdateLand()
+    {
+        var updateShader = Resources.Load<ComputeShader>("Shaders/Land");
+        int updateKernel = updateShader.FindKernel("Update");
+        updateShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandMap);
+        updateShader.Dispatch(updateKernel, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
     }
     public void ProcessDay()
     {
