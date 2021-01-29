@@ -19,15 +19,10 @@ namespace Assets.Scripts.Plants.Systems
 
         protected override void OnUpdate()
         {
-            /*
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
-            //TODO: Fix the bug when plants overlap chunk boundries
-            var landMap = Singleton.EnvironmentalChunkService.GetChunk(Singleton.LoadBalancer.CurrentChunk.Position).LandMap.CachedTexture();
-            var landMapNativeArray = landMap.GetRawTextureData<Color>();
             var genericSeed = new System.Random().Next();
 
             Entities
-                .WithNativeDisableParallelForRestriction(landMapNativeArray)
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithAll<WindDispersal, Dormant>()
                 .WithAll<Translation, Parent, LocalToParent>()
@@ -35,23 +30,21 @@ namespace Assets.Scripts.Plants.Systems
                 {
                     if (energyStore.Pressure < 0.99f) return;
 
-
                     var seed = math.asuint((genericSeed * entityInQueryIndex) % uint.MaxValue) + 1;
                     var rand = new Unity.Mathematics.Random(seed);
-                    var height = l2w.Position.y - landMapNativeArray[EnvironmentDataStore.LocationToTextureIndex(l2w.Position)].a;
-                    var position = l2w.Position + new float3(rand.NextFloat(-height, height), 0, rand.NextFloat(-height, height));
-                    position.y = landMapNativeArray[EnvironmentDataStore.LocationToTextureIndex(position)].a;
+                    var distance = 10;
+                    var position = l2w.Position + new float3(rand.NextFloat(-distance, distance), 0, rand.NextFloat(-distance, distance));
 
                     ecb.RemoveComponent<WindDispersal>(entityInQueryIndex, entity);
                     ecb.RemoveComponent<Parent>(entityInQueryIndex, entity);
                     ecb.RemoveComponent<LocalToParent>(entityInQueryIndex, entity);
                     ecb.SetComponent(entityInQueryIndex, entity, new Translation { Value = position });
+                    ecb.SetComponent(entityInQueryIndex, entity, new Rotation { Value = quaternion.LookRotation(math.normalize(position), new float3(0,1,0)) });
                 })
                 .WithName("WindEmbryoDispersal")
                 .ScheduleParallel();
 
             _ecbSystem.AddJobHandleForProducer(Dependency);
-            */
         }
     }
 }
