@@ -40,14 +40,15 @@ namespace Assets.Scripts.Plants.Systems
 
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
-                .WithNone<Child>()
                 .WithNone<Dormant>()
                 .ForEach(
                     (ref Health health, in Entity entity, in int entityInQueryIndex) =>
                     {
                         var nodeMesh = GetComponentDataFromEntity<NodeMeshReference>(true);
                         var internodeMesh = GetComponentDataFromEntity<InternodeMeshReference>(true);
-                        if (health.Value <= 0)
+                        var childrenQuery = GetBufferFromEntity<Child>(true);
+
+                        if (health.Value <= 0 && !childrenQuery.HasComponent(entity))
                         {
                             if (nodeMesh.HasComponent(entity))
                             {

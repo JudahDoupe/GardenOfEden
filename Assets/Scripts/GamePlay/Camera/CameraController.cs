@@ -33,15 +33,17 @@ public class CameraController : MonoBehaviour
     private Transform _camera;
 
     private float targetCameraDistance = 50;
-    private float targetCameraAngle = 0.3f;
+    private float targetCameraAngle = 0.5f;
     private float targetAltitude = 1000;
 
     private void Start()
     {
+        Camera.main.depthTextureMode = DepthTextureMode.Depth;
+
         _focus = transform.parent;
         _camera = transform;
         FocusCoord = new Coordinate(_focus.position);
-        Camera.main.depthTextureMode = DepthTextureMode.Depth;
+        targetCameraDistance = _camera.localPosition.magnitude;
     }
 
     private void LateUpdate()

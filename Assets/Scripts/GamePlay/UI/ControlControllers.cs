@@ -28,6 +28,8 @@ public class ControlControllers : MonoBehaviour
 
     void Update()
     {
+        _controls.RemoveAll(x => x == null);
+
         BedrockControl.IsActive = Singleton.CameraController.CameraDistance > 100 
                               && !_controls.Any(x => x.IsInUse && x != BedrockControl);
         PlantButton.IsActive = Singleton.CameraController.CameraDistance < 100
