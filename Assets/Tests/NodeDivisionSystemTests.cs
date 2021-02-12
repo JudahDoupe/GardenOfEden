@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Plants.Systems;
+﻿using Assets.Scripts.Plants.Growth;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Entities;
@@ -30,7 +30,7 @@ namespace Tests
 
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
             World.GetOrCreateSystem<NodeDivisionSystem>().Update();
-            World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
+            World.GetOrCreateSystem<GrowthEcbSystem>().Update();
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
 
             Assert.IsTrue(m_Manager.HasComponent<Parent>(top));
@@ -101,7 +101,7 @@ namespace Tests
             m_Manager.AddComponentData(top, new NodeDivision { Type = NodeType.Vegetation });
 
             World.GetOrCreateSystem<NodeDivisionSystem>().Update();
-            World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
+            World.GetOrCreateSystem<GrowthEcbSystem>().Update();
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
 
             Assert.AreEqual(quantity > 0.5f ? 2 : 1, m_Manager.GetBuffer<Child>(bottom).Length);
@@ -119,7 +119,7 @@ namespace Tests
             for (int i = 0; i < divisions + 5; i++)
             {
                 World.GetOrCreateSystem<NodeDivisionSystem>().Update();
-                World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
+                World.GetOrCreateSystem<GrowthEcbSystem>().Update();
                 World.GetOrCreateSystem<EndFrameParentSystem>().Update();
             }
 
@@ -137,7 +137,7 @@ namespace Tests
             for (int i = 0; i <  5; i++)
             {
                 World.GetOrCreateSystem<NodeDivisionSystem>().Update();
-                World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
+                World.GetOrCreateSystem<GrowthEcbSystem>().Update();
                 World.GetOrCreateSystem<EndFrameParentSystem>().Update();
             }
 
@@ -156,7 +156,7 @@ namespace Tests
             for (int i = 0; i < 5; i++)
             {
                 World.GetOrCreateSystem<NodeDivisionSystem>().Update();
-                World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
+                World.GetOrCreateSystem<GrowthEcbSystem>().Update();
                 World.GetOrCreateSystem<EndFrameParentSystem>().Update();
             }
 

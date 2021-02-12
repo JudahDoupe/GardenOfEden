@@ -6,7 +6,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Growth
 {
     [MaximumChunkCapacity(4096)]
     public struct UpdateChunk : ISharedComponentData, IEquatable<UpdateChunk>
@@ -38,16 +38,17 @@ namespace Assets.Scripts.Plants.Systems
         }
     }
 
+    [UpdateInGroup(typeof(GrowthSystemGroup))]
     class UpdateChunkSystem : SystemBase
     {
         private List<UpdateChunk> _chunks = new List<UpdateChunk>();
         private UpdateChunk _currentChunk = new UpdateChunk();
 
-        EndSimulationEntityCommandBufferSystem _ecbSystem;
+        GrowthEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            _ecbSystem = World.GetOrCreateSystem<GrowthEcbSystem>();
         }
 
         protected override void OnUpdate()

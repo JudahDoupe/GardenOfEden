@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Assets.Scripts.Plants.Systems;
+using Assets.Scripts.Plants.Growth;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;

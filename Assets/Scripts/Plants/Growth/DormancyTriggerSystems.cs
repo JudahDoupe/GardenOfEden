@@ -1,7 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Growth
 {
     public struct UnparentDormancyTrigger : IComponentData { }
     public struct GrowthHormoneDormancyTrigger : IComponentData
@@ -10,13 +10,14 @@ namespace Assets.Scripts.Plants.Systems
         public float MinPressure;
     }
 
+    [UpdateInGroup(typeof(GrowthSystemGroup))]
     public class DormancyTriggerSystem : SystemBase
     {
-        EndSimulationEntityCommandBufferSystem _ecbSystem;
+        GrowthEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            _ecbSystem = World.GetOrCreateSystem<GrowthEcbSystem>();
         }
 
         protected override void OnUpdate()

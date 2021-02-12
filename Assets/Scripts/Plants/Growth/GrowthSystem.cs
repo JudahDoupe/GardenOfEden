@@ -1,9 +1,8 @@
-﻿using System;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Growth
 {
     public struct Node : IComponentData
     {
@@ -26,6 +25,7 @@ namespace Assets.Scripts.Plants.Systems
         public float3 NodeSize;
     }
 
+    [UpdateInGroup(typeof(GrowthSystemGroup))]
     public class GrowthSystem : SystemBase
     {
         protected override void OnUpdate()

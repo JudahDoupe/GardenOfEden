@@ -1,12 +1,9 @@
-﻿using System;
-using Unity.Collections;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Growth
 {
     public struct Dormant : IComponentData {}
 
@@ -47,13 +44,14 @@ namespace Assets.Scripts.Plants.Systems
         Seedling,
     }
 
+    [UpdateInGroup(typeof(GrowthSystemGroup))]
     public class NodeDivisionSystem : SystemBase
     {
-        EndSimulationEntityCommandBufferSystem _ecbSystem;
+        GrowthEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            _ecbSystem = World.GetOrCreateSystem<GrowthEcbSystem>();
         }
 
         protected override void OnUpdate() 

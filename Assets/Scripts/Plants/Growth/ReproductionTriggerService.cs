@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Growth
 {
     public struct DeterministicReproductionTrigger : IComponentData { }
     public struct AnnualReproductionTrigger : IComponentData
@@ -8,6 +8,7 @@ namespace Assets.Scripts.Plants.Systems
         public int Month;
     }
 
+    [UpdateInGroup(typeof(GrowthSystemGroup))]
     public class ReproductionTriggerSystem : SystemBase
     {
         protected override void OnUpdate()

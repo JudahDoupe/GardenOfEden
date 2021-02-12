@@ -2,8 +2,10 @@
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Growth
 {
+
+    [UpdateInGroup(typeof(GrowthSystemGroup))]
     class UpdateMeshSystem : SystemBase
     {
         protected override void OnUpdate()

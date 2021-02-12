@@ -1,20 +1,19 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
-using Random = UnityEngine.Random;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Growth
 {
     public struct WindDispersal : IComponentData { }
 
+    [UpdateInGroup(typeof(GrowthSystemGroup))]
     public class EmbryoDispersalSystem : SystemBase
     {
-        EndSimulationEntityCommandBufferSystem _ecbSystem;
+        GrowthEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            _ecbSystem = World.GetOrCreateSystem<GrowthEcbSystem>();
         }
 
         protected override void OnUpdate()

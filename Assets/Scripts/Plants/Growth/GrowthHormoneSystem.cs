@@ -1,9 +1,8 @@
-﻿using System;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Growth
 {
     public struct GrowthHormoneStore : IComponentData
     {
@@ -17,6 +16,7 @@ namespace Assets.Scripts.Plants.Systems
         public float Throughput;
     }
 
+    [UpdateInGroup(typeof(GrowthSystemGroup))]
     public class GrowthHormoneSystem : SystemBase
     {
         protected override void OnUpdate()

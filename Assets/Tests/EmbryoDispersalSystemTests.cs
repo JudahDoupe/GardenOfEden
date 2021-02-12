@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Plants.Systems;
+﻿using Assets.Scripts.Plants.Growth;
 using NUnit.Framework;
 using Unity.Entities;
 using Unity.Transforms;
@@ -17,7 +17,7 @@ namespace Tests
             var embryo = CreateEmbryoNode(baseNode, energyQuantity);
 
             World.CreateSystem<EmbryoDispersalSystem>().Update();
-            World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().Update();
+            World.GetExistingSystem<GrowthEcbSystem>().Update();
 
             Assert.AreEqual(!hasDisconnected, m_Manager.HasComponent<Parent>(embryo));
         }

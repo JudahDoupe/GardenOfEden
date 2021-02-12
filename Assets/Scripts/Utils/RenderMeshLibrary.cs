@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Assets.Scripts.Plants.Systems;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;

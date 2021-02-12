@@ -1,20 +1,19 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Growth
 {
 
+    [UpdateInGroup(typeof(GrowthSystemGroup))]
     public class CoordinateSystem : SystemBase
     {
-        EndSimulationEntityCommandBufferSystem _ecbSystem;
+        GrowthEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            _ecbSystem = World.GetOrCreateSystem<GrowthEcbSystem>();
         }
 
         protected override void OnUpdate()

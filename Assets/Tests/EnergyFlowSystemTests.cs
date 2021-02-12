@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Assets.Scripts.Plants.Systems;
+using Assets.Scripts.Plants.Growth;
 using NUnit.Framework;
 using Unity.Entities;
 using Unity.Entities.Tests;

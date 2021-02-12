@@ -1,23 +1,22 @@
-﻿using System;
-using Unity.Collections;
+﻿using Assets.Scripts.Plants.Growth;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Cleanup
 {
     public struct Health : IComponentData
     {
         public float Value;
     }
 
-    public class HealthSystem : SystemBase
+    [UpdateInGroup(typeof(CleanupSystemGroup))]
+    public class DeadNodeSystem : SystemBase
     {
-        EndSimulationEntityCommandBufferSystem _ecbSystem;
+        CleanupEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            _ecbSystem = World.GetOrCreateSystem<CleanupEcbSystem>();
         }
 
         protected override void OnUpdate()

@@ -1,7 +1,8 @@
-﻿using Unity.Entities;
+﻿using Assets.Scripts.Plants.Cleanup;
+using Assets.Scripts.Plants.Growth;
+using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
-using Assets.Scripts.Plants.Systems;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Random = UnityEngine.Random;

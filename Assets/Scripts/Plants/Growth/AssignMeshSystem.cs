@@ -1,10 +1,6 @@
-﻿using System;
-using Unity.Collections;
-using Unity.Entities;
-using Unity.Rendering;
-using Unity.Transforms;
+﻿using Unity.Entities;
 
-namespace Assets.Scripts.Plants.Systems
+namespace Assets.Scripts.Plants.Growth
 {
     public struct AssignNodeMesh : IComponentData
     {
@@ -33,13 +29,14 @@ namespace Assets.Scripts.Plants.Systems
         public Entity Entity;
     }
 
+    [UpdateInGroup(typeof(GrowthSystemGroup))]
     class AssignMeshSystem : SystemBase
     {
-        EndSimulationEntityCommandBufferSystem _ecbSystem;
+        GrowthEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            _ecbSystem = World.GetOrCreateSystem<GrowthEcbSystem>();
         }
 
         protected override void OnUpdate()
