@@ -1,5 +1,7 @@
 ﻿using Assets.Scripts.Plants.Cleanup;
+using Assets.Scripts.Plants.Environment;
 using Assets.Scripts.Plants.Growth;
+using Assets.Scripts.Plants.Setup;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;

@@ -3,17 +3,17 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Assets.Scripts.Plants.Growth
+namespace Assets.Scripts.Plants.Setup
 {
 
-    [UpdateInGroup(typeof(GrowthSystemGroup))]
+    [UpdateInGroup(typeof(SetupSystemGroup))]
     public class CoordinateSystem : SystemBase
     {
-        GrowthEcbSystem _ecbSystem;
+        SetupEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<GrowthEcbSystem>();
+            _ecbSystem = World.GetOrCreateSystem<SetupEcbSystem>();
         }
 
         protected override void OnUpdate()

@@ -1,6 +1,7 @@
-﻿using Unity.Entities;
+﻿using Assets.Scripts.Plants.Growth;
+using Unity.Entities;
 
-namespace Assets.Scripts.Plants.Growth
+namespace Assets.Scripts.Plants.Cleanup
 {
     public struct AssignNodeMesh : IComponentData
     {
@@ -29,14 +30,14 @@ namespace Assets.Scripts.Plants.Growth
         public Entity Entity;
     }
 
-    [UpdateInGroup(typeof(GrowthSystemGroup))]
+    [UpdateInGroup(typeof(CleanupSystemGroup))]
     class AssignMeshSystem : SystemBase
     {
-        GrowthEcbSystem _ecbSystem;
+        CleanupEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<GrowthEcbSystem>();
+            _ecbSystem = World.GetOrCreateSystem<CleanupEcbSystem>();
         }
 
         protected override void OnUpdate()

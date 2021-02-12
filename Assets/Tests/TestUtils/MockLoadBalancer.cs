@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Assets.Scripts.Plants.Growth;
+using Assets.Scripts.Plants.Setup;
 
 namespace Tests
 {

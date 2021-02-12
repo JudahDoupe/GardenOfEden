@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Plants.Growth;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Growth
+namespace Assets.Scripts.Plants.Setup
 {
     [MaximumChunkCapacity(4096)]
     public struct UpdateChunk : ISharedComponentData, IEquatable<UpdateChunk>
@@ -38,17 +39,17 @@ namespace Assets.Scripts.Plants.Growth
         }
     }
 
-    [UpdateInGroup(typeof(GrowthSystemGroup))]
+    [UpdateInGroup(typeof(SetupSystemGroup), OrderFirst = true)]
     class UpdateChunkSystem : SystemBase
     {
         private List<UpdateChunk> _chunks = new List<UpdateChunk>();
         private UpdateChunk _currentChunk = new UpdateChunk();
 
-        GrowthEcbSystem _ecbSystem;
+        SetupEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<GrowthEcbSystem>();
+            _ecbSystem = World.GetOrCreateSystem<SetupEcbSystem>();
         }
 
         protected override void OnUpdate()

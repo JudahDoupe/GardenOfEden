@@ -1,9 +1,11 @@
-﻿using Unity.Collections;
+﻿using Assets.Scripts.Plants.Growth;
+using Assets.Scripts.Plants.Setup;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Growth
+namespace Assets.Scripts.Plants.Environment
 {
     public struct LightAbsorption : IComponentData
     {
@@ -16,7 +18,7 @@ namespace Assets.Scripts.Plants.Growth
         public float Efficiency;
     }
 
-    [UpdateInGroup(typeof(GrowthSystemGroup))]
+    [UpdateInGroup(typeof(EnvironmentSystemGroup))]
     public class LightSystem : SystemBase
     {
         protected override void OnUpdate()
