@@ -99,26 +99,25 @@ namespace Assets.Scripts.Plants.Growth
                                 ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
                                 break;
                             case DivisionOrder.Replace:
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
                                 if (childrenQuery.HasComponent(currentNode))
                                 {
                                     var children = childrenQuery[currentNode];
                                     for (int c = 0; c < children.Length; c++)
                                     {
                                         ecb.SetComponent(entityInQueryIndex, children[c].Value, new Parent { Value = newNode });
+                                        ecb.SetComponent(entityInQueryIndex, children[c].Value, new PreviousParent { Value = Entity.Null });
                                     }
+                                    ecb.RemoveComponent<Child>(entityInQueryIndex, currentNode);
                                 }
-                                ecb.SetComponent(entityInQueryIndex, newNode, GetComponentDataFromEntity<Rotation>(true)[currentNode]); 
-                                ecb.RemoveComponent<Parent>(entityInQueryIndex, currentNode);
                                 ecb.DestroyEntity(entityInQueryIndex, currentNode);
-                                currentNode = newNode;
+                                ecb.SetComponent(entityInQueryIndex, newNode, GetComponentDataFromEntity<Rotation>(true)[currentNode]); 
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
                                 break;
                             case DivisionOrder.PreNode:
                                 if (!parentQuery.HasComponent(currentNode)) ecb.AddComponent<Parent>(entityInQueryIndex, currentNode);
                                 ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
                                 ecb.SetComponent(entityInQueryIndex, currentNode, new Parent { Value = newNode });
                                 ecb.SetComponent(entityInQueryIndex, newNode, GetComponentDataFromEntity<Rotation>(true)[currentNode]);
-                                parentNode = newNode;
                                 break;
                             case DivisionOrder.PostNode:
                                 ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = currentNode });

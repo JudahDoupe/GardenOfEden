@@ -77,15 +77,17 @@ namespace Tests
             m_Manager.SetComponentData(middle, new Parent { Value = bottom });
 
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
+            var ecb = World.GetOrCreateSystem<GrowthEcbSystem>().CreateCommandBuffer();
 
-            Assert.IsTrue(m_Manager.HasComponent<Parent>(top)); //This is true
+            ecb.RemoveComponent<Child>(middle);
+            ecb.DestroyEntity(middle);
+            ecb.SetComponent(top, new Parent{Value = bottom});
+            ecb.SetComponent(top, new PreviousParent{Value = Entity.Null});
 
-            m_Manager.SetComponentData(top, new Parent{Value = bottom});
-            m_Manager.DestroyEntity(middle);
-
+            World.GetOrCreateSystem<GrowthEcbSystem>().Update();
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
 
-            Assert.IsTrue(m_Manager.HasComponent<Parent>(top)); //This is false
+            Assert.AreEqual(m_Manager.GetComponentData<Parent>(top).Value, bottom);
         }
 
         [TestCase(0.4f)]
