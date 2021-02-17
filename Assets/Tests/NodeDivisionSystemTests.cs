@@ -100,7 +100,10 @@ namespace Tests
             m_Manager.SetComponentData(top, new Parent { Value = bottom });
             m_Manager.SetComponentData(top, new EnergyStore { Capacity = 1, Quantity = quantity });
             var embryo = CreateEmbryoNode(dna, DivisionOrder.InPlace, NodeType.Vegetation);
-            m_Manager.AddComponentData(top, new NodeDivision { Type = NodeType.Vegetation });
+            m_Manager.AddComponentData(top, new NodeDivision { Type = NodeType.Vegetation, MinEnergyPressure = 0.5f });
+
+            World.GetOrCreateSystem<EndFrameParentSystem>().Update();
+            Assert.AreEqual(1, m_Manager.GetBuffer<Child>(bottom).Length);
 
             World.GetOrCreateSystem<NodeDivisionSystem>().Update();
             World.GetOrCreateSystem<GrowthEcbSystem>().Update();
