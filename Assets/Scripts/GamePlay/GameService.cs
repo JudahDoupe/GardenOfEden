@@ -7,6 +7,7 @@ using Unity.Transforms;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Rendering;
+using UnityEngine.Rendering;
 using Random = UnityEngine.Random;
 
 public class GameService : MonoBehaviour
@@ -76,8 +77,7 @@ public class GameService : MonoBehaviour
 
         var stemMesh = em.CreateEntity(meshArchetype);
         var meshData = Singleton.RenderMeshLibrary.Library["GreenStem"];
-        em.SetSharedComponentData(stemMesh, meshData.Mesh);
-        em.SetComponentData(stemMesh, meshData.Bounds);
+        RenderMeshUtility.AddComponents(stemMesh, em, meshData.Desc);
 
         var vegNode = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(vegNode, new Internode());
@@ -89,8 +89,7 @@ public class GameService : MonoBehaviour
 
         var leafMesh = em.CreateEntity(meshArchetype);
         meshData = Singleton.RenderMeshLibrary.Library["Leaf"];
-        em.SetSharedComponentData(leafMesh, meshData.Mesh);
-        em.SetComponentData(leafMesh, meshData.Bounds);
+        RenderMeshUtility.AddComponents(leafMesh, em, meshData.Desc);
 
         var leaf = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(leaf, new Internode());
@@ -110,8 +109,7 @@ public class GameService : MonoBehaviour
 
         var sporangiaMesh = em.CreateEntity(meshArchetype);
         meshData = Singleton.RenderMeshLibrary.Library["Sporangia"];
-        em.SetSharedComponentData(sporangiaMesh, meshData.Mesh);
-        em.SetComponentData(sporangiaMesh, meshData.Bounds);
+        RenderMeshUtility.AddComponents(sporangiaMesh, em, meshData.Desc);
 
         var sporangia = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(sporangia, new AssignNodeMesh { Entity = sporangiaMesh });
@@ -186,8 +184,7 @@ public class GameService : MonoBehaviour
 
         var stemMesh = em.CreateEntity(meshArchetype);
         var meshData = Singleton.RenderMeshLibrary.Library["GreenStem"];
-        em.SetSharedComponentData(stemMesh, meshData.Mesh);
-        em.SetComponentData(stemMesh, meshData.Bounds);
+        RenderMeshUtility.AddComponents(stemMesh, em, meshData.Desc);
 
         var vegNode = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(vegNode, new Internode());
@@ -206,8 +203,7 @@ public class GameService : MonoBehaviour
 
         var sporangiaMesh = em.CreateEntity(meshArchetype);
         meshData = Singleton.RenderMeshLibrary.Library["Sporangia"];
-        em.SetSharedComponentData(sporangiaMesh, meshData.Mesh);
-        em.SetComponentData(sporangiaMesh, meshData.Bounds);
+        RenderMeshUtility.AddComponents(sporangiaMesh, em, meshData.Desc);
 
         var sporangia = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(sporangia, new AssignNodeMesh { Entity = sporangiaMesh });

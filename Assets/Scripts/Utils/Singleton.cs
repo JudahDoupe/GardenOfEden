@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Plants.ECS;
+﻿using Assets.Scripts.Utils;
 using UnityEngine;
 
 public class Singleton : MonoBehaviour

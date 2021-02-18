@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Rendering;
-using Unity.Transforms;
 using UnityEngine;
 
-namespace Assets.Scripts.Plants.ECS
+namespace Assets.Scripts.Utils
 {
     public class RenderMeshLibrary : MonoBehaviour
     {
@@ -17,14 +14,11 @@ namespace Assets.Scripts.Plants.ECS
         {
             foreach (var mesh in Meshes)
             {
-                mesh.Bounds = new RenderBounds()
-                {
-                    Value = new AABB()
-                    {
-                        Center = new float3(mesh.Mesh.mesh.bounds.center.x, mesh.Mesh.mesh.bounds.center.y, mesh.Mesh.mesh.bounds.center.z),
-                        Extents = new float3(mesh.Mesh.mesh.bounds.extents.x, mesh.Mesh.mesh.bounds.extents.y, mesh.Mesh.mesh.bounds.extents.z)
-                    }
-                };
+                mesh.Desc = new RenderMeshDescription(
+                    mesh.Mesh.mesh,
+                    mesh.Mesh.material,
+                    mesh.Mesh.castShadows,
+                    mesh.Mesh.receiveShadows);
 
                 Library.Add(mesh.Name, mesh);
             }
@@ -35,7 +29,7 @@ namespace Assets.Scripts.Plants.ECS
         {
             public string Name;
             public RenderMesh Mesh;
-            public RenderBounds Bounds;
+            public RenderMeshDescription Desc;
         }
     }
 }
