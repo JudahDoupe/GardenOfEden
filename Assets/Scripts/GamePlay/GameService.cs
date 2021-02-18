@@ -31,7 +31,7 @@ public class GameService : MonoBehaviour
             typeof(LocalToWorld),
             typeof(EnergyStore),
             typeof(EnergyFlow),
-            typeof(LightAbsorption),
+            typeof(LightBlocker),
             typeof(Dormant),
             typeof(UpdateChunk),
             typeof(DnaReference),
@@ -81,6 +81,7 @@ public class GameService : MonoBehaviour
 
         var vegNode = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(vegNode, new Internode());
+        em.AddComponentData(vegNode, new LightAbsorber());
         em.AddComponentData(vegNode, new Photosynthesis { Efficiency = 1 });
         em.AddComponentData(vegNode, new AssignInternodeMesh { Entity = stemMesh });
         em.AddComponentData(vegNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 1, InternodeRadius = 0.1f });
@@ -93,6 +94,7 @@ public class GameService : MonoBehaviour
 
         var leaf = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(leaf, new Internode());
+        em.AddComponentData(leaf, new LightAbsorber());
         em.AddComponentData(leaf, new Photosynthesis { Efficiency = 1 });
         em.AddComponentData(leaf, new AssignInternodeMesh { Entity = stemMesh });
         em.AddComponentData(leaf, new AssignNodeMesh { Entity = leafMesh });
@@ -188,6 +190,7 @@ public class GameService : MonoBehaviour
 
         var vegNode = em.CreateEntity(plantNodeArchetype);
         em.AddComponentData(vegNode, new Internode());
+        em.AddComponentData(vegNode, new LightAbsorber());
         em.AddComponentData(vegNode, new Photosynthesis { Efficiency = 1 });
         em.AddComponentData(vegNode, new AssignInternodeMesh { Entity = stemMesh });
         em.AddComponentData(vegNode, new PrimaryGrowth { GrowthRate = 0.1f, InternodeLength = 0.5f, InternodeRadius = 0.1f });

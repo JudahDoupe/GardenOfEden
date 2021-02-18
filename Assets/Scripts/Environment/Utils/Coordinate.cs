@@ -6,6 +6,7 @@ using UnityEngine;
 public struct Coordinate : IComponentData
 {
     public static readonly int TextureWidthInPixels = 512;
+    public static readonly int PlanetRadius = 1000;
 
     private float3 globalCoord;
     private float3 sphericalCoord;

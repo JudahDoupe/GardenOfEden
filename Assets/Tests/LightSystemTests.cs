@@ -50,7 +50,7 @@ namespace Tests
             World.CreateSystem<EndFrameTRSToLocalToWorldSystem>().Update();
             World.CreateSystem<LightSystem>().Update();
 
-            Assert.AreEqual(result, m_Manager.GetComponentData<LightAbsorption>(node).SurfaceArea, 0.001f);
+            Assert.AreEqual(result, m_Manager.GetComponentData<LightBlocker>(node).SurfaceArea, 0.001f);
         }
 
         [TestCase(0, 0, 0, 1, 1)]
@@ -65,7 +65,7 @@ namespace Tests
             World.CreateSystem<EndFrameTRSToLocalToWorldSystem>().Update();
             World.CreateSystem<LightSystem>().Update();
 
-            Assert.AreEqual(result, m_Manager.GetComponentData<LightAbsorption>(node).SurfaceArea, 0.001f);
+            Assert.AreEqual(result, m_Manager.GetComponentData<LightBlocker>(node).SurfaceArea, 0.001f);
         }
 
         [TestCase(0, 0, 0, 1, 3)]
@@ -80,7 +80,7 @@ namespace Tests
             World.CreateSystem<EndFrameTRSToLocalToWorldSystem>().Update();
             World.CreateSystem<LightSystem>().Update();
 
-            Assert.AreEqual(result, m_Manager.GetComponentData<LightAbsorption>(node).SurfaceArea, 0.001f);
+            Assert.AreEqual(result, m_Manager.GetComponentData<LightBlocker>(node).SurfaceArea, 0.001f);
         }
 
         private Entity CreateNode(float height, bool includeNode, bool includeInternode)
@@ -88,7 +88,7 @@ namespace Tests
             var entity = m_Manager.CreateEntity();
             m_Manager.AddComponentData(entity, new Translation {Value = new float3(0, height, 0) });
             m_Manager.AddComponentData(entity, new Rotation());
-            m_Manager.AddComponentData(entity, new LightAbsorption());
+            m_Manager.AddComponentData(entity, new LightAbsorber());
             m_Manager.AddComponentData(entity, new LocalToWorld());
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 100 });
             m_Manager.AddComponentData(entity, new Photosynthesis { Efficiency = 1 });
