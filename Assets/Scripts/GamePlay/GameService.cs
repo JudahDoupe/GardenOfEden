@@ -7,12 +7,9 @@ using Unity.Transforms;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Rendering;
-using UnityEngine.Rendering;
-using Random = UnityEngine.Random;
 
 public class GameService : MonoBehaviour
 {
-    public bool IsGameInProgress { get; private set; }
 
     private EntityManager em;
     private EntityArchetype plantNodeArchetype;
@@ -47,19 +44,6 @@ public class GameService : MonoBehaviour
             typeof(LocalToWorld)
         );
 
-        StartGame();
-    }
-
-    private void StartGame()
-    {
-        IsGameInProgress = true;
-
-        //SpawnSpagooter (50);
-    }
-
-    private void EndGame()
-    {
-        IsGameInProgress = false;
     }
 
     public void QuitGame()

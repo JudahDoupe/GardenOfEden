@@ -1,5 +1,6 @@
 {
     "name": "Tests",
+    "rootNamespace": "",
     "references": [
         "Eden",
         "UnityEngine.TestRunner",
@@ -20,7 +21,9 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "FsCheck.dll",
+        "FSharp.Core.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
