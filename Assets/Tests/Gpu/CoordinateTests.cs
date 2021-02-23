@@ -2,23 +2,19 @@
 using System.Linq;
 using FsCheck;
 using NUnit.Framework;
+using Unity.Mathematics;
 
 namespace Tests
 {
     [Category("Gpu")]
     public class CoordinateTests : SystemTestBase
     {
-        public Arbitrary<int[]> IntArray() => Gen.ArrayOf(Gen.Choose(0,9)).ToArbitrary();
-
-        [Test]
-        public void SampleFsCheckTest()
+        public static Gen<int3> GenXyw(int textureWidth)
         {
-            Prop.ForAll(IntArray(), x => RevRev(x).SequenceEqual(x)).QuickCheckThrowOnFailure();
-        }
-
-        public int[] RevRev(int[] ts)
-        {
-            return ts.Reverse().Reverse().ToArray();
+            return from x in Gen.Choose(0, textureWidth - 1)
+                   from y in Gen.Choose(0, textureWidth - 1)
+                   from w in Gen.Choose(0, 5)
+                   select new int3();
         }
     }
 }

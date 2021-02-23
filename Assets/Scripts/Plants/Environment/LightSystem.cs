@@ -34,6 +34,8 @@ namespace Assets.Scripts.Plants.Environment
                     var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                     var nodeQuery = GetComponentDataFromEntity<Node>(true);
 
+                    //TODO: rotation should be checked against world up
+
                     blocker.SurfaceArea = 0;
                     if (internodeQuery.HasComponent(entity))
                     {
@@ -60,7 +62,7 @@ namespace Assets.Scripts.Plants.Environment
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNativeDisableParallelForRestriction(lightCells)
-                .ForEach((ref LightAbsorber absorber, in LightBlocker blocker, in LocalToWorld l2w, in Photosynthesis photosynthesis) =>
+                .ForEach((ref LightAbsorber absorber, in LightBlocker blocker, in LocalToWorld l2w) =>
                 {
                     var l2wQuery = GetComponentDataFromEntity<LocalToWorld>(true);
                     var lightQuery = GetComponentDataFromEntity<LightBlocker>(true);
