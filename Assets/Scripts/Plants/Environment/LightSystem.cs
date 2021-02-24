@@ -20,7 +20,9 @@ namespace Assets.Scripts.Plants.Environment
     [UpdateInGroup(typeof(EnvironmentSystemGroup))]
     public class LightSystem : SystemBase
     {
-        public const float LightPerCell = 0.01f;
+        public static readonly float LightLevel = 0.025f;
+        public static float CellArea => math.pow(Coordinate.PlanetRadius, 3) / (math.pow(Coordinate.TextureWidthInPixels, 2) * 6);
+        public static float LightPerCell => CellArea * LightLevel;
 
         protected override void OnUpdate()
         {
@@ -34,22 +36,23 @@ namespace Assets.Scripts.Plants.Environment
                     var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                     var nodeQuery = GetComponentDataFromEntity<Node>(true);
 
-                    //TODO: rotation should be checked against world up
+                    var hasInternode = internodeQuery.HasComponent(entity);
+                    var hasNode = nodeQuery.HasComponent(entity);
 
-                    blocker.SurfaceArea = 0;
-                    if (internodeQuery.HasComponent(entity))
+                    if (hasInternode || hasNode)
+                    {
+                        blocker.SurfaceArea = 0;
+                    }
+                    if (hasInternode)
                     {
                         var internode = internodeQuery[entity];
-                        var globalSize = math.mul(l2w.Rotation,
-                            new float3(internode.Radius, internode.Radius, internode.Length));
-                        blocker.SurfaceArea += math.abs(globalSize.x * globalSize.z);
+                        var size = new float3(internode.Radius, internode.Radius, internode.Length);
+                        blocker.SurfaceArea += GetSurfaceArea(l2w, size);
                     }
-
-                    if (nodeQuery.HasComponent(entity))
+                    if (hasNode)
                     {
                         var node = nodeQuery[entity];
-                        var globalSize = math.mul(l2w.Rotation, node.Size);
-                        blocker.SurfaceArea += math.abs(globalSize.x * globalSize.z);
+                        blocker.SurfaceArea += GetSurfaceArea(l2w, node.Size);
                     }
 
                     blocker.CellId = new Coordinate(l2w.Position).xyw;
@@ -67,22 +70,31 @@ namespace Assets.Scripts.Plants.Environment
                     var l2wQuery = GetComponentDataFromEntity<LocalToWorld>(true);
                     var lightQuery = GetComponentDataFromEntity<LightBlocker>(true);
 
-                    var availableLight = math.pow(Coordinate.PlanetRadius, 3) / (math.pow(Coordinate.TextureWidthInPixels, 2) * 6) * LightPerCell;
+                    var availableLight = LightPerCell;
 
                     var absorbers = lightCells.GetValuesForKey(blocker.CellId);
-                    while (absorbers.MoveNext())
+                    while (availableLight > 0 && absorbers.MoveNext())
                     {
                         if (l2wQuery[absorbers.Current].Position.y > l2w.Position.y)
                         {
                             availableLight -= lightQuery[absorbers.Current].SurfaceArea;
+                            availableLight = math.max(availableLight, 0);
                         }
                     }
 
-                    absorber.AbsorbedLight = availableLight;
+                    absorber.AbsorbedLight = math.min(availableLight, blocker.SurfaceArea);
                 })
                 .WithDisposeOnCompletion(lightCells)
                 .WithName("UpdateAbsorbedLight")
                 .ScheduleParallel();
+        }
+
+        private static float GetSurfaceArea(LocalToWorld l2w, float3 size)
+        {
+            var globalUp = math.normalize(l2w.Position);
+            return (1 - math.abs(math.dot(l2w.Forward, globalUp))) * size.x * size.y +
+                   (1 - math.abs(math.dot(l2w.Right, globalUp))) * size.z * size.y +
+                   (1 - math.abs(math.dot(l2w.Up, globalUp))) * size.x * size.z;
         }
 
     }

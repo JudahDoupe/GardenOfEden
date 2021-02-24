@@ -1,6 +1,9 @@
 ﻿using Assets.Scripts.Plants.Environment;
 using FsCheck;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -14,7 +17,7 @@ namespace Tests
         public static Gen<LightBlocker> GenLightBlocker() =>
             from sa in Arb.Generate<float>()
             from id in CoordinateTests.GenXyw(Coordinate.TextureWidthInPixels)
-            where 0 < sa && sa < 10
+            where 0 < sa && sa < LightSystem.LightPerCell
             select new LightBlocker { SurfaceArea = sa, CellId = id };
 
         public static Gen<LightAbsorber> GenLightAbsorber() =>
@@ -43,16 +46,82 @@ namespace Tests
             select array).ToArbitrary();
 
         [Test]
-        public void AbsorbedLightShouldBeLessThanOrEqualToAvailableLight() { }
+        public void AbsorbedLightShouldBeLessThanOrEqualToAvailableLight() 
+        {
+            Prop.ForAll(ArbAbsorberDataArray(10), data =>
+            {
+                RunSystems(data);
+
+                var totalAbsorbedLight = 0f;
+                foreach (var entity in m_Manager.CreateEntityQuery(typeof(LightAbsorber)).ToEntityArray(Allocator.Temp))
+                {
+                    var absorber = m_Manager.GetComponentData<LightAbsorber>(entity);
+                    totalAbsorbedLight += absorber.AbsorbedLight;
+                }
+
+                Assert.LessOrEqual(totalAbsorbedLight, LightSystem.LightPerCell, $"AbsorbedLight: {totalAbsorbedLight}, AvailableLight: {LightSystem.LightPerCell}");
+
+            }).Check(_config);
+        }
 
         [Test]
-        public void AbsorbedLightShouldBeRelativeToSurfaceArea() { }
+        public void AbsorbedLightShouldBeRelativeToSurfaceArea() 
+        {
+            Prop.ForAll(ArbAbsorberDataArray(1), data =>
+            {
+                RunSystems(data);
+
+                foreach (var entity in m_Manager.CreateEntityQuery(typeof(LightAbsorber)).ToEntityArray(Allocator.Temp))
+                {
+                    var blocker = m_Manager.GetComponentData<LightBlocker>(entity);
+                    var absorber = m_Manager.GetComponentData<LightAbsorber>(entity);
+                    Assert.AreEqual(absorber.AbsorbedLight, blocker.SurfaceArea, $"AbsorbedLight: {absorber.AbsorbedLight}, SurfaceArea: {blocker.SurfaceArea}");
+                }
+            }).Check(_config);
+        }
 
         [Test]
-        public void HeightAbsorbersShouldReceiveLoghtBeforeLowerAbsorbers() { }
+        public void HeigherAbsorbersShouldReceiveLightBeforeLowerAbsorbers() 
+        {
+            Prop.ForAll(ArbAbsorberDataArray(10), data =>
+            {
+                RunSystems(data);
+
+                var results = new List<Tuple<float, float, float>>();
+                foreach (var entity in m_Manager.CreateEntityQuery(typeof(LightAbsorber)).ToEntityArray(Allocator.Temp))
+                {
+                    var blocker = m_Manager.GetComponentData<LightBlocker>(entity);
+                    var absorber = m_Manager.GetComponentData<LightAbsorber>(entity);
+                    var translation = m_Manager.GetComponentData<Translation>(entity);
+                    results.Add(Tuple.Create(translation.Value.y, absorber.AbsorbedLight, blocker.SurfaceArea));
+                }
+                var expected = results.OrderBy(x => x.Item1);
+                var actual = expected.OrderBy(x => x.Item2 / x.Item3);
+
+                return expected.SequenceEqual(actual);
+
+            }).Check(_config);
+        }
 
         [Test]
-        public void AbsorbedLightGetsReset() { }
+        public void AbsorbedLightGetsReset() 
+        {
+            Prop.ForAll(ArbAbsorberDataArray(1), data =>
+            {
+                foreach (var item in data)
+                {
+                    item.lightAbsorber.AbsorbedLight = -1;
+                }
+
+                RunSystems(data);
+
+                foreach (var entity in m_Manager.CreateEntityQuery(typeof(LightAbsorber)).ToEntityArray(Allocator.Temp))
+                {
+                    var absorber = m_Manager.GetComponentData<LightAbsorber>(entity);
+                    Assert.AreNotEqual(-1, absorber.AbsorbedLight);
+                }
+            }).Check(_config);
+        }
 
         [Test]
         public void CellIdGetsUpdated() 
@@ -70,6 +139,26 @@ namespace Tests
                     Assert.AreEqual(cellId, blocker.CellId, $"Translation {translation.Value}");
                 }
             }).Check(_config);
+        }
+
+        [Test]
+        public void SurfaceAreaGetsUpdatedForNode()
+        {
+        }
+
+        [Test]
+        public void SurfaceAreaGetsUpdatedForInternode()
+        {
+        }
+
+        [Test]
+        public void SurfaceAreaIncludesNodeAndInternode()
+        {
+        }
+
+        [Test]
+        public void SurfaceAreaDoesNotGetUpdatedForEntitiesWithoutNodesOrInternodes()
+        {
         }
 
         private void RunSystems(AbsorberData[] data)
