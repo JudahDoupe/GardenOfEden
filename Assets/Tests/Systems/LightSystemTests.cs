@@ -18,22 +18,22 @@ namespace Tests
     public class LightSystemTests : SystemTestBase
     {
         public static Gen<LightBlocker> GenLightBlocker() =>
-            from t in Gen0To1()
-            from id in CoordinateTests.GenXyw(Coordinate.TextureWidthInPixels)
+            from t in FsCheckUtils.Gen0To1()
+            from id in CoordinateTansformTests.GenXyw(Coordinate.TextureWidthInPixels)
             select new LightBlocker { SurfaceArea = math.lerp(0, LightSystem.LightPerCell, t), CellId = id };
 
         public static Gen<LightAbsorber> GenLightAbsorber() =>
-            from t in Gen0To1()
+            from t in FsCheckUtils.Gen0To1()
             select new LightAbsorber { AbsorbedLight = math.lerp(0, LightSystem.LightPerCell, t) };
 
         private static Gen<Translation> GenTranslation() =>
-            from t in Gen0To1()
+            from t in FsCheckUtils.Gen0To1()
             select new Translation { Value = new float3(0, math.lerp(500, 5000, t), 0) };
         
         private static Gen<Rotation> GenRotation() =>
-            from x in Gen0To1()
-            from y in Gen0To1()
-            from z in Gen0To1()
+            from x in FsCheckUtils.Gen0To1()
+            from y in FsCheckUtils.Gen0To1()
+            from z in FsCheckUtils.Gen0To1()
             select new Rotation { Value = quaternion.Euler(math.lerp(0,math.PI,x), math.lerp(0, math.PI, x), math.lerp(0, math.PI, x)) };
 
         private static Gen<AbsorberData> GenAbsorberData() =>
@@ -68,7 +68,7 @@ namespace Tests
 
                 totalAbsorbedLight.Truncate(5).Should().BeLessOrEqualTo(LightSystem.LightPerCell.Truncate(5));
 
-            }).Check(_config);
+            }).Check(FsCheckUtils.Config);
         }
 
         [Test]
@@ -84,7 +84,7 @@ namespace Tests
                     var absorber = m_Manager.GetComponentData<LightAbsorber>(entity);
                     absorber.AbsorbedLight.Should().Be(blocker.SurfaceArea);
                 }
-            }).Check(_config);
+            }).Check(FsCheckUtils.Config);
         }
 
         [Test]
@@ -107,7 +107,7 @@ namespace Tests
 
                 expected.SequenceEqual(actual).Should().BeTrue();
 
-            }).Check(_config);
+            }).Check(FsCheckUtils.Config);
         }
 
         [Test]
@@ -127,7 +127,7 @@ namespace Tests
                     var absorber = m_Manager.GetComponentData<LightAbsorber>(entity);
                     absorber.AbsorbedLight.Should().NotBe(-1);
                 }
-            }).Check(_config);
+            }).Check(FsCheckUtils.Config);
         }
 
         [Test]
@@ -145,7 +145,7 @@ namespace Tests
                     var translation = m_Manager.GetComponentData<Translation>(entity);
                     blocker.CellId.Should().Be(cellId, $"Translation {translation.Value}");
                 }
-            }).Check(_config);
+            }).Check(FsCheckUtils.Config);
         }
 
         [Test]
@@ -166,7 +166,7 @@ namespace Tests
                     blocker.SurfaceArea.Should().BeLessOrEqualTo(maxArea, $"rotation: {rotation.Value}");
                     blocker.SurfaceArea.Should().BeGreaterOrEqualTo(1, $"rotation: {rotation.Value}");
                 }
-            }).Check(_config);
+            }).Check(FsCheckUtils.Config);
         }
 
         [Test]
@@ -187,7 +187,7 @@ namespace Tests
                     blocker.SurfaceArea.Should().BeLessOrEqualTo(0.1f, $"rotation: {rotation.Value}");
                     blocker.SurfaceArea.Should().BeGreaterOrEqualTo(0.01f, $"rotation: {rotation.Value}");
                 }
-            }).Check(_config);
+            }).Check(FsCheckUtils.Config);
         }
 
         [TestCase(0, 0, 0, 1)]

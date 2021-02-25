@@ -7,6 +7,7 @@ namespace Assets.Scripts.Plants.Growth
     public struct WindDispersal : IComponentData { }
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
+    [UpdateAfter(typeof(GrowthSystem))]
     public class EmbryoDispersalSystem : SystemBase
     {
         GrowthEcbSystem _ecbSystem;

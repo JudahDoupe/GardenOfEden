@@ -9,6 +9,7 @@ namespace Assets.Scripts.Plants.Growth
     }
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
+    [UpdateBefore(typeof(NodeDivisionSystem))]
     public class ReproductionTriggerSystem : SystemBase
     {
         protected override void OnUpdate()

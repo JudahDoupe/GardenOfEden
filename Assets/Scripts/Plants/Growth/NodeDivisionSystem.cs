@@ -45,6 +45,7 @@ namespace Assets.Scripts.Plants.Growth
     }
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
+    [UpdateAfter(typeof(GrowthSystem))]
     public class NodeDivisionSystem : SystemBase
     {
         GrowthEcbSystem _ecbSystem;
