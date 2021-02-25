@@ -20,8 +20,10 @@ namespace Assets.Scripts.Plants.Environment
     [UpdateInGroup(typeof(EnvironmentSystemGroup))]
     public class LightSystem : SystemBase
     {
-        public static readonly float LightLevel = 0.025f;
-        public static float CellArea => math.pow(Coordinate.PlanetRadius, 3) / (math.pow(Coordinate.TextureWidthInPixels, 2) * 6);
+        public static readonly float LightLevel = 1;
+        public static float PlanetArea => 4 * math.PI * math.pow(Coordinate.PlanetRadius, 2);
+        public static int NumCells => Coordinate.TextureWidthInPixels * Coordinate.TextureWidthInPixels * 6;
+        public static float CellArea => PlanetArea / NumCells;
         public static float LightPerCell => CellArea * LightLevel;
 
         protected override void OnUpdate()
@@ -60,8 +62,7 @@ namespace Assets.Scripts.Plants.Environment
 
                 })
                 .WithName("UpdateLightBlockers")
-                .WithoutBurst()
-                .Run();
+                .ScheduleParallel();
 
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
