@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using FsCheck;
+﻿using FsCheck;
 using NUnit.Framework;
 using Unity.Entities.Tests;
 
@@ -18,7 +16,16 @@ namespace Tests
             Singleton.LoadBalancer = new MockLoadBalancer();
 
             _config = Configuration.QuickThrowOnFailure;
-            _config.MaxNbOfTest = 10;
+            _config.MaxNbOfTest = 100;
+        }
+
+        public static Gen<float> Gen0To1()
+        {
+            return Gen.Choose(0, 1000000).Select(x => x / 1000000f);
+        }
+        public static Gen<float> GenNeg1To1()
+        {
+            return Gen.Choose(-1000000, 1000000).Select(x => x / 1000000f);
         }
     }
 }

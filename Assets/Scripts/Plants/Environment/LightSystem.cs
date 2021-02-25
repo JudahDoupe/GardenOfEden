@@ -46,7 +46,7 @@ namespace Assets.Scripts.Plants.Environment
                     if (hasInternode)
                     {
                         var internode = internodeQuery[entity];
-                        var size = new float3(internode.Radius, internode.Radius, internode.Length);
+                        var size = new float3(2 * internode.Radius, 2 * internode.Radius, internode.Length);
                         blocker.SurfaceArea += GetSurfaceArea(l2w, size);
                     }
                     if (hasNode)
@@ -60,7 +60,8 @@ namespace Assets.Scripts.Plants.Environment
 
                 })
                 .WithName("UpdateLightBlockers")
-                .ScheduleParallel();
+                .WithoutBurst()
+                .Run();
 
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
@@ -92,9 +93,17 @@ namespace Assets.Scripts.Plants.Environment
         private static float GetSurfaceArea(LocalToWorld l2w, float3 size)
         {
             var globalUp = math.normalize(l2w.Position);
-            return (1 - math.abs(math.dot(l2w.Forward, globalUp))) * size.x * size.y +
-                   (1 - math.abs(math.dot(l2w.Right, globalUp))) * size.z * size.y +
-                   (1 - math.abs(math.dot(l2w.Up, globalUp))) * size.x * size.z;
+            var x = GetFaceRatio(l2w.Right, globalUp) * size.z * size.y;
+            var y = GetFaceRatio(l2w.Up, globalUp) * size.z * size.x;
+            var z = GetFaceRatio(l2w.Forward, globalUp) * size.x * size.y;
+            return x + y + z;
+        }
+
+        private static float GetFaceRatio(float3 faceDir, float3 globalUp)
+        {
+            var angle = math.degrees(math.acos(math.dot(faceDir, globalUp)));
+            var t = math.abs(angle - 90) / 90; 
+            return t;
         }
 
     }

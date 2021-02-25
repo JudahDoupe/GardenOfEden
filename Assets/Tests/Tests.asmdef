@@ -23,7 +23,8 @@
     "precompiledReferences": [
         "nunit.framework.dll",
         "FsCheck.dll",
-        "FSharp.Core.dll"
+        "FSharp.Core.dll",
+        "FluentAssertions.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
