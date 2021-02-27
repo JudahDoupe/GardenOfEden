@@ -26,6 +26,7 @@ namespace Assets.Scripts.Plants.Growth
     }
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
+    [UpdateAfter(typeof(MetabolismSystem))]
     public class GrowthSystem : SystemBase
     {
         protected override void OnUpdate()

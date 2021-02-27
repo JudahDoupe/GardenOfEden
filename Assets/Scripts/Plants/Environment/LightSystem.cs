@@ -1,9 +1,9 @@
 ﻿using Assets.Scripts.Plants.Growth;
-using Assets.Scripts.Plants.Setup;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace Assets.Scripts.Plants.Environment
 {
@@ -61,8 +61,9 @@ namespace Assets.Scripts.Plants.Environment
                     lightCellsWriter.Add(blocker.CellId, entity);
 
                 })
+                .WithoutBurst()
                 .WithName("UpdateLightBlockers")
-                .ScheduleParallel();
+                .Run();
 
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
@@ -93,17 +94,24 @@ namespace Assets.Scripts.Plants.Environment
 
         private static float GetSurfaceArea(LocalToWorld l2w, float3 size)
         {
+            if (l2w.Position.Equals(float3.zero))
+            {
+                return 0;
+            }
             var globalUp = math.normalize(l2w.Position);
             var x = GetFaceRatio(l2w.Right, globalUp) * size.z * size.y;
             var y = GetFaceRatio(l2w.Up, globalUp) * size.z * size.x;
             var z = GetFaceRatio(l2w.Forward, globalUp) * size.x * size.y;
-            return x + y + z;
+            var sa = x + y + z;
+            return sa;
         }
 
         private static float GetFaceRatio(float3 faceDir, float3 globalUp)
         {
-            var angle = math.degrees(math.acos(math.dot(faceDir, globalUp)));
-            var t = math.abs(angle - 90) / 90; 
+            var dot = math.clamp(math.dot(faceDir, globalUp), -1, 1);
+            var arcCos = math.acos(dot);
+            var angle = math.degrees(arcCos);
+            var t = math.abs(angle - 90) / 90;
             return t;
         }
 

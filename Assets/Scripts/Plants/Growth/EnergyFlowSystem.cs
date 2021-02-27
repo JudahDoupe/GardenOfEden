@@ -17,8 +17,7 @@ namespace Assets.Scripts.Plants.Growth
     }
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
-    [UpdateAfter(typeof(PhotosynthesisSystem))]
-    [UpdateBefore(typeof(GrowthSystem))]
+    [UpdateAfter(typeof(GrowthSystem))]
     public class EnergyFlowSystem : SystemBase
     {
         protected override void OnUpdate()

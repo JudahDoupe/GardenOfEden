@@ -18,23 +18,21 @@ namespace Tests
     public class LightSystemTests : SystemTestBase
     {
         public static Gen<LightBlocker> GenLightBlocker() =>
-            from t in FsCheckUtils.Gen0To1()
+            from sa in FsCheckUtils.GenFloat(0, LightSystem.LightPerCell)
             from id in CoordinateTansformTests.GenXyw(Coordinate.TextureWidthInPixels)
-            select new LightBlocker { SurfaceArea = math.lerp(0, LightSystem.LightPerCell, t), CellId = id };
+            select new LightBlocker { SurfaceArea = sa, CellId = id };
 
         public static Gen<LightAbsorber> GenLightAbsorber() =>
-            from t in FsCheckUtils.Gen0To1()
-            select new LightAbsorber { AbsorbedLight = math.lerp(0, LightSystem.LightPerCell, t) };
+            from l in FsCheckUtils.GenFloat(0, LightSystem.LightPerCell)
+            select new LightAbsorber { AbsorbedLight = l};
 
         private static Gen<Translation> GenTranslation() =>
-            from t in FsCheckUtils.Gen0To1()
-            select new Translation { Value = new float3(0, math.lerp(500, 5000, t), 0) };
+            from y in FsCheckUtils.GenFloat(500, 5000)
+            select new Translation { Value = new float3(0, y, 0) };
         
         private static Gen<Rotation> GenRotation() =>
-            from x in FsCheckUtils.Gen0To1()
-            from y in FsCheckUtils.Gen0To1()
-            from z in FsCheckUtils.Gen0To1()
-            select new Rotation { Value = quaternion.Euler(math.lerp(0,math.PI,x), math.lerp(0, math.PI, x), math.lerp(0, math.PI, x)) };
+            from euler in FsCheckUtils.GenFloat3(new float3(0,0,0), new float3(math.PI, math.PI, math.PI))
+            select new Rotation { Value = quaternion.Euler(euler) };
 
         private static Gen<AbsorberData> GenAbsorberData() =>
             from lb in GenLightBlocker()
@@ -42,14 +40,32 @@ namespace Tests
             from t in GenTranslation()
             from r in GenRotation()
             select new AbsorberData {
-                lightBlocker = lb,
-                lightAbsorber = la,
-                translation = t,
-                Rotation = r,
+                LightBlocker = lb,
+                LightAbsorber = la,
+                Translation = t,
+                Rotation = r
             };
 
-        private static Arbitrary<AbsorberData[]> ArbAbsorberDataArray(int numEntites = 10) =>
-            (from array in Gen.ArrayOf(numEntites, GenAbsorberData())
+        private static Gen<AbsorberData> GenFullRandomAbsorberData() =>
+            from lb in GenLightBlocker()
+            from la in GenLightAbsorber()
+            from translation in FsCheckUtils.GenFloat3(new float3(-1000, -1000, -1000), new float3(1000, 1000, 1000))
+            from r in GenRotation()
+            from size in FsCheckUtils.GenFloat3(new float3(0,0,0), new float3(1,1,1))
+            from length in FsCheckUtils.GenFloat(0, 5f)
+            from radius in FsCheckUtils.GenFloat(0, 10f)
+            select new AbsorberData
+            {
+                LightBlocker = lb,
+                LightAbsorber = la,
+                Translation = new Translation { Value = translation },
+                Rotation = r,
+                Node = new Node{Size = size },
+                Internode = new Internode{Length = length, Radius = radius}
+            };
+
+        private static Arbitrary<AbsorberData[]> ArbAbsorberDataArray(int numEntities = 10) =>
+            (from array in Gen.ArrayOf(numEntities, GenAbsorberData())
             select array).ToArbitrary();
 
         [Test]
@@ -117,7 +133,7 @@ namespace Tests
             {
                 foreach (var item in data)
                 {
-                    item.lightAbsorber.AbsorbedLight = -1;
+                    item.LightAbsorber.AbsorbedLight = -1;
                 }
 
                 RunSystems(data);
@@ -153,7 +169,6 @@ namespace Tests
         {
             Prop.ForAll(ArbAbsorberDataArray(1), data =>
             {
-                data[0].lightBlocker.SurfaceArea = 0;
                 data[0].Node = new Node { Size = new float3(1, 1, 1) };
                 var maxArea = math.pow(math.sqrt(3), 2) / 2;
 
@@ -163,8 +178,11 @@ namespace Tests
                 {
                     var blocker = m_Manager.GetComponentData<LightBlocker>(entity);
                     var rotation = m_Manager.GetComponentData<Rotation>(entity);
+                    blocker.SurfaceArea.Should().NotBe(float.NaN);
+                    blocker.SurfaceArea.Should().NotBe(float.NegativeInfinity);
+                    blocker.SurfaceArea.Should().NotBe(float.PositiveInfinity);
                     blocker.SurfaceArea.Should().BeLessOrEqualTo(maxArea, $"rotation: {rotation.Value}");
-                    blocker.SurfaceArea.Should().BeGreaterOrEqualTo(1, $"rotation: {rotation.Value}");
+                    blocker.SurfaceArea.Should().BeGreaterOrEqualTo(0.999f, $"rotation: {rotation.Value}");
                 }
             }).Check(FsCheckUtils.Config);
         }
@@ -174,7 +192,6 @@ namespace Tests
         {
             Prop.ForAll(ArbAbsorberDataArray(1), data =>
             {
-                data[0].lightBlocker.SurfaceArea = 0;
                 data[0].Internode = new Internode { Length = 1, Radius = 0.05f };
                 data[0].Node = new Node { Size = new float3(0,0,0) };
 
@@ -184,8 +201,30 @@ namespace Tests
                 {
                     var blocker = m_Manager.GetComponentData<LightBlocker>(entity);
                     var rotation = m_Manager.GetComponentData<Rotation>(entity);
-                    blocker.SurfaceArea.Should().BeLessOrEqualTo(0.1f, $"rotation: {rotation.Value}");
-                    blocker.SurfaceArea.Should().BeGreaterOrEqualTo(0.01f, $"rotation: {rotation.Value}");
+                    blocker.SurfaceArea.Should().NotBe(float.NaN);
+                    blocker.SurfaceArea.Should().NotBe(float.NegativeInfinity);
+                    blocker.SurfaceArea.Should().NotBe(float.PositiveInfinity);
+                    blocker.SurfaceArea.Should().BeLessOrEqualTo(0.101f, $"rotation: {rotation.Value}");
+                    blocker.SurfaceArea.Should().BeGreaterOrEqualTo(0.009f, $"rotation: {rotation.Value}");
+                }
+            }).Check(FsCheckUtils.Config);
+        }
+
+        [Test]
+        public void SurfaceAreaShouldBeAPositiveNumber()
+        {
+            Prop.ForAll(GenFullRandomAbsorberData().ToArbitrary(), data =>
+            {
+                RunSystems(new []{data});
+
+                foreach (var entity in m_Manager.CreateEntityQuery(typeof(LightBlocker)).ToEntityArray(Allocator.Temp))
+                {
+                    var blocker = m_Manager.GetComponentData<LightBlocker>(entity);
+                    var rotation = m_Manager.GetComponentData<Rotation>(entity);
+                    blocker.SurfaceArea.Should().NotBe(float.NaN);
+                    blocker.SurfaceArea.Should().NotBe(float.NegativeInfinity);
+                    blocker.SurfaceArea.Should().NotBe(float.PositiveInfinity);
+                    blocker.SurfaceArea.Should().BeGreaterOrEqualTo(0,data.ToErrorString());
                 }
             }).Check(FsCheckUtils.Config);
         }
@@ -216,9 +255,9 @@ namespace Tests
         {
             var data = new AbsorberData
             {
-                lightBlocker = new LightBlocker(),
-                lightAbsorber = new LightAbsorber(),
-                translation = new Translation { Value = new float3(0, 1000, 0) },
+                LightBlocker = new LightBlocker(),
+                LightAbsorber = new LightAbsorber(),
+                Translation = new Translation { Value = new float3(0, 1000, 0) },
                 Rotation = new Rotation { Value = quaternion.Euler(math.radians(new float3(rx, ry, rz))) },
                 Node = new Node { Size = new float3(1, 0, 1) },
             };
@@ -257,9 +296,9 @@ namespace Tests
         {
             var data = new AbsorberData
             {
-                lightBlocker = new LightBlocker(),
-                lightAbsorber = new LightAbsorber(),
-                translation = new Translation { Value = new float3(0, 1000, 0) },
+                LightBlocker = new LightBlocker(),
+                LightAbsorber = new LightAbsorber(),
+                Translation = new Translation { Value = new float3(0, 1000, 0) },
                 Rotation = new Rotation { Value = quaternion.Euler(math.radians(new float3(rx, ry, rz))) },
                 Node = new Node { Size = new float3(0, 0, 0) },
                 Internode = new Internode { Length = 1, Radius = 0.05f },
@@ -280,9 +319,9 @@ namespace Tests
             foreach(var absorber in data)
             {
                 var entity = m_Manager.CreateEntity();
-                m_Manager.AddComponentData(entity, absorber.lightAbsorber);
-                m_Manager.AddComponentData(entity, absorber.lightBlocker);
-                m_Manager.AddComponentData(entity, absorber.translation);
+                m_Manager.AddComponentData(entity, absorber.LightAbsorber);
+                m_Manager.AddComponentData(entity, absorber.LightBlocker);
+                m_Manager.AddComponentData(entity, absorber.Translation);
                 m_Manager.AddComponentData(entity, absorber.Rotation);
                 if (absorber.Node.HasValue) m_Manager.AddComponentData(entity, absorber.Node.Value); 
                 if (absorber.Internode.HasValue) m_Manager.AddComponentData(entity, absorber.Internode.Value);
@@ -296,12 +335,23 @@ namespace Tests
 
         private class AbsorberData
         {
-            public LightBlocker lightBlocker;
-            public LightAbsorber lightAbsorber;
-            public Translation translation;
+            public LightBlocker LightBlocker;
+            public LightAbsorber LightAbsorber;
+            public Translation Translation;
             public Rotation Rotation;
             public Internode? Internode;
             public Node? Node;
+
+            public string ToErrorString()
+            {
+                return $@"
+Translation: {Translation.Value}
+Rotation: {Rotation.Value}
+Internode length: {Internode?.Length}
+Internode radius: {Internode?.Radius}
+Node: {Node?.Size}
+";
+            }
         }
     }
 }

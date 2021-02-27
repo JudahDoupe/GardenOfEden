@@ -1,7 +1,5 @@
 ﻿using Assets.Scripts.Plants.Environment;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
 
 namespace Assets.Scripts.Plants.Growth
 {
@@ -17,10 +15,9 @@ namespace Assets.Scripts.Plants.Growth
         {
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
-                .ForEach((ref EnergyStore energyStore, in LightBlocker blocker, in LightAbsorber absorber, in LocalToWorld l2w, in Photosynthesis photosynthesis) =>
+                .ForEach((ref EnergyStore energyStore, in LightAbsorber absorber, in Photosynthesis photosynthesis) =>
                 {
-                    energyStore.Quantity -= blocker.SurfaceArea * math.pow(photosynthesis.Efficiency / 2, 2);
-                    energyStore.Quantity += math.clamp(absorber.AbsorbedLight, 0, blocker.SurfaceArea) * photosynthesis.Efficiency;
+                    energyStore.Quantity += absorber.AbsorbedLight * photosynthesis.Efficiency;
                 })
                 .WithName("Photosynthesis")
                 .ScheduleParallel();

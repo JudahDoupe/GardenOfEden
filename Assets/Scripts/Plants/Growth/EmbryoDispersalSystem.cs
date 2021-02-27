@@ -31,7 +31,7 @@ namespace Assets.Scripts.Plants.Growth
                     if (energyStore.Pressure < 0.99f) return;
 
                     var seed = math.asuint((genericSeed * entityInQueryIndex) % uint.MaxValue) + 1;
-                    var rand = new Unity.Mathematics.Random(seed);
+                    var rand = new Random(seed);
                     var distance = 10;
                     var position = l2w.Position + new float3(rand.NextFloat(-distance, distance), 0, rand.NextFloat(-distance, distance));
 
