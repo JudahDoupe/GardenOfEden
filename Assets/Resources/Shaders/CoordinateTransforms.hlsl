@@ -86,7 +86,7 @@ float3 xyz_to_uvw(float3 xyz)
     float2 uv = useComponents.xy / useComponents.z;
  
     //Account for buffer pixels
-    uv *= ((TextureWidthInPixels - 2) / (TextureWidthInPixels));
+    uv *= (TextureWidthInPixels - 2) / TextureWidthInPixels;
     
     // Transform uv from [-1,1] to [0,1]
     uv = uv * 0.5 + float2(0.5, 0.5);

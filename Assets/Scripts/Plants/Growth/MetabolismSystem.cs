@@ -28,7 +28,7 @@ namespace Assets.Scripts.Plants.Growth
                     var nodeQuery = GetComponentDataFromEntity<Node>(true);
                     requiredEnergy += nodeQuery.HasComponent(entity) ? nodeQuery[entity].Volume * metabolism.Resting : 0;
                     
-                    var internodeQuery = GetComponentDataFromEntity<Node>(true);
+                    var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                     requiredEnergy += internodeQuery.HasComponent(entity) ? internodeQuery[entity].Volume * metabolism.Resting : 0;
 
                     energyStore.Quantity -= requiredEnergy;

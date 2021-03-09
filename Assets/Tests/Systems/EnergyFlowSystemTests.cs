@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.Plants.Growth;
+using FsCheck;
 using NUnit.Framework;
 using Unity.Entities;
-using Unity.Entities.Tests;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -11,6 +11,15 @@ namespace Tests
     [Category("Systems")]
     public class EnergyFlowSystemTests : SystemTestBase
     {
+        public static Gen<EnergyStore> GenEnergyStore() =>
+            from capacity in FsCheckUtils.GenFloat(0, 25)
+            from quantity in FsCheckUtils.GenFloat(0, capacity)
+            select new EnergyStore { Capacity = capacity, Quantity = quantity };
+
+        public static Gen<EnergyFlow> GenEnergyFlow(float minCapacity, float maxCapacity) =>
+            from throughput in FsCheckUtils.GenFloat(minCapacity, maxCapacity)
+            select new EnergyFlow { Throughput = throughput };
+
         const float InternodeCapacity = 3.141529f;
         const float NodeCapacity = 4.187743f;
         private const float Capacity = InternodeCapacity + NodeCapacity;

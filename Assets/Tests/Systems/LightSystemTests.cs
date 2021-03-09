@@ -19,7 +19,7 @@ namespace Tests
     {
         public static Gen<LightBlocker> GenLightBlocker() =>
             from sa in FsCheckUtils.GenFloat(0, LightSystem.LightPerCell)
-            from id in CoordinateTansformTests.GenXyw(Coordinate.TextureWidthInPixels)
+            from id in CoordinateTests.GenXyw(Coordinate.TextureWidthInPixels)
             select new LightBlocker { SurfaceArea = sa, CellId = id };
 
         public static Gen<LightAbsorber> GenLightAbsorber() =>
@@ -34,19 +34,19 @@ namespace Tests
             from euler in FsCheckUtils.GenFloat3(new float3(0,0,0), new float3(math.PI, math.PI, math.PI))
             select new Rotation { Value = quaternion.Euler(euler) };
 
-        private static Gen<AbsorberData> GenAbsorberData() =>
+        private static Gen<EntityData> GenAbsorberData() =>
             from lb in GenLightBlocker()
             from la in GenLightAbsorber()
             from t in GenTranslation()
             from r in GenRotation()
-            select new AbsorberData {
+            select new EntityData {
                 LightBlocker = lb,
                 LightAbsorber = la,
                 Translation = t,
                 Rotation = r
             };
 
-        private static Gen<AbsorberData> GenFullRandomAbsorberData() =>
+        private static Gen<EntityData> GenFullRandomAbsorberData() =>
             from lb in GenLightBlocker()
             from la in GenLightAbsorber()
             from translation in FsCheckUtils.GenFloat3(new float3(-1000, -1000, -1000), new float3(1000, 1000, 1000))
@@ -54,7 +54,7 @@ namespace Tests
             from size in FsCheckUtils.GenFloat3(new float3(0,0,0), new float3(1,1,1))
             from length in FsCheckUtils.GenFloat(0, 5f)
             from radius in FsCheckUtils.GenFloat(0, 10f)
-            select new AbsorberData
+            select new EntityData
             {
                 LightBlocker = lb,
                 LightAbsorber = la,
@@ -64,7 +64,7 @@ namespace Tests
                 Internode = new Internode{Length = length, Radius = radius}
             };
 
-        private static Arbitrary<AbsorberData[]> ArbAbsorberDataArray(int numEntities = 10) =>
+        private static Arbitrary<EntityData[]> ArbAbsorberDataArray(int numEntities = 10) =>
             (from array in Gen.ArrayOf(numEntities, GenAbsorberData())
             select array).ToArbitrary();
 
@@ -253,7 +253,7 @@ namespace Tests
         [TestCase(0, 0, 315, 0.5f)]
         public void SurfaceAreaGetsCalculatedCorrectlyForNode(float rx, float ry, float rz, float surfaceArea)
         {
-            var data = new AbsorberData
+            var data = new EntityData
             {
                 LightBlocker = new LightBlocker(),
                 LightAbsorber = new LightAbsorber(),
@@ -294,7 +294,7 @@ namespace Tests
         [TestCase(0, 0, 315, 0.1f)]
         public void SurfaceAreaGetsCalculatedCorrectlyForInternode(float rx, float ry, float rz, float surfaceArea)
         {
-            var data = new AbsorberData
+            var data = new EntityData
             {
                 LightBlocker = new LightBlocker(),
                 LightAbsorber = new LightAbsorber(),
@@ -312,7 +312,7 @@ namespace Tests
             }
         }
 
-        private void RunSystems(AbsorberData[] data)
+        private void RunSystems(EntityData[] data)
         {
             m_Manager.DestroyAndResetAllEntities();
 
@@ -333,7 +333,7 @@ namespace Tests
             World.GetOrCreateSystem<LightSystem>().Update();
         }
 
-        private class AbsorberData
+        private class EntityData
         {
             public LightBlocker LightBlocker;
             public LightAbsorber LightAbsorber;
