@@ -112,11 +112,12 @@ public class GameService : MonoBehaviour
         var spore = em.CreateEntity(plantNodeArchetype);
         em.SetComponentData(spore, new Node { Size = new float3(0.25f, 0.25f, 0.25f) });
         em.AddComponentData(spore, new WindDispersal());
-        em.AddComponentData(spore, new UnparentDormancyTrigger());
+        em.AddComponentData(spore, new ParentDormancyTrigger { IsDormantWhenParented = true, IsDormantWhenUnparented = false });
         em.AddComponentData(spore, new NodeDivision { Type = NodeType.Seedling });
         em.SetComponentData(spore, new DnaReference { Entity = dna });
         em.SetComponentData(spore, new Metabolism { Resting = 0.001f });
         em.SetComponentData(spore, new Health { Value = 1 });
+        em.RemoveComponent<LightBlocker>(spore);
 
         var embryoBuffer = em.AddBuffer<EmbryoNode>(dna);
         embryoBuffer.Add(new EmbryoNode
@@ -157,8 +158,7 @@ public class GameService : MonoBehaviour
             Entity = spore,
             Type = NodeType.Embryo,
             Order = DivisionOrder.PostNode,
-            Rotation = Quaternion.LookRotation(Vector3.up),
-            RemainDormantAfterDivision = true
+            Rotation = Quaternion.LookRotation(Vector3.up)
         });
 
         var plant = em.Instantiate(spore);
@@ -208,10 +208,11 @@ public class GameService : MonoBehaviour
         var spore = em.CreateEntity(plantNodeArchetype);
         em.SetComponentData(spore, new Node { Size = new float3(0.25f, 0.25f, 0.25f) });
         em.AddComponentData(spore, new WindDispersal());
-        em.AddComponentData(spore, new UnparentDormancyTrigger());
+        em.AddComponentData(spore, new ParentDormancyTrigger { IsDormantWhenParented = true, IsDormantWhenUnparented = false });
         em.AddComponentData(spore, new NodeDivision { Type = NodeType.Seedling });
         em.SetComponentData(spore, new DnaReference { Entity = dna });
         em.SetComponentData(spore, new Health { Value = 1 });
+        em.RemoveComponent<LightBlocker>(spore);
 
         var embryoBuffer = em.AddBuffer<EmbryoNode>(dna);
         embryoBuffer.Add(new EmbryoNode
@@ -252,8 +253,7 @@ public class GameService : MonoBehaviour
             Entity = spore,
             Type = NodeType.Embryo,
             Order = DivisionOrder.PostNode,
-            Rotation = Quaternion.LookRotation(Vector3.up),
-            RemainDormantAfterDivision = true
+            Rotation = Quaternion.LookRotation(Vector3.up)
         });
 
         coord.Altitude = Singleton.Land.SampleHeight(coord);

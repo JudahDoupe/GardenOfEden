@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Plants.Growth;
+﻿using Assets.Scripts.Plants.Cleanup;
+using Assets.Scripts.Plants.Growth;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Entities;
@@ -149,26 +150,6 @@ namespace Tests
             Assert.AreEqual( 1, m_Manager.GetBuffer<Child>(baseNode).Length);
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void MarkedNodesRemainDormantAfterDivision(bool isDormant)
-        {
-            var dna = CreateDna();
-            var baseNode = CreateNode(dna);
-            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, NodeType.Embryo, isDormant);
-            m_Manager.AddComponentData(baseNode, new NodeDivision { Type = NodeType.Embryo });
-
-            for (int i = 0; i < 5; i++)
-            {
-                World.GetOrCreateSystem<NodeDivisionSystem>().Update();
-                World.GetOrCreateSystem<GrowthEcbSystem>().Update();
-                World.GetOrCreateSystem<EndFrameParentSystem>().Update();
-            }
-
-            Assert.AreEqual(1, m_Manager.GetBuffer<Child>(baseNode).Length);
-            Assert.AreEqual(isDormant, m_Manager.HasComponent<Dormant>(m_Manager.GetBuffer<Child>(baseNode)[0].Value));
-        }
-
         private Entity CreateNode(Entity dna)
         {
             var entity = m_Manager.CreateEntity();
@@ -185,7 +166,7 @@ namespace Tests
             return entity;
         }
 
-        private Entity CreateEmbryoNode(Entity dna, DivisionOrder order, NodeType type, bool remainDormantAfterDivision = false)
+        private Entity CreateEmbryoNode(Entity dna, DivisionOrder order, NodeType type)
         {
             var entity = m_Manager.CreateEntity();
             m_Manager.AddComponentData(entity, new Dormant());
@@ -199,7 +180,7 @@ namespace Tests
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 1, Quantity = 1 });
             m_Manager.AddComponentData(entity, new EnergyFlow());
             m_Manager.AddComponentData(entity, new DnaReference { Entity = dna });
-            m_Manager.GetBuffer<EmbryoNode>(dna).Add(new EmbryoNode{Entity = entity, Order = order, Type = type, RemainDormantAfterDivision = remainDormantAfterDivision });
+            m_Manager.GetBuffer<EmbryoNode>(dna).Add(new EmbryoNode{Entity = entity, Order = order, Type = type });
             m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
             return entity;
         }

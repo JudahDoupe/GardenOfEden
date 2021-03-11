@@ -10,18 +10,11 @@ public static class RenderTextureExtensions
 
     public static Texture2D[] CachedTextures(this RenderTexture rt)
     {
-        Texture2D[] tex;
-        if (!RTCache.TryGetValue(rt, out tex))
+        if (!RTCache.TryGetValue(rt, out var tex))
         {
-            tex = new[] {
-                new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false),
-                new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false),
-                new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false),
-                new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false),
-                new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false),
-                new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false)
-            };
-            RTCache.Add(rt, tex);
+            rt.UpdateTextureCache();
+            RTRequest[rt].WaitForCompletion();
+            tex = RTCache[rt];
         }
         return tex;
     }
@@ -85,6 +78,37 @@ public static class RenderTextureExtensions
 
         return tex;
     }
+    public static RenderTexture InitializeRandom(this RenderTexture tex, float seed, float min = -500, float max = 500)
+    {
+        ComputeShader cs = (ComputeShader)Resources.Load("Shaders/Initialize");
+        var kernelId = cs.FindKernel("InitializeRandom");
+        cs.SetTexture(kernelId, "Map", tex);
+        cs.SetFloat("Seed", seed);
+        cs.SetFloat("Min", min);
+        cs.SetFloat("Max", max);
+        cs.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+
+        return tex;
+    }
+    public static RenderTexture InitializeUvw(this RenderTexture tex)
+    {
+        ComputeShader cs = (ComputeShader)Resources.Load("Shaders/Initialize");
+        var kernelId = cs.FindKernel("InitializeUvw");
+        cs.SetTexture(kernelId, "Map", tex);
+        cs.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+
+        return tex;
+    }
+    public static RenderTexture InitializeXyw(this RenderTexture tex)
+    {
+        ComputeShader cs = (ComputeShader)Resources.Load("Shaders/Initialize");
+        var kernelId = cs.FindKernel("InitializeXyw");
+        cs.SetTexture(kernelId, "Map", tex);
+        cs.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+
+        return tex;
+    }
+
     public static bool IsTextureBeingUpdated(this RenderTexture rt)
     {
         return RTRequest.TryGetValue(rt, out var req) && !req.done;
@@ -93,8 +117,10 @@ public static class RenderTextureExtensions
     public static Color Sample(this RenderTexture rt, Coordinate coord)
     {
         var uvw = coord.uvw;
+        var uv = uvw.xy - (0.5f / 512.0f);
         int w = (int)math.round(uvw.z);
         var texArray = rt.CachedTextures();
-        return texArray[w].GetPixelBilinear(uvw.x, uvw.y);
+        var color = texArray[w].GetPixelBilinear(uv.x, uv.y, 0);
+        return color;
     }
 }

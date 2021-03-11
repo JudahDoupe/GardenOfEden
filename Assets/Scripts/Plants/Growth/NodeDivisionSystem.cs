@@ -1,12 +1,11 @@
-﻿using Unity.Entities;
+﻿using Assets.Scripts.Plants.Cleanup;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
 namespace Assets.Scripts.Plants.Growth
 {
-    public struct Dormant : IComponentData {}
-
     [InternalBufferCapacity(8)]
     public struct EmbryoNode : IBufferElementData
     {
@@ -14,7 +13,6 @@ namespace Assets.Scripts.Plants.Growth
         public Quaternion Rotation;
         public NodeType Type;
         public DivisionOrder Order;
-        public bool RemainDormantAfterDivision;
     }
 
     public struct DnaReference : IComponentData
@@ -84,14 +82,10 @@ namespace Assets.Scripts.Plants.Growth
                             continue;
                         }
 
-                        var newNode = ecb.Instantiate(entityInQueryIndex, embryo.Entity);
-
                         var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
 
-                        if (!embryo.RemainDormantAfterDivision)
-                        {
-                            ecb.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
-                        }
+                        var newNode = ecb.Instantiate(entityInQueryIndex, embryo.Entity); 
+                        ecb.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
 
                         switch (embryo.Order)
                         {

@@ -1,4 +1,5 @@
-﻿using FsCheck;
+﻿using System.Collections.Generic;
+using FsCheck;
 using Unity.Mathematics;
 
 namespace Tests
@@ -28,6 +29,11 @@ namespace Tests
         public static Gen<float> Gen0To1()
         {
             return Gen.Choose(0, 1000000).Select(x => x / 1000000f);
+        }
+
+        public static Gen<bool> GenBool()
+        {
+            return Gen.Choose(0, 1).Select(x => x == 1);
         }
     }
 }
