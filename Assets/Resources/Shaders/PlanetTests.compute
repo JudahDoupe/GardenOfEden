@@ -1,0 +1,16 @@
+﻿#pragma kernel Test_sampleHeightMap
+#include "Planet.hlsl"
+
+struct CoordData
+{
+    float3 uvw;
+    float4 value;
+};
+
+RWStructuredBuffer<CoordData> coords;
+
+[numthreads(1, 1, 1)]
+void Test_sampleHeightMap(uint3 id : SV_DispatchThreadID)
+{
+    coords[id.x].value = sampleHeightMap(coords[id.x].uvw);
+}

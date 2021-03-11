@@ -7,7 +7,7 @@
 
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
 
-TEXTURE2D_ARRAY(_HeightMap);    SAMPLER(linear_clamp_sampler_HeightMap);
+TEXTURE2D_ARRAY(_HeightMap);    SAMPLER(bilinear_repeat_sampler_HeightMap);
 int _HeightChannel; 
 float _Tessellation;
 float _SeaLevel;
@@ -80,7 +80,7 @@ TessellationFactors PatchConstantFunction(InputPatch<ControlPoint, 3> patch)
 
 float4 sampleHeightMap(float3 uvw)
 {
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(_HeightMap, linear_clamp_sampler_HeightMap, uvw.xy, uvw.z, 0);
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_HeightMap, bilinear_repeat_sampler_HeightMap, uvw.xy, uvw.z, 0);
 }
 float sampleHeight(float3 uvw)
 {
