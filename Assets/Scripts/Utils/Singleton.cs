@@ -22,7 +22,7 @@ public class Singleton : MonoBehaviour
 
         GameService = FindObjectOfType<GameService>();
         TimeService = FindObjectOfType<TimeService>();
-        LoadBalancer = FindObjectOfType<LoadBalancer>();
+        LoadBalancer = FindObjectOfType<ProximityLoadBalancer>();
         EnvironmentalChunkService = FindObjectOfType<EnvironmentDataStore>();
 
         CameraController = FindObjectOfType<CameraController>();

@@ -14,6 +14,7 @@ namespace Assets.Scripts.Plants.Setup
     {
         public int Id;
         public float3 Position;
+        public float Radius;
         public bool IsEnvironmental => Id < 0;
 
         public bool Equals(UpdateChunk other)
@@ -42,9 +43,6 @@ namespace Assets.Scripts.Plants.Setup
     [UpdateInGroup(typeof(SetupSystemGroup), OrderFirst = true)]
     class UpdateChunkSystem : SystemBase
     {
-        private List<UpdateChunk> _chunks = new List<UpdateChunk>();
-        private UpdateChunk _currentChunk = new UpdateChunk();
-
         SetupEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
@@ -54,48 +52,52 @@ namespace Assets.Scripts.Plants.Setup
 
         protected override void OnUpdate()
         {
-            if (Singleton.LoadBalancer.CurrentChunk.Id != -1) return;
+            var activeChunk = Singleton.LoadBalancer.ActiveEntityChunk;
+            var inactiveChunk = Singleton.LoadBalancer.InactiveEntityChunk;
 
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
-            var chunks = Singleton.LoadBalancer.UpdateChunks
-                .Where(x => x.Id >= 0).ToList()
-                .ToNativeArray(Allocator.TempJob);
-            var currentChunk = _currentChunk;
-
             Entities
-                .WithSharedComponentFilter(_currentChunk)
-                .WithNativeDisableParallelForRestriction(chunks)
+                .WithSharedComponentFilter(inactiveChunk)
                 .ForEach((in Entity entity, in LocalToWorld l2w, in int entityInQueryIndex) =>
                 {
-                    var closestChunk = chunks[0];
-                    for (int i = 0; i < chunks.Length; i++)
+                    if (math.distance(l2w.Position, activeChunk.Position) <= activeChunk.Radius)
                     {
-                        if (math.distance(chunks[i].Position, l2w.Position) <
-                            math.distance(closestChunk.Position, l2w.Position))
-                        {
-                            closestChunk = chunks[i];
-                        }
-                    }
-
-                    if (!currentChunk.Equals(closestChunk))
-                    {
-                        ecb.SetSharedComponent(entityInQueryIndex, entity, closestChunk);
+                        ecb.SetSharedComponent(entityInQueryIndex, entity, activeChunk);
                     }
                 })
-                .WithName("UpdateChunk")
-                .WithDisposeOnCompletion(chunks)
                 .WithoutBurst()
+                .WithName("UpdateActiveChunk")
+                .ScheduleParallel();
+
+            var ecb2 = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
+            Entities
+                .WithSharedComponentFilter(activeChunk)
+                .ForEach((in Entity entity, in LocalToWorld l2w, in int entityInQueryIndex) =>
+                {
+                    if (math.distance(l2w.Position, activeChunk.Position) > activeChunk.Radius)
+                    {
+                        ecb2.SetSharedComponent(entityInQueryIndex, entity, inactiveChunk);
+                    }
+                })
+                .WithoutBurst() 
+                .WithName("UpdateInactiveChunk")
+                .ScheduleParallel();
+
+            var ecb3 = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
+            Entities
+                .WithSharedComponentFilter(new UpdateChunk{Id = 0})
+                .ForEach((in Entity entity, in LocalToWorld l2w, in int entityInQueryIndex) =>
+                {
+                    ecb3.SetSharedComponent(entityInQueryIndex, entity,
+                        math.distance(l2w.Position, activeChunk.Position) > activeChunk.Radius
+                            ? inactiveChunk
+                            : activeChunk);
+                })
+                .WithoutBurst()
+                .WithName("SetChunk")
                 .ScheduleParallel();
 
             _ecbSystem.AddJobHandleForProducer(Dependency);
-
-            _chunks.Remove(_currentChunk);
-            if (!_chunks.Any())
-            {
-                Singleton.LoadBalancer.BalanceChunks();
-                EntityManager.GetAllUniqueSharedComponentData(_chunks);
-            }
-            _currentChunk = _chunks.First();
         }
     }
 }

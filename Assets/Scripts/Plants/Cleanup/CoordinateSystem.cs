@@ -3,17 +3,18 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Assets.Scripts.Plants.Setup
+namespace Assets.Scripts.Plants.Cleanup
 {
 
-    [UpdateInGroup(typeof(SetupSystemGroup))]
+    [UpdateInGroup(typeof(CleanupSystemGroup))]
+    [UpdateBefore(typeof(DeadNodeSystem))]
     public class CoordinateSystem : SystemBase
     {
-        SetupEcbSystem _ecbSystem;
+        CleanupEcbSystem _ecbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<SetupEcbSystem>();
+            _ecbSystem = World.GetOrCreateSystem<CleanupEcbSystem>();
         }
 
         protected override void OnUpdate()
@@ -34,7 +35,7 @@ namespace Assets.Scripts.Plants.Setup
                 .WithNativeDisableParallelForRestriction(landMaps3)
                 .WithNativeDisableParallelForRestriction(landMaps4)
                 .WithNativeDisableParallelForRestriction(landMaps5)
-                .ForEach(
+                .ForEach( 
                     (ref Coordinate coord, ref Translation translation, in Entity entity) =>
                     {
                         var landMap = coord.w switch
@@ -56,10 +57,28 @@ namespace Assets.Scripts.Plants.Setup
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Coordinate, LocalToParent, Parent>()
+                .WithNone<InternodeReference, NodeReference>()
+                .WithNativeDisableParallelForRestriction(landMaps0)
+                .WithNativeDisableParallelForRestriction(landMaps1)
+                .WithNativeDisableParallelForRestriction(landMaps2)
+                .WithNativeDisableParallelForRestriction(landMaps3)
+                .WithNativeDisableParallelForRestriction(landMaps4)
+                .WithNativeDisableParallelForRestriction(landMaps5)
                 .ForEach(
-                    (in LocalToWorld l2w, in Entity entity, in int entityInQueryIndex) =>
+                    (ref Translation translation, in Entity entity, in int entityInQueryIndex) =>
                     {
-                        var coord = new Coordinate(l2w.Position);
+                        var coord = new Coordinate(translation.Value); 
+                        var landMap = coord.w switch
+                        {
+                            0 => landMaps0,
+                            1 => landMaps1,
+                            2 => landMaps2,
+                            3 => landMaps3,
+                            4 => landMaps4,
+                            5 => landMaps5,
+                        };
+                        coord.Altitude = seaLevel + landMap[coord.nativeArrayIndex].r;
+                        translation.Value = coord.xyz;
                         ecb.AddComponent<Coordinate>(entityInQueryIndex, entity);
                         ecb.SetComponent(entityInQueryIndex, entity, coord);
                     })

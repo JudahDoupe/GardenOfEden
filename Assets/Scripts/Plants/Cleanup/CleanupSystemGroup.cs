@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Plants.Growth;
 using Unity.Entities;
+using Unity.Transforms;
 
 namespace Assets.Scripts.Plants.Cleanup
 {
