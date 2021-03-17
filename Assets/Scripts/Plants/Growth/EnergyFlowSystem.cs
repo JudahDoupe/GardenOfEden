@@ -44,7 +44,7 @@ namespace Assets.Scripts.Plants.Growth
                             var tailStore = energyStoreQuery[parentQuery[entity].Value];
                             var numBranches = childrenQuery[parentQuery[entity].Value].Length + 1;
 
-                            var resistance = 0f;
+                            var resistance = 0f; //TODO: This sould be calculated from the length of the node
                             var flowRate = (1f / numBranches) / (1 + resistance);
 
                             if (tailStore.Pressure > headStore.Pressure)
@@ -68,23 +68,13 @@ namespace Assets.Scripts.Plants.Growth
                     (ref EnergyStore energyStore, in Entity entity) =>
                     {
                         var nodeQuery = GetComponentDataFromEntity<Node>(true);
-                        var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                         var energyFlowQuery = GetComponentDataFromEntity<EnergyFlow>(true);
-
                         var childrenQuery = GetBufferFromEntity<Child>(true);
 
-                        energyStore.Capacity = 0;
                         if (nodeQuery.HasComponent(entity))
                         {
-                            energyStore.Capacity += nodeQuery[entity].Volume;
+                            energyStore.Capacity = math.max(0.001f, nodeQuery[entity].Volume);
                         }
-
-                        if (internodeQuery.HasComponent(entity))
-                        {
-                            energyStore.Capacity += internodeQuery[entity].Volume;
-                        }
-
-                        energyStore.Capacity = math.max(0.001f, energyStore.Capacity);
 
                         if (energyFlowQuery.HasComponent(entity))
                         {

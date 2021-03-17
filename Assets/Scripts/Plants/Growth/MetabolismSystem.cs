@@ -24,15 +24,12 @@ namespace Assets.Scripts.Plants.Growth
                 .WithNone<Dormant>()
                 .ForEach((ref EnergyStore energyStore, ref Health health, in Metabolism metabolism, in Entity entity) =>
                 {
-                    var requiredEnergy = 0f;
-
                     var nodeQuery = GetComponentDataFromEntity<Node>(true);
-                    requiredEnergy += nodeQuery.HasComponent(entity) ? nodeQuery[entity].Volume * metabolism.Resting : 0;
-                    
-                    var internodeQuery = GetComponentDataFromEntity<Internode>(true);
-                    requiredEnergy += internodeQuery.HasComponent(entity) ? internodeQuery[entity].Volume * metabolism.Resting : 0;
+                    if (nodeQuery.HasComponent(entity))
+                    {
+                        energyStore.Quantity -= nodeQuery[entity].Volume * metabolism.Resting;
+                    }
 
-                    energyStore.Quantity -= requiredEnergy;
                     if (energyStore.Quantity < 0)
                     {
                         health.Value += energyStore.Quantity;

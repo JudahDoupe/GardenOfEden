@@ -18,16 +18,16 @@ namespace Assets.Scripts.Plants.Cleanup
                     {
                         var l2wQuery = GetComponentDataFromEntity<LocalToWorld>(true);
                         var parentQuery = GetComponentDataFromEntity<Parent>(true);
-                        var internodeQuery = GetComponentDataFromEntity<Internode>(true);
+                        var nodeQuery = GetComponentDataFromEntity<Node>(true);
 
-                        var internode = internodeQuery[internodeRef.Entity];
+                        var node = nodeQuery[internodeRef.Entity];
                         var headPos = l2wQuery[internodeRef.Entity].Position;
                         var tailPos = l2wQuery[parentQuery[internodeRef.Entity].Value].Position;
                         float3 vector = headPos - tailPos + new float3(0,0,0.00001f);
 
                         translation.Value = headPos;
                         rotation.Value = UnityEngine.Quaternion.LookRotation(vector);
-                        scale.Value = new float3(internode.Radius, internode.Radius, internode.Length);
+                        scale.Value = new float3(node.InternodeRadius, node.InternodeRadius, node.InternodeLength);
                     })
                 .WithName("UpdateInternodeMesh")
                 .ScheduleParallel();

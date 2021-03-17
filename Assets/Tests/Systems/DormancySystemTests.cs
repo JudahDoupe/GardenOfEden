@@ -17,11 +17,6 @@ namespace Tests
             from unparent in FsCheckUtils.GenBool()
             select new ParentDormancyTrigger { IsDormantWhenParented = parent, IsDormantWhenUnparented = unparent};
 
-        public static Gen<GrowthHormoneDormancyTrigger> GenGrowthHormoneDormancyTrigger() =>
-            from min in FsCheckUtils.Gen0To1()
-            from max in FsCheckUtils.Gen0To1()
-            select new GrowthHormoneDormancyTrigger { MinPressure = min, MaxPressure = max };
-
         [Test]
         public void ParentDormancyTest([Values(true, false)] bool shouldParent, 
                                        [Values(true, false)] bool shouldUnparent,
@@ -46,15 +41,6 @@ namespace Tests
             isDormant = m_Manager.HasComponent<Dormant>(entity);
             var shouldBeDormant = (shouldParent && hasParent) || (shouldUnparent && !hasParent);
             isDormant.Should().Be(shouldBeDormant);
-        }
-
-        [Test]
-        public void GrowthHormoneDormancyTest()
-        {
-            Prop.ForAll(GenParentDormancyTrigger().ToArbitrary(), data =>
-            {
-
-            }).Check(FsCheckUtils.Config);
         }
     }
 }

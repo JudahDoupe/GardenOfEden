@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using FsCheck;
+﻿using FsCheck;
 using Unity.Mathematics;
 
 namespace Tests
@@ -15,6 +14,10 @@ namespace Tests
             }
         }
 
+        public static Gen<float3> GenFloat3(float min, float max)
+        {
+            return GenFloat3(new float3(min, min, min), new float3(max, max, max));
+        }
         public static Gen<float3> GenFloat3(float3 min, float3 max)
         {
             return from x in GenFloat(min.x, max.x)

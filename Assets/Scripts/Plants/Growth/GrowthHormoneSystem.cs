@@ -60,23 +60,14 @@ namespace Assets.Scripts.Plants.Growth
                     (ref GrowthHormoneStore hormoneStore, in Entity entity) =>
                     {
                         var nodeQuery = GetComponentDataFromEntity<Node>(true);
-                        var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                         var hormoneFlowQuery = GetComponentDataFromEntity<GrowthHormoneFlow>(true);
 
                         var childrenQuery = GetBufferFromEntity<Child>(true);
 
-                        hormoneStore.Capacity = 0;
                         if (nodeQuery.HasComponent(entity))
                         {
-                            hormoneStore.Capacity += nodeQuery[entity].Volume;
+                            hormoneStore.Capacity = math.max(0.001f, nodeQuery[entity].Volume);
                         }
-
-                        if (internodeQuery.HasComponent(entity))
-                        {
-                            hormoneStore.Capacity += internodeQuery[entity].Volume;
-                        }
-
-                        hormoneStore.Capacity = math.max(0.001f, hormoneStore.Capacity);
 
                         if (hormoneFlowQuery.HasComponent(entity))
                         {

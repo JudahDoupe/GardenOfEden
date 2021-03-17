@@ -60,8 +60,7 @@ namespace Tests
                 LightAbsorber = la,
                 Translation = new Translation { Value = translation },
                 Rotation = r,
-                Node = new Node{Size = size },
-                Internode = new Internode{Length = length, Radius = radius}
+                Node = new Node{Size = size, InternodeLength = length, InternodeRadius = radius }
             };
 
         private static Arbitrary<EntityData[]> ArbAbsorberDataArray(int numEntities = 10) =>
@@ -192,8 +191,7 @@ namespace Tests
         {
             Prop.ForAll(ArbAbsorberDataArray(1), data =>
             {
-                data[0].Internode = new Internode { Length = 1, Radius = 0.05f };
-                data[0].Node = new Node { Size = new float3(0,0,0) };
+                data[0].Node = new Node { Size = new float3(0,0,0), InternodeLength = 1, InternodeRadius = 0.05f };
 
                 RunSystems(data);
 
@@ -300,8 +298,7 @@ namespace Tests
                 LightAbsorber = new LightAbsorber(),
                 Translation = new Translation { Value = new float3(0, 1000, 0) },
                 Rotation = new Rotation { Value = quaternion.Euler(math.radians(new float3(rx, ry, rz))) },
-                Node = new Node { Size = new float3(0, 0, 0) },
-                Internode = new Internode { Length = 1, Radius = 0.05f },
+                Node = new Node { Size = new float3(0, 0, 0), InternodeLength = 1, InternodeRadius = 0.05f },
             };
             RunSystems(new[] { data });
 
@@ -323,8 +320,7 @@ namespace Tests
                 m_Manager.AddComponentData(entity, absorber.LightBlocker);
                 m_Manager.AddComponentData(entity, absorber.Translation);
                 m_Manager.AddComponentData(entity, absorber.Rotation);
-                if (absorber.Node.HasValue) m_Manager.AddComponentData(entity, absorber.Node.Value); 
-                if (absorber.Internode.HasValue) m_Manager.AddComponentData(entity, absorber.Internode.Value);
+                if (absorber.Node.HasValue) m_Manager.AddComponentData(entity, absorber.Node.Value);
                 m_Manager.AddComponent(entity, typeof(LocalToWorld));
                 m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
             }
@@ -339,7 +335,6 @@ namespace Tests
             public LightAbsorber LightAbsorber;
             public Translation Translation;
             public Rotation Rotation;
-            public Internode? Internode;
             public Node? Node;
 
             public string ToErrorString()
@@ -347,8 +342,8 @@ namespace Tests
                 return $@"
 Translation: {Translation.Value}
 Rotation: {Rotation.Value}
-Internode length: {Internode?.Length}
-Internode radius: {Internode?.Radius}
+Internode length: {Node?.InternodeLength}
+Internode radius: {Node?.InternodeRadius}
 Node: {Node?.Size}
 ";
             }

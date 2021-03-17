@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.Plants.Growth;
+using FluentAssertions;
 using FsCheck;
 using NUnit.Framework;
 using Unity.Entities;
@@ -11,8 +12,8 @@ namespace Tests
     [Category("Systems")]
     public class EnergyFlowSystemTests : SystemTestBase
     {
-        public static Gen<EnergyStore> GenEnergyStore() =>
-            from capacity in FsCheckUtils.GenFloat(0, 25)
+        public static Gen<EnergyStore> GenEnergyStore(float maxCapacity = 25) =>
+            from capacity in FsCheckUtils.GenFloat(0, maxCapacity)
             from quantity in FsCheckUtils.GenFloat(0, capacity)
             select new EnergyStore { Capacity = capacity, Quantity = quantity };
 
@@ -20,86 +21,150 @@ namespace Tests
             from throughput in FsCheckUtils.GenFloat(minCapacity, maxCapacity)
             select new EnergyFlow { Throughput = throughput };
 
-        const float InternodeCapacity = 3.141529f;
-        const float NodeCapacity = 4.187743f;
-        private const float Capacity = InternodeCapacity + NodeCapacity;
+        private static Gen<TestData> GenTestData() =>
+            from node in GrowthSystemTests.GenNode()
+            from energyStore in GenEnergyStore(node.Volume)
+            from energyFlow in GenEnergyFlow(0, energyStore.Capacity)
+            select new TestData { EnergyFlow = energyFlow, EnergyStore = energyStore, Node = node };
+
+        private static Gen<TestData[]> GenTestDataArray() =>
+            from n in Gen.Choose(2, 10)
+            from array in Gen.ArrayOf(n, GenTestData())
+            select array;
 
         [Test]
-        public void EnergyShouldFlowUpBranches()
+        public void EnergyShouldFlowInBothDirections()
         {
-            var bottom = CreateNode(Capacity, Entity.Null);
-            var top = CreateNode(0, bottom);
+            Prop.ForAll(Gen.ArrayOf(2, GenTestData()).ToArbitrary(), data =>
+            {
+                foreach(var d in data)
+                {
+                    d.EnergyFlow.Throughput = 0;
+                }
 
-            World.CreateSystem<EnergyFlowSystem>().Update();
+                var bottomData = data[0];
+                var bottomEntity = CreateNode(bottomData, Entity.Null);
 
-            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(top).Quantity, 0.001f);
-            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(bottom).Quantity, 0.001f);
+                var topData = data[1];
+                var topEntity = CreateNode(topData, bottomEntity);
+
+                World.GetOrCreateSystem<EnergyFlowSystem>().Update();
+
+                m_Manager.GetComponentData<EnergyFlow>(bottomEntity).Throughput.Should().Be(0);
+                var throughput = m_Manager.GetComponentData<EnergyFlow>(topEntity).Throughput;
+                var bottomQuantity = m_Manager.GetComponentData<EnergyStore>(bottomEntity).Quantity;
+                var topQuantity = m_Manager.GetComponentData<EnergyStore>(topEntity).Quantity;
+
+                if (bottomData.EnergyStore.Pressure > topData.EnergyStore.Pressure)
+                {
+                    throughput.Should().BeGreaterThan(0);
+                }
+                else
+                {
+                    throughput.Should().BeLessOrEqualTo(0);
+                }
+
+                if (bottomData.Node.Volume > bottomData.EnergyStore.Quantity - throughput)
+                {
+                    bottomQuantity.Should().BeApproximately(bottomData.EnergyStore.Quantity - throughput, 0.000001f, "throughput should be subtracted from bottom node");
+                }
+                else
+                {
+                    bottomQuantity.Should().BeApproximately(bottomData.Node.Volume, 0.000001f, "bottom quantity should not exceed capacity");
+                }
+
+                if (topData.Node.Volume > topData.EnergyStore.Quantity + throughput)
+                {
+                    topQuantity.Should().BeApproximately(topData.EnergyStore.Quantity + throughput, 0.000001f, "throughput should be added to top node");
+                }
+                else
+                {
+                    topQuantity.Should().BeApproximately(topData.Node.Volume, 0.000001f, "top quantity should not exceed capacity");
+                }
+
+            }).Check(FsCheckUtils.Config);
         }
 
         [Test]
-        public void EnergyShouldFlowDownBranches()
+        public void EnergyThroughputShouldBeRelativeToNumberOfConnections () 
         {
-            var bottom = CreateNode(0, Entity.Null);
-            var top = CreateNode(Capacity, bottom);
-
-            World.CreateSystem<EnergyFlowSystem>().Update();
-
-            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(top).Quantity, 0.001f);
-            Assert.AreEqual(Capacity / 2, m_Manager.GetComponentData<EnergyStore>(bottom).Quantity, 0.001f);
-        }
-
-        [TestCase(1)]
-        [TestCase(5)]
-        public void EnergyThroughputShouldBeRelativeToNumberOfConnections (int branches) 
-        {
-            var bottom = CreateNode(Capacity, Entity.Null);
-
-            var nodes = new List<Entity>();
-
-            for (int i = 0; i < branches; i++)
+            Prop.ForAll(GenTestDataArray().ToArbitrary(), data =>
             {
-                var top = CreateNode(0, bottom);
-                nodes.Add(top);
-            }
+                var bottom = Entity.Null;
+                var nodes = new List<Entity>();
+                var maxThroughput = 0f;
 
-            World.CreateSystem<EnergyFlowSystem>().Update();
+                foreach (var d in data)
+                {
+                    d.EnergyFlow.Throughput = 0;
+                    var node = CreateNode(d, bottom);
+                    if (bottom == Entity.Null)
+                    {
+                        bottom = node;
+                        maxThroughput = d.EnergyStore.Capacity / (data.Length - 1);
+                    }
+                    else
+                    {
+                        nodes.Add(node);
+                    }
+                }
 
-            foreach (var node in nodes)
-            {
-                Assert.AreEqual(Capacity / (branches + 1), m_Manager.GetComponentData<EnergyFlow>(node).Throughput, 0.001f);
-            }
+                World.GetOrCreateSystem<EnergyFlowSystem>().Update();
+
+                foreach( var node in nodes)
+                {
+                    var throughput = m_Manager.GetComponentData<EnergyFlow>(node).Throughput;
+                    throughput.Should().BeLessOrEqualTo(maxThroughput);
+                }
+
+            }).Check(FsCheckUtils.Config);
         }
 
         [Test]
         public void NodeQuantityShouldNotExceedNodeCapacity()
         {
-            var bottom = CreateNode( 1000, Entity.Null);
+            Prop.ForAll(Gen.ArrayOf(2, GenTestData()).ToArbitrary(), data =>
+            {
+                var bottom = CreateNode(data[0], Entity.Null);
+                var top = CreateNode(data[1], bottom);
 
-            World.CreateSystem<EnergyFlowSystem>().Update();
+                World.GetOrCreateSystem<EnergyFlowSystem>().Update();
 
-            Assert.AreEqual(Capacity, m_Manager.GetComponentData<EnergyStore>(bottom).Quantity, 0.001f);
+                var bottomStore = m_Manager.GetComponentData<EnergyStore>(bottom);
+                bottomStore.Quantity.Should().BeLessOrEqualTo(bottomStore.Capacity);
+                var topStore = m_Manager.GetComponentData<EnergyStore>(top);
+                topStore.Quantity.Should().BeLessOrEqualTo(topStore.Capacity);
+
+            }).Check(FsCheckUtils.Config);
         }
 
         [Test]
-        public void CapacityGetsRecalculatedBasedOnNodeAndInternodeSize()
+        public void CapacityGetsRecalculatedBasedOnNodeVolume()
         {
-            var bottom = CreateNode(0, Entity.Null);
+            Prop.ForAll(Gen.ArrayOf(2, GenTestData()).ToArbitrary(), data =>
+            {
+                var bottom = CreateNode(data[0], Entity.Null);
+                var top = CreateNode(data[1], bottom);
 
-            m_Manager.SetComponentData(bottom, new Internode() { Radius = 1, Length = 2});
+                World.GetOrCreateSystem<EnergyFlowSystem>().Update();
 
-            World.CreateSystem<EnergyFlowSystem>().Update();
+                var bottomNode = m_Manager.GetComponentData<Node>(bottom);
+                var bottomStore = m_Manager.GetComponentData<EnergyStore>(bottom);
+                bottomStore.Capacity.Should().BeApproximately(math.max(bottomNode.Volume, 0.001f), 0.000001f);
+                var topNode = m_Manager.GetComponentData<Node>(top);
+                var topStore = m_Manager.GetComponentData<EnergyStore>(top);
+                topStore.Capacity.Should().BeApproximately(math.max(topNode.Volume, 0.001f), 0.000001f);
 
-            Assert.AreEqual(2 * InternodeCapacity + NodeCapacity, m_Manager.GetComponentData<EnergyStore>(bottom).Capacity, 0.001f);
+            }).Check(FsCheckUtils.Config);
         }
 
-        private Entity CreateNode(float quantity, Entity parent)
+        private Entity CreateNode(TestData data, Entity parent)
         {
             var entity = m_Manager.CreateEntity();
             m_Manager.AddComponentData(entity, new Parent { Value = parent });
-            m_Manager.AddComponentData(entity, new EnergyStore { Capacity = Capacity, Quantity = quantity });
-            m_Manager.AddComponentData(entity, new EnergyFlow());
-            m_Manager.AddComponentData(entity, new Node{Size = new float3(1,1,1)});
-            m_Manager.AddComponentData(entity, new Internode {Length = 1, Radius = 1});
+            m_Manager.AddComponentData(entity, data.EnergyStore);
+            m_Manager.AddComponentData(entity, data.EnergyFlow);
+            m_Manager.AddComponentData(entity, data.Node);
             m_Manager.AddBuffer<Child>(entity);
             m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
 
@@ -109,6 +174,13 @@ namespace Tests
                 children.Add(new Child { Value = entity });
             }
             return entity;
+        }
+
+        private class TestData
+        {
+            public EnergyStore EnergyStore;
+            public EnergyFlow EnergyFlow;
+            public Node Node;
         }
     }
 }

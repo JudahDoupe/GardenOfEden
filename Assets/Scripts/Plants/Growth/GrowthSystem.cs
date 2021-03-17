@@ -8,78 +8,62 @@ namespace Assets.Scripts.Plants.Growth
     public struct Node : IComponentData
     {
         public float3 Size;
-        public float Volume => Size.x * Size.y * Size.z * 1.333f * math.PI;
-    }
-
-    public struct Internode : IComponentData
-    {
-        public float Length;
-        public float Radius;
-        public float Volume => Length * Radius * Radius * math.PI;
+        public float InternodeLength;
+        public float InternodeRadius;
+        public float Volume => (Size.x * Size.y * Size.z) + (InternodeLength * InternodeRadius * InternodeRadius * math.PI);
     }
 
     public struct PrimaryGrowth : IComponentData
     {
-        public float GrowthRate;
+        public int DaysToMature;
         public float InternodeLength;
         public float InternodeRadius;
         public float3 NodeSize;
+        public float Volume => (NodeSize.x * NodeSize.y * NodeSize.z) + (InternodeLength * InternodeRadius * InternodeRadius * math.PI);
     }
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
     [UpdateAfter(typeof(MetabolismSystem))]
     public class GrowthSystem : SystemBase
     {
+        public const float EnergyToVolumeRatio = 0.25f; 
+
         protected override void OnUpdate()
         {
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
-                    (ref EnergyStore energyStore, ref Node node, in PrimaryGrowth growth) =>
+                    (ref EnergyStore energyStore, ref Node node, ref Translation translation, in PrimaryGrowth growth) =>
                     {
-                        if (node.Size.Equals(growth.NodeSize))
+                        var currentVolume = node.Volume;
+                        var maxVolume = growth.Volume;
+                        var remainingVolume = maxVolume - currentVolume;
+
+                        if (remainingVolume <= 0)
                             return;
 
-                        var desiredNode = new Node
+                        var desiredGrowth = math.min(maxVolume / growth.DaysToMature, remainingVolume);
+                        if (remainingVolume - desiredGrowth < desiredGrowth / 1000)
                         {
-                            Size = math.min(node.Size + growth.GrowthRate, growth.NodeSize)
-                        };
-                        var desiredVolumeGrowth = desiredNode.Volume - node.Volume;
-                        var constrainedVolumeGrowth = math.min(energyStore.Quantity * 2, desiredVolumeGrowth);
-                        var constrainedGrowthRate = math.pow(constrainedVolumeGrowth / (1.333f * math.PI), 1f / 3f);
+                            desiredGrowth = remainingVolume;
+                        }
 
-                        node.Size = math.min(node.Size + constrainedGrowthRate, growth.NodeSize);
-                        energyStore.Quantity -= constrainedVolumeGrowth / 4;
+                        var availableEnergy = energyStore.Quantity / 2;
+                        var constrainedGrowth = math.clamp(desiredGrowth, 0, availableEnergy / EnergyToVolumeRatio);
+                        var usedEnergy = constrainedGrowth * EnergyToVolumeRatio;
+
+                        var newVolume = currentVolume + constrainedGrowth;
+
+                        var t = math.pow(newVolume / maxVolume, 1 / 3f);
+
+                        node.Size = growth.NodeSize * t;
+                        node.InternodeRadius = growth.InternodeRadius * t;
+                        node.InternodeLength = growth.InternodeLength * t;
+                        translation.Value.z = node.InternodeLength;
+                        energyStore.Quantity -= usedEnergy;
                     })
-                .WithName("GrowNode")
-                .ScheduleParallel();
-
-            Entities
-                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
-                .WithNone<Dormant>()
-                .ForEach(
-                    (ref EnergyStore energyStore, ref Internode internode, ref Translation translation, in PrimaryGrowth growth) =>
-                    {
-                        if (internode.Length.Equals(growth.InternodeLength) &&
-                            internode.Radius.Equals(growth.InternodeRadius))
-                            return;
-
-                        var desiredInternode = new Internode
-                        {
-                            Radius = math.min(internode.Radius + growth.GrowthRate, growth.InternodeRadius),
-                            Length = math.min(internode.Length + growth.GrowthRate, growth.InternodeLength),
-                        };
-                        var desiredVolumeGrowth = desiredInternode.Volume - internode.Volume;
-                        var constrainedVolumeGrowth = math.min(energyStore.Quantity * 2, desiredVolumeGrowth);
-                        var constrainedGrowthRate = math.pow(constrainedVolumeGrowth / math.PI, 1f / 3f);
-
-                        internode.Radius = math.min(internode.Radius + constrainedGrowthRate, growth.InternodeRadius);
-                        internode.Length = math.min(internode.Length + constrainedGrowthRate, growth.InternodeLength);
-                        translation.Value.z = internode.Length;
-                        energyStore.Quantity -= constrainedVolumeGrowth / 4;
-                    })
-                .WithName("GrowInternode")
+                .WithName("PrimaryGrowth")
                 .ScheduleParallel();
         }
     }

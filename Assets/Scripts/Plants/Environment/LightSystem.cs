@@ -3,7 +3,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Assets.Scripts.Plants.Environment
 {
@@ -35,26 +34,13 @@ namespace Assets.Scripts.Plants.Environment
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .ForEach((ref LightBlocker blocker, in Entity entity, in LocalToWorld l2w) =>
                 {
-                    var internodeQuery = GetComponentDataFromEntity<Internode>(true);
                     var nodeQuery = GetComponentDataFromEntity<Node>(true);
 
-                    var hasInternode = internodeQuery.HasComponent(entity);
-                    var hasNode = nodeQuery.HasComponent(entity);
-
-                    if (hasInternode || hasNode)
-                    {
-                        blocker.SurfaceArea = 0;
-                    }
-                    if (hasInternode)
-                    {
-                        var internode = internodeQuery[entity];
-                        var size = new float3(2 * internode.Radius, 2 * internode.Radius, internode.Length);
-                        blocker.SurfaceArea += GetSurfaceArea(l2w, size);
-                    }
-                    if (hasNode)
+                    if (nodeQuery.HasComponent(entity))
                     {
                         var node = nodeQuery[entity];
-                        blocker.SurfaceArea += GetSurfaceArea(l2w, node.Size);
+                        var internodeSize = new float3(2 * node.InternodeRadius, 2 * node.InternodeRadius, node.InternodeLength);
+                        blocker.SurfaceArea = GetSurfaceArea(l2w, node.Size) + GetSurfaceArea(l2w, internodeSize);
                     }
 
                     blocker.CellId = new Coordinate(l2w.Position).xyw;

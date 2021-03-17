@@ -43,8 +43,7 @@ namespace Tests
                 EnergyStore = energyStore,
                 Health = health,
                 Metabolism = metabolism,
-                Node = new Node { Size = size },
-                Internode = new Internode { Length = length, Radius = radius }
+                Node = new Node { Size = size, InternodeLength = length, InternodeRadius = radius }
             };
 
         [Test]
@@ -56,7 +55,7 @@ namespace Tests
 
                 foreach (var entity in m_Manager.CreateEntityQuery(typeof(Metabolism)).ToEntityArray(Allocator.Temp))
                 {
-                    var requiredEnergy = (data.Internode.Value.Volume + data.Node.Value.Volume) * data.Metabolism.Resting;
+                    var requiredEnergy = data.Node.Value.Volume * data.Metabolism.Resting;
                     var store = m_Manager.GetComponentData<EnergyStore>(entity);
                     if (requiredEnergy > data.EnergyStore.Quantity)
                     {
@@ -99,8 +98,7 @@ namespace Tests
                 m_Manager.AddComponentData(entity, data.EnergyStore);
                 m_Manager.AddComponentData(entity, data.Health);
                 m_Manager.AddComponentData(entity, data.Metabolism);
-                if (data.Node.HasValue) m_Manager.AddComponentData(entity, data.Node.Value); 
-                if (data.Internode.HasValue) m_Manager.AddComponentData(entity, data.Internode.Value);
+                if (data.Node.HasValue) m_Manager.AddComponentData(entity, data.Node.Value);
                 m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
             }
             
@@ -113,7 +111,6 @@ namespace Tests
             public Health Health;
             public Metabolism Metabolism;
             public Node? Node;
-            public Internode? Internode;
 
             public string ToErrorString()
             {
@@ -122,8 +119,8 @@ EnergyStore Capacity: {EnergyStore.Capacity}
 EnergyStore Quantity: {EnergyStore.Quantity}
 Health: {Health.Value}
 Metabolism: {Metabolism.Resting}
-Internode length: {Internode?.Length}
-Internode radius: {Internode?.Radius}
+Internode length: {Node?.InternodeLength}
+Internode radius: {Node?.InternodeRadius}
 Node: {Node?.Size}
 ";
             }

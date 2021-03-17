@@ -171,7 +171,6 @@ namespace Tests
             var entity = m_Manager.CreateEntity();
             m_Manager.AddComponentData(entity, new Dormant());
             m_Manager.AddComponentData(entity, new Node());
-            m_Manager.AddComponentData(entity, new Internode());
             m_Manager.AddComponentData(entity, new Translation());
             m_Manager.AddComponentData(entity, new Rotation());
             m_Manager.AddComponentData(entity, new Parent());
