@@ -86,6 +86,7 @@ namespace Assets.Scripts.Plants.Growth
 
                         var newNode = ecb.Instantiate(entityInQueryIndex, embryo.Entity); 
                         ecb.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
+                        ecb.SetSharedComponent(entityInQueryIndex, newNode, Singleton.LoadBalancer.ActiveEntityChunk);
 
                         switch (embryo.Order)
                         {

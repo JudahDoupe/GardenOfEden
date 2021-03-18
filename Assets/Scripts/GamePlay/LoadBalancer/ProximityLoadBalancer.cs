@@ -7,35 +7,24 @@ using UnityEngine;
 
 public class ProximityLoadBalancer : MonoBehaviour, ILoadBalancer
 {
-    [Range(0.005f, 0.06f)]
-    public float TargetDeltaTime = 0.3f;
+    [Range(10,60)]
+    public int TargetFps = 20;
 
     public UpdateChunk CurrentChunk { get; private set; }
     public UpdateChunk EnvironmentalChunk { get; private set; }
     public UpdateChunk ActiveEntityChunk { get; private set; }
     public UpdateChunk InactiveEntityChunk { get; private set; }
+    public float3 Position => Singleton.CameraController.FocusPos;
+    public float Radius { get; private set; }
 
     private List<Action> _environmentalSystems = new List<Action>();
     private float[] _deltaTimes = new float[7];
 
     public void Start()
     {
-        EnvironmentalChunk = new UpdateChunk
-        {
-            Id = -1,
-            Position = new float3(0,0,0)
-        };
-        ActiveEntityChunk = new UpdateChunk
-        {
-            Id = 1,
-            Position = Camera.main.transform.position,
-            Radius = 1000
-        };
-        InactiveEntityChunk = new UpdateChunk
-        {
-            Id = 2,
-            Position = new float3(0, 0, 0)
-        };
+        EnvironmentalChunk = new UpdateChunk { Id = -1 };
+        ActiveEntityChunk = new UpdateChunk { Id = 1 };
+        InactiveEntityChunk = new UpdateChunk { Id = 2 };
 
         CurrentChunk = EnvironmentalChunk;
     }
@@ -52,32 +41,19 @@ public class ProximityLoadBalancer : MonoBehaviour, ILoadBalancer
         else
         {
             _deltaTimes[Singleton.TimeService.DayOfTheWeek] = Time.deltaTime;
-            var newChunk = ActiveEntityChunk;
-            newChunk.Position = Singleton.CameraController.FocusPos;
-            ActiveEntityChunk = newChunk;
+            var averageDeltaTime = _deltaTimes.Average();
+            var targetDeltaTime = 1f / TargetFps;
+            var surfaceArea = math.PI * math.pow(Radius, 2);
+            var targetSurfaceArea = surfaceArea * (targetDeltaTime / averageDeltaTime);
+            var targetRadius = Radius * math.sqrt(targetSurfaceArea / math.PI) / Radius;
+            Radius = math.clamp(targetRadius, 10, Coordinate.PlanetRadius);
         }
 
-        if (Singleton.TimeService.DayOfTheWeek == 6)
-        {
-            BalanceChunks();
-        }
-
-        CurrentChunk = CurrentChunk.IsEnvironmental ? ActiveEntityChunk : EnvironmentalChunk;
+        CurrentChunk = CurrentChunk.IsEnvironmental ? ActiveEntityChunk : EnvironmentalChunk; 
     }
 
     public void RegisterEndSimulationAction(Action action)
     {
         _environmentalSystems.Add(action);
-    }
-
-    public void BalanceChunks()
-    {
-        var averageDeltaTime = _deltaTimes.Average();
-        var sa = math.PI * math.pow(ActiveEntityChunk.Radius, 2);
-        var targetSa = sa * (TargetDeltaTime / averageDeltaTime);
-        var newChunk = ActiveEntityChunk;
-        newChunk.Radius *= math.sqrt(targetSa / math.PI) / ActiveEntityChunk.Radius;
-        newChunk.Radius = math.clamp(newChunk.Radius, 10, Coordinate.PlanetRadius);
-        ActiveEntityChunk = newChunk;
     }
 }

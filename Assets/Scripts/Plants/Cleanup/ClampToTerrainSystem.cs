@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace Assets.Scripts.Plants.Cleanup
 {
-
+    [DisableAutoCreation]
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     [UpdateBefore(typeof(DeadNodeSystem))]
-    public class CoordinateSystem : SystemBase
+    public class ClampToTerrainSystem : SystemBase
     {
         CleanupEcbSystem _ecbSystem;
         protected override void OnCreate()
@@ -27,22 +27,17 @@ namespace Assets.Scripts.Plants.Cleanup
             var landMaps3 = landMaps[3];
             var landMaps4 = landMaps[4];
             var landMaps5 = landMaps[5];
-
-            var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
-                .WithNone<Coordinate, LocalToParent, Parent>()
-                .WithNone<InternodeReference, NodeReference>()
                 .WithNativeDisableParallelForRestriction(landMaps0)
                 .WithNativeDisableParallelForRestriction(landMaps1)
                 .WithNativeDisableParallelForRestriction(landMaps2)
                 .WithNativeDisableParallelForRestriction(landMaps3)
                 .WithNativeDisableParallelForRestriction(landMaps4)
                 .WithNativeDisableParallelForRestriction(landMaps5)
-                .ForEach(
-                    (ref Translation translation, in Entity entity, in int entityInQueryIndex) =>
+                .ForEach( 
+                    (ref Coordinate coord, ref Translation translation, in Entity entity) =>
                     {
-                        var coord = new Coordinate(translation.Value); 
                         var landMap = coord.w switch
                         {
                             0 => landMaps0,
@@ -54,10 +49,8 @@ namespace Assets.Scripts.Plants.Cleanup
                         };
                         coord.Altitude = seaLevel + landMap[coord.nativeArrayIndex].r;
                         translation.Value = coord.xyz;
-                        ecb.AddComponent<Coordinate>(entityInQueryIndex, entity);
-                        ecb.SetComponent(entityInQueryIndex, entity, coord);
                     })
-                .WithName("AddCoordinateComponent")
+                .WithName("ClampToTerrain")
                 .ScheduleParallel();
 
             _ecbSystem.AddJobHandleForProducer(Dependency);
