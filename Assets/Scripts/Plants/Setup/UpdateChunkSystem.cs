@@ -41,11 +41,12 @@ namespace Assets.Scripts.Plants.Setup
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             Entities
                 .WithSharedComponentFilter(inactiveChunk)
-                .ForEach((in Entity entity, in LocalToWorld l2w, in int entityInQueryIndex) =>
+                .ForEach((in Entity entity, in Coordinate coord, in int entityInQueryIndex) =>
                 {
-                    if (math.distance(l2w.Position, position) <= radius)
+                    var childrenQuery = GetBufferFromEntity<Child>(true);
+                    if (math.distance(coord.xyz, position) <= radius)
                     {
-                        ecb.SetSharedComponent(entityInQueryIndex, entity, activeChunk);
+                        RecursivelySetChunk(entity, childrenQuery, activeChunk, ecb, entityInQueryIndex);
                     }
                 })
                 .WithoutBurst()
@@ -55,32 +56,34 @@ namespace Assets.Scripts.Plants.Setup
             var ecb2 = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             Entities
                 .WithSharedComponentFilter(activeChunk)
-                .ForEach((in Entity entity, in LocalToWorld l2w, in int entityInQueryIndex) =>
+                .ForEach((in Entity entity, in Coordinate coord, in int entityInQueryIndex) =>
                 {
-                    if (math.distance(l2w.Position, position) > radius)
+                    var childrenQuery = GetBufferFromEntity<Child>(true);
+                    if (math.distance(coord.xyz, position) > radius)
                     {
-                        ecb2.SetSharedComponent(entityInQueryIndex, entity, inactiveChunk);
+                        RecursivelySetChunk(entity, childrenQuery, inactiveChunk, ecb2, entityInQueryIndex);
                     }
                 })
                 .WithoutBurst()
                 .WithName("UpdateInactiveChunk")
                 .ScheduleParallel();
 
-            var ecb3 = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
-            Entities
-                .WithSharedComponentFilter(new UpdateChunk())
-                .ForEach((in Entity entity, in LocalToWorld l2w, in int entityInQueryIndex) =>
-                {
-                    ecb3.SetSharedComponent(entityInQueryIndex, entity,
-                        math.distance(l2w.Position, position) > radius
-                            ? inactiveChunk
-                            : activeChunk);
-                })
-                .WithoutBurst()
-                .WithName("SetChunk")
-                .ScheduleParallel();
-
             _ecbSystem.AddJobHandleForProducer(Dependency);
+        }
+
+        private static void RecursivelySetChunk(Entity entity, BufferFromEntity<Child> childrenQuery, UpdateChunk chunk, EntityCommandBuffer.ParallelWriter ecb, int entityInQueryIndex)
+        {
+            ecb.SetSharedComponent(entityInQueryIndex, entity, chunk);
+
+            if (childrenQuery.HasComponent(entity))
+            {
+                var children = childrenQuery[entity];
+
+                for (int i = 0; i < children.Length; i++)
+                {
+                    RecursivelySetChunk(children[i].Value, childrenQuery, chunk, ecb, entityInQueryIndex); 
+                }
+            }
         }
     }
 }

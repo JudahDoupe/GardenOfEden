@@ -160,6 +160,7 @@ public class GameService : MonoBehaviour
         });
 
         var plant = em.Instantiate(spore);
+        em.SetSharedComponentData(plant, Singleton.LoadBalancer.ActiveEntityChunk);
         em.RemoveComponent<Dormant>(plant);
         em.RemoveComponent<Parent>(plant);
         em.RemoveComponent<LocalToParent>(plant);
@@ -255,6 +256,7 @@ public class GameService : MonoBehaviour
 
         coord.Altitude = Singleton.Land.SampleHeight(coord);
         var plant = em.Instantiate(spore);
+        em.SetSharedComponentData(plant, Singleton.LoadBalancer.ActiveEntityChunk);
         em.RemoveComponent<Dormant>(plant);
         em.RemoveComponent<Parent>(plant);
         em.RemoveComponent<LocalToParent>(plant);
