@@ -13,6 +13,7 @@ public class Singleton : MonoBehaviour
 
     public static CameraController CameraController;
     public static RenderMeshLibrary RenderMeshLibrary;
+    public static DnaService DnaService;
 
 
     private void Awake()
@@ -27,5 +28,6 @@ public class Singleton : MonoBehaviour
 
         CameraController = FindObjectOfType<CameraController>();
         RenderMeshLibrary = FindObjectOfType<RenderMeshLibrary>();
+        DnaService = FindObjectOfType<DnaService>();
     }
 }

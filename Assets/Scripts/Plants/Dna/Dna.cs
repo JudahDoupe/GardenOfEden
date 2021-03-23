@@ -10,22 +10,6 @@ using UnityEngine;
 
 namespace Assets.Scripts.Plants.Dna
 {
-    public enum NodeType
-    {
-        Dna,
-        Bud,
-        Vegetation,
-        EnergyProduction,
-        Reproduction,
-        Embryo,
-    }
-    public enum GeneType
-    {
-        Morphology,
-        Pigment,
-        Dormancy,
-        Growth
-    }
     public struct DnaReference : IComponentData
     {
         public Entity Entity;
@@ -33,12 +17,21 @@ namespace Assets.Scripts.Plants.Dna
 
     public class Dna
     {
-        public List<IGene> Genes = new List<IGene>();
-        public List<NodeType> NodeTypes => Genes.SelectMany(x => x.RequiredNodes).Distinct().ToList();
+        private List<NodeType> NodeTypes => Genes.SelectMany(x => x.NodeDependencies).Distinct().ToList();
+        private List<IGene> Genes = new List<IGene>();
+
+        public Dna(params IGene[] genes)
+        {
+            foreach (var gene in genes)
+            {
+                SetGene(gene);
+            }
+            ResolveDependencies();
+        }
 
         public void SetGene(IGene gene)
         {
-            Genes.RemoveAll(x => x.GeneType == gene.GeneType && x.NodeType == gene.NodeType);
+            Genes.RemoveAll(x => x.GeneType == gene.GeneType);
             Genes.Add(gene);
         }
 
@@ -49,7 +42,7 @@ namespace Assets.Scripts.Plants.Dna
 
             foreach (var nodeType in NodeTypes)
             {
-                protoNodes[nodeType] = em.CreateEntity(GameService.plantNodeArchetype);
+                protoNodes[nodeType] = em.CreateEntity(DnaService.PlantNodeArchetype);
             }
             foreach (var gene in Genes)
             {
@@ -66,27 +59,39 @@ namespace Assets.Scripts.Plants.Dna
             em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.Normalize(coord.xyz)) });
             return protoNodes[NodeType.Dna];
         }
-    }
 
-    public interface IGene
-    {
-        NodeType NodeType { get; }
-        GeneType GeneType { get; }
-        List<NodeType> RequiredNodes { get; }
-        void Apply(Dictionary<NodeType, Entity> nodes);
+        private void ResolveDependencies()
+        {
+            var dependencies = new List<GeneType> { GeneType.ReproductionMorphology };
+
+            do
+            {
+                foreach (var geneType in dependencies)
+                {
+                    if (!Genes.Any(x => x.GeneType == geneType))
+                        Genes.Add(DnaService.GetDefaultGene(geneType));
+                }
+
+                foreach (var dependency in Genes.SelectMany(x => x.GeneDependencies))
+                {
+                    if (!dependencies.Contains(dependency)) 
+                        dependencies.Add(dependency);
+                }
+            } while (!dependencies.All(geneType => Genes.Any(g => g.GeneType == geneType)));
+        }
     }
 
     public class LeafGene : IGene
     {
-        public NodeType NodeType => NodeType.EnergyProduction;
-        public GeneType GeneType => GeneType.Morphology;
+        public GeneType GeneType => GeneType.EnergyProductionMorphology;
 
-        public List<NodeType> RequiredNodes => new List<NodeType> { NodeType.EnergyProduction };
+        public List<NodeType> NodeDependencies => new List<NodeType> { NodeType.Dna, NodeType.EnergyProduction };
+        public List<GeneType> GeneDependencies => new List<GeneType> { };
 
         public void Apply(Dictionary<NodeType, Entity> nodes)
         {
             var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var entity = nodes[NodeType];
+            var entity = nodes[NodeType.EnergyProduction];
 
             em.AddComponentData(entity, new LightAbsorber());
             em.AddComponentData(entity, new Photosynthesis { Efficiency = 1 });
@@ -94,49 +99,7 @@ namespace Assets.Scripts.Plants.Dna
             em.AddComponentData(entity, new AssignNodeMesh { Entity = Singleton.RenderMeshLibrary.Library["Leaf"].Entity });
             em.AddComponentData(entity, new PrimaryGrowth { DaysToMature = 4, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = new float3(1, 0.1f, 1) });
             em.SetComponentData(entity, new DnaReference { Entity = nodes[NodeType.Dna] });
-            em.SetComponentData(entity, new Metabolism { Resting = 0.01f });
-            em.SetComponentData(entity, new Health { Value = 1 });
-        }
-    }
-
-    public class VegGene : IGene
-    {
-        public NodeType NodeType => NodeType.Vegetation;
-        public GeneType GeneType => GeneType.Morphology;
-
-        public List<NodeType> RequiredNodes => new List<NodeType> { NodeType.Vegetation };
-
-        public void Apply(Dictionary<NodeType, Entity> nodes)
-        {
-            var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var entity = nodes[NodeType];
-
-            em.AddComponentData(entity, new LightAbsorber());
-            em.AddComponentData(entity, new Photosynthesis { Efficiency = 1 });
-            em.AddComponentData(entity, new AssignInternodeMesh { Entity = Singleton.RenderMeshLibrary.Library["GreenStem"].Entity });
-            em.AddComponentData(entity, new PrimaryGrowth { DaysToMature = 3, InternodeLength = 1, InternodeRadius = 0.1f });
-            em.SetComponentData(entity, new DnaReference { Entity = nodes[NodeType.Dna] });
-            em.SetComponentData(entity, new Metabolism { Resting = 0.1f });
-            em.SetComponentData(entity, new Health { Value = 1 });
-        }
-    }
-
-    public class BudGene : IGene
-    {
-        public NodeType NodeType => NodeType.Bud;
-        public GeneType GeneType => GeneType.Morphology;
-
-        public List<NodeType> RequiredNodes => new List<NodeType> { NodeType.Bud };
-
-        public void Apply(Dictionary<NodeType, Entity> nodes)
-        {
-            var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var entity = nodes[NodeType];
-
-            em.SetComponentData(entity, new Node { Size = new float3(0.01f, 0.01f, 0.01f) });
-            em.AddComponentData(entity, new DeterministicReproductionTrigger());
-            em.AddComponentData(entity, new NodeDivision { RemainingDivisions = 6, Stage = LifeStage.Vegetation, MinEnergyPressure = 0.8f });
-            em.SetComponentData(entity, new DnaReference { Entity = nodes[NodeType.Dna] });
+            em.SetComponentData(entity, new Parent { Value = nodes[NodeType.Dna] });
             em.SetComponentData(entity, new Metabolism { Resting = 0.01f });
             em.SetComponentData(entity, new Health { Value = 1 });
         }
@@ -144,61 +107,88 @@ namespace Assets.Scripts.Plants.Dna
 
     public class SporangiaGene : IGene
     {
-        public NodeType NodeType => NodeType.Reproduction;
-        public GeneType GeneType => GeneType.Morphology;
+        public GeneType GeneType => GeneType.ReproductionMorphology;
 
-        public List<NodeType> RequiredNodes => new List<NodeType> { NodeType.Reproduction };
-
-        public void Apply(Dictionary<NodeType, Entity> nodes)
-        {
-            var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var entity = nodes[NodeType];
-
-            em.AddComponentData(entity, new AssignNodeMesh { Entity = Singleton.RenderMeshLibrary.Library["Sporangia"].Entity });
-            em.AddComponentData(entity, new PrimaryGrowth { DaysToMature = 8, NodeSize = 0.5f });
-            em.AddComponentData(entity, new NodeDivision { Stage = LifeStage.Embryo, RemainingDivisions = 5, MinEnergyPressure = 0.8f });
-            em.SetComponentData(entity, new DnaReference { Entity = nodes[NodeType.Dna] });
-            em.SetComponentData(entity, new Metabolism { Resting = 0.01f });
-            em.SetComponentData(entity, new Health { Value = 1 });
-        }
-    }
-
-    public class SporeGene : IGene
-    {
-        public NodeType NodeType => NodeType.Embryo;
-        public GeneType GeneType => GeneType.Morphology;
-
-        public List<NodeType> RequiredNodes => new List<NodeType> { NodeType.Embryo };
+        public List<NodeType> NodeDependencies => new List<NodeType> { NodeType.Reproduction, NodeType.Embryo, NodeType.Dna };
+        public List<GeneType> GeneDependencies => new List<GeneType> { GeneType.VegetationMorphology };
 
         public void Apply(Dictionary<NodeType, Entity> nodes)
         {
             var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var entity = nodes[NodeType];
+            var sporangia = nodes[NodeType.Reproduction];
+            var spore = nodes[NodeType.Embryo];
+            var dna = nodes[NodeType.Dna];
 
-            em.SetComponentData(entity, new Node { Size = new float3(0.25f, 0.25f, 0.25f) });
-            em.AddComponentData(entity, new WindDispersal());
-            em.AddComponentData(entity, new ParentDormancyTrigger { IsDormantWhenParented = true, IsDormantWhenUnparented = false });
-            em.AddComponentData(entity, new NodeDivision { Stage = LifeStage.Seedling });
-            em.SetComponentData(entity, new DnaReference { Entity = nodes[NodeType.Dna] });
-            em.SetComponentData(entity, new Metabolism { Resting = 0.001f });
-            em.SetComponentData(entity, new Health { Value = 1 });
-            em.RemoveComponent<LightBlocker>(entity);
+            em.AddComponentData(sporangia, new AssignNodeMesh { Entity = Singleton.RenderMeshLibrary.Library["Sporangia"].Entity });
+            em.AddComponentData(sporangia, new PrimaryGrowth { DaysToMature = 8, NodeSize = 0.5f });
+            em.AddComponentData(sporangia, new NodeDivision { Stage = LifeStage.Embryo, RemainingDivisions = 5, MinEnergyPressure = 0.8f });
+            em.SetComponentData(sporangia, new DnaReference { Entity = nodes[NodeType.Dna] });
+            em.SetComponentData(sporangia, new Parent { Value = nodes[NodeType.Dna] });
+            em.SetComponentData(sporangia, new Metabolism { Resting = 0.01f });
+            em.SetComponentData(sporangia, new Health { Value = 1 });
+
+            em.SetComponentData(spore, new Node { Size = new float3(0.25f, 0.25f, 0.25f) });
+            em.AddComponentData(spore, new WindDispersal());
+            em.AddComponentData(spore, new ParentDormancyTrigger { IsDormantWhenParented = true, IsDormantWhenUnparented = false });
+            em.AddComponentData(spore, new NodeDivision { Stage = LifeStage.Seedling });
+            em.SetComponentData(spore, new DnaReference { Entity = nodes[NodeType.Dna] });
+            em.SetComponentData(spore, new Parent { Value = nodes[NodeType.Dna] });
+            em.SetComponentData(spore, new Metabolism { Resting = 0.001f });
+            em.SetComponentData(spore, new Health { Value = 1 });
+            em.RemoveComponent<LightBlocker>(spore);
+
+            var divisionInstructions = em.HasComponent<DivisionInstruction>(dna)
+                ? em.GetBuffer<DivisionInstruction>(dna)
+                : em.AddBuffer<DivisionInstruction>(dna);
+            divisionInstructions.Add(new DivisionInstruction
+            {
+                Entity = nodes[NodeType.Reproduction],
+                Stage = LifeStage.Reproduction,
+                Order = DivisionOrder.Replace,
+            });
+            divisionInstructions.Add(new DivisionInstruction
+            {
+                Entity = nodes[NodeType.Embryo],
+                Stage = LifeStage.Embryo,
+                Order = DivisionOrder.PostNode,
+                Rotation = Quaternion.LookRotation(Vector3.up)
+            });
         }
     }
 
     public class StraightGrowthGene : IGene
     {
-        public NodeType NodeType => NodeType.Dna;
-
-        public GeneType GeneType => GeneType.Morphology;
-
-        public List<NodeType> RequiredNodes => new List<NodeType> { NodeType.Dna };
+        public GeneType GeneType => GeneType.VegetationMorphology;
+        public List<NodeType> NodeDependencies => new List<NodeType> { NodeType.Dna, NodeType.Bud, NodeType.Vegetation, NodeType.EnergyProduction };
+        public List<GeneType> GeneDependencies => new List<GeneType> { GeneType.EnergyProductionMorphology, GeneType.ReproductionMorphology };
 
         public void Apply(Dictionary<NodeType, Entity> nodes)
         {
             var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var entity = nodes[NodeType];
-            var divisionInstructions = em.AddBuffer<DivisionInstruction>(entity);
+            var vegetation = nodes[NodeType.Vegetation];
+            var bud = nodes[NodeType.Bud];
+            var dna = nodes[NodeType.Dna];
+
+            em.AddComponentData(vegetation, new LightAbsorber());
+            em.AddComponentData(vegetation, new Photosynthesis { Efficiency = 1 });
+            em.AddComponentData(vegetation, new AssignInternodeMesh { Entity = Singleton.RenderMeshLibrary.Library["GreenStem"].Entity });
+            em.AddComponentData(vegetation, new PrimaryGrowth { DaysToMature = 3, InternodeLength = 1, InternodeRadius = 0.1f });
+            em.SetComponentData(vegetation, new DnaReference { Entity = nodes[NodeType.Dna] });
+            em.SetComponentData(vegetation, new Parent { Value = nodes[NodeType.Dna] });
+            em.SetComponentData(vegetation, new Metabolism { Resting = 0.1f });
+            em.SetComponentData(vegetation, new Health { Value = 1 });
+
+            em.SetComponentData(bud, new Node { Size = new float3(0.01f, 0.01f, 0.01f) });
+            em.AddComponentData(bud, new DeterministicReproductionTrigger());
+            em.AddComponentData(bud, new NodeDivision { RemainingDivisions = 6, Stage = LifeStage.Vegetation, MinEnergyPressure = 0.8f });
+            em.SetComponentData(bud, new DnaReference { Entity = nodes[NodeType.Dna] });
+            em.SetComponentData(bud, new Parent { Value = nodes[NodeType.Dna] });
+            em.SetComponentData(bud, new Metabolism { Resting = 0.01f });
+            em.SetComponentData(bud, new Health { Value = 1 });
+
+            var divisionInstructions = em.HasComponent<DivisionInstruction>(dna) 
+                ? em.GetBuffer<DivisionInstruction>(dna)
+                : em.AddBuffer<DivisionInstruction>(dna);
             divisionInstructions.Add(new DivisionInstruction
             {
                 Entity = nodes[NodeType.Vegetation],
@@ -225,19 +215,6 @@ namespace Assets.Scripts.Plants.Dna
                 Stage = LifeStage.Seedling,
                 Order = DivisionOrder.PostNode,
                 Rotation = Quaternion.LookRotation(Vector3.forward, Vector3.right)
-            });
-            divisionInstructions.Add(new DivisionInstruction
-            {
-                Entity = nodes[NodeType.Reproduction],
-                Stage = LifeStage.Reproduction,
-                Order = DivisionOrder.Replace,
-            });
-            divisionInstructions.Add(new DivisionInstruction
-            {
-                Entity = nodes[NodeType.Embryo],
-                Stage = LifeStage.Embryo,
-                Order = DivisionOrder.PostNode,
-                Rotation = Quaternion.LookRotation(Vector3.up)
             });
         }
     }

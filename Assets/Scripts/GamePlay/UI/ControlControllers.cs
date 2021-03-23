@@ -64,12 +64,6 @@ public class ControlControllers : MonoBehaviour
     public void SpawnSpagooter(Coordinate coord)
     {
         var dna = new Dna();
-        dna.SetGene(new LeafGene());
-        dna.SetGene(new VegGene());
-        dna.SetGene(new BudGene());
-        dna.SetGene(new SporangiaGene());
-        dna.SetGene(new SporeGene());
-        dna.SetGene(new StraightGrowthGene());
         dna.Spawn(coord);
     }
 }
