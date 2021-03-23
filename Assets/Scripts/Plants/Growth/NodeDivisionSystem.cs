@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Plants.Cleanup;
+using Assets.Scripts.Plants.Dna;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -7,24 +8,27 @@ using UnityEngine;
 namespace Assets.Scripts.Plants.Growth
 {
     [InternalBufferCapacity(8)]
-    public struct EmbryoNode : IBufferElementData
+    public struct DivisionInstruction : IBufferElementData
     {
         public Entity Entity;
         public Quaternion Rotation;
-        public NodeType Type;
+        public LifeStage Stage;
         public DivisionOrder Order;
-    }
-
-    public struct DnaReference : IComponentData
-    {
-        public Entity Entity;
     }
 
     public struct NodeDivision : IComponentData
     {
-        public NodeType Type;
+        public LifeStage Stage;
         public int RemainingDivisions;
         public float MinEnergyPressure;
+    }
+
+    public enum LifeStage
+    {
+        Vegetation,
+        Reproduction,
+        Embryo,
+        Seedling,
     }
 
     public enum DivisionOrder
@@ -33,13 +37,6 @@ namespace Assets.Scripts.Plants.Growth
         Replace,
         PreNode,
         PostNode,
-    }
-    public enum NodeType
-    {
-        Vegetation,
-        Reproduction,
-        Embryo,
-        Seedling,
     }
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
@@ -70,14 +67,14 @@ namespace Assets.Scripts.Plants.Growth
 
                     var parentQuery = GetComponentDataFromEntity<Parent>(true);
                     var childrenQuery = GetBufferFromEntity<Child>(true);
-                    var embryoNodes = GetBufferFromEntity<EmbryoNode>(true)[dnaRef.Entity];
+                    var embryoNodes = GetBufferFromEntity<DivisionInstruction>(true)[dnaRef.Entity];
 
                     var parentNode = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
                     var currentNode = entity;
                     for (var i = 0; i < embryoNodes.Length; i++)
                     {
                         var embryo = embryoNodes[i];
-                        if (embryo.Type != nodeDivision.Type)
+                        if (embryo.Stage != nodeDivision.Stage)
                         {
                             continue;
                         }

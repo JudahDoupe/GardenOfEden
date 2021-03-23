@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Plants.Cleanup;
+using Assets.Scripts.Plants.Dna;
 using Assets.Scripts.Plants.Growth;
 using NUnit.Framework;
 using Unity.Collections;
@@ -26,8 +27,8 @@ namespace Tests
             m_Manager.SetComponentData(top, new Parent { Value = middle });
             m_Manager.SetComponentData(middle, new Parent { Value = bottom });
 
-            var embryo = CreateEmbryoNode(dna, order, NodeType.Vegetation);
-            m_Manager.AddComponentData(middle, new NodeDivision{Type = NodeType.Vegetation});
+            var embryo = CreateEmbryoNode(dna, order, LifeStage.Vegetation);
+            m_Manager.AddComponentData(middle, new NodeDivision{Stage = LifeStage.Vegetation});
 
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
             World.GetOrCreateSystem<NodeDivisionSystem>().Update();
@@ -100,8 +101,8 @@ namespace Tests
             var top = CreateNode(dna);
             m_Manager.SetComponentData(top, new Parent { Value = bottom });
             m_Manager.SetComponentData(top, new EnergyStore { Capacity = 1, Quantity = quantity });
-            var embryo = CreateEmbryoNode(dna, DivisionOrder.InPlace, NodeType.Vegetation);
-            m_Manager.AddComponentData(top, new NodeDivision { Type = NodeType.Vegetation, MinEnergyPressure = 0.5f });
+            var embryo = CreateEmbryoNode(dna, DivisionOrder.InPlace, LifeStage.Vegetation);
+            m_Manager.AddComponentData(top, new NodeDivision { Stage = LifeStage.Vegetation, MinEnergyPressure = 0.5f });
 
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
             Assert.AreEqual(1, m_Manager.GetBuffer<Child>(bottom).Length);
@@ -119,8 +120,8 @@ namespace Tests
         {
             var dna = CreateDna();
             var baseNode = CreateNode(dna);
-            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, NodeType.Vegetation);
-            m_Manager.AddComponentData(baseNode, new NodeDivision { RemainingDivisions = divisions, Type = NodeType.Vegetation });
+            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, LifeStage.Vegetation);
+            m_Manager.AddComponentData(baseNode, new NodeDivision { RemainingDivisions = divisions, Stage = LifeStage.Vegetation });
 
             for (int i = 0; i < divisions + 5; i++)
             {
@@ -137,8 +138,8 @@ namespace Tests
         {
             var dna = CreateDna();
             var baseNode = CreateNode(dna);
-            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, NodeType.Vegetation);
-            m_Manager.AddComponentData(baseNode, new NodeDivision { Type = NodeType.Vegetation });
+            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, LifeStage.Vegetation);
+            m_Manager.AddComponentData(baseNode, new NodeDivision { Stage = LifeStage.Vegetation });
 
             for (int i = 0; i <  5; i++)
             {
@@ -166,7 +167,7 @@ namespace Tests
             return entity;
         }
 
-        private Entity CreateEmbryoNode(Entity dna, DivisionOrder order, NodeType type)
+        private Entity CreateEmbryoNode(Entity dna, DivisionOrder order, LifeStage stage)
         {
             var entity = m_Manager.CreateEntity();
             m_Manager.AddComponentData(entity, new Dormant());
@@ -179,7 +180,7 @@ namespace Tests
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 1, Quantity = 1 });
             m_Manager.AddComponentData(entity, new EnergyFlow());
             m_Manager.AddComponentData(entity, new DnaReference { Entity = dna });
-            m_Manager.GetBuffer<EmbryoNode>(dna).Add(new EmbryoNode{Entity = entity, Order = order, Type = type });
+            m_Manager.GetBuffer<DivisionInstruction>(dna).Add(new DivisionInstruction{Entity = entity, Order = order, Stage = stage });
             m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
             return entity;
         }
@@ -187,7 +188,7 @@ namespace Tests
         private Entity CreateDna()
         {
             var entity = m_Manager.CreateEntity();
-            m_Manager.AddBuffer<EmbryoNode>(entity);
+            m_Manager.AddBuffer<DivisionInstruction>(entity);
             return entity;
         }
     }

@@ -46,7 +46,7 @@ namespace Assets.Scripts.Plants.Growth
         private static void StartReproduction(ref NodeDivision nodeDivision)
         {
             nodeDivision.RemainingDivisions = 0;
-            nodeDivision.Type = NodeType.Reproduction;
+            nodeDivision.Stage = LifeStage.Reproduction;
         }
     }
 }
