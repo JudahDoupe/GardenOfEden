@@ -20,15 +20,16 @@ namespace Tests
         [TestCase(DivisionOrder.Replace)]
         public void ShouldReparentNodesCorrectly(DivisionOrder order)
         {
-            var dna = CreateDna();
-            var bottom = CreateNode(dna);
-            var middle = CreateNode(dna);
-            var top = CreateNode(dna);
+            var bottom = CreateNode();
+            var middle = CreateNode();
+            var top = CreateNode();
             m_Manager.SetComponentData(top, new Parent { Value = middle });
             m_Manager.SetComponentData(middle, new Parent { Value = bottom });
 
-            var embryo = CreateEmbryoNode(dna, order, LifeStage.Vegetation);
+            var embryo = CreateNode();
             m_Manager.AddComponentData(middle, new NodeDivision{Stage = LifeStage.Vegetation});
+            var buffer = m_Manager.AddBuffer<DivisionInstruction>(middle);
+            buffer.Add(new DivisionInstruction { Entity = embryo, Order = order, Stage = LifeStage.Vegetation });
 
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
             World.GetOrCreateSystem<NodeDivisionSystem>().Update();
@@ -96,13 +97,14 @@ namespace Tests
         [TestCase(0.6f)]
         public void ShouldOnlyDivideWhenBudHasEnoughEnergy(float quantity)
         {
-            var dna = CreateDna();
-            var bottom = CreateNode(dna);
-            var top = CreateNode(dna);
+            var bottom = CreateNode();
+            var top = CreateNode();
             m_Manager.SetComponentData(top, new Parent { Value = bottom });
             m_Manager.SetComponentData(top, new EnergyStore { Capacity = 1, Quantity = quantity });
-            var embryo = CreateEmbryoNode(dna, DivisionOrder.InPlace, LifeStage.Vegetation);
+            var embryo = CreateNode();
             m_Manager.AddComponentData(top, new NodeDivision { Stage = LifeStage.Vegetation, MinEnergyPressure = 0.5f });
+            var buffer = m_Manager.AddBuffer<DivisionInstruction>(top);
+            buffer.Add(new DivisionInstruction { Entity = embryo, Order = DivisionOrder.InPlace, Stage = LifeStage.Vegetation });
 
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
             Assert.AreEqual(1, m_Manager.GetBuffer<Child>(bottom).Length);
@@ -118,10 +120,12 @@ namespace Tests
         [TestCase(5)]
         public void OnlyDividesNodeASetNumberOfTimes(int divisions)
         {
-            var dna = CreateDna();
-            var baseNode = CreateNode(dna);
-            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, LifeStage.Vegetation);
+
+            var baseNode = CreateNode();
+            var embryo = CreateNode();
             m_Manager.AddComponentData(baseNode, new NodeDivision { RemainingDivisions = divisions, Stage = LifeStage.Vegetation });
+            var buffer = m_Manager.AddBuffer<DivisionInstruction>(baseNode);
+            buffer.Add(new DivisionInstruction { Entity = embryo, Order = DivisionOrder.PostNode, Stage = LifeStage.Vegetation });
 
             for (int i = 0; i < divisions + 5; i++)
             {
@@ -136,10 +140,11 @@ namespace Tests
         [Test]
         public void UnsetRemainingDivisionsDividesOnce()
         {
-            var dna = CreateDna();
-            var baseNode = CreateNode(dna);
-            var embryo = CreateEmbryoNode(dna, DivisionOrder.PostNode, LifeStage.Vegetation);
+            var baseNode = CreateNode();
+            var embryo = CreateNode();
             m_Manager.AddComponentData(baseNode, new NodeDivision { Stage = LifeStage.Vegetation });
+            var buffer = m_Manager.AddBuffer<DivisionInstruction>(baseNode);
+            buffer.Add(new DivisionInstruction { Entity = embryo, Order = DivisionOrder.PostNode, Stage = LifeStage.Vegetation });
 
             for (int i = 0; i <  5; i++)
             {
@@ -151,7 +156,7 @@ namespace Tests
             Assert.AreEqual( 1, m_Manager.GetBuffer<Child>(baseNode).Length);
         }
 
-        private Entity CreateNode(Entity dna)
+        private Entity CreateNode()
         {
             var entity = m_Manager.CreateEntity();
             m_Manager.AddComponentData(entity, new Node { Size = new float3(0.5f, 0.5f, 0.5f) });
@@ -162,33 +167,7 @@ namespace Tests
             m_Manager.AddComponentData(entity, new LocalToWorld());
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 1, Quantity = 1 });
             m_Manager.AddComponentData(entity, new EnergyFlow());
-            m_Manager.AddComponentData(entity, new DnaReference { Entity = dna});
             m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
-            return entity;
-        }
-
-        private Entity CreateEmbryoNode(Entity dna, DivisionOrder order, LifeStage stage)
-        {
-            var entity = m_Manager.CreateEntity();
-            m_Manager.AddComponentData(entity, new Dormant());
-            m_Manager.AddComponentData(entity, new Node());
-            m_Manager.AddComponentData(entity, new Translation());
-            m_Manager.AddComponentData(entity, new Rotation());
-            m_Manager.AddComponentData(entity, new Parent());
-            m_Manager.AddComponentData(entity, new LocalToParent());
-            m_Manager.AddComponentData(entity, new LocalToWorld());
-            m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 1, Quantity = 1 });
-            m_Manager.AddComponentData(entity, new EnergyFlow());
-            m_Manager.AddComponentData(entity, new DnaReference { Entity = dna });
-            m_Manager.GetBuffer<DivisionInstruction>(dna).Add(new DivisionInstruction{Entity = entity, Order = order, Stage = stage });
-            m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
-            return entity;
-        }
-
-        private Entity CreateDna()
-        {
-            var entity = m_Manager.CreateEntity();
-            m_Manager.AddBuffer<DivisionInstruction>(entity);
             return entity;
         }
     }

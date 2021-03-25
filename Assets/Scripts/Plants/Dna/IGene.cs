@@ -13,7 +13,6 @@ namespace Assets.Scripts.Plants.Dna
 
     public enum NodeType
     {
-        Dna,
         Bud,
         Vegetation,
         EnergyProduction,

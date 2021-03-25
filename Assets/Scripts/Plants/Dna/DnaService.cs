@@ -1,5 +1,8 @@
 using Assets.Scripts.Plants.Cleanup;
 using Assets.Scripts.Plants.Dna;
+using Assets.Scripts.Plants.Dna.EnergyProductionGenes;
+using Assets.Scripts.Plants.Dna.ReproductionGenes;
+using Assets.Scripts.Plants.Dna.VegetationGenes;
 using Assets.Scripts.Plants.Environment;
 using Assets.Scripts.Plants.Growth;
 using Assets.Scripts.Plants.Setup;
@@ -26,7 +29,6 @@ public class DnaService : MonoBehaviour
             typeof(LightBlocker),
             typeof(Dormant),
             typeof(UpdateChunk),
-            typeof(DnaReference),
             typeof(Metabolism),
             typeof(Health)
         );
@@ -39,6 +41,7 @@ public class DnaService : MonoBehaviour
             GeneType.VegetationMorphology => new StraightGrowthGene(),
             GeneType.ReproductionMorphology => new SporangiaGene(),
             GeneType.EnergyProductionMorphology => new LeafGene(),
+            GeneType.ReproductionTrigger => new DeterministicTriggerGene(),
             _ => throw new System.NotImplementedException($"Default GeneType {t} not supported"),
         };
     }

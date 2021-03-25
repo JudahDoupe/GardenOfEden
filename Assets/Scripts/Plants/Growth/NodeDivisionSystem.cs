@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Plants.Growth
 {
-    [InternalBufferCapacity(8)]
+    [InternalBufferCapacity(4)]
     public struct DivisionInstruction : IBufferElementData
     {
         public Entity Entity;
@@ -27,8 +27,6 @@ namespace Assets.Scripts.Plants.Growth
     {
         Vegetation,
         Reproduction,
-        Embryo,
-        Seedling,
     }
 
     public enum DivisionOrder
@@ -58,8 +56,7 @@ namespace Assets.Scripts.Plants.Growth
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
-                .ForEach((ref NodeDivision nodeDivision, ref EnergyStore energyStore, in DnaReference dnaRef,
-                    in Entity entity, in int entityInQueryIndex) =>
+                .ForEach((ref NodeDivision nodeDivision, ref EnergyStore energyStore, in Entity entity, in int entityInQueryIndex) =>
                 {
                     if (energyStore.Quantity / (energyStore.Capacity + float.Epsilon) < nodeDivision.MinEnergyPressure
                         || nodeDivision.RemainingDivisions < 0)
@@ -67,29 +64,29 @@ namespace Assets.Scripts.Plants.Growth
 
                     var parentQuery = GetComponentDataFromEntity<Parent>(true);
                     var childrenQuery = GetBufferFromEntity<Child>(true);
-                    var embryoNodes = GetBufferFromEntity<DivisionInstruction>(true)[dnaRef.Entity];
 
+                    var instructions = GetBufferFromEntity<DivisionInstruction>(true)[entity];
                     var parentNode = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
                     var currentNode = entity;
-                    for (var i = 0; i < embryoNodes.Length; i++)
+                    for (var i = 0; i < instructions.Length; i++)
                     {
-                        var embryo = embryoNodes[i];
-                        if (embryo.Stage != nodeDivision.Stage)
+                        var instruction = instructions[i];
+                        if (instruction.Stage != nodeDivision.Stage)
                         {
                             continue;
                         }
 
                         var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
 
-                        var newNode = ecb.Instantiate(entityInQueryIndex, embryo.Entity); 
+                        var newNode = ecb.Instantiate(entityInQueryIndex, instruction.Entity); 
                         ecb.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
                         ecb.SetSharedComponent(entityInQueryIndex, newNode, Singleton.LoadBalancer.CurrentChunk);
 
-                        switch (embryo.Order)
+                        switch (instruction.Order)
                         {
                             case DivisionOrder.InPlace:
                                 ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = instruction.Rotation * RandomQuaternion(0.05f, seed) });
                                 break;
                             case DivisionOrder.Replace:
                                 if (childrenQuery.HasComponent(currentNode))
@@ -114,7 +111,7 @@ namespace Assets.Scripts.Plants.Growth
                                 break;
                             case DivisionOrder.PostNode:
                                 ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = currentNode });
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = embryo.Rotation * RandomQuaternion(0.05f, seed) });
+                                ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = instruction.Rotation * RandomQuaternion(0.05f, seed) });
                                 break;
                         }
 
