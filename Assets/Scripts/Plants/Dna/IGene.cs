@@ -24,6 +24,7 @@ namespace Assets.Scripts.Plants.Dna
     public enum GeneType
     {
         VegetationMorphology,
+        EmbryoGrowthTrigger,
         ReproductionMorphology,
         ReproductionTrigger,
         ReproductionPigment,

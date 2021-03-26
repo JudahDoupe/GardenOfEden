@@ -1,8 +1,10 @@
 using Assets.Scripts.Plants.Cleanup;
 using Assets.Scripts.Plants.Dna;
 using Assets.Scripts.Plants.Dna.EnergyProductionGenes;
-using Assets.Scripts.Plants.Dna.ReproductionGenes;
-using Assets.Scripts.Plants.Dna.VegetationGenes;
+using Assets.Scripts.Plants.Dna.ReproductionGenes.EmbryoGrowthTrigger;
+using Assets.Scripts.Plants.Dna.ReproductionGenes.Morphology;
+using Assets.Scripts.Plants.Dna.ReproductionGenes.ReproductionTrigger;
+using Assets.Scripts.Plants.Dna.VegetationGenes.Morphology;
 using Assets.Scripts.Plants.Environment;
 using Assets.Scripts.Plants.Growth;
 using Assets.Scripts.Plants.Setup;
@@ -38,10 +40,11 @@ public class DnaService : MonoBehaviour
     {
         return t switch
         {
-            GeneType.VegetationMorphology => new StraightGrowthGene(),
-            GeneType.ReproductionMorphology => new SporangiaGene(),
-            GeneType.EnergyProductionMorphology => new LeafGene(),
-            GeneType.ReproductionTrigger => new DeterministicTriggerGene(),
+            GeneType.VegetationMorphology => new StraightParallel(),
+            GeneType.ReproductionMorphology => new Sporangia(),
+            GeneType.ReproductionTrigger => new Deterministic(),
+            GeneType.EmbryoGrowthTrigger => new Unparent(),
+            GeneType.EnergyProductionMorphology => new Leaf(),
             _ => throw new System.NotImplementedException($"Default GeneType {t} not supported"),
         };
     }

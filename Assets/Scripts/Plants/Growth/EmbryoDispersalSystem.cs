@@ -25,11 +25,11 @@ namespace Assets.Scripts.Plants.Growth
 
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
-                .WithAll<WindDispersal, Dormant>()
-                .WithAll<Translation, Parent, LocalToParent>()
-                .ForEach((in EnergyStore energyStore, in LocalToWorld l2w, in Entity entity, in int entityInQueryIndex) =>
+                .WithAll<WindDispersal, Parent, LocalToParent>()
+                .WithAll<Translation, Rotation>()
+                .ForEach((in Node node, in PrimaryGrowth growth, in EnergyStore energy, in LocalToWorld l2w, in Entity entity, in int entityInQueryIndex) =>
                 {
-                    if (energyStore.Pressure < 0.99f) return;
+                    if (node.Volume < growth.Volume || energy.Pressure < 0.9f) return;
 
                     var seed = math.asuint((genericSeed * entityInQueryIndex) % uint.MaxValue) + 1;
                     var rand = new Random(seed);

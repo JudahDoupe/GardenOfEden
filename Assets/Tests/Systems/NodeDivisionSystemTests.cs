@@ -27,9 +27,9 @@ namespace Tests
             m_Manager.SetComponentData(middle, new Parent { Value = bottom });
 
             var embryo = CreateNode();
-            m_Manager.AddComponentData(middle, new NodeDivision{Stage = LifeStage.Vegetation});
+            m_Manager.AddComponentData(middle, new NodeDivision());
             var buffer = m_Manager.AddBuffer<DivisionInstruction>(middle);
-            buffer.Add(new DivisionInstruction { Entity = embryo, Order = order, Stage = LifeStage.Vegetation });
+            buffer.Add(new DivisionInstruction { Entity = embryo, Order = order });
 
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
             World.GetOrCreateSystem<NodeDivisionSystem>().Update();
@@ -102,9 +102,9 @@ namespace Tests
             m_Manager.SetComponentData(top, new Parent { Value = bottom });
             m_Manager.SetComponentData(top, new EnergyStore { Capacity = 1, Quantity = quantity });
             var embryo = CreateNode();
-            m_Manager.AddComponentData(top, new NodeDivision { Stage = LifeStage.Vegetation, MinEnergyPressure = 0.5f });
+            m_Manager.AddComponentData(top, new NodeDivision { MinEnergyPressure = 0.5f });
             var buffer = m_Manager.AddBuffer<DivisionInstruction>(top);
-            buffer.Add(new DivisionInstruction { Entity = embryo, Order = DivisionOrder.InPlace, Stage = LifeStage.Vegetation });
+            buffer.Add(new DivisionInstruction { Entity = embryo, Order = DivisionOrder.InPlace });
 
             World.GetOrCreateSystem<EndFrameParentSystem>().Update();
             Assert.AreEqual(1, m_Manager.GetBuffer<Child>(bottom).Length);
@@ -123,9 +123,9 @@ namespace Tests
 
             var baseNode = CreateNode();
             var embryo = CreateNode();
-            m_Manager.AddComponentData(baseNode, new NodeDivision { RemainingDivisions = divisions, Stage = LifeStage.Vegetation });
+            m_Manager.AddComponentData(baseNode, new NodeDivision { RemainingDivisions = divisions });
             var buffer = m_Manager.AddBuffer<DivisionInstruction>(baseNode);
-            buffer.Add(new DivisionInstruction { Entity = embryo, Order = DivisionOrder.PostNode, Stage = LifeStage.Vegetation });
+            buffer.Add(new DivisionInstruction { Entity = embryo, Order = DivisionOrder.PostNode });
 
             for (int i = 0; i < divisions + 5; i++)
             {

@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Plants.Cleanup;
+﻿using System.Linq;
+using Assets.Scripts.Plants.Cleanup;
 using Assets.Scripts.Plants.Dna;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -68,6 +69,7 @@ namespace Assets.Scripts.Plants.Growth
                     var instructions = GetBufferFromEntity<DivisionInstruction>(true)[entity];
                     var parentNode = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
                     var currentNode = entity;
+                    var hasDivided = false;
                     for (var i = 0; i < instructions.Length; i++)
                     {
                         var instruction = instructions[i];
@@ -76,6 +78,7 @@ namespace Assets.Scripts.Plants.Growth
                             continue;
                         }
 
+                        hasDivided = true;
                         var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
 
                         var newNode = ecb.Instantiate(entityInQueryIndex, instruction.Entity); 
@@ -117,7 +120,7 @@ namespace Assets.Scripts.Plants.Growth
 
                     }
 
-                    nodeDivision.RemainingDivisions--;
+                    nodeDivision.RemainingDivisions -= hasDivided ? 1 : 0;
                 })
                 .WithoutBurst()
                 .ScheduleParallel();

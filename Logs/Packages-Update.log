@@ -99,3 +99,13 @@ The following packages were updated:
   com.unity.textmeshpro from version 3.0.1 to 3.0.3
   com.unity.timeline from version 1.2.10 to 1.5.1-pre.3
   com.unity.xr.legacyinputhelpers from version 2.1.4 to 2.1.7
+
+=== Thu Mar 25 16:43:51 2021
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.ext.nunit from version 1.0.5 to 1.0.6
+  com.unity.postprocessing from version 3.0.2 to 3.1.0
+  com.unity.textmeshpro from version 3.0.3 to 3.0.4

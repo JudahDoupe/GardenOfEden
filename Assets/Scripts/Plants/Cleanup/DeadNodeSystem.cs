@@ -30,7 +30,7 @@ namespace Assets.Scripts.Plants.Cleanup
                         var internodeMesh = GetComponentDataFromEntity<InternodeMeshReference>(true);
                         var childrenQuery = GetBufferFromEntity<Child>(true);
 
-                        if (health.Value <= 0 && !childrenQuery.HasComponent(entity))
+                        if (health.Value < 0 && !childrenQuery.HasComponent(entity))
                         {
                             if (nodeMesh.HasComponent(entity))
                             {
