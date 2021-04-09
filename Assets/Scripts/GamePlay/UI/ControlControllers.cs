@@ -2,6 +2,7 @@ using Assets.Scripts.Plants.Dna;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ public class ControlControllers : MonoBehaviour
     public Slider2D BedrockControl;
     public Slider2D WaterTableControl;
     public Button PlantButton;
+    public GameObject DnaButton;
 
     private List<Control> _controls;
 
@@ -51,6 +53,13 @@ public class ControlControllers : MonoBehaviour
         {
             inactiveControl.transform.localPosition = Vector3.zero;
         }
+
+        var focusedPlant = CameraUtils.GetClosestEntity(Singleton.CameraController.FocusPos);
+        if (focusedPlant != Entity.Null){
+            var focusedBounds = CameraUtils.EncapsulateChildren(focusedPlant, new Bounds());
+            //TODO: position dna button over the plant that is focused
+        }
+
     }
 
     private Vector3 GetLocalPosition(int i, int count)
