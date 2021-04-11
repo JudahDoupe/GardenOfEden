@@ -48,60 +48,98 @@ public class CameraController : MonoBehaviour
 
     private void LateUpdate()
     {        
-        Move();
-        Rotate();
+        if (!LockMovement) GetMovementInput();
+        ApplyMovement();
+
+        if (!LockRotation) GetRotationInput();
+        ApplyRotate();
 
         PostProccessing.GetSetting<DepthOfField>().focusDistance.value = _camera.localPosition.magnitude;
     }
-    
-    private void Move()
+
+    /**** MOVEMENT ****/
+    public void MoveTo(Coordinate coord)
+    {
+        FocusCoord = ClampAboveTerrain(coord);
+    }
+
+    public void Move(float3 v)
+    {
+        FocusCoord = ClampAboveTerrain(new Coordinate(FocusCoord.xyz + v));
+    }
+
+    private void GetMovementInput()
     {
         var movementMultiplier = MovementSpeed * Time.deltaTime * math.sqrt(_camera.localPosition.magnitude * 2);
         var movementVector = (_focus.right * Input.GetAxis("Horizontal") + _focus.forward * Input.GetAxis("Vertical")) * movementMultiplier;
-        var lerpSpeed = Time.deltaTime * _lerpSpeed * 2;
 
-        if (movementVector.magnitude > float.Epsilon && !LockMovement)
+        if (movementVector.magnitude > float.Epsilon)
         {
             FocusCoord = ClampToTerrain(FocusCoord.xyz + movementVector.ToFloat3());
         }
+        else
+        {
+            FocusCoord = ClampToTerrain(FocusCoord.xyz);
+        }
+    }
 
-        _focus.position = ClampToTerrain(Vector3.Lerp(_focus.position, FocusCoord.xyz, lerpSpeed)).xyz;
+    private void ApplyMovement()
+    {
+        var lerpSpeed = Time.deltaTime * _lerpSpeed * 2;
+        _focus.position = ClampAboveTerrain(Vector3.Lerp(_focus.position, FocusCoord.xyz, lerpSpeed)).xyz;
         var upward = _focus.position.normalized;
         var forward = Vector3.Cross(_focus.right, upward);
         _focus.rotation = Quaternion.LookRotation(forward, upward);
     }
 
-    private void Rotate()
+    /**** ROTATION ****/
+
+    public void Zoom(float distance)
+    {
+        targetCameraDistance = distance;
+    }
+
+    public void Rotate(Vector2 v)
+    {
+        var horizontalMovement = v.x * 550;
+        _focus.Rotate(new Vector3(0, horizontalMovement, 0));
+
+        var verticalMovement = v.y * -1.5f;
+        targetCameraAngle = math.clamp(targetCameraAngle + verticalMovement, 0, 1);
+    }
+
+    private void GetRotationInput()
+    {
+        if (Input.GetMouseButton(0))
+        {
+            var horizontalMovement = Input.GetAxis("Mouse X") / Screen.width * RotationSpeed * 550;
+            var invertDirectiom = Input.mousePosition.y > (Screen.height / 2) ? -1 : 1;
+            _focus.Rotate(new Vector3(0, horizontalMovement * invertDirectiom, 0));
+
+            var verticalMovement = Input.GetAxis("Mouse Y") / Screen.height * RotationSpeed * -1.5f;
+            targetCameraAngle = math.clamp(targetCameraAngle + verticalMovement, 0, 1);
+        }
+
+        if (Input.mouseScrollDelta.y != 0)
+        {
+            var depthMovement = 1 - Input.mouseScrollDelta.y * ZoomSpeed * 0.05f;
+            targetCameraDistance = math.clamp(targetCameraDistance * depthMovement, _minDistance, _maxDistance);
+        }
+    }
+
+    private void ApplyRotate()
     {
         var maxDir = new Vector3(0, 0.9995f, -0.0005f);
         var minDir = new Vector3(0, 0.0005f, -0.9995f);
 
-        if (!LockRotation)
-        {
-            if (Input.GetMouseButton(0))
-            {
-                var horizontalMovement = Input.GetAxis("Mouse X") / Screen.width * RotationSpeed * 550;
-                var invertDirectiom = Input.mousePosition.y > (Screen.height / 2) ? -1 : 1;
-                _focus.Rotate(new Vector3(0, horizontalMovement * invertDirectiom, 0));
-
-                var verticalMovement = Input.GetAxis("Mouse Y") / Screen.height * RotationSpeed * -1.5f;
-                targetCameraAngle = math.clamp(targetCameraAngle + verticalMovement, 0, 1);
-            }
-
-            if (Input.mouseScrollDelta.y != 0)
-            {
-                var depthMovement = 1 - Input.mouseScrollDelta.y * ZoomSpeed * 0.05f;
-                targetCameraDistance = math.clamp(targetCameraDistance * depthMovement, _minDistance, _maxDistance);
-            }
-        }
-
         var lerpSpeed = Time.deltaTime * _lerpSpeed * 2;
-        //minDir = Vector3.Lerp(minDir, maxDir, _distance / _maxDistance);
         var targetLocalPos = Vector3.Lerp(minDir, maxDir, targetCameraAngle) * targetCameraDistance;
         _camera.localPosition = Vector3.Lerp(_camera.localPosition, targetLocalPos, lerpSpeed);
         _camera.position = ClampAboveTerrain(_camera.position).xyz;
         _camera.LookAt(_focus.position, _focus.up);
     }
+
+    /**** HELPERS ****/
 
     private Coordinate ClampAboveTerrain(Coordinate coord)
     {

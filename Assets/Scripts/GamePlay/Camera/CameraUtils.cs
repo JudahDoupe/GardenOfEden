@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Assets.Scripts.Plants.Setup;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -37,7 +35,7 @@ public class CameraUtils : MonoBehaviour
     public static Entity GetClosestEntity(Vector3 position)
     {
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        var q = em.CreateEntityQuery(typeof(Coordinate));
+        var q = em.CreateEntityQuery(typeof(Coordinate), typeof(UpdateChunk));
         q.SetSharedComponentFilter(Singleton.LoadBalancer.ActiveEntityChunk);
         var entities = q.ToEntityArray(Unity.Collections.Allocator.Temp);
 
@@ -57,19 +55,21 @@ public class CameraUtils : MonoBehaviour
         return closest;
     }
 
-    public static Bounds EncapsulateChildren(Entity entity, Bounds bounds)
+    public static Bounds EncapsulateChildren(Entity entity, Bounds? bounds = null)
     {
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        if (em.HasComponent<LocalToWorld>(entity)) {
-            var l2w = em.GetComponentData<LocalToWorld>(entity);
-            bounds.Encapsulate(l2w.Position);
-        }
+        var l2w = em.GetComponentData<LocalToWorld>(entity);
+        var newBounds = bounds.HasValue ? bounds.Value : new Bounds(l2w.Position, new Vector3(0.1f,0.1f,0.1f));
+        newBounds.Encapsulate(l2w.Position);
 
-        var children = em.GetBuffer<Child>(entity);
-        for (int i = 0; i < children.Length; i++)
+        if (em.HasComponent<Child>(entity))
         {
-            EncapsulateChildren(children[i].Value, bounds);
+            var children = em.GetBuffer<Child>(entity);
+            for (int i = 0; i < children.Length; i++)
+            {
+                newBounds.Encapsulate(EncapsulateChildren(children[i].Value, newBounds));
+            }
         }
-        return bounds;
+        return newBounds;
     }
 }
