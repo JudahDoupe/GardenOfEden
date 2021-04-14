@@ -10,7 +10,8 @@ namespace Assets.Scripts.Plants.Dna
 {
     public class Dna
     {
-        private List<NodeType> NodeTypes => Genes.SelectMany(x => x.NodeDependencies).Distinct().ToList();
+        public List<NodeType> NodeTypes => Genes.SelectMany(x => x.NodeDependencies).Distinct().ToList();
+        public List<GeneType> GeneTypes => Genes.Select(x => x.GeneType).Distinct().ToList();
         private List<IGene> Genes = new List<IGene>();
 
         public Dna(params IGene[] genes)
