@@ -10,6 +10,7 @@ namespace Assets.Scripts.Plants.Dna.VegetationGenes.Morphology
 {
     public class StraightParallel : IGene
     {
+        public GeneCategory GeneCategory => GeneCategory.Vegetation;
         public GeneType GeneType => GeneType.VegetationMorphology;
         public List<NodeType> NodeDependencies => new List<NodeType> { NodeType.Bud, NodeType.Vegetation, NodeType.EnergyProduction };
         public List<GeneType> GeneDependencies => new List<GeneType> { GeneType.EnergyProductionMorphology, GeneType.ReproductionMorphology, GeneType.ReproductionTrigger };

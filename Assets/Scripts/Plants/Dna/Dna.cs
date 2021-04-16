@@ -8,12 +8,19 @@ using UnityEngine;
 
 namespace Assets.Scripts.Plants.Dna
 {
+    public struct DnaReference : IComponentData
+    {
+        public int SpeciesId;
+    }
+
     public class Dna
     {
+        public int SpeciesId { get; private set; }
         public List<NodeType> NodeTypes => Genes.SelectMany(x => x.NodeDependencies).Distinct().ToList();
         public List<GeneType> GeneTypes => Genes.Select(x => x.GeneType).Distinct().ToList();
-        private List<IGene> Genes = new List<IGene>();
+        public List<IGene> Genes = new List<IGene>();
 
+        public Dna(Dna dna) : this(dna.Genes.ToArray()) { }
         public Dna(params IGene[] genes)
         {
             foreach (var gene in genes)
@@ -21,6 +28,7 @@ namespace Assets.Scripts.Plants.Dna
                 SetGene(gene);
             }
             ResolveDependencies();
+            SpeciesId = DnaService.RegisterNewSpecies(this);
         }
 
         public void SetGene(IGene gene)
@@ -37,6 +45,7 @@ namespace Assets.Scripts.Plants.Dna
             foreach (var nodeType in NodeTypes)
             {
                 protoNodes[nodeType] = em.CreateEntity(DnaService.PlantNodeArchetype);
+                em.AddComponentData(protoNodes[nodeType], new DnaReference { SpeciesId = SpeciesId });
             }
             foreach (var gene in Genes)
             {

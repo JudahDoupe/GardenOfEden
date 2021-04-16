@@ -1,3 +1,4 @@
+using Assets.Scripts.Plants.Dna;
 using Unity.Entities;
 using UnityEngine;
 
@@ -24,6 +25,8 @@ public class DnaMenuController : MonoBehaviour
         _isMenuOpen = true;
         Singleton.CameraController.LockRotation = true;
         Singleton.CameraController.LockMovement = true;
+        var dnaReference = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<DnaReference>(_focusedPlant);
+        transform.GetComponentInChildren<CategorySelectionController>().Open(DnaService.GetSpeciesDna(dnaReference.SpeciesId));
     }
 
     public void CloseMenu()
@@ -31,6 +34,7 @@ public class DnaMenuController : MonoBehaviour
         _isMenuOpen = false;
         Singleton.CameraController.LockRotation = false;
         Singleton.CameraController.LockMovement = false;
+        transform.GetComponentInChildren<CategorySelectionController>().Close();
     }
 
     private void PositionOpenMenuButton()

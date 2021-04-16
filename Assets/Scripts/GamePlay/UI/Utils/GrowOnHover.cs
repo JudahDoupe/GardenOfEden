@@ -6,16 +6,16 @@ public class GrowOnHover : MonoBehaviour
     public float ScaleFactor = 0.85f;
     [Range(5, 20)]
     public float Speed = 1;
-    private Vector3 initialScale;
+    private Vector3 baseScale;
 
     private void Start()
     {
-        initialScale = transform.localScale;
+        baseScale = transform.localScale;
     }
 
     void Update()
     {
-        var targetScale = initialScale;
+        var targetScale = baseScale;
 
         if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out var hit) && hit.collider.gameObject == gameObject)
         {
@@ -23,5 +23,10 @@ public class GrowOnHover : MonoBehaviour
         }
         
         transform.localScale = Vector3.Lerp(transform.localScale, targetScale, Time.deltaTime * Speed);
+    }
+
+    public void SetBaseScale(float size)
+    {
+        baseScale = new Vector3(size, size, size);
     }
 }

@@ -6,6 +6,7 @@ namespace Assets.Scripts.Plants.Dna.ReproductionGenes.EmbryoGrowthTrigger
 {
     public class Unparent : IGene
     {
+        public GeneCategory GeneCategory => GeneCategory.Reproduction;
         public GeneType GeneType => GeneType.EmbryoGrowthTrigger;
 
         public List<NodeType> NodeDependencies => new List<NodeType> { NodeType.Embryo };

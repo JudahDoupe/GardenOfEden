@@ -1,13 +1,13 @@
 using Assets.Scripts.Plants.Dna;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class CategoryButtonController : MonoBehaviour
+public class CategorySelectionController : MonoBehaviour
 {
     public float OpenSpeed = 1f;
+    public float Distance = 3f;
     public CategoryButton[] Buttons;
 
     public void Open(Dna dna)
@@ -43,16 +43,15 @@ public class CategoryButtonController : MonoBehaviour
 
     private void UpdateButton(GameObject button, int index, bool isActive)
     {
-        var tagetScale = isActive ? new Vector3(1, 1, 1) : new Vector3(0, 0, 0);
-        button.transform.localScale = Vector3.Lerp(button.transform.localScale, tagetScale, OpenSpeed * Time.deltaTime);
+        button.GetComponent<GrowOnHover>().SetBaseScale(isActive ? 1 : 0);
 
         var targetPos = new Vector3(0, 0, 0);
         if (index >= 0)
         {
-            var theta = ((index + 1) / Buttons.Count(x => x.IsActive)) * 2 * math.PI;
+            var theta = ((index + 1f) / Buttons.Count(x => x.IsActive)) * 2f * math.PI;
             targetPos.x = math.sin(theta);
             targetPos.y = math.cos(theta);
-            targetPos *= 5;
+            targetPos *= Distance;
         }
         button.transform.localPosition = Vector3.Lerp(button.transform.localPosition, targetPos, OpenSpeed * Time.deltaTime);
     }

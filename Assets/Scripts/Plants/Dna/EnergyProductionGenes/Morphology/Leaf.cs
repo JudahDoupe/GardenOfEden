@@ -9,6 +9,7 @@ namespace Assets.Scripts.Plants.Dna.EnergyProductionGenes
 {
     public class Leaf : IGene
     {
+        public GeneCategory GeneCategory => GeneCategory.EnergyProduction;
         public GeneType GeneType => GeneType.EnergyProductionMorphology;
 
         public List<NodeType> NodeDependencies => new List<NodeType> { NodeType.EnergyProduction };

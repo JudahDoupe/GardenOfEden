@@ -6,6 +6,7 @@ namespace Assets.Scripts.Plants.Dna
 {
     public interface IGene
     {
+        GeneCategory GeneCategory { get; }
         GeneType GeneType { get; }
         List<NodeType> NodeDependencies { get; }
         List<GeneType> GeneDependencies { get; }
@@ -20,6 +21,13 @@ namespace Assets.Scripts.Plants.Dna
         Reproduction,
         Embryo,
         Root,
+    }
+
+    public enum GeneCategory
+    {
+        Vegetation,
+        Reproduction,
+        EnergyProduction,
     }
 
     public enum GeneType

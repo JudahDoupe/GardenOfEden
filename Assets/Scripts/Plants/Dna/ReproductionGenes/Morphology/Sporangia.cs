@@ -9,6 +9,7 @@ namespace Assets.Scripts.Plants.Dna.ReproductionGenes.Morphology
 {
     public class Sporangia : IGene
     {
+        public GeneCategory GeneCategory => GeneCategory.Reproduction;
         public GeneType GeneType => GeneType.ReproductionMorphology;
 
         public List<NodeType> NodeDependencies => new List<NodeType> { NodeType.Reproduction, NodeType.Embryo, NodeType.Bud };

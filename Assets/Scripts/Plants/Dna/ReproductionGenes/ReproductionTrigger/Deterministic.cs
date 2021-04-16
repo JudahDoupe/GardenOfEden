@@ -6,6 +6,7 @@ namespace Assets.Scripts.Plants.Dna.ReproductionGenes.ReproductionTrigger
 {
     public class Deterministic : IGene
     {
+        public GeneCategory GeneCategory => GeneCategory.Reproduction;
         public GeneType GeneType => GeneType.ReproductionTrigger;
 
         public List<NodeType> NodeDependencies => new List<NodeType> { NodeType.Bud };
