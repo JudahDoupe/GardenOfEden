@@ -16,7 +16,7 @@ public class ControlControllers : MonoBehaviour
     {
         BedrockControl.UpdateFunction = Singleton.Land.SetBedrockHeight;
         WaterTableControl.UpdateFunction = Singleton.Water.SetWaterTableHeight;
-        PlantButton.ClickFunction = SpawnSpagooter;
+        PlantButton.ClickFunction = SpawnDefaultPlant;
 
         _controls = new List<Control>
         {
@@ -60,7 +60,7 @@ public class ControlControllers : MonoBehaviour
         return new Vector3(sign * position - offset, 0, 0);
     }
 
-    public void SpawnSpagooter(Coordinate coord)
+    public void SpawnDefaultPlant(Coordinate coord)
     {
         var dna = new Dna();
         dna.Spawn(coord);

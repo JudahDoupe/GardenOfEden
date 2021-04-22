@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Plants.Cleanup;
+﻿using System;
+using Assets.Scripts.Plants.Cleanup;
 using Assets.Scripts.Plants.Growth;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,43 +17,41 @@ namespace Assets.Scripts.Plants.Dna
     public class Dna
     {
         public int SpeciesId { get; private set; }
-        public List<NodeType> NodeTypes => Genes.SelectMany(x => x.NodeDependencies).Distinct().ToList();
-        public List<GeneType> GeneTypes => Genes.Select(x => x.GeneType).Distinct().ToList();
-        public List<IGene> Genes = new List<IGene>();
+        public List<GeneType> GeneTypes(GeneCategory category) => _genes.Where(x => x.Category == category).Select(x => x.Type).Distinct().ToList();
+        public List<GeneCategory> GeneCategories => _genes.Select(x => x.Category).Distinct().ToList();
+        
+        private List<Gene> _genes { get; set; } = new List<Gene>();
+        private Dictionary<NodeType, Entity> _protoNodes { get; set; } = new Dictionary<NodeType, Entity>();
 
-        public Dna(Dna dna) : this(dna.Genes.ToArray()) { }
-        public Dna(params IGene[] genes)
+        public Dna(params Gene[] genes)
         {
             foreach (var gene in genes)
             {
-                SetGene(gene);
+                _genes.RemoveAll(x => x.Category == gene.Category && x.Type == gene.Type);
+                _genes.Add(gene);
             }
             ResolveDependencies();
             SpeciesId = DnaService.RegisterNewSpecies(this);
+            foreach (var gene in _genes)
+            {
+                gene.Apply(this);
+            }
         }
 
-        public void SetGene(IGene gene)
+        public Dna Evolve(Gene gene)
         {
-            Genes.RemoveAll(x => x.GeneType == gene.GeneType);
-            Genes.Add(gene);
+            var newGenes = _genes
+                .Where(x => x.Category != gene.Category && x.Type != gene.Type)
+                .Union(new[] {gene})
+                .ToArray();
+            return new Dna(newGenes);
         }
 
         public Entity Spawn(Coordinate coord)
         {
             var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var protoNodes = new Dictionary<NodeType, Entity>();
 
-            foreach (var nodeType in NodeTypes)
-            {
-                protoNodes[nodeType] = em.CreateEntity(DnaService.PlantNodeArchetype);
-                em.AddComponentData(protoNodes[nodeType], new DnaReference { SpeciesId = SpeciesId });
-            }
-            foreach (var gene in Genes)
-            {
-                gene.Apply(protoNodes);
-            }
-
-            var plant = em.Instantiate(protoNodes[NodeType.Embryo]); 
+            var plant = em.Instantiate(GetProtoNode(NodeType.Embryo)); 
             em.SetSharedComponentData(plant, Singleton.LoadBalancer.ActiveEntityChunk);
             em.RemoveComponent<Dormant>(plant);
             em.RemoveComponent<Parent>(plant);
@@ -63,24 +62,37 @@ namespace Assets.Scripts.Plants.Dna
             return plant;
         }
 
+        public Entity GetProtoNode(NodeType type)
+        {
+            if (!_protoNodes.TryGetValue(type, out var node))
+            {
+                var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+                node = em.CreateEntity(DnaService.PlantNodeArchetype);
+                em.AddComponentData(node, new DnaReference { SpeciesId = SpeciesId });
+                _protoNodes[type] = node;
+            }
+
+            return node;
+        }
+
         private void ResolveDependencies()
         {
-            var dependencies = new List<GeneType> { GeneType.ReproductionMorphology };
+            var dependencies = new List<Tuple<GeneCategory, GeneType>> { Tuple.Create(GeneCategory.Vegetation, GeneType.Morphology) };
 
             do
             {
-                foreach (var geneType in dependencies)
+                foreach (var (category, type) in dependencies)
                 {
-                    if (!Genes.Any(x => x.GeneType == geneType))
-                        Genes.Add(DnaService.GetDefaultGene(geneType));
+                    if (!_genes.Any(x => x.Category == category && x.Type == type))
+                        _genes.Add(DnaService.GeneLibrary.GetDefaultGene(category, type));
                 }
 
-                foreach (var dependency in Genes.SelectMany(x => x.GeneDependencies))
+                foreach (var dependency in _genes.SelectMany(x => x.GeneDependencies))
                 {
                     if (!dependencies.Contains(dependency)) 
                         dependencies.Add(dependency);
                 }
-            } while (!dependencies.All(geneType => Genes.Any(g => g.GeneType == geneType)));
+            } while (!dependencies.All(dep => _genes.Any(g => g.Category == dep.Item1 && g.Type == dep.Item2)));
         }
     }
 }

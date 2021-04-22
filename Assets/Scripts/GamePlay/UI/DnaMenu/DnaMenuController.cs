@@ -62,7 +62,7 @@ public class DnaMenuController : MonoBehaviour
 
                 for (int i = 0; i < CategoryButtons.Length; i++)
                 {
-                    CategoryButtons[i].IsActive = _dna.GeneTypes.Contains(CategoryButtons[i].Type);
+                    CategoryButtons[i].IsActive = _dna.GeneCategories.Contains(CategoryButtons[i].Category);
                 }
             })
             .OnExit(() =>
@@ -152,7 +152,7 @@ public class DnaMenuController : MonoBehaviour
     public struct CategoryButton
     {
         public GameObject Button;
-        public GeneType Type;
+        public GeneCategory Category;
         public bool IsActive;
     }
 }

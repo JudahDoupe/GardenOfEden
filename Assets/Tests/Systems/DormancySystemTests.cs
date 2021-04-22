@@ -1,10 +1,7 @@
 ﻿using Assets.Scripts.Plants.Cleanup;
-using Assets.Scripts.Plants.Growth;
 using FluentAssertions;
 using FsCheck;
 using NUnit.Framework;
-using Unity.Collections;
-using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace Tests
