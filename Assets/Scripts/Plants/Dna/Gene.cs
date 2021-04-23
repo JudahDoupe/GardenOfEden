@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Plants.Growth;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -57,37 +58,27 @@ namespace Assets.Scripts.Plants.Dna
             foreach (var modification in _modifications)
             {
                 var node = dna.GetProtoNode(modification.Key);
-                em.SetName(node, modification.Value.Name);
+                var mod = modification.Value;
+                em.SetName(node, mod.Name);
 
-                foreach (var (type, data) in modification.Value.Components)
+                foreach (var action in mod.Components)
                 {
-                    if (em.HasComponent(node, type))
-                        em.SetComponentData(node, data);
-                    else
-                        em.AddComponentData(node, data);
+                    action.Invoke(em, node);
                 }
 
-                foreach (var type in modification.Value.RemovedComponents)
+                if (mod.Divisions.Any())
                 {
-                    if (em.HasComponent(node, type))
-                        em.RemoveComponent(node, type);
-                }
-
-                if (modification.Value.Divisions.Any())
-                {
-                    var divisionInstructions = em.HasComponent<DivisionInstruction>(node)
-                        ? em.GetBuffer<DivisionInstruction>(node)
-                        : em.AddBuffer<DivisionInstruction>(node);
-                    foreach (var (type, order, rot, stage) in modification.Value.Divisions)
+                    var divisions = mod.Divisions.Select(set => new DivisionInstruction
                     {
-                        divisionInstructions.Add(new DivisionInstruction
-                        {
-                            Entity = dna.GetProtoNode(type),
-                            Order = order,
-                            Rotation = rot,
-                            Stage =  stage,
-                        });
-                    }
+                        Entity = dna.GetProtoNode(set.Item1),
+                        Order = set.Item2,
+                        Rotation = set.Item3,
+                        Stage = set.Item4,
+                    }).ToArray();
+                    var buffer = em.HasComponent<DivisionInstruction>(node)
+                        ? em.GetBuffer<DivisionInstruction>(node) 
+                        : em.AddBuffer<DivisionInstruction>(node);
+                    buffer.AddRange(new NativeArray<DivisionInstruction>(divisions, Allocator.Temp));
                 }
 
             }
@@ -121,8 +112,7 @@ namespace Assets.Scripts.Plants.Dna
         public string Name = "Node";
         public readonly Gene Gene;
         public readonly NodeType Node;
-        public List<ComponentType> RemovedComponents = new List<ComponentType>();
-        public List<Tuple<ComponentType, IComponentData>> Components = new List<Tuple<ComponentType, IComponentData>>();
+        public List<Action<EntityManager, Entity>> Components = new List<Action<EntityManager, Entity>>();
         public List<Tuple<NodeType, DivisionOrder, Quaternion, LifeStage>> Divisions = new List<Tuple<NodeType, DivisionOrder, Quaternion, LifeStage>>();
 
         public NodeModification(Gene gene, NodeType node)
@@ -130,9 +120,24 @@ namespace Assets.Scripts.Plants.Dna
             Gene = gene;
             Node = node;
         }
-        public NodeModification WithComponent<T>(T component) where T : IComponentData
+        public NodeModification WithComponent<T>(T component) where T : struct, IComponentData
         {
-            Components.Add(Tuple.Create(ComponentType.ReadWrite<T>(), component as IComponentData));
+            Components.Add((em, e) =>
+            {
+                if (em.HasComponent(e, ComponentType.ReadWrite<T>()))
+                    em.SetComponentData(e, component);
+                else
+                    em.AddComponentData(e, component);
+            });
+            return this;
+        }
+        public NodeModification WithoutComponent<T>() where T : IComponentData
+        {
+            Components.Add((em, e) =>
+            {
+                if (em.HasComponent(e, ComponentType.ReadWrite<T>()))
+                    em.RemoveComponent(e, ComponentType.ReadWrite<T>());
+            });
             return this;
         }
         public NodeModification WithDivision(NodeType node, DivisionOrder order, LifeStage stage, Quaternion? rotation = null)
@@ -143,12 +148,6 @@ namespace Assets.Scripts.Plants.Dna
         public NodeModification WithName(string name)
         {
             Name = name;
-            return this;
-        }
-
-        public NodeModification WithoutComponent<T>() where T : IComponentData
-        {
-            RemovedComponents.Add(ComponentType.ReadWrite<T>());
             return this;
         }
     }
