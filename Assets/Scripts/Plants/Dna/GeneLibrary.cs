@@ -54,6 +54,19 @@ namespace Assets.Scripts.Plants.Dna
 
         public GeneLibrary()
         {
+            AddGene( new Gene(GeneCategory.Vegetation, GeneType.Morphology, "Rosette")
+                .WithDependency(GeneCategory.Vegetation, GeneType.ReproductionTrigger)
+                .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
+                .WithDependency(GeneCategory.EnergyProduction, GeneType.Morphology)
+                .ModifiesNode(NodeType.Bud)
+                .WithName("Bud")
+                .WithComponent(new PrimaryGrowth { DaysToMature = 1, NodeSize = new float3(0.01f, 0.01f, 0.01f) })
+                .WithComponent(new Metabolism { Resting = 0.1f })
+                .WithComponent(new NodeDivision { MinEnergyPressure = 0.5f })
+                .WithDivision(NodeType.Bud, DivisionOrder.PostNode, LifeStage.Vegetation, new Quaternion(0.362f, 0, 0.932f, 0))
+                .WithDivision(NodeType.EnergyProduction, DivisionOrder.InPlace, LifeStage.Vegetation, Quaternion.LookRotation(new Vector3(0.7f, 0, 0.3f), Vector3.forward))
+                .WithDivision(NodeType.Reproduction, DivisionOrder.Replace, LifeStage.Reproduction)
+                .Gene);
             AddGene( new Gene(GeneCategory.Vegetation, GeneType.Morphology, "Straight Parallel")
                 .WithDependency(GeneCategory.Vegetation, GeneType.ReproductionTrigger)
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
