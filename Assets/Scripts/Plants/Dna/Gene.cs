@@ -59,7 +59,10 @@ namespace Assets.Scripts.Plants.Dna
             {
                 var node = dna.GetProtoNode(modification.Key);
                 var mod = modification.Value;
-                em.SetName(node, mod.Name);
+                if (mod.Name != null)
+                {
+                    em.SetName(node, mod.Name);
+                }
 
                 foreach (var action in mod.Components)
                 {
@@ -109,11 +112,11 @@ namespace Assets.Scripts.Plants.Dna
 
     public class NodeModification
     {
-        public string Name = "Node";
+        public string Name = null;
         public readonly Gene Gene;
         public readonly NodeType Node;
         public List<Action<EntityManager, Entity>> Components = new List<Action<EntityManager, Entity>>();
-        public List<Tuple<NodeType, DivisionOrder, Quaternion, LifeStage>> Divisions = new List<Tuple<NodeType, DivisionOrder, Quaternion, LifeStage>>();
+        public List<Tuple<NodeType, DivisionOrder, Quaternion?, LifeStage>> Divisions = new List<Tuple<NodeType, DivisionOrder, Quaternion?, LifeStage>>();
 
         public NodeModification(Gene gene, NodeType node)
         {
@@ -142,7 +145,7 @@ namespace Assets.Scripts.Plants.Dna
         }
         public NodeModification WithDivision(NodeType node, DivisionOrder order, LifeStage stage, Quaternion? rotation = null)
         {
-            Divisions.Add(Tuple.Create(node, order, rotation ?? Quaternion.identity, stage));
+            Divisions.Add(Tuple.Create(node, order, rotation, stage));
             return this;
         }
         public NodeModification WithName(string name)

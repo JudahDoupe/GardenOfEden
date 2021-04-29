@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Assets.Scripts.Plants.Cleanup;
 using Assets.Scripts.Plants.Dna;
 using Unity.Entities;
@@ -12,7 +13,7 @@ namespace Assets.Scripts.Plants.Growth
     public struct DivisionInstruction : IBufferElementData
     {
         public Entity Entity;
-        public Quaternion Rotation;
+        public Quaternion? Rotation;
         public LifeStage Stage;
         public DivisionOrder Order;
     }
@@ -81,15 +82,21 @@ namespace Assets.Scripts.Plants.Growth
                         hasDivided = true;
                         var seed = math.asuint((genericSeed * entityInQueryIndex + i) % uint.MaxValue) + 1;
 
-                        var newNode = ecb.Instantiate(entityInQueryIndex, instruction.Entity); 
+                        var newNode = ecb.Instantiate(entityInQueryIndex, instruction.Entity);
+                        var newRotation = instruction.Rotation ?? instruction.Order switch
+                        {
+                            DivisionOrder.Replace => GetComponentDataFromEntity<Rotation>(true)[currentNode].Value,
+                            DivisionOrder.PreNode => GetComponentDataFromEntity<Rotation>(true)[currentNode].Value,
+                            _ => Quaternion.identity
+                        };
                         ecb.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
-                        ecb.SetSharedComponent(entityInQueryIndex, newNode, Singleton.LoadBalancer.CurrentChunk);
+                        ecb.SetSharedComponent(entityInQueryIndex, newNode, Singleton.LoadBalancer.CurrentChunk); 
+                        ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = newRotation * RandomQuaternion(0.05f, seed) });
 
                         switch (instruction.Order)
                         {
                             case DivisionOrder.InPlace:
                                 ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = instruction.Rotation * RandomQuaternion(0.05f, seed) });
                                 break;
                             case DivisionOrder.Replace:
                                 if (childrenQuery.HasComponent(currentNode))
@@ -102,19 +109,16 @@ namespace Assets.Scripts.Plants.Growth
                                     }
                                     ecb.RemoveComponent<Child>(entityInQueryIndex, currentNode);
                                 }
-                                ecb.DestroyEntity(entityInQueryIndex, currentNode);
-                                ecb.SetComponent(entityInQueryIndex, newNode, GetComponentDataFromEntity<Rotation>(true)[currentNode]); 
                                 ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
+                                ecb.DestroyEntity(entityInQueryIndex, currentNode);
                                 break;
                             case DivisionOrder.PreNode:
                                 if (!parentQuery.HasComponent(currentNode)) ecb.AddComponent<Parent>(entityInQueryIndex, currentNode);
                                 ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
                                 ecb.SetComponent(entityInQueryIndex, currentNode, new Parent { Value = newNode });
-                                ecb.SetComponent(entityInQueryIndex, newNode, GetComponentDataFromEntity<Rotation>(true)[currentNode]);
                                 break;
                             case DivisionOrder.PostNode:
                                 ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = currentNode });
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = instruction.Rotation * RandomQuaternion(0.05f, seed) });
                                 break;
                         }
 

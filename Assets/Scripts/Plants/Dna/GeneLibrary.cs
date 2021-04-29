@@ -58,12 +58,17 @@ namespace Assets.Scripts.Plants.Dna
                 .WithDependency(GeneCategory.Vegetation, GeneType.ReproductionTrigger)
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
                 .WithDependency(GeneCategory.EnergyProduction, GeneType.Morphology)
+                .ModifiesNode(NodeType.Vegetation)
+                .WithName("Node")
+                .WithComponent(new PrimaryGrowth { DaysToMature = 1, NodeSize = new float3(0.01f, 0.01f, 0.01f) })
+                .WithComponent(new Metabolism { Resting = 0.1f })
+                .Gene
                 .ModifiesNode(NodeType.Bud)
                 .WithName("Bud")
                 .WithComponent(new PrimaryGrowth { DaysToMature = 1, NodeSize = new float3(0.01f, 0.01f, 0.01f) })
                 .WithComponent(new Metabolism { Resting = 0.1f })
-                .WithComponent(new NodeDivision { MinEnergyPressure = 0.5f })
-                .WithDivision(NodeType.Bud, DivisionOrder.PostNode, LifeStage.Vegetation, new Quaternion(0.362f, 0, 0.932f, 0))
+                .WithComponent(new NodeDivision { RemainingDivisions = 5, MinEnergyPressure = 0.5f })
+                .WithDivision(NodeType.Vegetation, DivisionOrder.PreNode, LifeStage.Vegetation, Quaternion.AngleAxis(137.5f, Vector3.forward))
                 .WithDivision(NodeType.EnergyProduction, DivisionOrder.InPlace, LifeStage.Vegetation, Quaternion.LookRotation(new Vector3(0.7f, 0, 0.3f), Vector3.forward))
                 .WithDivision(NodeType.Reproduction, DivisionOrder.Replace, LifeStage.Reproduction)
                 .Gene);
@@ -89,10 +94,46 @@ namespace Assets.Scripts.Plants.Dna
                 .WithDivision(NodeType.Reproduction, DivisionOrder.Replace, LifeStage.Reproduction)
                 .Gene);
 
-            AddGene( new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Deterministic")
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Deterministic")
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
                 .ModifiesNode(NodeType.Bud)
                 .WithComponent(new DeterministicLifeStageTrigger { CurrentStage = LifeStage.Vegetation, NextStage = LifeStage.Reproduction })
+                .Gene);
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "One Week")
+                .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
+                .ModifiesNode(NodeType.Bud)
+                .WithComponent(new TimeDelayedLifeStageTrigger {Stage = LifeStage.Reproduction, Days = 7})
+                .Gene);
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "One Month")
+                .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
+                .ModifiesNode(NodeType.Bud)
+                .WithComponent(new TimeDelayedLifeStageTrigger { Stage = LifeStage.Reproduction, Days = 30 })
+                .Gene);
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Spring")
+                .EvolvesFrom("Winter")
+                .EvolvesFrom("Summer")
+                .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
+                .ModifiesNode(NodeType.Bud)
+                .WithComponent(new AnnualLifeStageTrigger { Stage = LifeStage.Reproduction, Month = 3 })
+                .Gene);
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Summer")
+                .EvolvesFrom("Spring")
+                .EvolvesFrom("Autumn")
+                .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
+                .ModifiesNode(NodeType.Bud)
+                .WithComponent(new AnnualLifeStageTrigger { Stage = LifeStage.Reproduction, Month = 6 })
+                .Gene);
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Autumn")
+                .EvolvesFrom("Summer")
+                .EvolvesFrom("Winter")
+                .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
+                .ModifiesNode(NodeType.Bud)
+                .WithComponent(new AnnualLifeStageTrigger { Stage = LifeStage.Reproduction, Month = 9 })
+                .Gene);
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Winter")
+                .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
+                .ModifiesNode(NodeType.Bud)
+                .WithComponent(new AnnualLifeStageTrigger { Stage = LifeStage.Reproduction, Month = 0 })
                 .Gene);
 
             AddGene( new Gene(GeneCategory.EnergyProduction, GeneType.Morphology, "Leaf")

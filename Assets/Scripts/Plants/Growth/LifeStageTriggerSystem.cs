@@ -16,6 +16,11 @@ namespace Assets.Scripts.Plants.Growth
         public int Month;
         public LifeStage Stage;
     }
+    public struct TimeDelayedLifeStageTrigger : IComponentData
+    {
+        public int Days;
+        public LifeStage Stage;
+    }
     public struct ParentLifeStageTrigger : IComponentData
     {
         public LifeStage ParentedStage;
@@ -48,6 +53,19 @@ namespace Assets.Scripts.Plants.Growth
                 .ForEach((ref NodeDivision nodeDivision, in AnnualLifeStageTrigger trigger) =>
                 {
                     if (monthOfTheYear == trigger.Month)
+                    {
+                        nodeDivision.Stage = trigger.Stage;
+                    }
+                })
+                .ScheduleParallel();
+
+            Entities
+                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
+                .WithNone<Dormant>()
+                .ForEach((ref NodeDivision nodeDivision, ref TimeDelayedLifeStageTrigger trigger) =>
+                {
+                    trigger.Days--;
+                    if (trigger.Days == 0)
                     {
                         nodeDivision.Stage = trigger.Stage;
                     }
