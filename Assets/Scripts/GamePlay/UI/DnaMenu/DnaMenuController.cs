@@ -24,14 +24,15 @@ public class DnaMenuController : MonoBehaviour
     public void Enable() => StateMachine.Fire(UiTrigger.Enable);
     public void Disable() => StateMachine.Fire(UiTrigger.Disable);
     public void EditDna() => StateMachine.Fire(UiTrigger.EditDna);
-    public void SelectCategory(GeneCategory category) => StateMachine.Fire(UiTrigger.EditDna);
+    public void SelectCategory(GeneCategory category)
+    {
+        _category = category;
+        StateMachine.Fire(UiTrigger.SelectCategory);
+    }
 
     private void Start()
     {
         StateMachine = new StateMachine<UiState, UiTrigger>(() => _state, s => _state = s);
-
-        StateMachine.SetTriggerParameters<GeneCategory>(UiTrigger.SelectCategory);
-        StateMachine.SetTriggerParameters<string>(UiTrigger.SelectGene);
 
         StateMachine.Configure(UiState.Disabled)
             .OnActivate(() =>
@@ -74,6 +75,12 @@ public class DnaMenuController : MonoBehaviour
             })
             .Permit(UiTrigger.SelectCategory, UiState.Category)
             .Permit(UiTrigger.Close, UiState.Closed);
+
+        StateMachine.Configure(UiState.Category)
+            .OnEntryFrom(UiTrigger.SelectCategory, () =>
+            {
+
+            });
 
     }
 

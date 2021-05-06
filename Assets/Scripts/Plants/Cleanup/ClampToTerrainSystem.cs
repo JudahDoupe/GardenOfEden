@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -46,6 +47,7 @@ namespace Assets.Scripts.Plants.Cleanup
                             3 => landMaps3,
                             4 => landMaps4,
                             5 => landMaps5,
+                            _ => throw new ArgumentOutOfRangeException()
                         };
                         coord.Altitude = seaLevel + landMap[coord.nativeArrayIndex].r;
                         translation.Value = coord.xyz;

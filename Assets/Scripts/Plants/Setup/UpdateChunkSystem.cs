@@ -16,6 +16,7 @@ namespace Assets.Scripts.Plants.Setup
         public int Id;
         public bool IsEnvironmental => Id < 0;
         public bool Equals(UpdateChunk other) => other.Id == Id;
+        public override bool Equals(object other) => other is UpdateChunk chunk && chunk.Id == Id;
         public override int GetHashCode() => Id;
         public static bool operator == (UpdateChunk lhs, UpdateChunk rhs) => lhs.Equals(rhs);
         public static bool operator != (UpdateChunk lhs, UpdateChunk rhs) => !(lhs.Equals(rhs));
