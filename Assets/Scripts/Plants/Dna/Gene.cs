@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Assets.Scripts.Plants.Growth;
 using Unity.Collections;
@@ -20,23 +21,32 @@ namespace Assets.Scripts.Plants.Dna
 
     public enum GeneCategory
     {
-        Vegetation,
-        Reproduction,
-        EnergyProduction,
+        [Description("Vegetation")]
+        Vegetation = 0,
+        [Description("Reproduction")]
+        Reproduction = 1,
+        [Description("EnergyP roduction")]
+        EnergyProduction = 2,
     }
 
     public enum GeneType
     {
+        [Description("Morphology")]
         Morphology,
+        [Description("Vegetation Trigger")]
         VegetationTrigger,
+        [Description("Reproduction Trigger")]
         ReproductionTrigger,
+        [Description("Pigment")]
         Pigment,
-        Dormancy,
+        [Description("Dormancy Trigger")]
+        DormancyTrigger,
     }
 
     public class Gene
     {
         public string Name { get; }
+        public string Description { get; }
         public GeneCategory Category { get; }
         public GeneType Type { get; }
         public List<string> AncestorGenes { get; } = new List<string>();
@@ -44,9 +54,10 @@ namespace Assets.Scripts.Plants.Dna
 
         private readonly Dictionary<NodeType, NodeModification> _modifications = new Dictionary<NodeType, NodeModification>();
 
-        public Gene(GeneCategory category, GeneType type, string name)
+        public Gene(GeneCategory category, GeneType type, string name, string description)
         {
             Name = name;
+            Description = description;
             Category = category;
             Type = type;
         }

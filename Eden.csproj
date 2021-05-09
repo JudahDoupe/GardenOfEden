@@ -8,7 +8,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <ProjectGuid>{F49B5B11-5475-D98A-BF58-F6C878F5BC27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -57,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusObject.cs" />
+    <Compile Include="Assets\Scripts\Utils\Extensions\EnumExtensions.cs" />
     <Compile Include="Assets\Scripts\Utils\StateMachine\StateMachine.cs" />
     <Compile Include="Assets\Scripts\Plants\Cleanup\DormancySystem.cs" />
     <Compile Include="Assets\Scripts\Plants\Growth\LifeStageTriggerSystem.cs" />
@@ -124,34 +126,34 @@
     <Compile Include="Assets\Scripts\Plants\Environment\EnvironmentSystemGroup.cs" />
   </ItemGroup>
   <ItemGroup>
-     <None Include="Assets\Resources\Shaders\Land.shader" />
-     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
-     <None Include="Assets\Resources\Shaders\Land.hlsl" />
-     <None Include="Assets\Packages\LiteDB.5.0.10\lib\net45\LiteDB.xml" />
-     <None Include="Assets\Resources\Shaders\Soil.compute" />
-     <None Include="Assets\Resources\Shaders\Water.compute" />
-     <None Include="Assets\Packages\QuikGraph.2.3.0\lib\net45\QuikGraph.xml" />
-     <None Include="Assets\Resources\Shaders\CoordinateTransforms.hlsl" />
-     <None Include="Assets\Packages\FSharp.Core.4.2.3\lib\net45\FSharp.Core.dll" />
-     <None Include="Assets\Packages\FSharp.Core.4.2.3\lib\net45\FSharp.Core.xml" />
-     <None Include="Assets\Packages\stateless.5.10.1\lib\net45\stateless.dll" />
-     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.xml" />
-     <None Include="Assets\Resources\Shaders\TerrainManipulation.compute" />
-     <None Include="Assets\Packages\FsCheck.2.14.4\lib\net452\FsCheck.xml" />
-     <None Include="Assets\Packages\QuikGraph.2.3.0\lib\net45\QuikGraph.dll" />
-     <None Include="Assets\Packages\FsCheck.2.14.4\lib\net452\FsCheck.dll" />
-     <None Include="Assets\Resources\Shaders\Colors.hlsl" />
-     <None Include="Assets\Eden.asmdef" />
-     <None Include="Assets\Resources\Shaders\Initialize.compute" />
-     <None Include="Assets\Resources\Shaders\Planet.hlsl" />
-     <None Include="Assets\Resources\Shaders\Water.hlsl" />
-     <None Include="Assets\Resources\Shaders\Water.shader" />
-     <None Include="Assets\Imports\NuGet\Editor\NugetForUnity.dll" />
-     <None Include="Assets\Resources\Shaders\PlanetTests.compute" />
-     <None Include="Assets\Resources\Shaders\CoordinateTransformsTests.compute" />
-     <None Include="Assets\Packages\stateless.5.10.1\lib\net45\stateless.xml" />
-     <None Include="Assets\Resources\Shaders\Land.compute" />
-     <None Include="Assets\Packages\LiteDB.5.0.10\lib\net45\LiteDB.dll" />
+    <None Include="Assets\Resources\Shaders\Land.shader" />
+    <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
+    <None Include="Assets\Resources\Shaders\Land.hlsl" />
+    <None Include="Assets\Packages\LiteDB.5.0.10\lib\net45\LiteDB.xml" />
+    <None Include="Assets\Resources\Shaders\Soil.compute" />
+    <None Include="Assets\Resources\Shaders\Water.compute" />
+    <None Include="Assets\Packages\QuikGraph.2.3.0\lib\net45\QuikGraph.xml" />
+    <None Include="Assets\Resources\Shaders\CoordinateTransforms.hlsl" />
+    <None Include="Assets\Packages\FSharp.Core.4.2.3\lib\net45\FSharp.Core.dll" />
+    <None Include="Assets\Packages\FSharp.Core.4.2.3\lib\net45\FSharp.Core.xml" />
+    <None Include="Assets\Packages\stateless.5.10.1\lib\net45\stateless.dll" />
+    <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.xml" />
+    <None Include="Assets\Resources\Shaders\TerrainManipulation.compute" />
+    <None Include="Assets\Packages\FsCheck.2.14.4\lib\net452\FsCheck.xml" />
+    <None Include="Assets\Packages\QuikGraph.2.3.0\lib\net45\QuikGraph.dll" />
+    <None Include="Assets\Packages\FsCheck.2.14.4\lib\net452\FsCheck.dll" />
+    <None Include="Assets\Resources\Shaders\Colors.hlsl" />
+    <None Include="Assets\Eden.asmdef" />
+    <None Include="Assets\Resources\Shaders\Initialize.compute" />
+    <None Include="Assets\Resources\Shaders\Planet.hlsl" />
+    <None Include="Assets\Resources\Shaders\Water.hlsl" />
+    <None Include="Assets\Resources\Shaders\Water.shader" />
+    <None Include="Assets\Imports\NuGet\Editor\NugetForUnity.dll" />
+    <None Include="Assets\Resources\Shaders\PlanetTests.compute" />
+    <None Include="Assets\Resources\Shaders\CoordinateTransformsTests.compute" />
+    <None Include="Assets\Packages\stateless.5.10.1\lib\net45\stateless.xml" />
+    <None Include="Assets\Resources\Shaders\Land.compute" />
+    <None Include="Assets\Packages\LiteDB.5.0.10\lib\net45\LiteDB.dll" />
     <Reference Include="UnityEngine">
       <HintPath>C:\_Projects\2021.1.4f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

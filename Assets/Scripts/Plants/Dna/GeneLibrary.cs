@@ -54,7 +54,7 @@ namespace Assets.Scripts.Plants.Dna
 
         public GeneLibrary()
         {
-            AddGene( new Gene(GeneCategory.Vegetation, GeneType.Morphology, "Rosette")
+            AddGene( new Gene(GeneCategory.Vegetation, GeneType.Morphology, "Rosette", "A Rosette is a spiral leaf pattern without stems. Good for small ground cover.")
                 .WithDependency(GeneCategory.Vegetation, GeneType.ReproductionTrigger)
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
                 .WithDependency(GeneCategory.EnergyProduction, GeneType.Morphology)
@@ -72,7 +72,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithDivision(NodeType.EnergyProduction, DivisionOrder.InPlace, LifeStage.Vegetation, Quaternion.LookRotation(new Vector3(0.7f, 0, 0.3f), Vector3.forward))
                 .WithDivision(NodeType.Reproduction, DivisionOrder.Replace, LifeStage.Reproduction)
                 .Gene);
-            AddGene(new Gene(GeneCategory.Vegetation, GeneType.Morphology, "Spiral")
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.Morphology, "Spiral", "Spiral plants grow tall and straight while sending out leaves in all directions.")
                 .EvolvesFrom("Rosette")
                 .WithDependency(GeneCategory.Vegetation, GeneType.ReproductionTrigger)
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
@@ -94,7 +94,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithDivision(NodeType.EnergyProduction, DivisionOrder.InPlace, LifeStage.Vegetation, Quaternion.LookRotation(new Vector3(0.7f, 0, 0.3f), Vector3.forward))
                 .WithDivision(NodeType.Reproduction, DivisionOrder.Replace, LifeStage.Reproduction)
                 .Gene);
-            AddGene( new Gene(GeneCategory.Vegetation, GeneType.Morphology, "Straight Parallel")
+            AddGene( new Gene(GeneCategory.Vegetation, GeneType.Morphology, "Straight Opposite", "This tall straight structure puts out 2 leaves per node that are opposite each other. ")
                 .EvolvesFrom("Spiral")
                 .WithDependency(GeneCategory.Vegetation, GeneType.ReproductionTrigger)
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
@@ -117,49 +117,49 @@ namespace Assets.Scripts.Plants.Dna
                 .WithDivision(NodeType.Reproduction, DivisionOrder.Replace, LifeStage.Reproduction)
                 .Gene);
 
-            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Deterministic")
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Deterministic", "Deterministic reproduction occurs when a bud has finished growing it's vegetation.")
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
                 .ModifiesNode(NodeType.Bud)
                 .WithComponent(new DeterministicLifeStageTrigger { CurrentStage = LifeStage.Vegetation, NextStage = LifeStage.Reproduction })
                 .Gene);
-            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "One Week")
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "One Week", "Buds will start switch to reproduction 1 week after starting growth.")
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
                 .ModifiesNode(NodeType.Bud)
                 .WithComponent(new TimeDelayedLifeStageTrigger {Stage = LifeStage.Reproduction, Days = 7})
                 .Gene);
-            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "One Month")
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "One Month", "Buds will start switch to reproduction 1 month after starting growth.")
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
                 .ModifiesNode(NodeType.Bud)
                 .WithComponent(new TimeDelayedLifeStageTrigger { Stage = LifeStage.Reproduction, Days = 30 })
                 .Gene);
-            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Spring")
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Spring", "Buds switch to reproduction in the Spring.")
                 .EvolvesFrom("Winter")
                 .EvolvesFrom("Summer")
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
                 .ModifiesNode(NodeType.Bud)
                 .WithComponent(new AnnualLifeStageTrigger { Stage = LifeStage.Reproduction, Month = 3 })
                 .Gene);
-            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Summer")
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Summer", "Buds switch to reproduction in the Summer.")
                 .EvolvesFrom("Spring")
                 .EvolvesFrom("Autumn")
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
                 .ModifiesNode(NodeType.Bud)
                 .WithComponent(new AnnualLifeStageTrigger { Stage = LifeStage.Reproduction, Month = 6 })
                 .Gene);
-            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Autumn")
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Autumn", "Buds switch to reproduction in the Autumn.")
                 .EvolvesFrom("Summer")
                 .EvolvesFrom("Winter")
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
                 .ModifiesNode(NodeType.Bud)
                 .WithComponent(new AnnualLifeStageTrigger { Stage = LifeStage.Reproduction, Month = 9 })
                 .Gene);
-            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Winter")
+            AddGene(new Gene(GeneCategory.Vegetation, GeneType.ReproductionTrigger, "Winter", "Buds switch to reproduction in the Winter.")
                 .WithDependency(GeneCategory.Reproduction, GeneType.Morphology)
                 .ModifiesNode(NodeType.Bud)
                 .WithComponent(new AnnualLifeStageTrigger { Stage = LifeStage.Reproduction, Month = 0 })
                 .Gene);
 
-            AddGene(new Gene(GeneCategory.EnergyProduction, GeneType.Morphology, "Narrow Leaf")
+            AddGene(new Gene(GeneCategory.EnergyProduction, GeneType.Morphology, "Narrow Leaf", "Narrow leaves absorb less light, and so are preferred for tight clusters of leaves.")
                 .ModifiesNode(NodeType.EnergyProduction)
                 .WithName("Leaf")
                 .WithComponent(new LightAbsorber())
@@ -169,7 +169,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithComponent(new PrimaryGrowth { DaysToMature = 4, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = new float3(0.3f, 0.1f, 1) })
                 .WithComponent(new Metabolism { Resting = 0.025f })
                 .Gene);
-            AddGene( new Gene(GeneCategory.EnergyProduction, GeneType.Morphology, "Broad Leaf")
+            AddGene( new Gene(GeneCategory.EnergyProduction, GeneType.Morphology, "Broad Leaf", "Broad leaves absorb more light per leaf.  They are better for plants with fewer leaves.")
                 .ModifiesNode(NodeType.EnergyProduction)
                 .WithName("Leaf")
                 .WithComponent(new LightAbsorber())
@@ -180,7 +180,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithComponent(new Metabolism { Resting = 0.025f })
                 .Gene);
 
-            AddGene( new Gene(GeneCategory.Reproduction, GeneType.Morphology, "Sporangia")
+            AddGene( new Gene(GeneCategory.Reproduction, GeneType.Morphology, "Sporangia", "A sproangia produces spores that get blown by the wind when they are mature.")
                 .WithDependency(GeneCategory.Reproduction, GeneType.VegetationTrigger)
                 .ModifiesNode(NodeType.Reproduction)
                 .WithName("Sporangia")
@@ -199,7 +199,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithDivision(NodeType.Bud, DivisionOrder.PostNode, LifeStage.Vegetation, Quaternion.LookRotation(Vector3.forward, Vector3.right))
                 .Gene);
 
-            AddGene( new Gene(GeneCategory.Reproduction, GeneType.VegetationTrigger, "Disconnect")
+            AddGene( new Gene(GeneCategory.Reproduction, GeneType.VegetationTrigger, "Immediate", "Vegetation starts growing as soon as the embro disconnects from it's parent.")
                 .WithDependency(GeneCategory.Vegetation, GeneType.Morphology)
                 .ModifiesNode(NodeType.Embryo)
                 .WithComponent(new ParentLifeStageTrigger { ParentedStage = LifeStage.Reproduction, UnparentedStage = LifeStage.Vegetation })

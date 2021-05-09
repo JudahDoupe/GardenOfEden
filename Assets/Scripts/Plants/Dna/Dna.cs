@@ -17,8 +17,9 @@ namespace Assets.Scripts.Plants.Dna
     public class Dna
     {
         public int SpeciesId { get; private set; }
-        public List<GeneType> GeneTypes(GeneCategory category) => _genes.Where(x => x.Category == category).Select(x => x.Type).Distinct().ToList();
-        public List<GeneCategory> GeneCategories => _genes.Select(x => x.Category).Distinct().ToList();
+        public List<GeneCategory> GetGeneCategories => _genes.Select(x => x.Category).Distinct().ToList();
+        public List<GeneType> GetGeneTypes(GeneCategory category) => _genes.Where(x => x.Category == category).Select(x => x.Type).Distinct().ToList();
+        public Gene GetGene(GeneCategory category, GeneType type) => _genes.Where(x => x.Category == category).FirstOrDefault(x => x.Type == type);
         
         private List<Gene> _genes { get; set; } = new List<Gene>();
         private Dictionary<NodeType, Entity> _protoNodes { get; set; } = new Dictionary<NodeType, Entity>();
