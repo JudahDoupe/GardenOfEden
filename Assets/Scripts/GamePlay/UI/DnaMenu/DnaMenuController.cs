@@ -10,12 +10,11 @@ using UnityEngine.UI;
 public class DnaMenuController : MonoBehaviour
 {
     public GameObject OpenMenuButton;
-    public GameObject GeneTypesPanel;
-    public GameObject GenesPanel;
-    public GameObject DescriptionPanel;
-    public CategoryButton[] CategoryButtons;
+    public Panel GeneCategoryPanel;
+    public Panel GeneTypePanel;
+    public Panel GenePanel;
+    public Panel GeneDescriptionPanel;
     public float OpenSpeed = 1f;
-    public float Distance = 3f;
 
     public StateMachine<UiState, UiTrigger> StateMachine { get; private set; }
 
@@ -24,31 +23,12 @@ public class DnaMenuController : MonoBehaviour
     private Bounds _focusedBounds;
     private Dna _dna;
     private GeneCategory _category;
-    private string _currentGene;
-    private string _potentialGene;
+    private Gene _currentGene;
+    private Gene _potentialGene;
 
     public void Enable() => StateMachine.Fire(UiTrigger.Enable);
     public void Disable() => StateMachine.Fire(UiTrigger.Disable);
     public void EditDna() => StateMachine.Fire(UiTrigger.EditDna);
-    public void SelectCategory(int category)
-    {
-        _category = (GeneCategory)category;
-        StateMachine.Fire(UiTrigger.SelectCategory);
-    }
-    public void ViewEvolutions(string gene)
-    {
-        _currentGene = gene;
-        StateMachine.Fire(UiTrigger.ViewEvolutions);
-    }
-    public void ViewGene(string gene)
-    {
-        _potentialGene = gene;
-        StateMachine.Fire(UiTrigger.ViewGene);
-    }
-    public void Evolve()
-    {
-
-    }
 
     private void Start()
     {
@@ -81,82 +61,90 @@ public class DnaMenuController : MonoBehaviour
                 var dnaReference = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<DnaReference>(_focusedPlant);
                 _dna = DnaService.GetSpeciesDna(dnaReference.SpeciesId);
 
-                for (int i = 0; i < CategoryButtons.Length; i++)
+                GeneCategoryPanel.IsActive = true;
+                ResetPanel(GeneCategoryPanel.Transform);
+                var template = GeneCategoryPanel.Transform.Find("Template");
+
+                foreach (var category in _dna.GetGeneCategories())
                 {
-                    CategoryButtons[i].IsActive = _dna.GetGeneCategories.Contains(CategoryButtons[i].Category);
+                    if (!_dna.GetGeneTypes(category).Select(type => _dna.GetGene(category, type)).SelectMany(gene => DnaService.GeneLibrary.GetEvolutions(gene.Name)).Any()) continue;
+
+                    var element = Instantiate(template, GeneCategoryPanel.Transform);
+                    element.name = "TMP";
+                    element.gameObject.SetActive(true);
+                    element.Find("Text").gameObject.GetComponent<Text>().text = category.GetDescription();
+                    element.gameObject.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
+                    {
+                        _category = category;
+                        StateMachine.Fire(UiTrigger.SelectCategory);
+                    });
                 }
             })
             .OnExit(() =>
             {
-                for (int i = 0; i < CategoryButtons.Length; i++)
-                {
-                    CategoryButtons[i].IsActive = false;
-                }
+                GeneCategoryPanel.IsActive = false;
             })
-            .Permit(UiTrigger.SelectCategory, UiState.Category)
+            .Permit(UiTrigger.SelectCategory, UiState.TypeSelection)
             .Permit(UiTrigger.Close, UiState.Closed);
 
-        StateMachine.Configure(UiState.Category)
+        StateMachine.Configure(UiState.TypeSelection)
             .OnEntryFrom(UiTrigger.SelectCategory, () =>
             {
-                var template = GeneTypesPanel.transform.Find("Template");
-                for (var i = 0; i < GeneTypesPanel.transform.childCount; i++)
-                {
-                    var obj = GeneTypesPanel.transform.GetChild(i).gameObject;
-                    if (obj.name != "Template")
-                    {
-                        Destroy(obj);
-                    }
-                }
+                GeneCategoryPanel.IsActive = true;
+                GeneTypePanel.IsActive = true;
+                ResetPanel(GeneTypePanel.Transform);
+                var template = GeneTypePanel.Transform.Find("Template");
 
                 foreach (var type in _dna.GetGeneTypes(_category))
                 {
-                    var geneName = _dna.GetGene(_category, type).Name;
-                    var typeUi = Instantiate(template, GeneTypesPanel.transform);
-                    typeUi.Find("Title").GetComponent<Text>().text = type.GetDescription();
-                    typeUi.Find("Button").Find("Text").GetComponent<Text>().text = geneName;
-                    typeUi.Find("Button").GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => ViewEvolutions(geneName));
-                    typeUi.gameObject.SetActive(true);
-                }
+                    var gene = _dna.GetGene(_category, type);
+                    if (!DnaService.GeneLibrary.GetEvolutions(gene.Name).Any()) continue;
 
-                template.gameObject.SetActive(false);
-                GeneTypesPanel.SetActive(true);
+                    var element = Instantiate(template, GeneTypePanel.Transform);
+                    element.name = "TMP";
+                    element.gameObject.SetActive(true);
+                    element.Find("Title").GetComponent<Text>().text = type.GetDescription();
+                    element.Find("Button").Find("Text").GetComponent<Text>().text = gene.Name;
+                    element.Find("Button").GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
+                    {
+                        _currentGene = gene;
+                        StateMachine.Fire(UiTrigger.ViewEvolutions);
+                    });
+                }
             })
             .OnExit(() =>
             {
-                GeneTypesPanel.SetActive(false);
+                GeneCategoryPanel.IsActive = false;
+                GeneTypePanel.IsActive = false;
             })
+            .PermitReentry(UiTrigger.SelectCategory)
             .Permit(UiTrigger.ViewEvolutions, UiState.Evolutions);
 
         StateMachine.Configure(UiState.Evolutions)
             .OnEntry(() =>
             {
-                var template = GenesPanel.transform.Find("Template");
-                for (var i = 0; i < GenesPanel.transform.childCount; i++)
+                GeneTypePanel.IsActive = true;
+                GenePanel.IsActive = true;
+                ResetPanel(GenePanel.Transform);
+                var template = GenePanel.Transform.Find("Template");
+
+                foreach (var evolutionGene in DnaService.GeneLibrary.GetEvolutions(_currentGene.Name))
                 {
-                    var obj = GenesPanel.transform.GetChild(i).gameObject;
-                    if (obj.name != "Template")
+                    var element = Instantiate(template, GenePanel.Transform);
+                    element.name = "TMP";
+                    element.gameObject.SetActive(true);
+                    element.Find("Text").GetComponent<Text>().text = evolutionGene.Name;
+                    element.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
                     {
-                        Destroy(obj);
-                    }
+                        _potentialGene = evolutionGene;
+                        StateMachine.Fire(UiTrigger.ViewGene);
+                    });
                 }
-
-                foreach (var evolutionGene in DnaService.GeneLibrary.GetEvolutions(_currentGene))
-                {
-                    var geneButton = Instantiate(template, GenesPanel.transform);
-                    geneButton.Find("Text").GetComponent<Text>().text = evolutionGene.Name;
-                    geneButton.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => ViewGene(evolutionGene.Name));
-                    geneButton.gameObject.SetActive(true);
-                }
-
-                template.gameObject.SetActive(false);
-                GeneTypesPanel.SetActive(true);
-                GenesPanel.SetActive(true);
             })
             .OnExit(() =>
             {
-                GeneTypesPanel.SetActive(false);
-                GenesPanel.SetActive(false);
+                GeneTypePanel.IsActive = false;
+                GenePanel.IsActive = false;
             })
             .PermitReentry(UiTrigger.ViewEvolutions)
             .Permit(UiTrigger.ViewGene, UiState.Description);
@@ -164,26 +152,24 @@ public class DnaMenuController : MonoBehaviour
         StateMachine.Configure(UiState.Description)
             .OnEntry(() =>
             {
-                var gene = DnaService.GeneLibrary.GetGene(_potentialGene);
-                DescriptionPanel.transform.Find("Title").gameObject.GetComponent<Text>().text = gene.Name;
-                DescriptionPanel.transform.Find("DescriptionContainer").Find("Description").gameObject.GetComponent<Text>().text = gene.Description;
+                GenePanel.IsActive = true;
+                GeneDescriptionPanel.IsActive = true;
 
-                GeneTypesPanel.SetActive(true);
-                GenesPanel.SetActive(true);
-                DescriptionPanel.SetActive(true);
+                GeneDescriptionPanel.Transform.Find("Title").gameObject.GetComponent<Text>().text = _potentialGene.Name;
+                GeneDescriptionPanel.Transform.Find("DescriptionContainer").Find("Description").gameObject.GetComponent<Text>().text = _potentialGene.Description;
             })
             .OnExit(() =>
             {
-                GeneTypesPanel.SetActive(false);
-                GenesPanel.SetActive(false);
-                DescriptionPanel.SetActive(false);
+                GenePanel.IsActive = false;
+                GeneDescriptionPanel.IsActive = false;
             })
             .PermitReentry(UiTrigger.ViewGene)
-            .Permit(UiTrigger.ViewEvolutions, UiState.Evolutions);
+            .Permit(UiTrigger.ViewEvolutions, UiState.Evolutions)
+            .Permit(UiTrigger.Evolve, UiState.Closed);
 
     }
 
-    private  void Update()
+    private void Update()
     {
         if (StateMachine.IsInState(UiState.Closed))
         {
@@ -201,12 +187,10 @@ public class DnaMenuController : MonoBehaviour
             DriftCamera();
         }
 
-        var lastIndex = -1;
-        for (int i = 0; i < CategoryButtons.Length; i++)
-        {
-            var index = CategoryButtons[i].IsActive ? ++lastIndex : -1;
-            UpdateCategoryButton(CategoryButtons[i].Button, index, CategoryButtons[i].IsActive);
-        }
+        UpdatePanel(GeneCategoryPanel);
+        UpdatePanel(GeneTypePanel);
+        UpdatePanel(GenePanel);
+        UpdatePanel(GeneDescriptionPanel);
     }
 
     private void DriftCamera()
@@ -217,19 +201,23 @@ public class DnaMenuController : MonoBehaviour
         Singleton.CameraController.Zoom(distance);
     }
 
-    private void UpdateCategoryButton(GameObject button, int index, bool isActive)
+    private void UpdatePanel(Panel panel)
     {
-        button.GetComponent<GrowOnHover>().SetBaseScale(isActive ? 1 : 0);
+        panel.Transform.localScale = Vector3.Lerp(panel.Transform.localScale, new Vector3(panel.IsActive ? 1 : 0, 1, 1), Time.deltaTime * OpenSpeed);
+        panel.Transform.gameObject.SetActive(panel.Transform.localScale.x > 0.01f);
+    }
 
-        var targetPos = new Vector3(0, 0, 0);
-        if (index >= 0)
+    private void ResetPanel(Transform panel)
+    {
+        for (var i = 0; i < panel.childCount; i++)
         {
-            var theta = ((index + 1f) / CategoryButtons.Count(x => x.IsActive)) * 2f * math.PI;
-            targetPos.x = math.sin(theta);
-            targetPos.y = math.cos(theta);
-            targetPos *= Distance;
+            var obj = panel.GetChild(i).gameObject;
+            if (obj.name == "TMP")
+            {
+                Destroy(obj);
+            }
         }
-        button.transform.localPosition = Vector3.Lerp(button.transform.localPosition, targetPos, OpenSpeed * Time.deltaTime);
+        panel.Find("Template").gameObject.SetActive(false);
     }
 
     [Serializable]
@@ -238,7 +226,7 @@ public class DnaMenuController : MonoBehaviour
         Disabled,
         Closed,
         CategorySelection,
-        Category,
+        TypeSelection,
         Evolutions,
         Description,
     }
@@ -256,10 +244,9 @@ public class DnaMenuController : MonoBehaviour
     }
 
     [Serializable]
-    public struct CategoryButton
+    public struct Panel
     {
-        public GameObject Button;
-        public GeneCategory Category;
+        public Transform Transform;
         public bool IsActive;
     }
 }
