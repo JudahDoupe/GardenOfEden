@@ -15,6 +15,7 @@ public class DnaMenuController : MonoBehaviour
     public Panel GenePanel;
     public Panel GeneDescriptionPanel;
     public float OpenSpeed = 1f;
+    public float DriftSpeed = 5f;
 
     public StateMachine<UiState, UiTrigger> StateMachine { get; private set; }
 
@@ -195,8 +196,8 @@ public class DnaMenuController : MonoBehaviour
 
     private void DriftCamera()
     {
-        var distance = Mathf.Min(CameraUtils.GetDistanceToIncludeBounds(_focusedBounds, 2.5f), 10);
-        Singleton.CameraController.Rotate(new Vector3(distance / 100000, 0));
+        var distance = Mathf.Clamp(CameraUtils.GetDistanceToIncludeBounds(_focusedBounds, 1.5f), 5, 25);
+        Singleton.CameraController.Rotate(new Vector3((distance * DriftSpeed) / 100000, 0));
         Singleton.CameraController.MoveTo(new Coordinate(_focusedBounds.center));
         Singleton.CameraController.Zoom(distance);
     }
