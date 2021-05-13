@@ -1,6 +1,8 @@
 using Assets.Scripts.Plants.Dna;
 using Stateless;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -10,169 +12,96 @@ using UnityEngine.UI;
 public class DnaMenuController : MonoBehaviour
 {
     public GameObject OpenMenuButton;
-    public Panel GeneCategoryPanel;
-    public Panel GeneTypePanel;
-    public Panel GenePanel;
-    public Panel GeneDescriptionPanel;
-    public float OpenSpeed = 1f;
+    public GameObject NextCategoryButton;
+    public GameObject LastCategoryButton;
+
+    public GameObject PanelPrefab;
+
     public float DriftSpeed = 5f;
 
-    public StateMachine<UiState, UiTrigger> StateMachine { get; private set; }
+    private StateMachine<UiState, UiTrigger> _stateMachine;
+    private StateMachine<UiState, UiTrigger>.TriggerWithParameters<GeneCategory> _selectCategory;
 
     private UiState _state = UiState.Closed;
     private Entity _focusedPlant;
     private Bounds _focusedBounds;
-    private Dna _dna;
-    private GeneCategory _category;
-    private Gene _currentGene;
-    private Gene _potentialGene;
 
-    public void Enable() => StateMachine.Fire(UiTrigger.Enable);
-    public void Disable() => StateMachine.Fire(UiTrigger.Disable);
-    public void EditDna() => StateMachine.Fire(UiTrigger.EditDna);
+    private int _currentPanelIndex = 0;
+    private List<DnaCategoryPanel> _panels = new List<DnaCategoryPanel>();
+
+    public void Enable() => _stateMachine.Fire(UiTrigger.Enable);
+    public void Disable() => _stateMachine.Fire(UiTrigger.Disable);
+    public void EditDna() => _stateMachine.Fire(UiTrigger.EditDna);
+    public void SelectCategory(GeneCategory category) => _stateMachine.Fire(_selectCategory, category);
 
     private void Start()
     {
-        StateMachine = new StateMachine<UiState, UiTrigger>(() => _state, s => _state = s);
+        _stateMachine = new StateMachine<UiState, UiTrigger>(() => _state, s => _state = s);
+        _selectCategory = _stateMachine.SetTriggerParameters<GeneCategory>(UiTrigger.SelectCategory);
 
-        StateMachine.Configure(UiState.Disabled)
-            .OnActivate(() =>
-            {
-                OpenMenuButton.SetActive(false);
-            })
+        _stateMachine.Configure(UiState.Disabled)
             .Permit(UiTrigger.Enable, UiState.Closed);
-
-        StateMachine.Configure(UiState.Closed)
-            .OnEntry(() => { 
-                Singleton.CameraController.LockRotation = false;
-                Singleton.CameraController.LockMovement = false;
+        _stateMachine.Configure(UiState.Closed)
+            .OnEntry(() =>
+            {
                 OpenMenuButton.SetActive(true);
             })
-            .OnExit(() => {
-                Singleton.CameraController.LockRotation = true;
-                Singleton.CameraController.LockMovement = true;
+            .OnExit(() =>
+            {
                 OpenMenuButton.SetActive(false);
             })
-            .Permit(UiTrigger.EditDna, UiState.CategorySelection);
-
-        StateMachine.Configure(UiState.CategorySelection)
-            .IgnoreIf(UiTrigger.EditDna, () => _focusedPlant == Entity.Null)
-            .OnEntryFrom(UiTrigger.EditDna, () =>
+            .Permit(UiTrigger.Disable, UiState.Disabled)
+            .Permit(UiTrigger.EditDna, UiState.Open);
+        _stateMachine.Configure(UiState.Open)
+            .OnEntry(() =>
             {
                 var dnaReference = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<DnaReference>(_focusedPlant);
-                _dna = DnaService.GetSpeciesDna(dnaReference.SpeciesId);
-
-                GeneCategoryPanel.IsActive = true;
-                ResetPanel(GeneCategoryPanel.Transform);
-                var template = GeneCategoryPanel.Transform.Find("Template");
-
-                foreach (var category in _dna.GetGeneCategories())
+                var dna = DnaService.GetSpeciesDna(dnaReference.SpeciesId);
+                foreach (var category in dna.GetGeneCategories())
                 {
-                    if (!_dna.GetGeneTypes(category).Select(type => _dna.GetGene(category, type)).SelectMany(gene => DnaService.GeneLibrary.GetEvolutions(gene.Name)).Any()) continue;
-
-                    var element = Instantiate(template, GeneCategoryPanel.Transform);
-                    element.name = "TMP";
-                    element.gameObject.SetActive(true);
-                    element.Find("Text").gameObject.GetComponent<Text>().text = category.GetDescription();
-                    element.gameObject.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
-                    {
-                        _category = category;
-                        StateMachine.Fire(UiTrigger.SelectCategory);
-                    });
+                    var panel = Instantiate(PanelPrefab, transform).GetComponent<DnaCategoryPanel>();
+                    _panels.Add(panel);
+                    panel.Init(dna, category);
                 }
+                PositionOpenPanels();
             })
             .OnExit(() =>
             {
-                GeneCategoryPanel.IsActive = false;
+                foreach (var panel in _panels)
+                {
+                    Destroy(panel.gameObject);
+                }
+                _panels.Clear();
             })
-            .Permit(UiTrigger.SelectCategory, UiState.TypeSelection)
+            .Permit(UiTrigger.SelectCategory, UiState.Carousel);
+        _stateMachine.Configure(UiState.Carousel)
+            .SubstateOf(UiState.Open)
+            .OnEntryFrom(_selectCategory, (category) =>
+            {
+                _currentPanelIndex = _panels.IndexOf(_panels.Single(x => x.Category == category));
+                PositionCarouselPanels();
+            })
+            .OnEntryFrom(UiTrigger.LastCategory, () =>
+            {
+                _currentPanelIndex = (_currentPanelIndex + 1) % _panels.Count;
+                PositionCarouselPanels();
+            })
+            .OnEntryFrom(UiTrigger.NextCategory, () =>
+            {
+                _currentPanelIndex = (_currentPanelIndex - 1) % _panels.Count;
+                PositionCarouselPanels();
+            })
+            .Ignore(UiTrigger.SelectCategory)
+            .PermitReentry(UiTrigger.LastCategory)
+            .PermitReentry(UiTrigger.NextCategory)
             .Permit(UiTrigger.Close, UiState.Closed);
 
-        StateMachine.Configure(UiState.TypeSelection)
-            .OnEntryFrom(UiTrigger.SelectCategory, () =>
-            {
-                GeneCategoryPanel.IsActive = true;
-                GeneTypePanel.IsActive = true;
-                ResetPanel(GeneTypePanel.Transform);
-                var template = GeneTypePanel.Transform.Find("Template");
-
-                foreach (var type in _dna.GetGeneTypes(_category))
-                {
-                    var gene = _dna.GetGene(_category, type);
-                    if (!DnaService.GeneLibrary.GetEvolutions(gene.Name).Any()) continue;
-
-                    var element = Instantiate(template, GeneTypePanel.Transform);
-                    element.name = "TMP";
-                    element.gameObject.SetActive(true);
-                    element.Find("Title").GetComponent<Text>().text = type.GetDescription();
-                    element.Find("Button").Find("Text").GetComponent<Text>().text = gene.Name;
-                    element.Find("Button").GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
-                    {
-                        _currentGene = gene;
-                        StateMachine.Fire(UiTrigger.ViewEvolutions);
-                    });
-                }
-            })
-            .OnExit(() =>
-            {
-                GeneCategoryPanel.IsActive = false;
-                GeneTypePanel.IsActive = false;
-            })
-            .PermitReentry(UiTrigger.SelectCategory)
-            .Permit(UiTrigger.ViewEvolutions, UiState.Evolutions);
-
-        StateMachine.Configure(UiState.Evolutions)
-            .OnEntry(() =>
-            {
-                GeneTypePanel.IsActive = true;
-                GenePanel.IsActive = true;
-                ResetPanel(GenePanel.Transform);
-                var template = GenePanel.Transform.Find("Template");
-
-                foreach (var evolutionGene in DnaService.GeneLibrary.GetEvolutions(_currentGene.Name))
-                {
-                    var element = Instantiate(template, GenePanel.Transform);
-                    element.name = "TMP";
-                    element.gameObject.SetActive(true);
-                    element.Find("Text").GetComponent<Text>().text = evolutionGene.Name;
-                    element.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
-                    {
-                        _potentialGene = evolutionGene;
-                        StateMachine.Fire(UiTrigger.ViewGene);
-                    });
-                }
-            })
-            .OnExit(() =>
-            {
-                GeneTypePanel.IsActive = false;
-                GenePanel.IsActive = false;
-            })
-            .PermitReentry(UiTrigger.ViewEvolutions)
-            .Permit(UiTrigger.ViewGene, UiState.Description);
-
-        StateMachine.Configure(UiState.Description)
-            .OnEntry(() =>
-            {
-                GenePanel.IsActive = true;
-                GeneDescriptionPanel.IsActive = true;
-
-                GeneDescriptionPanel.Transform.Find("Title").gameObject.GetComponent<Text>().text = _potentialGene.Name;
-                GeneDescriptionPanel.Transform.Find("DescriptionContainer").Find("Description").gameObject.GetComponent<Text>().text = _potentialGene.Description;
-            })
-            .OnExit(() =>
-            {
-                GenePanel.IsActive = false;
-                GeneDescriptionPanel.IsActive = false;
-            })
-            .PermitReentry(UiTrigger.ViewGene)
-            .Permit(UiTrigger.ViewEvolutions, UiState.Evolutions)
-            .Permit(UiTrigger.Evolve, UiState.Closed);
 
     }
 
     private void Update()
     {
-        if (StateMachine.IsInState(UiState.Closed))
+        if (!_stateMachine.IsInState(UiState.Open))
         {
             _focusedPlant = CameraUtils.GetClosestEntity(Singleton.CameraController.FocusPos);
             if (_focusedPlant != Entity.Null)
@@ -183,15 +112,10 @@ public class DnaMenuController : MonoBehaviour
             }
         }
 
-        if (!StateMachine.IsInState(UiState.Closed))
+        if (_stateMachine.IsInState(UiState.Open))
         {
             DriftCamera();
         }
-
-        UpdatePanel(GeneCategoryPanel);
-        UpdatePanel(GeneTypePanel);
-        UpdatePanel(GenePanel);
-        UpdatePanel(GeneDescriptionPanel);
     }
 
     private void DriftCamera()
@@ -202,23 +126,62 @@ public class DnaMenuController : MonoBehaviour
         Singleton.CameraController.Zoom(distance);
     }
 
-    private void UpdatePanel(Panel panel)
+    private void PositionOpenPanels()
     {
-        panel.Transform.localScale = Vector3.Lerp(panel.Transform.localScale, new Vector3(panel.IsActive ? 1 : 0, 1, 1), Time.deltaTime * OpenSpeed);
-        panel.Transform.gameObject.SetActive(panel.Transform.localScale.x > 0.01f);
+        StartCoroutine(Move(transform, Vector3.zero, Vector3.one));
+
+        var positions = new Stack<Vector3>();
+        for (int i = 0; i < _panels.Count; i++)
+        {
+            var offset = (i - (_panels.Count - 1) / 2f) * 300;
+            positions.Push(new Vector3(offset, 0));
+        }
+
+        foreach (var panel in _panels)
+        {
+            panel.transform.localPosition = positions.Pop();
+            panel.transform.localScale = Vector3.one;
+            panel.Activate();
+        }
     }
 
-    private void ResetPanel(Transform panel)
+    private void PositionCarouselPanels()
     {
-        for (var i = 0; i < panel.childCount; i++)
+        StartCoroutine(Move(transform, new Vector3(-300, 0, 0), Vector3.one));
+
+        for (int i = 0; i < _panels.Count; i++)
         {
-            var obj = panel.GetChild(i).gameObject;
-            if (obj.name == "TMP")
+            var panel = _panels[(i + _currentPanelIndex) % _panels.Count];
+            panel.transform.SetSiblingIndex(_panels.Count - (i+1));
+            panel.transform.localPosition = new Vector3(-75 * i, 0, 0);
+            panel.transform.localScale = Vector3.one * (1 - 0.1f * i);
+            if (i == 0)
             {
-                Destroy(obj);
+                panel.Activate();
+            }
+            else
+            {
+                panel.Deactivate();
             }
         }
-        panel.Find("Template").gameObject.SetActive(false);
+    }
+
+    private IEnumerator Move(Transform transform, Vector3 position, Vector3 scale, float seconds = 1)
+    {
+        var startPos = transform.localPosition;
+        var startScale = transform.localScale;
+        var remainingSeconds = seconds;
+        var t = 0f;
+        while (t < 1)
+        {
+            transform.localPosition = Vector3.Lerp(startPos, position, t);
+            transform.localScale = Vector3.Lerp(startScale, scale, t);
+            yield return new WaitForEndOfFrame();
+            remainingSeconds -= Time.deltaTime;
+            t = 1 - (remainingSeconds / seconds);
+        }
+        transform.localPosition = position;
+        transform.localScale = scale;
     }
 
     [Serializable]
@@ -226,10 +189,8 @@ public class DnaMenuController : MonoBehaviour
     {
         Disabled,
         Closed,
-        CategorySelection,
-        TypeSelection,
-        Evolutions,
-        Description,
+        Open,
+        Carousel,
     }
     [Serializable]
     public enum UiTrigger
@@ -239,15 +200,7 @@ public class DnaMenuController : MonoBehaviour
         EditDna,
         Close,
         SelectCategory,
-        ViewEvolutions,
-        ViewGene,
-        Evolve,
-    }
-
-    [Serializable]
-    public struct Panel
-    {
-        public Transform Transform;
-        public bool IsActive;
+        NextCategory,
+        LastCategory,
     }
 }

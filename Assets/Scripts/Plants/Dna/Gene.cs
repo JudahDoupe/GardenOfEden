@@ -25,7 +25,7 @@ namespace Assets.Scripts.Plants.Dna
         Vegetation = 0,
         [Description("Reproduction")]
         Reproduction = 1,
-        [Description("EnergyP roduction")]
+        [Description("Energy Production")]
         EnergyProduction = 2,
     }
 

@@ -58,6 +58,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusObject.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\UI\DnaMenu\DnaCategoryPanel.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\UI\Utils\StickyToggle.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions\EnumExtensions.cs" />
     <Compile Include="Assets\Scripts\Utils\StateMachine\StateMachine.cs" />
     <Compile Include="Assets\Scripts\Plants\Cleanup\DormancySystem.cs" />
