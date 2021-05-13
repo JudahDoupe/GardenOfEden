@@ -7,7 +7,7 @@ using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.UI;
+using Assets.Scripts.Utils;
 
 public class DnaMenuController : MonoBehaviour
 {
@@ -128,7 +128,7 @@ public class DnaMenuController : MonoBehaviour
 
     private void PositionOpenPanels()
     {
-        StartCoroutine(Move(transform, Vector3.zero, Vector3.one));
+        this.AnimateTransform(0.3f, Vector3.zero, Vector3.one);
 
         var positions = new Stack<Vector3>();
         for (int i = 0; i < _panels.Count; i++)
@@ -139,22 +139,20 @@ public class DnaMenuController : MonoBehaviour
 
         foreach (var panel in _panels)
         {
-            panel.transform.localPosition = positions.Pop();
-            panel.transform.localScale = Vector3.one;
+            panel.AnimateTransform(0.3f, positions.Pop(), Vector3.one);
             panel.Activate();
         }
     }
 
     private void PositionCarouselPanels()
     {
-        StartCoroutine(Move(transform, new Vector3(-300, 0, 0), Vector3.one));
+        this.AnimateTransform(0.3f, new Vector3(-300, 0, 0), Vector3.one);
 
         for (int i = 0; i < _panels.Count; i++)
         {
             var panel = _panels[(i + _currentPanelIndex) % _panels.Count];
             panel.transform.SetSiblingIndex(_panels.Count - (i+1));
-            panel.transform.localPosition = new Vector3(-75 * i, 0, 0);
-            panel.transform.localScale = Vector3.one * (1 - 0.1f * i);
+            panel.AnimateTransform(0.3f, new Vector3(-25 * i, 0, 0), Vector3.one * (1 - 0.1f * i));
             if (i == 0)
             {
                 panel.Activate();
@@ -164,24 +162,6 @@ public class DnaMenuController : MonoBehaviour
                 panel.Deactivate();
             }
         }
-    }
-
-    private IEnumerator Move(Transform transform, Vector3 position, Vector3 scale, float seconds = 1)
-    {
-        var startPos = transform.localPosition;
-        var startScale = transform.localScale;
-        var remainingSeconds = seconds;
-        var t = 0f;
-        while (t < 1)
-        {
-            transform.localPosition = Vector3.Lerp(startPos, position, t);
-            transform.localScale = Vector3.Lerp(startScale, scale, t);
-            yield return new WaitForEndOfFrame();
-            remainingSeconds -= Time.deltaTime;
-            t = 1 - (remainingSeconds / seconds);
-        }
-        transform.localPosition = position;
-        transform.localScale = scale;
     }
 
     [Serializable]

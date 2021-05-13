@@ -60,12 +60,13 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusObject.cs" />
     <Compile Include="Assets\Scripts\GamePlay\UI\DnaMenu\DnaCategoryPanel.cs" />
     <Compile Include="Assets\Scripts\GamePlay\UI\Utils\StickyToggle.cs" />
+    <Compile Include="Assets\Scripts\Utils\AnimationUtils.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions\EnumExtensions.cs" />
     <Compile Include="Assets\Scripts\Utils\StateMachine\StateMachine.cs" />
     <Compile Include="Assets\Scripts\Plants\Cleanup\DormancySystem.cs" />
     <Compile Include="Assets\Scripts\Plants\Growth\LifeStageTriggerSystem.cs" />
     <Compile Include="Assets\Scripts\GamePlay\UI\Utils\EventOnClick.cs" />
-    <Compile Include="Assets\Scripts\Utils\Extensions\TransformExtentions.cs" />
+    <Compile Include="Assets\Scripts\Utils\Extensions\TransformExtensions.cs" />
     <Compile Include="Assets\Scripts\GamePlay\UI\TerrainControls\Control.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions\RenderTextureExtensions.cs" />
     <Compile Include="Assets\Scripts\Plants\Cleanup\CoordinateSystem.cs" />

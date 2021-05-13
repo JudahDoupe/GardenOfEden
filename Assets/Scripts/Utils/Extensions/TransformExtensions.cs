@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
-public static class TransformExtentions
+public static class TransformExtensions
 {
     public static TransformDto ToDto(this Transform t)
     {

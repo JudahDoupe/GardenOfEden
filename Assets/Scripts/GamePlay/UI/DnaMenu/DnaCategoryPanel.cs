@@ -1,6 +1,8 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Plants.Dna;
+using Assets.Scripts.Utils;
 using Stateless;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,6 +29,7 @@ public class DnaCategoryPanel : MonoBehaviour
     public void Init(Dna dna, GeneCategory category)
     {
         ClearPanel();
+        transform.localScale = Vector3.zero;
 
         Category = category;
         _stateMachine = new StateMachine<UiState, UiTrigger>(() => _state, s => _state = s);
@@ -41,6 +44,7 @@ public class DnaCategoryPanel : MonoBehaviour
             .OnEntry(EnablePanel)
             .OnExit(DisablePanel)
             .Ignore(UiTrigger.Enable)
+            .Ignore(UiTrigger.HideDescription)
             .PermitReentry(UiTrigger.HideEvolutions)
             .Permit(UiTrigger.ShowEvolutions, UiState.Evolutions)
             .Permit(UiTrigger.Disable, UiState.Disabled);
@@ -50,6 +54,7 @@ public class DnaCategoryPanel : MonoBehaviour
             .OnEntryFrom(_showEvolutionTrigger, ShowEvolutions)
             .OnExit(HideEvolutions)
             .PermitReentry(UiTrigger.ShowEvolutions)
+            .PermitReentry(UiTrigger.HideDescription)
             .Permit(UiTrigger.HideEvolutions, UiState.Open)
             .Permit(UiTrigger.ShowDescription, UiState.Description)
             .Permit(UiTrigger.Disable, UiState.Disabled);
@@ -89,6 +94,8 @@ public class DnaCategoryPanel : MonoBehaviour
                 {
                     var evolutionButton = Instantiate(ButtonPrefab, typeButton.transform);
                     _evolutionButtons[type].Add(evolutionButton);
+                    evolutionButton.transform.position = Vector3.zero;
+                    evolutionButton.transform.localScale = Vector3.zero;
                     evolutionButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(0.5f, 0.5f);
                     evolutionButton.transform.Find("Text").GetComponent<Text>().text = evolution.Name;
                     evolutionButton.transform.localScale = Vector3.zero;
@@ -103,6 +110,10 @@ public class DnaCategoryPanel : MonoBehaviour
 
                     var description = Instantiate(DescriptionPrefab, evolutionButton.transform);
                     _descriptionPanels[evolution.Name] = description;
+                    description.transform.position = Vector3.zero;
+                    description.transform.localScale = Vector3.zero;
+                    description.transform.Find("Title").GetComponent<Text>().text = evolution.Name;
+                    description.transform.Find("DescriptionContainer").Find("Description").GetComponent<Text>().text = evolution.Description;
                     description.GetComponent<RectTransform>().anchoredPosition = new Vector2(0.5f, 0.5f);
                     description.transform.localScale = Vector3.zero;
                     description.SetActive(false);
@@ -122,7 +133,7 @@ public class DnaCategoryPanel : MonoBehaviour
             toggle.isOn = false;
             toggle.interactable = false;
         }
-        SetOpacity(0.5f);
+        this.AnimateUiOpacity(0.3f, 0.5f);
     }
     private void EnablePanel()
     {
@@ -134,7 +145,7 @@ public class DnaCategoryPanel : MonoBehaviour
                 toggle.interactable = true;
             }
         }
-        SetOpacity(1);
+        this.AnimateUiOpacity(0.3f, 1);
     }
 
     private void ShowEvolutions(GeneType type)
@@ -143,28 +154,25 @@ public class DnaCategoryPanel : MonoBehaviour
 
         var positions = new Stack<Vector3>();
         var numEvolutions = _evolutionButtons[type].Count();
-        var offset = 75f * (numEvolutions - 1) / 2f;
-        offset -= _typeButtons[type].transform.localPosition.y;
         for (int i = 0; i < numEvolutions; i++)
         {
-            positions.Push(new Vector3(300, i * 75 - offset));
+            var offset = (i - (numEvolutions - 1) / 2f) * 75;
+            offset -= _typeButtons[type].transform.localPosition.y;
+            positions.Push(new Vector3(300, offset));
         }
 
         foreach (var toggle in _evolutionButtons[type])
         {
-            toggle.transform.localPosition = positions.Pop();
-            toggle.transform.localScale = Vector3.one;
             toggle.SetActive(true);
+            toggle.GetComponent<Toggle>().AnimateTransform(0.3f, positions.Pop(), Vector3.one);
         }
     }
     private void HideEvolutions()
     {
         foreach (var button in _evolutionButtons.Values.SelectMany(x => x))  
         {
-            button.transform.localPosition = Vector3.zero;
-            button.transform.localScale = Vector3.zero;
             button.GetComponent<Toggle>().isOn = false;
-            button.SetActive(false);
+            button.GetComponent<Image>().AnimateTransform(0.3f, Vector3.zero, Vector3.zero, false);
         }
     }
 
@@ -172,33 +180,14 @@ public class DnaCategoryPanel : MonoBehaviour
     {
         var panel = _descriptionPanels[evolution];
         var offset = -panel.transform.parent.localPosition.y - panel.transform.parent.parent.localPosition.y;
-        panel.transform.localPosition = new Vector3(300, offset);
-        panel.transform.localScale = Vector3.one;
         panel.SetActive(true);
+        panel.GetComponent<Image>().AnimateTransform(0.3f, new Vector3(300, offset), Vector3.one);
     }
     private void HideDescription()
     {
         foreach (var panel in _descriptionPanels.Values)
         {
-            panel.transform.localPosition = Vector3.zero;
-            panel.transform.localScale = Vector3.zero;
-            panel.SetActive(false);
-        }
-    }
-
-    private void SetOpacity(float alpha)
-    {
-        foreach (var image in transform.GetComponentsInChildren<Image>())
-        {
-            var color = image.color;
-            color.a = alpha;
-            image.color = color;
-        }
-        foreach (var text in transform.GetComponentsInChildren<Text>())
-        {
-            var color = text.color;
-            color.a = alpha;
-            text.color = color;
+            panel.GetComponent<Image>().AnimateTransform(0.3f, Vector3.zero, Vector3.zero, false);
         }
     }
 
