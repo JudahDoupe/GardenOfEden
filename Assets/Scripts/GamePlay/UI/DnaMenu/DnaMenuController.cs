@@ -5,13 +5,13 @@ using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using Assets.Scripts.Utils;
+using Unity.Mathematics;
 using UnityEngine.UI;
 
 public class DnaMenuController : MonoBehaviour
 {
     public GameObject OpenMenuButton;
-    public Button NextCategoryButton;
-    public Button LastCategoryButton;
+    public GameObject CarouselControls;
     public Button DoneButton;
 
     public GameObject PanelPrefab;
@@ -30,6 +30,7 @@ public class DnaMenuController : MonoBehaviour
     public void Enable() => _stateMachine.Fire(UiTrigger.Enable);
     public void Disable() => _stateMachine.Fire(UiTrigger.Disable);
     public void EditDna() => _stateMachine.Fire(UiTrigger.EditDna);
+    public void Flatten() => _stateMachine.Fire(UiTrigger.Flatten);
     public void SelectCategory(GeneCategory category) => _stateMachine.Fire(_selectCategory, category);
     public void NextCategory() => _stateMachine.Fire(UiTrigger.NextCategory);
     public void LastCategory() => _stateMachine.Fire(UiTrigger.LastCategory);
@@ -52,20 +53,19 @@ public class DnaMenuController : MonoBehaviour
             .SubstateOf(UiState.Enabled)
             .OnEntry(() =>
             {
-                NextCategoryButton.AnimateTransform(0.3f, Vector3.zero, Vector3.zero, false);
-                LastCategoryButton.AnimateTransform(0.3f, Vector3.zero, Vector3.zero, false);
                 OpenMenuButton.SetActive(true);
+                CarouselControls.SetActive(false);
             })
             .OnExit(() =>
             {
                 OpenMenuButton.SetActive(false);
             })
             .Permit(UiTrigger.Disable, UiState.Disabled)
-            .Permit(UiTrigger.EditDna, UiState.Open);
+            .Permit(UiTrigger.EditDna, UiState.Flat);
 
         _stateMachine.Configure(UiState.Open)
             .SubstateOf(UiState.Enabled)
-            .OnEntry(() =>
+            .OnEntryFrom(UiTrigger.EditDna, () =>
             {
                 var dnaReference = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<DnaReference>(_focusedPlant);
                 var dna = DnaService.GetSpeciesDna(dnaReference.SpeciesId);
@@ -75,7 +75,10 @@ public class DnaMenuController : MonoBehaviour
                     _panels.AddLast(panel);
                     panel.Init(dna, category);
                 }
-                PositionOpenPanels();
+
+                DoneButton.gameObject.SetActive(true);
+                DoneButton.transform.SetSiblingIndex(_panels.Count);
+                DoneButton.transform.AnimateTransform(0.3f, new Vector3(0, -350, 0), Vector3.one);
             })
             .OnExit(() =>
             {
@@ -83,9 +86,16 @@ public class DnaMenuController : MonoBehaviour
                 {
                     Destroy(panel.gameObject);
                 }
+
                 _panels.Clear();
-                DoneButton.AnimateTransform(0.3f, new Vector3(0, 0, 0), Vector3.zero, false);
+                DoneButton.transform.AnimateTransform(0.3f, new Vector3(0, 0, 0), Vector3.zero, false);
             })
+            .Permit(UiTrigger.Close, UiState.Closed);
+
+        _stateMachine.Configure(UiState.Flat)
+            .SubstateOf(UiState.Open)
+            .OnEntry(PositionOpenPanels)
+            .Permit(UiTrigger.Close, UiState.Closed)
             .Permit(UiTrigger.SelectCategory, UiState.Carousel);
 
         _stateMachine.Configure(UiState.Carousel)
@@ -114,6 +124,7 @@ public class DnaMenuController : MonoBehaviour
             .Ignore(UiTrigger.SelectCategory)
             .PermitReentry(UiTrigger.LastCategory)
             .PermitReentry(UiTrigger.NextCategory)
+            .Permit(UiTrigger.Flatten, UiState.Flat)
             .Permit(UiTrigger.Close, UiState.Closed);
 
 
@@ -147,8 +158,6 @@ public class DnaMenuController : MonoBehaviour
 
     private void PositionOpenPanels()
     {
-        this.AnimateTransform(0.3f, Vector3.zero, Vector3.one);
-
         var positions = new Stack<Vector3>();
         for (int i = 0; i < _panels.Count; i++)
         {
@@ -158,40 +167,43 @@ public class DnaMenuController : MonoBehaviour
 
         foreach (var panel in _panels)
         {
-            panel.AnimateTransform(0.3f, positions.Pop(), Vector3.one);
+            panel.transform.AnimateUiOpacity(0, 1);
+            panel.transform.AnimateTransform(0.3f, positions.Pop(), Vector3.one);
+            panel.Deactivate();
             panel.Activate();
         }
 
-        DoneButton.gameObject.SetActive(true);
-        DoneButton.transform.SetSiblingIndex(_panels.Count);
-        DoneButton.GetComponent<Button>().AnimateTransform(0.3f, new Vector3(0, -350, 0), Vector3.one);
+        CarouselControls.SetActive(false);
     }
     private void PositionCarouselPanels()
     {
-        this.AnimateTransform(0.3f, new Vector3(-300, 0, 0), Vector3.one);
-
-        var i = 0;
+        float i = 0;
         foreach (var panel in _panels)
         {
+            var x = 2f * (i / _panels.Count) * math.PI;
+            var cos = (math.cos(x) + 1f) / 2f;
+            var sin = (math.sin(x) + 1f) / 2f;
+
+            var position = new Vector3(-400 + (0.5f - sin) * 150, (1 + (1 - cos) * -15), 0);
+            var scale = Vector3.one * (1 + (1 - cos) * -0.2f);
+            var opacity = cos;
+
             panel.transform.SetSiblingIndex(0);
-            panel.AnimateTransform(0, new Vector3(-25 * i, -25 * i, 0), Vector3.one * (1 - 0.1f * i));
+            panel.transform.AnimateUiOpacity(0, opacity);
+            panel.transform.AnimateTransform(0.1f, position, scale);
             if (i == 0)
             {
                 panel.Activate();
                 var rect = panel.GetComponent<RectTransform>().rect;
-                NextCategoryButton.gameObject.SetActive(true);
-                NextCategoryButton.transform.SetSiblingIndex(_panels.Count + 1);
-                NextCategoryButton.AnimateTransform(0.3f, new Vector3(-(rect.width / 2f) - 10, (rect.height / 2f) + 10, 0), Vector3.one);
-                LastCategoryButton.gameObject.SetActive(true);
-                LastCategoryButton.transform.SetSiblingIndex(_panels.Count + 2);
-                LastCategoryButton.AnimateTransform(0.3f, new Vector3((rect.width / 2f) + 10, (rect.height / 2f) + 10, 0), Vector3.one);
+                CarouselControls.SetActive(true);
+                CarouselControls.transform.AnimateTransform(0.1f, new Vector3(-400, (rect.height / 2f) + 60, 0), Vector3.one);
             }
             else
             {
                 panel.Deactivate();
             }
 
-            i++;
+            i+=1;
         }
 
     }
@@ -204,6 +216,7 @@ public class DnaMenuController : MonoBehaviour
         Closed,
         Open,
         Carousel,
+        Flat,
     }
     public enum UiTrigger
     {
@@ -211,6 +224,7 @@ public class DnaMenuController : MonoBehaviour
         Disable,
         EditDna,
         Close,
+        Flatten,
         SelectCategory,
         NextCategory,
         LastCategory,

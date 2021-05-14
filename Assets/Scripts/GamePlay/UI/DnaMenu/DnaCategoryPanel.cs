@@ -119,18 +119,16 @@ public class DnaCategoryPanel : MonoBehaviour
             toggle.isOn = false;
             toggle.interactable = false;
         }
-        this.AnimateUiOpacity(0.1f, 0.5f);
     }
     private void EnablePanel()
     {
-        foreach (var toggle in _currentGeneButtons.Values)
+        foreach (var currentGene in _currentGeneButtons.Values)
         {
-            if (DnaService.GeneLibrary.GetEvolutions(toggle.transform.Find("Text").GetComponent<Text>().text).Any())
+            if (DnaService.GeneLibrary.GetEvolutions(currentGene.transform.Find("Text").GetComponent<Text>().text).Any())
             {
-                toggle.GetComponent<Toggle>().interactable = true;
+                currentGene.GetComponent<Toggle>().interactable = true;
             }
         }
-        this.AnimateUiOpacity(0, 1);
     }
 
     public GameObject InitEvolution(Gene gene, Transform parent)
@@ -142,6 +140,7 @@ public class DnaCategoryPanel : MonoBehaviour
         evolutionButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(0.5f, 0.5f);
         evolutionButton.transform.Find("Text").GetComponent<Text>().text = gene.Name;
         evolutionButton.transform.localScale = Vector3.zero;
+        evolutionButton.GetComponent<Toggle>().interactable = false;
         evolutionButton.GetComponent<Toggle>().onValueChanged.AddListener((newValue) =>
         {
             if (newValue)
@@ -149,7 +148,6 @@ public class DnaCategoryPanel : MonoBehaviour
             else
                 _stateMachine.Fire(UiTrigger.HideDescription);
         });
-        evolutionButton.SetActive(false);
         return evolutionButton;
     }
     private void ShowEvolutions(GeneType type)
@@ -162,13 +160,13 @@ public class DnaCategoryPanel : MonoBehaviour
         {
             var offset = (i - (numEvolutions - 1) / 2f) * 75;
             offset -= _currentGeneButtons[type].transform.localPosition.y;
-            positions.Push(new Vector3(300, offset));
+            positions.Push(new Vector3(400, offset));
         }
 
         foreach (var toggle in _evolutionButtons[type])
         {
-            toggle.SetActive(true);
-            toggle.GetComponent<Toggle>().AnimateTransform(0.3f, positions.Pop(), Vector3.one);
+            toggle.GetComponent<Toggle>().interactable = true;
+            toggle.transform.AnimateTransform(0.3f, positions.Pop(), Vector3.one);
         }
     }
     private void HideEvolutions()
@@ -176,7 +174,8 @@ public class DnaCategoryPanel : MonoBehaviour
         foreach (var button in _evolutionButtons.Values.SelectMany(x => x))  
         {
             button.GetComponent<Toggle>().isOn = false;
-            button.GetComponent<Image>().AnimateTransform(0.3f, Vector3.zero, Vector3.zero, false);
+            button.GetComponent<Toggle>().interactable = false;
+            button.transform.AnimateTransform(0.3f, Vector3.zero, Vector3.zero);
         }
     }
 
@@ -198,13 +197,13 @@ public class DnaCategoryPanel : MonoBehaviour
         var panel = _descriptionPanels[evolution];
         var offset = -panel.transform.parent.localPosition.y - panel.transform.parent.parent.localPosition.y;
         panel.SetActive(true);
-        panel.GetComponent<Image>().AnimateTransform(0.3f, new Vector3(300, offset), Vector3.one);
+        panel.transform.AnimateTransform(0.3f, new Vector3(400, offset), Vector3.one);
     }
     private void HideDescription()
     {
         foreach (var panel in _descriptionPanels.Values)
         {
-            panel.GetComponent<Image>().AnimateTransform(0.3f, Vector3.zero, Vector3.zero, false);
+            panel.transform.AnimateTransform(0.3f, Vector3.zero, Vector3.zero, false);
         }
     }
 

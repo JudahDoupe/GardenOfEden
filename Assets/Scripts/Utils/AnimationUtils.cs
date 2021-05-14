@@ -8,22 +8,22 @@ namespace Assets.Scripts.Utils
 {
     public static class AnimationUtils
     {
-        public static void AnimateTransform(this MonoBehaviour script, float seconds, Vector3 localPosition, Vector3 localScale, bool isActive = true)
+        public static void AnimateTransform(this Transform transform, float seconds, Vector3 localPosition, Vector3 localScale, bool isActive = true)
         {
-            script.StartCoroutine(AnimateVector3(seconds, script.transform.localPosition, localPosition, pos => script.transform.localPosition = pos));
-            script.StartCoroutine(AnimateVector3(seconds, script.transform.localScale, localScale, pos => script.transform.localScale = pos));
-            script.StartCoroutine(AnimateBool(seconds, isActive, active => script.gameObject.SetActive(active)));
+            Singleton.GameService.StartCoroutine(AnimateVector3(seconds, transform.localPosition, localPosition, pos => transform.localPosition = pos));
+            Singleton.GameService.StartCoroutine(AnimateVector3(seconds, transform.localScale, localScale, pos => transform.localScale = pos));
+            Singleton.GameService.StartCoroutine(AnimateBool(seconds, isActive, active => transform.gameObject.SetActive(active)));
         }
 
-        public static void AnimateUiOpacity(this MonoBehaviour script, float seconds, float alpha)
+        public static void AnimateUiOpacity(this Transform transform, float seconds, float alpha)
         {
-            foreach (var image in script.transform.GetComponentsInChildren<Image>())
+            foreach (var image in transform.GetComponentsInChildren<Image>())
             {
-                script.StartCoroutine(AnimateFloat(seconds, image.color.a, alpha, a => image.color = new Color(image.color.r, image.color.g, image.color.b, a)));
+                Singleton.GameService.StartCoroutine(AnimateFloat(seconds, image.color.a, alpha, a => image.color = new Color(image.color.r, image.color.g, image.color.b, a)));
             }
-            foreach (var text in script.transform.GetComponentsInChildren<Text>())
+            foreach (var text in transform.GetComponentsInChildren<Text>())
             {
-                script.StartCoroutine(AnimateFloat(seconds, text.color.a, alpha, a => text.color = new Color(text.color.r, text.color.g, text.color.b, a)));
+                Singleton.GameService.StartCoroutine(AnimateFloat(seconds, text.color.a, alpha, a => text.color = new Color(text.color.r, text.color.g, text.color.b, a)));
             }
         }
 
