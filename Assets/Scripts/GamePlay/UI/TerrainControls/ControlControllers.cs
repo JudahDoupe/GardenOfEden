@@ -8,7 +8,7 @@ public class ControlControllers : MonoBehaviour
 {
     public Slider2D BedrockControl;
     public Slider2D WaterTableControl;
-    public Button PlantButton;
+    public ControlButton PlantControlButton;
 
     private List<Control> _controls;
 
@@ -16,12 +16,12 @@ public class ControlControllers : MonoBehaviour
     {
         BedrockControl.UpdateFunction = Singleton.Land.SetBedrockHeight;
         WaterTableControl.UpdateFunction = Singleton.Water.SetWaterTableHeight;
-        PlantButton.ClickFunction = SpawnDefaultPlant;
+        PlantControlButton.ClickFunction = SpawnDefaultPlant;
 
         _controls = new List<Control>
         {
             WaterTableControl,
-            PlantButton,
+            PlantControlButton,
             BedrockControl,
         };
     }
@@ -32,7 +32,7 @@ public class ControlControllers : MonoBehaviour
 
         BedrockControl.IsActive = Singleton.CameraController.CameraDistance > 100 
                               && !_controls.Any(x => x.IsInUse && x != BedrockControl);
-        PlantButton.IsActive = Singleton.CameraController.CameraDistance < 100
+        PlantControlButton.IsActive = Singleton.CameraController.CameraDistance < 100
                                  && !_controls.Any(x => x.IsInUse && x != WaterTableControl)
                                  && Singleton.Land.SampleHeight(Singleton.CameraController.FocusCoord) > LandService.SeaLevel;
         WaterTableControl.IsActive = Singleton.CameraController.CameraDistance > 100 

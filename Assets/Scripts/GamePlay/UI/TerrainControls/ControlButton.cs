@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class Button : Control
+public class ControlButton : Control
 {
     public UnityAction<Coordinate> ClickFunction;
     public bool IsSingleUse = false;

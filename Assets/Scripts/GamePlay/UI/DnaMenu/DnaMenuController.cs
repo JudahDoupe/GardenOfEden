@@ -1,38 +1,44 @@
 using Assets.Scripts.Plants.Dna;
 using Stateless;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using Assets.Scripts.Utils;
+using UnityEngine.UI;
 
 public class DnaMenuController : MonoBehaviour
 {
     public GameObject OpenMenuButton;
-    public GameObject NextCategoryButton;
-    public GameObject LastCategoryButton;
+    public Button NextCategoryButton;
+    public Button LastCategoryButton;
+    public Button DoneButton;
 
     public GameObject PanelPrefab;
 
-    public float DriftSpeed = 5f;
+    public float CameraDriftSpeed = 5f;
 
     private StateMachine<UiState, UiTrigger> _stateMachine;
     private StateMachine<UiState, UiTrigger>.TriggerWithParameters<GeneCategory> _selectCategory;
-
     private UiState _state = UiState.Closed;
+
     private Entity _focusedPlant;
     private Bounds _focusedBounds;
+    private LinkedList<DnaCategoryPanel> _panels = new LinkedList<DnaCategoryPanel>();
 
-    private int _currentPanelIndex = 0;
-    private List<DnaCategoryPanel> _panels = new List<DnaCategoryPanel>();
 
     public void Enable() => _stateMachine.Fire(UiTrigger.Enable);
     public void Disable() => _stateMachine.Fire(UiTrigger.Disable);
     public void EditDna() => _stateMachine.Fire(UiTrigger.EditDna);
     public void SelectCategory(GeneCategory category) => _stateMachine.Fire(_selectCategory, category);
+    public void NextCategory() => _stateMachine.Fire(UiTrigger.NextCategory);
+    public void LastCategory() => _stateMachine.Fire(UiTrigger.LastCategory);
+    public void Done() => _stateMachine.Fire(UiTrigger.Close);
+    public void Evolve(Gene evolution)
+    {
+        Done();
+    }
+
 
     private void Start()
     {
@@ -41,9 +47,13 @@ public class DnaMenuController : MonoBehaviour
 
         _stateMachine.Configure(UiState.Disabled)
             .Permit(UiTrigger.Enable, UiState.Closed);
+
         _stateMachine.Configure(UiState.Closed)
+            .SubstateOf(UiState.Enabled)
             .OnEntry(() =>
             {
+                NextCategoryButton.AnimateTransform(0.3f, Vector3.zero, Vector3.zero, false);
+                LastCategoryButton.AnimateTransform(0.3f, Vector3.zero, Vector3.zero, false);
                 OpenMenuButton.SetActive(true);
             })
             .OnExit(() =>
@@ -52,7 +62,9 @@ public class DnaMenuController : MonoBehaviour
             })
             .Permit(UiTrigger.Disable, UiState.Disabled)
             .Permit(UiTrigger.EditDna, UiState.Open);
+
         _stateMachine.Configure(UiState.Open)
+            .SubstateOf(UiState.Enabled)
             .OnEntry(() =>
             {
                 var dnaReference = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<DnaReference>(_focusedPlant);
@@ -60,7 +72,7 @@ public class DnaMenuController : MonoBehaviour
                 foreach (var category in dna.GetGeneCategories())
                 {
                     var panel = Instantiate(PanelPrefab, transform).GetComponent<DnaCategoryPanel>();
-                    _panels.Add(panel);
+                    _panels.AddLast(panel);
                     panel.Init(dna, category);
                 }
                 PositionOpenPanels();
@@ -72,23 +84,31 @@ public class DnaMenuController : MonoBehaviour
                     Destroy(panel.gameObject);
                 }
                 _panels.Clear();
+                DoneButton.AnimateTransform(0.3f, new Vector3(0, 0, 0), Vector3.zero, false);
             })
             .Permit(UiTrigger.SelectCategory, UiState.Carousel);
+
         _stateMachine.Configure(UiState.Carousel)
             .SubstateOf(UiState.Open)
             .OnEntryFrom(_selectCategory, (category) =>
             {
-                _currentPanelIndex = _panels.IndexOf(_panels.Single(x => x.Category == category));
+                var panel = _panels.First(x => x.Category == category);
+                _panels.Remove(panel);
+                _panels.AddFirst(panel);
                 PositionCarouselPanels();
             })
             .OnEntryFrom(UiTrigger.LastCategory, () =>
             {
-                _currentPanelIndex = (_currentPanelIndex + 1) % _panels.Count;
+                var panel = _panels.Last;
+                _panels.Remove(panel);
+                _panels.AddFirst(panel);
                 PositionCarouselPanels();
             })
             .OnEntryFrom(UiTrigger.NextCategory, () =>
             {
-                _currentPanelIndex = (_currentPanelIndex - 1) % _panels.Count;
+                var panel = _panels.First;
+                _panels.Remove(panel);
+                _panels.AddLast(panel);
                 PositionCarouselPanels();
             })
             .Ignore(UiTrigger.SelectCategory)
@@ -98,10 +118,9 @@ public class DnaMenuController : MonoBehaviour
 
 
     }
-
     private void Update()
     {
-        if (!_stateMachine.IsInState(UiState.Open))
+        if (_stateMachine.IsInState(UiState.Enabled))
         {
             _focusedPlant = CameraUtils.GetClosestEntity(Singleton.CameraController.FocusPos);
             if (_focusedPlant != Entity.Null)
@@ -121,7 +140,7 @@ public class DnaMenuController : MonoBehaviour
     private void DriftCamera()
     {
         var distance = Mathf.Clamp(CameraUtils.GetDistanceToIncludeBounds(_focusedBounds, 1.5f), 5, 25);
-        Singleton.CameraController.Rotate(new Vector3((distance * DriftSpeed) / 100000, 0));
+        Singleton.CameraController.Rotate(new Vector3((distance * CameraDriftSpeed) / 100000, 0));
         Singleton.CameraController.MoveTo(new Coordinate(_focusedBounds.center));
         Singleton.CameraController.Zoom(distance);
     }
@@ -142,37 +161,50 @@ public class DnaMenuController : MonoBehaviour
             panel.AnimateTransform(0.3f, positions.Pop(), Vector3.one);
             panel.Activate();
         }
-    }
 
+        DoneButton.gameObject.SetActive(true);
+        DoneButton.transform.SetSiblingIndex(_panels.Count);
+        DoneButton.GetComponent<Button>().AnimateTransform(0.3f, new Vector3(0, -350, 0), Vector3.one);
+    }
     private void PositionCarouselPanels()
     {
         this.AnimateTransform(0.3f, new Vector3(-300, 0, 0), Vector3.one);
 
-        for (int i = 0; i < _panels.Count; i++)
+        var i = 0;
+        foreach (var panel in _panels)
         {
-            var panel = _panels[(i + _currentPanelIndex) % _panels.Count];
-            panel.transform.SetSiblingIndex(_panels.Count - (i+1));
-            panel.AnimateTransform(0.3f, new Vector3(-25 * i, 0, 0), Vector3.one * (1 - 0.1f * i));
+            panel.transform.SetSiblingIndex(0);
+            panel.AnimateTransform(0, new Vector3(-25 * i, -25 * i, 0), Vector3.one * (1 - 0.1f * i));
             if (i == 0)
             {
                 panel.Activate();
+                var rect = panel.GetComponent<RectTransform>().rect;
+                NextCategoryButton.gameObject.SetActive(true);
+                NextCategoryButton.transform.SetSiblingIndex(_panels.Count + 1);
+                NextCategoryButton.AnimateTransform(0.3f, new Vector3(-(rect.width / 2f) - 10, (rect.height / 2f) + 10, 0), Vector3.one);
+                LastCategoryButton.gameObject.SetActive(true);
+                LastCategoryButton.transform.SetSiblingIndex(_panels.Count + 2);
+                LastCategoryButton.AnimateTransform(0.3f, new Vector3((rect.width / 2f) + 10, (rect.height / 2f) + 10, 0), Vector3.one);
             }
             else
             {
                 panel.Deactivate();
             }
-        }
-    }
 
-    [Serializable]
+            i++;
+        }
+
+    }
+    
+
     public enum UiState
     {
         Disabled,
+        Enabled,
         Closed,
         Open,
         Carousel,
     }
-    [Serializable]
     public enum UiTrigger
     {
         Enable,

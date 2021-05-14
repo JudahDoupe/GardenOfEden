@@ -71,7 +71,7 @@
     <Compile Include="Assets\Scripts\Utils\Extensions\RenderTextureExtensions.cs" />
     <Compile Include="Assets\Scripts\Plants\Cleanup\CoordinateSystem.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions\Vector3Extensions.cs" />
-    <Compile Include="Assets\Scripts\GamePlay\UI\TerrainControls\Button.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\UI\TerrainControls\ControlButton.cs" />
     <Compile Include="Assets\Scripts\Plants\Growth\NodeDivisionSystem.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions\FloatExtensions.cs" />
     <Compile Include="Assets\Scripts\Environment\Utils\Coordinate.cs" />

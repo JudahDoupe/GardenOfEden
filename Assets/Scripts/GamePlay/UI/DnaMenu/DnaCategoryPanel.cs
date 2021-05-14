@@ -14,35 +14,36 @@ public class DnaCategoryPanel : MonoBehaviour
     public GameObject DescriptionPrefab;
 
     public GeneCategory Category;
-    private StateMachine<UiState, UiTrigger> _stateMachine;
-    private Dictionary<GeneType, GameObject> _typeButtons = new Dictionary<GeneType, GameObject>();
-    private Dictionary<GeneType, List<GameObject>> _evolutionButtons = new Dictionary<GeneType, List<GameObject>>();
-    private Dictionary<string, GameObject> _descriptionPanels = new Dictionary<string, GameObject>();
-    private UiState _state = UiState.Open;
 
+    private StateMachine<UiState, UiTrigger> _stateMachine;
+    private UiState _currentState = UiState.CurrentGenes;
     private StateMachine<UiState, UiTrigger>.TriggerWithParameters<GeneType> _showEvolutionTrigger;
     private StateMachine<UiState, UiTrigger>.TriggerWithParameters<string> _showDescriptionTrigger;
 
-    public void Activate() => _stateMachine.Fire(UiTrigger.Enable);
-    public void Deactivate() => _stateMachine.Fire(UiTrigger.Disable);
+    private readonly Dictionary<GeneType, GameObject> _currentGeneButtons = new Dictionary<GeneType, GameObject>();
+    private readonly Dictionary<GeneType, List<GameObject>> _evolutionButtons = new Dictionary<GeneType, List<GameObject>>();
+    private readonly Dictionary<string, GameObject> _descriptionPanels = new Dictionary<string, GameObject>();
+
 
     public void Init(Dna dna, GeneCategory category)
     {
-        ClearPanel();
         transform.localScale = Vector3.zero;
 
         Category = category;
-        _stateMachine = new StateMachine<UiState, UiTrigger>(() => _state, s => _state = s);
+        _stateMachine = new StateMachine<UiState, UiTrigger>(() => _currentState, s => _currentState = s);
 
         _showEvolutionTrigger = _stateMachine.SetTriggerParameters<GeneType>(UiTrigger.ShowEvolutions);
         _showDescriptionTrigger = _stateMachine.SetTriggerParameters<string>(UiTrigger.ShowDescription);
 
         _stateMachine.Configure(UiState.Disabled)
-            .Permit(UiTrigger.Enable, UiState.Open);
+            .OnEntry(DisablePanel)
+            .Ignore(UiTrigger.Disable)
+            .Ignore(UiTrigger.HideEvolutions)
+            .Ignore(UiTrigger.HideDescription)
+            .Permit(UiTrigger.Enable, UiState.CurrentGenes);
 
-        _stateMachine.Configure(UiState.Open)
+        _stateMachine.Configure(UiState.CurrentGenes)
             .OnEntry(EnablePanel)
-            .OnExit(DisablePanel)
             .Ignore(UiTrigger.Enable)
             .Ignore(UiTrigger.HideDescription)
             .PermitReentry(UiTrigger.HideEvolutions)
@@ -50,12 +51,12 @@ public class DnaCategoryPanel : MonoBehaviour
             .Permit(UiTrigger.Disable, UiState.Disabled);
 
         _stateMachine.Configure(UiState.Evolutions)
-            .SubstateOf(UiState.Open)
+            .SubstateOf(UiState.CurrentGenes)
             .OnEntryFrom(_showEvolutionTrigger, ShowEvolutions)
             .OnExit(HideEvolutions)
             .PermitReentry(UiTrigger.ShowEvolutions)
             .PermitReentry(UiTrigger.HideDescription)
-            .Permit(UiTrigger.HideEvolutions, UiState.Open)
+            .Permit(UiTrigger.HideEvolutions, UiState.CurrentGenes)
             .Permit(UiTrigger.ShowDescription, UiState.Description)
             .Permit(UiTrigger.Disable, UiState.Disabled);
 
@@ -64,7 +65,7 @@ public class DnaCategoryPanel : MonoBehaviour
             .OnEntryFrom(_showDescriptionTrigger, ShowDescription)
             .OnExit(HideDescription)
             .PermitReentry(UiTrigger.ShowDescription)
-            .Permit(UiTrigger.HideEvolutions, UiState.Open)
+            .Permit(UiTrigger.HideEvolutions, UiState.CurrentGenes)
             .Permit(UiTrigger.ShowEvolutions, UiState.Evolutions)
             .Permit(UiTrigger.HideDescription, UiState.Evolutions)
             .Permit(UiTrigger.Disable, UiState.Disabled);
@@ -74,17 +75,7 @@ public class DnaCategoryPanel : MonoBehaviour
         foreach (var type in dna.GetGeneTypes(category))
         {
             var gene = dna.GetGene(category, type);
-            var typeButton = Instantiate(TitledButtonPrefab, transform);
-            _typeButtons[gene.Type] = typeButton;
-            typeButton.transform.Find("Title").GetComponent<Text>().text = type.GetDescription();
-            typeButton.transform.Find("Text").GetComponent<Text>().text = gene.Name;
-            typeButton.GetComponent<Toggle>().onValueChanged.AddListener((newValue) =>
-            {
-                if (newValue)
-                    _stateMachine.Fire(_showEvolutionTrigger, type);
-                else
-                    _stateMachine.Fire(UiTrigger.HideEvolutions);
-            });
+            var currentGeneButton = InitCurrentGene(gene);
 
             var evolutions = DnaService.GeneLibrary.GetEvolutions(gene.Name);
             if (evolutions.Any())
@@ -92,40 +83,35 @@ public class DnaCategoryPanel : MonoBehaviour
                 _evolutionButtons[type] = new List<GameObject>();
                 foreach (var evolution in evolutions)
                 {
-                    var evolutionButton = Instantiate(ButtonPrefab, typeButton.transform);
-                    _evolutionButtons[type].Add(evolutionButton);
-                    evolutionButton.transform.position = Vector3.zero;
-                    evolutionButton.transform.localScale = Vector3.zero;
-                    evolutionButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(0.5f, 0.5f);
-                    evolutionButton.transform.Find("Text").GetComponent<Text>().text = evolution.Name;
-                    evolutionButton.transform.localScale = Vector3.zero;
-                    evolutionButton.GetComponent<Toggle>().onValueChanged.AddListener((newValue) =>
-                    {
-                        if (newValue)
-                            _stateMachine.Fire(_showDescriptionTrigger, evolution.Name);
-                        else
-                            _stateMachine.Fire(UiTrigger.HideDescription);
-                    });
-                    evolutionButton.SetActive(false);
-
-                    var description = Instantiate(DescriptionPrefab, evolutionButton.transform);
-                    _descriptionPanels[evolution.Name] = description;
-                    description.transform.position = Vector3.zero;
-                    description.transform.localScale = Vector3.zero;
-                    description.transform.Find("Title").GetComponent<Text>().text = evolution.Name;
-                    description.transform.Find("DescriptionContainer").Find("Description").GetComponent<Text>().text = evolution.Description;
-                    description.GetComponent<RectTransform>().anchoredPosition = new Vector2(0.5f, 0.5f);
-                    description.transform.localScale = Vector3.zero;
-                    description.SetActive(false);
+                    var evolutionButton = InitEvolution(evolution, currentGeneButton.transform);
+                    var descriptionPanel = InitDescription(evolution, evolutionButton.transform);
                 }
             }
             else
             {
-                typeButton.GetComponent<Toggle>().interactable = false;
+                currentGeneButton.GetComponent<Toggle>().interactable = false;
             }
         }
     }
+    public void Activate() => _stateMachine.Fire(UiTrigger.Enable);
+    public void Deactivate() => _stateMachine.Fire(UiTrigger.Disable);
 
+
+    private GameObject InitCurrentGene(Gene gene)
+    {
+        var currentGeneButton = Instantiate(TitledButtonPrefab, transform);
+        _currentGeneButtons[gene.Type] = currentGeneButton;
+        currentGeneButton.transform.Find("Title").GetComponent<Text>().text = gene.Type.GetDescription();
+        currentGeneButton.transform.Find("Text").GetComponent<Text>().text = gene.Name;
+        currentGeneButton.GetComponent<Toggle>().onValueChanged.AddListener((newValue) =>
+        {
+            if (newValue)
+                _stateMachine.Fire(_showEvolutionTrigger, gene.Type);
+            else
+                _stateMachine.Fire(UiTrigger.HideEvolutions);
+        });
+        return currentGeneButton;
+    }
     private void DisablePanel()
     {
         foreach (var toggle in transform.GetComponentsInChildren<Toggle>())
@@ -133,21 +119,39 @@ public class DnaCategoryPanel : MonoBehaviour
             toggle.isOn = false;
             toggle.interactable = false;
         }
-        this.AnimateUiOpacity(0.3f, 0.5f);
+        this.AnimateUiOpacity(0.1f, 0.5f);
     }
     private void EnablePanel()
     {
-        foreach (var toggle in transform.GetComponentsInChildren<Toggle>())
+        foreach (var toggle in _currentGeneButtons.Values)
         {
-            var title = toggle.transform.Find("Title");
-            if (title != null && DnaService.GeneLibrary.GetEvolutions(title.GetComponent<Text>().text).Any())
+            if (DnaService.GeneLibrary.GetEvolutions(toggle.transform.Find("Text").GetComponent<Text>().text).Any())
             {
-                toggle.interactable = true;
+                toggle.GetComponent<Toggle>().interactable = true;
             }
         }
-        this.AnimateUiOpacity(0.3f, 1);
+        this.AnimateUiOpacity(0, 1);
     }
 
+    public GameObject InitEvolution(Gene gene, Transform parent)
+    {
+        var evolutionButton = Instantiate(ButtonPrefab, parent);
+        _evolutionButtons[gene.Type].Add(evolutionButton);
+        evolutionButton.transform.position = Vector3.zero;
+        evolutionButton.transform.localScale = Vector3.zero;
+        evolutionButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(0.5f, 0.5f);
+        evolutionButton.transform.Find("Text").GetComponent<Text>().text = gene.Name;
+        evolutionButton.transform.localScale = Vector3.zero;
+        evolutionButton.GetComponent<Toggle>().onValueChanged.AddListener((newValue) =>
+        {
+            if (newValue)
+                _stateMachine.Fire(_showDescriptionTrigger, gene.Name);
+            else
+                _stateMachine.Fire(UiTrigger.HideDescription);
+        });
+        evolutionButton.SetActive(false);
+        return evolutionButton;
+    }
     private void ShowEvolutions(GeneType type)
     {
         transform.parent.GetComponentInParent<DnaMenuController>().SelectCategory(Category);
@@ -157,7 +161,7 @@ public class DnaCategoryPanel : MonoBehaviour
         for (int i = 0; i < numEvolutions; i++)
         {
             var offset = (i - (numEvolutions - 1) / 2f) * 75;
-            offset -= _typeButtons[type].transform.localPosition.y;
+            offset -= _currentGeneButtons[type].transform.localPosition.y;
             positions.Push(new Vector3(300, offset));
         }
 
@@ -176,6 +180,19 @@ public class DnaCategoryPanel : MonoBehaviour
         }
     }
 
+    public GameObject InitDescription(Gene gene, Transform parent)
+    {
+        var descriptionPanel = Instantiate(DescriptionPrefab, parent);
+        _descriptionPanels[gene.Name] = descriptionPanel;
+        descriptionPanel.transform.position = Vector3.zero;
+        descriptionPanel.transform.localScale = Vector3.zero;
+        descriptionPanel.transform.Find("Title").GetComponent<Text>().text = gene.Name;
+        descriptionPanel.transform.Find("DescriptionContainer").Find("Description").GetComponent<Text>().text = gene.Description;
+        descriptionPanel.transform.Find("Button").GetComponent<Button>().onClick
+            .AddListener(() => GetComponentInParent<DnaMenuController>().Evolve(gene));
+        descriptionPanel.SetActive(false);
+        return descriptionPanel;
+    }
     private void ShowDescription(string evolution)
     {
         var panel = _descriptionPanels[evolution];
@@ -191,28 +208,11 @@ public class DnaCategoryPanel : MonoBehaviour
         }
     }
 
-    private void ClearPanel()
-    {
-        DestroyAll(_typeButtons.Values);
-        _typeButtons.Clear();
-        DestroyAll(_evolutionButtons.Values.SelectMany(x => x));
-        _evolutionButtons.Clear();
-        DestroyAll(_descriptionPanels.Values);
-        _descriptionPanels.Clear();
-    }
-    private void DestroyAll(IEnumerable<GameObject> objs)
-    {
-        foreach (var o in objs)
-        {
-            Destroy(o);
-        }
-    }
-
 
     public enum UiState
     {
         Disabled,
-        Open,
+        CurrentGenes,
         Evolutions,
         Description,
     }
