@@ -37,6 +37,11 @@ public class DnaMenuController : MonoBehaviour
     public void Done() => _stateMachine.Fire(UiTrigger.Close);
     public void Evolve(Gene evolution)
     {
+        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+        var coordinate = em.GetComponentData<Coordinate>(_focusedPlant);
+        var dna = DnaService.GetSpeciesDna(em.GetComponentData<DnaReference>(_focusedPlant).SpeciesId).Evolve(evolution);
+        EcsUtils.DestroyAllChildren(_focusedPlant);
+        dna.Spawn(coordinate);
         Done();
     }
 
