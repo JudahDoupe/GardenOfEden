@@ -15,6 +15,12 @@ namespace Assets.Scripts.Utils
             Singleton.GameService.StartCoroutine(AnimateBool(seconds, isActive, active => transform.gameObject.SetActive(active)));
         }
 
+        public static void AnimateRotation(this Transform transform, float seconds, Quaternion localRotation)
+        {
+            Singleton.GameService.StartCoroutine(AnimateQuaternion(seconds, transform.localRotation, localRotation,
+                rot => transform.localRotation = rot));
+        }
+
         public static void AnimateUiOpacity(this Transform transform, float seconds, float alpha)
         {
             foreach (var image in transform.GetComponentsInChildren<Image>())
@@ -53,6 +59,21 @@ namespace Assets.Scripts.Utils
             while (t < 1)
             {
                 set(Vector3.Lerp(start, end, t));
+                yield return new WaitForEndOfFrame();
+                remainingSeconds -= Time.deltaTime;
+                t = 1 - (remainingSeconds / seconds);
+            }
+
+            set(end);
+        }
+
+        public static IEnumerator AnimateQuaternion(float seconds, Quaternion start, Quaternion end, Action<Quaternion> set)
+        {
+            var remainingSeconds = seconds;
+            var t = 0f;
+            while (t < 1)
+            {
+                set(Quaternion.Lerp(start, end, t));
                 yield return new WaitForEndOfFrame();
                 remainingSeconds -= Time.deltaTime;
                 t = 1 - (remainingSeconds / seconds);

@@ -30,12 +30,12 @@ public class ControlControllers : MonoBehaviour
     {
         _controls.RemoveAll(x => x == null);
 
-        BedrockControl.IsActive = Singleton.CameraController.CameraDistance > 100 
+        BedrockControl.IsActive = 100 < Singleton.CameraController.CameraDistance && Singleton.CameraController.CameraDistance < 1000
                               && !_controls.Any(x => x.IsInUse && x != BedrockControl);
         PlantControlButton.IsActive = Singleton.CameraController.CameraDistance < 100
                                  && !_controls.Any(x => x.IsInUse && x != WaterTableControl)
                                  && Singleton.Land.SampleHeight(Singleton.CameraController.FocusCoord) > LandService.SeaLevel;
-        WaterTableControl.IsActive = Singleton.CameraController.CameraDistance > 100 
+        WaterTableControl.IsActive = 100 < Singleton.CameraController.CameraDistance && Singleton.CameraController.CameraDistance < 1000
                                  && !_controls.Any(x => x.IsInUse && x != WaterTableControl)
                                  && Singleton.Land.SampleHeight(Singleton.CameraController.FocusCoord) > LandService.SeaLevel;
 

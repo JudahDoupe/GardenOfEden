@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusObject.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\Camera\MainMenuCamera.cs" />
     <Compile Include="Assets\Scripts\GamePlay\UI\DnaMenu\DnaCategoryPanel.cs" />
     <Compile Include="Assets\Scripts\GamePlay\UI\Utils\StickyToggle.cs" />
     <Compile Include="Assets\Scripts\Utils\AnimationUtils.cs" />
