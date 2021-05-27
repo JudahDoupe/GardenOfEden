@@ -131,6 +131,7 @@
     <Compile Include="Assets\Scripts\Plants\Environment\EnvironmentSystemGroup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Resources\Shaders\TerrainGenerator.compute" />
     <None Include="Assets\Resources\Shaders\Land.shader" />
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
     <None Include="Assets\Resources\Shaders\Land.hlsl" />

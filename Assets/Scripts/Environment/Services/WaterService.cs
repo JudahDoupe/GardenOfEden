@@ -36,7 +36,7 @@ public class WaterService : MonoBehaviour
         shader.SetFloat("Radius", radius);
         shader.SetFloats("AdditionCenter", location.x, location.y, location.z);
         shader.SetTexture(kernelId, "Map", EnvironmentDataStore.WaterSourceMap);
-        shader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+        shader.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
     public void Rain(float meters)
@@ -44,7 +44,7 @@ public class WaterService : MonoBehaviour
         int kernelId = WaterShader.FindKernel("Rain");
         WaterShader.SetFloat("RainDepthInMeters", meters);
         WaterShader.SetTexture(kernelId, "WaterMap", EnvironmentDataStore.WaterMap);
-        WaterShader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+        WaterShader.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
     /* Inner Mechanations */
@@ -89,7 +89,7 @@ public class WaterService : MonoBehaviour
         WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandMap);
         WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentDataStore.WaterMap);
         WaterShader.SetTexture(updateKernel, "WaterSourceMap", EnvironmentDataStore.WaterSourceMap);
-        WaterShader.Dispatch(updateKernel, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+        WaterShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
     public void ProcessDay()

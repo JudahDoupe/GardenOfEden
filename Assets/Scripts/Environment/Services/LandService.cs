@@ -28,7 +28,7 @@ public class LandService : MonoBehaviour, ILandService
         shader.SetFloat("Radius", radius);
         shader.SetFloats("AdditionCenter", location.x, location.y, location.z);
         shader.SetTexture(kernelId, "Map", EnvironmentDataStore.LandMap);
-        shader.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+        shader.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
 
         UpdateLand();
     }
@@ -62,7 +62,7 @@ public class LandService : MonoBehaviour, ILandService
         var updateShader = Resources.Load<ComputeShader>("Shaders/Land");
         int updateKernel = updateShader.FindKernel("Update");
         updateShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandMap);
-        updateShader.Dispatch(updateKernel, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+        updateShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
     public void ProcessDay()
     {

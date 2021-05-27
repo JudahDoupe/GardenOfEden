@@ -33,12 +33,12 @@ public static class RenderTextureExtensions
                     if (!RTCache.ContainsKey(rt))
                     {
                         RTCache[rt] = new[] {
-                            new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false),
-                            new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false),
-                            new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false),
-                            new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false),
-                            new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false),
-                            new Texture2D(EnvironmentDataStore.TextureSize, EnvironmentDataStore.TextureSize, TextureFormat.RGBAFloat, false)
+                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false),
+                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false),
+                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false),
+                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false),
+                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false),
+                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false)
                         };
                     }
 
@@ -74,7 +74,7 @@ public static class RenderTextureExtensions
         var kernelId = cs.FindKernel("Initialize");
         cs.SetTexture(kernelId, "Map", tex);
         cs.SetFloats("Values", r, g, b, a);
-        cs.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+        cs.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
 
         return tex;
     }
@@ -86,7 +86,7 @@ public static class RenderTextureExtensions
         cs.SetFloat("Seed", seed);
         cs.SetFloat("Min", min);
         cs.SetFloat("Max", max);
-        cs.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+        cs.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
 
         return tex;
     }
@@ -95,7 +95,7 @@ public static class RenderTextureExtensions
         ComputeShader cs = (ComputeShader)Resources.Load("Shaders/Initialize");
         var kernelId = cs.FindKernel("InitializeUvw");
         cs.SetTexture(kernelId, "Map", tex);
-        cs.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+        cs.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
 
         return tex;
     }
@@ -104,7 +104,7 @@ public static class RenderTextureExtensions
         ComputeShader cs = (ComputeShader)Resources.Load("Shaders/Initialize");
         var kernelId = cs.FindKernel("InitializeXyw");
         cs.SetTexture(kernelId, "Map", tex);
-        cs.Dispatch(kernelId, EnvironmentDataStore.TextureSize / 8, EnvironmentDataStore.TextureSize / 8, 1);
+        cs.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
 
         return tex;
     }

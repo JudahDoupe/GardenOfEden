@@ -194,7 +194,7 @@ public struct Coordinate : IComponentData
         uv /= v[side / 2];
 
         //Account for buffer pixels
-        uv *= (EnvironmentDataStore.TextureSize - 2.0f) / EnvironmentDataStore.TextureSize;
+        uv *= (TextureWidthInPixels - 2.0f) / TextureWidthInPixels;
 
         // Transform uv from [-1,1] to [0,1]
         uv = uv * 0.5f + new float2(0.5f, 0.5f);
