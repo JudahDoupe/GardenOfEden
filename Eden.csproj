@@ -78,6 +78,7 @@
     <Compile Include="Assets\Scripts\Environment\Services\TimeService.cs" />
     <Compile Include="Assets\Scripts\Utils\AnimationUtils.cs" />
     <Compile Include="Assets\Scripts\Plants\Cleanup\UpdateMeshSystem.cs" />
+    <Compile Include="Assets\Scripts\Environment\Components\PlanetFactory.cs" />
     <Compile Include="Assets\Scripts\GamePlay\UI\Utils\FaceCamera.cs" />
     <Compile Include="Assets\Scripts\Plants\Growth\GrowthSystemGroup.cs" />
     <Compile Include="Assets\Scripts\Utils\Mathj.cs" />

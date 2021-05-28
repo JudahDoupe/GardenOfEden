@@ -43,9 +43,9 @@ public class MainMenuCamera : MonoBehaviour
                 Singleton.CameraController.LockFocus = true;
                 transform.Find("Home").gameObject.SetActive(true);
                 transform.Find("Home").AnimateTransform(0.3f, new Vector3(350, 0, 0), Vector3.one);
-                Camera.main.transform.AnimateTransform(1, new Vector3(0, 0, Coordinate.PlanetRadius * -4), Vector3.one);
+                Camera.main.transform.AnimateTransform(1, new Vector3(0, 0, Coordinate.PlanetRadius * -2.4f), Vector3.one);
                 Camera.main.transform.AnimateRotation(1, Quaternion.identity);
-                Singleton.CameraController.Focus.AnimateTransform(1, new Vector3(Coordinate.PlanetRadius * -2, 0, 0), Vector3.one);
+                Singleton.CameraController.Focus.AnimateTransform(1, new Vector3(Coordinate.PlanetRadius * -0.75f, 0, 0), Vector3.one);
                 Singleton.CameraController.Focus.transform.AnimateRotation(1, Quaternion.identity);
             })
             .Ignore(UiTrigger.Open)

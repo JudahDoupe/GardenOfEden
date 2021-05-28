@@ -5,11 +5,7 @@
 RWTexture2DArray<float4> LandMap;
 RWTexture2DArray<float4> WaterMap;
 
-float Scale;
 float Seed;
-float SeaLevel;
-float PlateauHeight;
-float Smoothness;
 float Min;
 float Max;
 
@@ -20,7 +16,7 @@ float noise(float2 uv)
 
 float smoothNoise(float2 uv, float scale)
 {
-    float2 lv = smoothstep(0.,1.,frac(uv * 10. * scale));
+    float2 lv = smoothstep(0.,1.,frac(uv * 10 * scale));
     float2 id = floor(uv * 10. * scale);
     
     float bl = noise(id);
@@ -44,17 +40,6 @@ float layeredNoise(float2 uv)
     return c / 2.;
 }
 
-float plateauNoise(float2 uv)
-{
-    float height = PlateauHeight;
-    float noise = layeredNoise(uv);
-    float plateau = floor(noise / height) * height + height/2.;
-    float k = 1. - clamp(0.,1., (1.-abs(plateau-noise)/(height/2.))*Smoothness*Smoothness);
-    float t = k-(k*(1.-k));
-    float h = t * noise + (1. - t) * plateau;
-    return h;
-}
-
 [numthreads(8, 8, 1)]
 void Generate(uint3 id : SV_DispatchThreadID)
 {
@@ -62,7 +47,7 @@ void Generate(uint3 id : SV_DispatchThreadID)
     for (int i = 0; i < 6; ++i)
     {
         float3 uvw = xyw_to_uvw(int3(id.xy, i));
-        float h = plateauNoise(uvw.xy);
+        float h = layeredNoise(uvw.xy);
         float w = -min(0, h);
         LandMap[int3(id.xy, i)] = float4(h,0,0,0);
         WaterMap[int3(id.xy, i)] = float4(0,0,w,0);
