@@ -5,6 +5,7 @@
 RWTexture2DArray<float4> LandMap;
 RWTexture2DArray<float4> WaterMap;
 
+float Scale;
 float Seed;
 float SeaLevel;
 float PlateauHeight;

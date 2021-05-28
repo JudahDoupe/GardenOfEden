@@ -7,12 +7,32 @@ public class EnvironmentDataStore : MonoBehaviour
     public static RenderTexture WaterMap;
     public static RenderTexture LandMap;
 
+    public bool Regenerate;
+
+    public float IslandFrequency;
+    public float IslandSize;
+    public float Mountains;
+    public float MountainHeight; 
 
     void Awake()
     {
-        LandMap = new RenderTexture(512, 512, 4, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture();
-        WaterMap = new RenderTexture(512, 512, 4, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture();
+        LandMap = new RenderTexture(512, 512, 4, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture().Initialize();
+        WaterMap = new RenderTexture(512, 512, 4, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture().Initialize();
         WaterSourceMap = new RenderTexture(512, 512, 4, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture().Initialize();
+    }
+
+    //TODO: Planet Factory
+
+    void Update()
+    {
+        if (Regenerate)
+        {
+            RegenerateTerrain();
+        }
+    }
+
+    void RegenerateTerrain()
+    {
         ComputeShader cs = (ComputeShader)Resources.Load("Shaders/TerrainGenerator");
         var kernelId = cs.FindKernel("Generate");
         cs.SetTexture(kernelId, "LandMap", LandMap);
