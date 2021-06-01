@@ -9,6 +9,11 @@ public class PlanetFactory : MonoBehaviour
     public float IslandSize;
     public float MountainHeight;
 
+    void Start()
+    {
+        RegenerateTerrain();
+    }
+
     void Update()
     {
         if (Regenerate)
