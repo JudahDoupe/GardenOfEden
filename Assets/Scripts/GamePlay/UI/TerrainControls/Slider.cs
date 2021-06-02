@@ -19,7 +19,6 @@ public class Slider : MonoBehaviour
     void OnMouseDown()
     {
         IsClicked = true;
-        Singleton.CameraController.LockRotation = true;
         distance = Camera.main.WorldToScreenPoint(transform.position).z;
         offset = transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, distance));
     }
@@ -27,7 +26,6 @@ public class Slider : MonoBehaviour
     void OnMouseUp()
     {
         IsClicked = false;
-        Singleton.CameraController.LockRotation = false;
         localTarget = Vector3.zero;
     }
 

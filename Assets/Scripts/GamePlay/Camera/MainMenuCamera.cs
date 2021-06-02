@@ -24,11 +24,6 @@ public class MainMenuCamera : MonoBehaviour
         _stateMachine.Configure(UiState.Closed)
             .OnEntry(() =>
             {
-                Singleton.CameraController.LockMovement = false;
-                Singleton.CameraController.LockAltitude = false;
-                Singleton.CameraController.LockRotation = false;
-                Singleton.CameraController.LockCamera = false;
-                Singleton.CameraController.LockFocus = false;
                 transform.Find("Home").AnimateTransform(0.3f, new Vector3(-350, 0, 0), Vector3.one, false);
             })
             .Permit(UiTrigger.Open, UiState.Open);
@@ -36,17 +31,12 @@ public class MainMenuCamera : MonoBehaviour
         _stateMachine.Configure(UiState.Open)
             .OnEntry(() =>
             {
-                Singleton.CameraController.LockMovement = true;
-                Singleton.CameraController.LockAltitude = true;
-                Singleton.CameraController.LockRotation = true;
-                Singleton.CameraController.LockCamera = true;
-                Singleton.CameraController.LockFocus = true;
                 transform.Find("Home").gameObject.SetActive(true);
                 transform.Find("Home").AnimateTransform(0.3f, new Vector3(350, 0, 0), Vector3.one);
                 Camera.main.transform.AnimateTransform(1, new Vector3(0, 0, Coordinate.PlanetRadius * -2.4f), Vector3.one);
                 Camera.main.transform.AnimateRotation(1, Quaternion.identity);
-                Singleton.CameraController.Focus.AnimateTransform(1, new Vector3(Coordinate.PlanetRadius * -0.75f, 0, 0), Vector3.one);
-                Singleton.CameraController.Focus.transform.AnimateRotation(1, Quaternion.identity);
+                Singleton.PerspectiveController.Focus.AnimateTransform(1, new Vector3(Coordinate.PlanetRadius * -0.75f, 0, 0), Vector3.one);
+                Singleton.PerspectiveController.Focus.transform.AnimateRotation(1, Quaternion.identity);
             })
             .Ignore(UiTrigger.Open)
             .Permit(UiTrigger.Continue, UiState.Closed);

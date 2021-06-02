@@ -14,7 +14,7 @@ public class ProximityLoadBalancer : MonoBehaviour, ILoadBalancer
     public UpdateChunk EnvironmentalChunk { get; private set; }
     public UpdateChunk ActiveEntityChunk { get; private set; }
     public UpdateChunk InactiveEntityChunk { get; private set; }
-    public float3 Position => Singleton.CameraController.FocusPos;
+    public float3 Position => Singleton.PerspectiveController.Focus.position;
     public float Radius { get; private set; }
 
     private List<Action> _environmentalSystems = new List<Action>();

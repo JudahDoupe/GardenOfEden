@@ -11,7 +11,7 @@ public class Singleton : MonoBehaviour
     public static ILoadBalancer LoadBalancer;
     public static EnvironmentDataStore EnvironmentalChunkService;
 
-    public static CameraController CameraController;
+    public static PerspectiveController PerspectiveController;
     public static RenderMeshLibrary RenderMeshLibrary;
     public static DnaService DnaService;
 
@@ -26,7 +26,7 @@ public class Singleton : MonoBehaviour
         LoadBalancer = FindObjectOfType<ProximityLoadBalancer>();
         EnvironmentalChunkService = FindObjectOfType<EnvironmentDataStore>();
 
-        CameraController = FindObjectOfType<CameraController>();
+        PerspectiveController = FindObjectOfType<PerspectiveController>();
         RenderMeshLibrary = FindObjectOfType<RenderMeshLibrary>();
         DnaService = FindObjectOfType<DnaService>();
     }

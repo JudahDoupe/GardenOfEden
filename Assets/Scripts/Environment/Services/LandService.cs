@@ -10,6 +10,7 @@ public interface ILandService
 public class LandService : MonoBehaviour, ILandService
 {
     public static float SeaLevel = 1000f;
+    public static float RingRadius = 0;
 
     /* Publicly Accessible Methods */
 
@@ -52,10 +53,10 @@ public class LandService : MonoBehaviour, ILandService
     }
     private void SetMaterialShaderVariables()
     {
-        var focusPos = Singleton.CameraController.FocusPos;
+        var focusPos = Singleton.PerspectiveController.Focus.position;
         LandRenderer.sharedMaterial.SetVector("_FocusPosition", new Vector4(focusPos.x, focusPos.y, focusPos.z, 0));
         LandRenderer.material.SetFloat("_SeaLevel", SeaLevel);
-        LandRenderer.material.SetFloat("_FocusRadius", Singleton.CameraController.FocusRadius);
+        LandRenderer.material.SetFloat("_FocusRadius", RingRadius);
     }
     private void UpdateLand()
     {

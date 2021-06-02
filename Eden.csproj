@@ -86,6 +86,7 @@
     <Compile Include="Assets\Scripts\Utils\MessageBus.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LoadBalancer\ProximityLoadBalancer.cs" />
     <Compile Include="Assets\Scripts\Environment\Services\WaterService.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\UI\Utils\MatchButtonText.cs" />
     <Compile Include="Assets\Scripts\Plants\Dna\DnaService.cs" />
     <Compile Include="Assets\Scripts\Plants\Cleanup\AssignMeshSystem.cs" />
     <Compile Include="Assets\Scripts\Environment\Utils\EnvironmentDataStore.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="Assets\Scripts\Utils\RenderMeshLibrary.cs" />
     <Compile Include="Assets\Scripts\Utils\DBUtils\TransformDto.cs" />
     <Compile Include="Assets\Scripts\Plants\Setup\SetupSystemGroup.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\UI\Utils\MatchToggleText.cs" />
     <Compile Include="Assets\Scripts\Utils\Subject.cs" />
     <Compile Include="Assets\Scripts\Plants\Growth\EnergyFlowSystem.cs" />
     <Compile Include="Assets\Scripts\GamePlay\UI\TerrainControls\Slider.cs" />
@@ -133,8 +135,7 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMaterial.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Scripts\Plants\Environment\EnvironmentSystemGroup.cs" />
-    <Compile Include="Assets\Scripts\GamePlay\UI\Utils\MatchButtonText.cs" />
-    <Compile Include="Assets\Scripts\GamePlay\UI\Utils\MatchToggleText.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\Camera\Perspectives\PerspectiveController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Resources\Shaders\Land.shader" />

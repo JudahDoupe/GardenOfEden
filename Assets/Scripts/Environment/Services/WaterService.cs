@@ -71,10 +71,10 @@ public class WaterService : MonoBehaviour
 
     private void SetMaterialShaderVariables()
     {
-        var focusPos = Singleton.CameraController.FocusPos;
+        var focusPos = Singleton.PerspectiveController.Focus.position;
         WaterRenderer.sharedMaterial.SetVector("_FocusPosition", new Vector4(focusPos.x, focusPos.y, focusPos.z, 0));
         WaterRenderer.material.SetFloat("_SeaLevel", SeaLevel);
-        WaterRenderer.material.SetFloat("_FocusRadius", Singleton.CameraController.FocusRadius);
+        WaterRenderer.material.SetFloat("_FocusRadius", LandService.RingRadius);
     }
     private void SetComputeShaderVariables()
     {

@@ -29,21 +29,23 @@ public class Slider2D : Control
 
     private void Update()
     {
+        /*
         IsInUse = _slider.IsClicked;
         if (IsActive)
         {
             Radius = math.abs(GlobalOffset.x) + (IsInUse ? 20 : 0);
             Height = new Coordinate(GlobalPosition).Altitude;
-            Singleton.CameraController.FocusRadius = Radius;
-            Singleton.CameraController.LockAltitude = IsInUse;
+            Singleton.PerspectiveController.FocusRadius = Radius;
+            Singleton.PerspectiveController.LockAltitude = IsInUse;
 
             if (IsInUse)
             {
-                UpdateFunction(Singleton.CameraController.FocusCoord, Radius, Height);
+                UpdateFunction(Singleton.PerspectiveController.FocusCoord, Radius, Height);
             }
         }
 
         SetHeightLine();
+        */
     }
 
     private void SetHeightLine()

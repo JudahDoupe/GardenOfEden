@@ -15,10 +15,13 @@ namespace Assets.Scripts.Utils
             Singleton.GameService.StartCoroutine(AnimateBool(seconds, isActive, active => transform.gameObject.SetActive(active)));
         }
 
+        public static void AnimatePosition(this Transform transform, float seconds, Vector3 localPosition)
+        {
+            Singleton.GameService.StartCoroutine(AnimateVector3(seconds, transform.localPosition, localPosition, pos => transform.localPosition = pos));
+        }
         public static void AnimateRotation(this Transform transform, float seconds, Quaternion localRotation)
         {
-            Singleton.GameService.StartCoroutine(AnimateQuaternion(seconds, transform.localRotation, localRotation,
-                rot => transform.localRotation = rot));
+            Singleton.GameService.StartCoroutine(AnimateQuaternion(seconds, transform.localRotation, localRotation, rot => transform.localRotation = rot));
         }
 
         public static void AnimateUiOpacity(this Transform transform, float seconds, float alpha)

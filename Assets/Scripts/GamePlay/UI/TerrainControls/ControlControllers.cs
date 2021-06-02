@@ -28,16 +28,17 @@ public class ControlControllers : MonoBehaviour
 
     void Update()
     {
+        /*
         _controls.RemoveAll(x => x == null);
 
-        BedrockControl.IsActive = 100 < Singleton.CameraController.CameraDistance && Singleton.CameraController.CameraDistance < 1000
+        BedrockControl.IsActive = 100 < Singleton.PerspectiveController.CameraDistance && Singleton.PerspectiveController.CameraDistance < 1000
                               && !_controls.Any(x => x.IsInUse && x != BedrockControl);
-        PlantControlButton.IsActive = Singleton.CameraController.CameraDistance < 100
+        PlantControlButton.IsActive = Singleton.PerspectiveController.CameraDistance < 100
                                  && !_controls.Any(x => x.IsInUse && x != WaterTableControl)
-                                 && Singleton.Land.SampleHeight(Singleton.CameraController.FocusCoord) > LandService.SeaLevel;
-        WaterTableControl.IsActive = 100 < Singleton.CameraController.CameraDistance && Singleton.CameraController.CameraDistance < 1000
+                                 && Singleton.Land.SampleHeight(Singleton.PerspectiveController.FocusCoord) > LandService.SeaLevel;
+        WaterTableControl.IsActive = 100 < Singleton.PerspectiveController.CameraDistance && Singleton.PerspectiveController.CameraDistance < 1000
                                  && !_controls.Any(x => x.IsInUse && x != WaterTableControl)
-                                 && Singleton.Land.SampleHeight(Singleton.CameraController.FocusCoord) > LandService.SeaLevel;
+                                 && Singleton.Land.SampleHeight(Singleton.PerspectiveController.FocusCoord) > LandService.SeaLevel;
 
         var activeControls = _controls.Where(x => x.IsActive).ToList();
         for (int i = 0; i < activeControls.Count; i++)
@@ -50,6 +51,7 @@ public class ControlControllers : MonoBehaviour
         {
             inactiveControl.transform.localPosition = Vector3.zero;
         }
+        */
     }
 
     private Vector3 GetLocalPosition(int i, int count)

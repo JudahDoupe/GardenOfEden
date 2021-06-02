@@ -138,7 +138,7 @@ public class DnaMenuController : MonoBehaviour
     {
         if (_stateMachine.IsInState(UiState.Enabled))
         {
-            _focusedPlant = CameraUtils.GetClosestEntity(Singleton.CameraController.FocusPos);
+            _focusedPlant = CameraUtils.GetClosestEntity(Singleton.PerspectiveController.Focus.position);
             if (_focusedPlant != Entity.Null)
             {
                 _focusedBounds = CameraUtils.EncapsulateChildren(_focusedPlant);
@@ -156,9 +156,11 @@ public class DnaMenuController : MonoBehaviour
     private void DriftCamera()
     {
         var distance = Mathf.Clamp(CameraUtils.GetDistanceToIncludeBounds(_focusedBounds, 1.5f), 5, 25);
-        Singleton.CameraController.Rotate(new Vector3((distance * CameraDriftSpeed) / 100000, 0));
-        Singleton.CameraController.MoveTo(new Coordinate(_focusedBounds.center));
-        Singleton.CameraController.Zoom(distance);
+        /*
+        Singleton.PerspectiveController.Rotate(new Vector3((distance * CameraDriftSpeed) / 100000, 0));
+        Singleton.PerspectiveController.MoveTo(new Coordinate(_focusedBounds.center));
+        Singleton.PerspectiveController.Zoom(distance);
+        */
     }
 
     private void PositionOpenPanels()
