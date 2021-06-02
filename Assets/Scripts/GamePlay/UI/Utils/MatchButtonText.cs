@@ -12,16 +12,28 @@ public class MatchButtonText : MonoBehaviour, IPointerEnterHandler, IPointerExit
     public void Start()
     {
         button = GetComponent<Button>();
-        GetComponentInChildren<Text>().color = GetColor(false);
+        foreach (var text in GetComponentsInChildren<Text>())
+        {
+            if(text.transform.parent == transform)
+                text.color = GetColor(false);
+        }
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
-        GetComponentInChildren<Text>().color = GetColor(true);
+        foreach (var text in GetComponentsInChildren<Text>())
+        {
+            if (text.transform.parent == transform)
+                text.color = GetColor(true);
+        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        GetComponentInChildren<Text>().color = GetColor(false);
+        foreach (var text in GetComponentsInChildren<Text>())
+        {
+            if (text.transform.parent == transform)
+                text.color = GetColor(false);
+        }
     }
 
     private Color GetColor(bool isSelected)

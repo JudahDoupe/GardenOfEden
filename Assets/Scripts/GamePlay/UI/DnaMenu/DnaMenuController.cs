@@ -191,7 +191,7 @@ public class DnaMenuController : MonoBehaviour
 
             var position = new Vector3(-400 + (0.5f - sin) * 150, (1 + (1 - cos) * -15), 0);
             var scale = Vector3.one * (1 + (1 - cos) * -0.2f);
-            var opacity = cos;
+            var opacity = cos * cos;
 
             panel.transform.SetSiblingIndex(0);
             panel.transform.AnimateUiOpacity(0, opacity);

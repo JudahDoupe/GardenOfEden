@@ -12,16 +12,28 @@ public class MatchToggleText : MonoBehaviour, IPointerEnterHandler, IPointerExit
     public void Start()
     {
         toggle = GetComponent<Toggle>();
-        GetComponentInChildren<Text>().color = GetColor(toggle.isOn);
+        foreach (var text in GetComponentsInChildren<Text>())
+        {
+            if (text.transform.parent == transform)
+                text.color = GetColor(toggle.isOn);
+        }
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
-        GetComponentInChildren<Text>().color = GetColor(true);
+        foreach (var text in GetComponentsInChildren<Text>())
+        {
+            if (text.transform.parent == transform)
+                text.color = GetColor(true);
+        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        GetComponentInChildren<Text>().color = GetColor(toggle.isOn);
+        foreach (var text in GetComponentsInChildren<Text>())
+        {
+            if (text.transform.parent == transform)
+                text.color = GetColor(toggle.isOn);
+        }
     }
 
     private Color GetColor(bool isSelected)

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="0" y="0" width="50.125" height="46.384"/>
+  </defs>
+  <polygon style="stroke: rgb(0, 0, 0); paint-order: fill; stroke-opacity: 0; fill: rgba(0, 0, 0, 0.51);" points="451.372 0.831 500 91.854 451.372 185.993 49.252 185.37 -0.623 92.477 51.122 -0.416"/>
+  <polygon style="stroke: rgb(0, 0, 0); fill: rgb(255, 255, 255); stroke-opacity: 0;" points="-0.6539999842643738 92.47799682617188 50.47999954223633 0.41600000858306885 452.3110046386719 0.8259997963905334 63.60100173950195 25.01799964904785"/>
+</svg>
