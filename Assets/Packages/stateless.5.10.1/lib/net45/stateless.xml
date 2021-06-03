@@ -1502,14 +1502,14 @@
             <exception cref="T:System.InvalidOperationException">The current state does
             not allow the trigger to be fired.</exception>
         </member>
-        <member name="M:Stateless.StateMachine`2.Activate">
+        <member name="M:Stateless.StateMachine`2.Enable">
             <summary>
             Activates current state. Actions associated with activating the current state
             will be invoked. The activation is idempotent and subsequent activation of the same current state
             will not lead to re-execution of activation callbacks.
             </summary>
         </member>
-        <member name="M:Stateless.StateMachine`2.Deactivate">
+        <member name="M:Stateless.StateMachine`2.Disable">
             <summary>
             Deactivates current state. Actions associated with deactivating the current state
             will be invoked. The deactivation is idempotent and subsequent deactivation of the same current state
