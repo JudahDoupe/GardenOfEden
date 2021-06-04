@@ -5,6 +5,7 @@ using UnityEngine;
 public class PausedCamera : MonoBehaviour
 {
     public float TransitionTime = 1f;
+    public float Fov = 30f;
     public bool IsActive { get; private set; }
 
     private Transform _camera;
@@ -16,10 +17,12 @@ public class PausedCamera : MonoBehaviour
         _focus = focus;
         _focus.parent = null;
         _camera.parent = _focus;
-        var targetPos = new Vector3(0, 0, Coordinate.PlanetRadius * -2.4f);
+        var targetPos = new Vector3(0, 0, Coordinate.PlanetRadius * -5f);
         var time = math.sqrt(Vector3.Distance(targetPos, _camera.localPosition)) / 25f * TransitionTime;
         _camera.AnimatePosition(time, targetPos);
-        _focus.AnimatePosition(time, _focus.right  * Coordinate.PlanetRadius * -0.75f);
+        _focus.AnimatePosition(time, _focus.right  * Coordinate.PlanetRadius * -0.66f);
+        StartCoroutine(AnimationUtils.AnimateFloat(time, _camera.GetComponent<Camera>().fieldOfView, Fov, x => _camera.GetComponent<Camera>().fieldOfView = x));
+
         IsActive = true;
     }
 
