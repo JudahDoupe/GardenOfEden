@@ -51,6 +51,21 @@ public class PerspectiveController : MonoBehaviour
             {
                 FindObjectOfType<SatelliteCamera>().Disable();
             })
+            .Ignore(Trigger.ZoomOut)
+            .Permit(Trigger.ZoomIn, State.Landscape)
+            .Permit(Trigger.Pause, State.MainMenu);
+
+        _stateMachine.Configure(State.Landscape)
+            .OnEntry(() =>
+            {
+                FindObjectOfType<LandscapeCamera>().Enable(Camera, Focus);
+            })
+            .OnExit(() =>
+            {
+                FindObjectOfType<LandscapeCamera>().Disable();
+            })
+            .Permit(Trigger.ZoomOut, State.Satellite)
+            .Ignore(Trigger.ZoomIn)
             .Permit(Trigger.Pause, State.MainMenu);
     }
 
@@ -64,6 +79,7 @@ public class PerspectiveController : MonoBehaviour
     {
         MainMenu,
         Satellite,
+        Landscape,
     }
 
     private enum Trigger

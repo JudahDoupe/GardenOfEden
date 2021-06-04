@@ -1,3 +1,4 @@
+using System;
 using Assets.Scripts.Utils;
 using Unity.Mathematics;
 using UnityEngine;
@@ -7,9 +8,9 @@ public class SatelliteCamera : MonoBehaviour
     public float TransitionTime = 0.5f;
     public float LerpSpeed = 5f;
     public float MovementSpeed = 30f;
-    public float ZoomSpeed = 15f;
-    public float MaxAltitude = 2000;
-    public float MinAltitude = 1500;
+    public float ZoomSpeed = 60f;
+    public float MaxAltitude = 4000;
+    public float MinAltitude = 3000;
     public float Fov = 30;
     public bool IsActive { get; private set; }
 
@@ -57,10 +58,19 @@ public class SatelliteCamera : MonoBehaviour
         var x = Input.GetAxis("Horizontal");
         var y = math.clamp(Input.GetAxis("Vertical"), poleAlignment < 0.99f ? -1 : 0, -0.99f < poleAlignment ? 1 : 0);
         var z = -Input.mouseScrollDelta.y * ZoomSpeed;
+        _altitude += z;
 
-        _altitude = math.clamp(_altitude + z, MinAltitude, MaxAltitude);
         _focus.Rotate(Vector3.up, -x * MovementSpeed * Time.deltaTime, Space.World);
         _focus.Rotate(Vector3.right, y * MovementSpeed * Time.deltaTime, Space.Self);
         _camera.localPosition = Vector3.Lerp(_camera.localPosition, _camera.localPosition.normalized * _altitude, Time.deltaTime * LerpSpeed);
+
+        if (_camera.localPosition.magnitude < MinAltitude)
+        {
+            Singleton.PerspectiveController.ZoomIn();
+        }
+        if (_camera.localPosition.magnitude > MaxAltitude)
+        {
+            Singleton.PerspectiveController.ZoomOut();
+        }
     }
 }
