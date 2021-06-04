@@ -98,6 +98,7 @@
     <Compile Include="Assets\Scripts\Utils\Interfaces\IDataBaseObject.cs" />
     <Compile Include="Assets\Scripts\GamePlay\Camera\CameraController.cs" />
     <Compile Include="Assets\Scripts\Plants\Growth\GrowthHormoneSystem.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\Camera\SatelliteCamera.cs" />
     <Compile Include="Assets\Scripts\GamePlay\PerspectiveController.cs" />
     <Compile Include="Assets\Scripts\Environment\Services\LandService.cs" />
     <Compile Include="Assets\Scripts\Plants\Dna\Dna.cs" />
@@ -107,8 +108,10 @@
     <Compile Include="Assets\Scripts\GamePlay\LoadBalancer\ILoadBalancer.cs" />
     <Compile Include="Assets\Scripts\Utils\ReplacementShaderEffect.cs" />
     <Compile Include="Assets\Scripts\Utils\RenderMeshLibrary.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\Ui\DnaUi.cs" />
     <Compile Include="Assets\Scripts\Utils\DBUtils\TransformDto.cs" />
     <Compile Include="Assets\Scripts\Plants\Setup\SetupSystemGroup.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\Ui\DnaCategoryPanel.cs" />
     <Compile Include="Assets\Scripts\Utils\Ui\MatchToggleText.cs" />
     <Compile Include="Assets\Scripts\Utils\Subject.cs" />
     <Compile Include="Assets\Scripts\Plants\Growth\EnergyFlowSystem.cs" />
@@ -116,6 +119,7 @@
     <Compile Include="Assets\Scripts\Utils\Extensions\Bool3Extensions.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusConstants.cs" />
     <Compile Include="Assets\Scripts\Plants\Cleanup\CleanupSystemGroup.cs" />
+    <Compile Include="Assets\Scripts\GamePlay\Camera\PausedCamera.cs" />
     <Compile Include="Assets\Scripts\Utils\Ui\GrowOnHover.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions\MaterialExtensions.cs" />
     <Compile Include="Assets\Scripts\Plants\Dna\Gene.cs" />
@@ -128,10 +132,6 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMaterial.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Scripts\Plants\Environment\EnvironmentSystemGroup.cs" />
-    <Compile Include="Assets\Scripts\GamePlay\Camera\SatelliteCamera.cs" />
-    <Compile Include="Assets\Scripts\GamePlay\Camera\PausedCamera.cs" />
-    <Compile Include="Assets\Scripts\GamePlay\Ui\DnaUi.cs" />
-    <Compile Include="Assets\Scripts\GamePlay\Ui\DnaCategoryPanel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Resources\Shaders\Land.shader" />

@@ -14,6 +14,7 @@ public class PausedCamera : MonoBehaviour
     {
         _camera = camera;
         _focus = focus;
+        _focus.parent = null;
         _camera.parent = _focus;
         var targetPos = new Vector3(0, 0, Coordinate.PlanetRadius * -2.4f);
         var time = math.sqrt(Vector3.Distance(targetPos, _camera.localPosition)) / 25f * TransitionTime;

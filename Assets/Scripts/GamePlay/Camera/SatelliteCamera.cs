@@ -24,6 +24,7 @@ public class SatelliteCamera : MonoBehaviour
         _camera.AnimatePosition(time, _camera.position.normalized * math.clamp(_camera.position.magnitude, MinAltitude, MaxAltitude), () =>
         {
             _focus.LookAt(_focus.position - _camera.position);
+            _focus.parent = FindObjectOfType<Planet>().transform;
             _camera.parent = _focus;
         });
 
@@ -44,9 +45,8 @@ public class SatelliteCamera : MonoBehaviour
 
         _focus.Rotate(Vector3.up, -x * MovementSpeed * Time.deltaTime, Space.World);
 
-        y = math.clamp(y, 
-            Vector3.Dot(_focus.forward, Vector3.up) > -0.99f ? -1 : 0,
-            Vector3.Dot(_focus.forward, Vector3.up) < 0.99f ? 1 : 0);
+        var poleAlignment = Vector3.Dot(_focus.forward, Vector3.up);
+        y = math.clamp(y, poleAlignment < 0.99f ? -1 : 0, -0.99f < poleAlignment ? 1 : 0);
         _focus.Rotate(Vector3.right, y * MovementSpeed * Time.deltaTime, Space.Self);
         _camera.LookAt(_focus, Vector3.up);
     }
