@@ -47,8 +47,8 @@ namespace Assets.Scripts.Utils
             var t = 0f;
             while (t < 1)
             {
-                set(math.lerp(start, end, t));
                 yield return new WaitForEndOfFrame();
+                set(math.lerp(start, end, t));
                 remainingSeconds -= Time.deltaTime;
                 t = 1 - (remainingSeconds / seconds);
             }
@@ -62,8 +62,8 @@ namespace Assets.Scripts.Utils
             var t = 0f;
             while (t < 1)
             {
-                set(Vector3.Lerp(start, end, t));
                 yield return new WaitForEndOfFrame();
+                set(Vector3.Lerp(start, end, t));
                 remainingSeconds -= Time.deltaTime;
                 t = 1 - (remainingSeconds / seconds);
             }
@@ -78,8 +78,8 @@ namespace Assets.Scripts.Utils
             var t = 0f;
             while (t < 1)
             {
-                set(Quaternion.Lerp(start, end, t));
                 yield return new WaitForEndOfFrame();
+                set(Quaternion.Lerp(start, end, t));
                 remainingSeconds -= Time.deltaTime;
                 t = 1 - (remainingSeconds / seconds);
             }

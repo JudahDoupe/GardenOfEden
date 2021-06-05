@@ -5,43 +5,37 @@ using UnityEngine;
 
 public class LandscapeCamera : MonoBehaviour
 {
-    public float TransitionTime = 0.5f;
-    public float LerpSpeed = 5f;
-    public float MovementSpeed = 30f;
-    public float RotationSpeed = 1f;
-    public float ZoomSpeed = 15f;
+    [Header("Altitude")]
     public float MaxAltitude = 3000;
     public float MinAltitude = 2000;
-    public float Fov = 30;
-    public float FocusDistance = 100;
+    public float MaxZoomSpeed = 15f;
+    public float MinZoomSpeed = 15f;
+    [Header("Movement")]
+    public float MaxMovementSpeed = 30f;
+    public float MinMovementSpeed = 30f;
+    [Header("Rotation")]
+    public Vector2 RotationSpeed;
+    public float MaxAngle = 90;
+    public float MinAngle = 60;
+    [Header("FOV")]
+    public float MaxFov = 30;
+    public float MinFov = 60;
     public bool IsActive { get; private set; }
 
     private Transform _camera;
     private Transform _focus;
-    private float _altitude;
-    private Vector3 _cameraPos;
-    private bool _doneTransitioning;
+
+    public float _altitude => _focus.position.magnitude;
 
     public void Enable(Transform camera, Transform focus)
     {
         _camera = camera;
         _focus = focus;
-        _camera.parent = FindObjectOfType<Planet>().transform;
         _focus.parent = FindObjectOfType<Planet>().transform;
-        _altitude = math.clamp(_camera.position.magnitude, MinAltitude, MaxAltitude);
+        _camera.parent = _focus;
+        _focus.position = _camera.position;
 
-        _focus.LookAt(_camera, _camera.up);
-        var focusPos = _camera.localPosition + _focus.up * FocusDistance;
-        focusPos = focusPos.normalized * MinAltitude;
-        var time = math.sqrt(Vector3.Distance(focusPos, _focus.localPosition)) / 25f * TransitionTime;
-        _focus.AnimatePosition(time, focusPos, () =>
-        {
-            _focus.LookAt(focus.position - _camera.position);
-            _cameraPos = _camera.localPosition;
-            _doneTransitioning = true;
-        }); 
-        _camera.AnimatePosition(time, _camera.localPosition.normalized * _altitude);
-        StartCoroutine(AnimationUtils.AnimateFloat(time, _camera.GetComponent<Camera>().fieldOfView, Fov, x => _camera.GetComponent<Camera>().fieldOfView = x));
+        _camera.localPosition = Vector3.zero;
 
         IsActive = true;
     }
@@ -54,36 +48,31 @@ public class LandscapeCamera : MonoBehaviour
     private void LateUpdate()
     {
         if (!IsActive) return;
-        
 
-        if (!_doneTransitioning)
-        {
-            _camera.LookAt(_focus, _camera.position.normalized);
-        }
+        var t = (MaxAltitude - _altitude) / (MaxAltitude - MinAltitude);
+        var translation = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * math.lerp(MaxMovementSpeed, MinMovementSpeed, t);
+        translation.y = -Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t);
+        var rotation = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) * RotationSpeed;
 
-        var x = Input.GetAxis("Horizontal");
-        var y = Input.GetAxis("Vertical");
-        var z = -Input.mouseScrollDelta.y * ZoomSpeed;
+        var right = _camera.right;
+        var up = _camera.position.normalized;
+        var forward = Quaternion.AngleAxis(90, right) * up;
 
-        _altitude = math.clamp(_altitude + z, MinAltitude, MaxAltitude + 10);
-        _camera.Rotate(_camera.localPosition.normalized, x * RotationSpeed);
-        _cameraPos += _camera.forward * y * MovementSpeed;
-        _cameraPos = _cameraPos.normalized * _altitude;
-        _camera.localPosition = Vector3.Lerp(_camera.localPosition, _cameraPos, Time.deltaTime * LerpSpeed);
+        _focus.LookAt(_focus.position + forward, up);
+        _focus.Rotate(0,rotation.x,0);
+        _focus.Translate(translation, Space.Self);
+        _focus.localPosition = _focus.localPosition.normalized * math.max(_altitude, MinAltitude);
 
-        var forward = (_focus.position.normalized - _camera.position.normalized).normalized;
-        var focusPos = _camera.position + forward * FocusDistance;
-        _focus.position = focusPos.normalized * MinAltitude;
-        _camera.LookAt(_focus, _camera.position.normalized);
-        /*
-        if (_camera.position.magnitude < MinAltitude)
+        _camera.localEulerAngles = new Vector3(1, 0, 0) * math.lerp(MaxAngle, MinAngle, t);
+        _camera.GetComponent<Camera>().fieldOfView = math.lerp(MaxFov, MinFov, t * t);
+
+        if (_focus.position.magnitude < MinAltitude)
         {
             Singleton.PerspectiveController.ZoomIn();
         }
-        if (_camera.position.magnitude > MaxAltitude)
+        if (_focus.position.magnitude > MaxAltitude)
         {
             Singleton.PerspectiveController.ZoomOut();
         }
-        */
     }
 }
