@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Plants.Setup;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -71,5 +72,15 @@ public class CameraUtils : MonoBehaviour
             }
         }
         return newBounds;
+    }
+
+    public static float GetTransitionTime(Vector3 start, Vector3 end, float transitionSpeed = 1)
+    {
+        return math.sqrt(Vector3.Distance(start, end)) * 0.05f / transitionSpeed;
+    }
+
+    public static float GetTransitionTime(Quaternion start, Quaternion end, float transitionSpeed = 1)
+    {
+        return math.sqrt(Quaternion.Angle(start, end)) * 0.05f / transitionSpeed;
     }
 }

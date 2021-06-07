@@ -1,11 +1,10 @@
-using System;
-using Assets.Scripts.Utils;
 using Unity.Mathematics;
 using UnityEngine;
 
 public class LandscapeCamera : MonoBehaviour
 {
-    [Header("Altitude")]
+    [Header("Altitude")] 
+    public float LerpSpeed = 2f;
     public float MaxAltitude = 3000;
     public float MinAltitude = 2000;
     public float MaxZoomSpeed = 15f;
@@ -25,23 +24,31 @@ public class LandscapeCamera : MonoBehaviour
     private Transform _camera;
     private Transform _focus;
 
-    public float _altitude => _focus.position.magnitude;
+    private float _altitude;
+    private float _targetAltitude;
 
     public void Enable(Transform camera, Transform focus)
     {
         _camera = camera;
         _focus = focus;
         _focus.parent = FindObjectOfType<Planet>().transform;
-        _camera.parent = _focus;
         _focus.position = _camera.position;
+        _camera.parent = _focus;
 
-        _camera.localPosition = Vector3.zero;
+        _camera.localPosition = new Vector3(0,0,-1);
+        _altitude = _focus.localPosition.magnitude;
+        _targetAltitude = _altitude;
+
+        Cursor.visible = false;
+        Screen.lockCursor = true;
 
         IsActive = true;
     }
 
     public void Disable()
     {
+        Cursor.visible = true;
+        Screen.lockCursor = false;
         IsActive = false;
     }
 
@@ -51,17 +58,22 @@ public class LandscapeCamera : MonoBehaviour
 
         var t = (MaxAltitude - _altitude) / (MaxAltitude - MinAltitude);
         var translation = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * math.lerp(MaxMovementSpeed, MinMovementSpeed, t);
-        translation.y = -Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t);
         var rotation = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) * RotationSpeed;
 
         var right = _camera.right;
         var up = _camera.position.normalized;
         var forward = Quaternion.AngleAxis(90, right) * up;
 
+        _targetAltitude -= Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t);
+        _targetAltitude = math.max(_targetAltitude, MinAltitude);
+        _altitude = math.lerp(_altitude, _targetAltitude, Time.deltaTime * LerpSpeed);
+        
+        t = (MaxAltitude - _altitude) / (MaxAltitude - MinAltitude);
+
         _focus.LookAt(_focus.position + forward, up);
         _focus.Rotate(0,rotation.x,0);
         _focus.Translate(translation, Space.Self);
-        _focus.localPosition = _focus.localPosition.normalized * math.max(_altitude, MinAltitude);
+        _focus.localPosition = _focus.localPosition.normalized * _altitude;
 
         _camera.localEulerAngles = new Vector3(1, 0, 0) * math.lerp(MaxAngle, MinAngle, t);
         _camera.GetComponent<Camera>().fieldOfView = math.lerp(MaxFov, MinFov, t * t);

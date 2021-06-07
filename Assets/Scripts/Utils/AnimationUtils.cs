@@ -23,7 +23,10 @@ namespace Assets.Scripts.Utils
         {
             Singleton.Instance.StartCoroutine(AnimateQuaternion(seconds, transform.localRotation, localRotation, rot => transform.localRotation = rot, callback));
         }
-
+        public static void AnimateFov(this Camera camera, float seconds, float fov, Action callback = null)
+        {
+            Singleton.Instance.StartCoroutine(AnimateFloat(seconds, camera.fieldOfView, fov, f => camera.fieldOfView = f, callback));
+        }
         public static void AnimateUiOpacity(this Transform transform, float seconds, float alpha)
         {
             foreach (var image in transform.GetComponentsInChildren<Image>())

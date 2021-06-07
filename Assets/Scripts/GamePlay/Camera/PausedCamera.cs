@@ -1,10 +1,9 @@
+using System.Linq;
 using Assets.Scripts.Utils;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class PausedCamera : MonoBehaviour
 {
-    public float TransitionTime = 1f;
     public float Fov = 30f;
     public bool IsActive { get; private set; }
 
@@ -17,11 +16,22 @@ public class PausedCamera : MonoBehaviour
         _focus = focus;
         _focus.parent = null;
         _camera.parent = _focus;
-        var targetPos = new Vector3(0, 0, Coordinate.PlanetRadius * -5f);
-        var time = math.sqrt(Vector3.Distance(targetPos, _camera.localPosition)) / 25f * TransitionTime;
-        _camera.AnimatePosition(time, targetPos);
-        _focus.AnimatePosition(time, _focus.right  * Coordinate.PlanetRadius * -0.66f);
-        StartCoroutine(AnimationUtils.AnimateFloat(time, _camera.GetComponent<Camera>().fieldOfView, Fov, x => _camera.GetComponent<Camera>().fieldOfView = x));
+
+        var cameraPos = new Vector3(Coordinate.PlanetRadius * -0.66f, 0, Coordinate.PlanetRadius * -5f);
+        var focusPos = Vector3.zero;
+        var cameraRot = Quaternion.identity;
+        var focusRot = Quaternion.LookRotation(_camera.forward, Vector3.up);
+        var time = new[]
+        {
+            CameraUtils.GetTransitionTime(_camera.localPosition, cameraPos, 3),
+            CameraUtils.GetTransitionTime(_camera.localRotation, cameraRot, 1.5f),
+        }.Max();
+
+        _camera.GetComponent<Camera>().AnimateFov(time, Fov);
+        _camera.AnimatePosition(time, cameraPos);
+        _camera.AnimateRotation(time, cameraRot);
+        _focus.AnimateRotation(time, focusRot);
+        _focus.AnimatePosition(time, focusPos);
 
         IsActive = true;
     }
@@ -29,12 +39,5 @@ public class PausedCamera : MonoBehaviour
     public void Disable()
     {
         IsActive = false;
-    }
-
-    private void LateUpdate()
-    {
-        if (!IsActive) return;
-
-        _camera.LookAt(_focus);
     }
 }

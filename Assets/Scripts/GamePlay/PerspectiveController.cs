@@ -5,8 +5,6 @@ public class PerspectiveController : MonoBehaviour
 {
     private StateMachine<State,Trigger> _stateMachine;
     private State _state;
-    private State _prevState = State.MainMenu;
-    private StateMachine<State, Trigger>.TriggerWithParameters<State> _unpause;
 
     public Transform Camera;
     public Transform Focus;
@@ -14,20 +12,14 @@ public class PerspectiveController : MonoBehaviour
 
     public void ZoomIn() => _stateMachine.Fire(Trigger.ZoomIn);
     public void ZoomOut() => _stateMachine.Fire(Trigger.ZoomOut);
-    public void Pause()
-    {
-        _prevState = _state;
-        _stateMachine.Fire(Trigger.Pause);
-    }
-
-    public void Unpause() => _stateMachine.Fire(_unpause, _prevState);
+    public void Pause() => _stateMachine.Fire(Trigger.Pause);
+    public void Unpause() => _stateMachine.Fire(Trigger.Unpause);
 
 
     private void Start()
     {
         _state = State.MainMenu;
         _stateMachine = new StateMachine<State, Trigger>(() => _state, s => _state = s);
-        _unpause = _stateMachine.SetTriggerParameters<State>(Trigger.Unpause);
 
         _stateMachine.Configure(State.MainMenu)
             .OnEntry(() =>
@@ -40,7 +32,7 @@ public class PerspectiveController : MonoBehaviour
                 FindObjectOfType<PausedCamera>().Disable();
                 FindObjectOfType<MainMenuUi>().Disable();
             })
-            .PermitDynamic(_unpause, state => state == State.MainMenu ? State.Satellite : state);
+            .Permit(Trigger.Unpause, State.Satellite);
 
         _stateMachine.Configure(State.Satellite)
             .OnEntry(() =>

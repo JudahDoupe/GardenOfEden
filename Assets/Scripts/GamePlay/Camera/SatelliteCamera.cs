@@ -1,11 +1,11 @@
 using System;
+using System.Linq;
 using Assets.Scripts.Utils;
 using Unity.Mathematics;
 using UnityEngine;
 
 public class SatelliteCamera : MonoBehaviour
 {
-    public float TransitionTime = 0.5f;
     public float LerpSpeed = 5f;
     public float MovementSpeed = 30f;
     public float ZoomSpeed = 60f;
@@ -17,28 +17,36 @@ public class SatelliteCamera : MonoBehaviour
     private Transform _camera;
     private Transform _focus;
     private float _altitude;
-    private bool _doneTransitioning;
 
     public void Enable(Transform camera, Transform focus)
     {
         _camera = camera;
         _focus = focus;
-        _camera.parent = null;
         _altitude = math.clamp(_camera.position.magnitude, MinAltitude, MaxAltitude);
-        var targetPos = _camera.position.normalized * _altitude;
-        var time = math.sqrt(Vector3.Distance(targetPos, _camera.position)) / 25f * TransitionTime;
-        _focus.AnimatePosition(time, Vector3.zero);
-        _camera.AnimatePosition(time, _camera.position.normalized * _altitude, () =>
+        _camera.parent = null;
+
+        var cameraPos = _camera.position.normalized * _altitude;
+        var cameraRot = Quaternion.LookRotation(-cameraPos, Vector3.up);
+        var focusPos = Vector3.zero;
+        var time = new[]
+        {
+            CameraUtils.GetTransitionTime(_camera.position, cameraPos, 2),
+            CameraUtils.GetTransitionTime(_camera.rotation, cameraRot, 1.5f),
+        }.Max();
+        
+        _focus.AnimatePosition(time, focusPos);
+        _focus.AnimateRotation(time, cameraRot);
+        _camera.GetComponent<Camera>().AnimateFov(time, Fov);
+        _camera.AnimateRotation(time, cameraRot);
+        _camera.AnimatePosition(time, cameraPos, () =>
         {
             _focus.LookAt(_focus.position - _camera.position);
             _focus.parent = FindObjectOfType<Planet>().transform;
             _camera.parent = _focus;
             _altitude = Vector3.Distance(_focus.position, _camera.position);
-            _doneTransitioning = true;
+            IsActive = true;
         });
-        StartCoroutine(AnimationUtils.AnimateFloat(time, _camera.GetComponent<Camera>().fieldOfView, Fov, x => _camera.GetComponent<Camera>().fieldOfView = x));
 
-        IsActive = true;
     }
 
     public void Disable()
@@ -51,8 +59,6 @@ public class SatelliteCamera : MonoBehaviour
         if (!IsActive) return;
 
         _camera.LookAt(_focus, Vector3.up);
-
-        if (!_doneTransitioning) return;
 
         var poleAlignment = Vector3.Dot(_focus.forward, Vector3.up);
         var x = Input.GetAxis("Horizontal");
