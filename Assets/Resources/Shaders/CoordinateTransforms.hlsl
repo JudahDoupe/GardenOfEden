@@ -219,3 +219,15 @@ int3 get_source_xyw(int3 xyw)
     
     return src_xyw;
 }
+
+#ifndef XyzToUvw_INCLUDED
+#define XyzToUvw_INCLUDED
+
+void XyzToUvw_float(float3 xyz, out float2 uv, out float w)
+{
+    float3 uvw = xyz_to_uvw(xyz);
+    uv = uvw.xy;
+    w = uvw.z;
+}
+
+#endif
