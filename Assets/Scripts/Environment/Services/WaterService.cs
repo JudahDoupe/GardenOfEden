@@ -58,24 +58,16 @@ public class WaterService : MonoBehaviour
 
         WaterShader = Resources.Load<ComputeShader>("Shaders/Water");
         WaterRenderer = GetComponent<Renderer>();
-        WaterRenderer.material.SetTexture("_HeightMap", EnvironmentDataStore.WaterMap);
+        WaterRenderer.material.SetTexture("HeightMap", EnvironmentDataStore.WaterMap);
         WaterRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000, 2000, 2000));
     }
 
     void FixedUpdate()
     {
-        SetMaterialShaderVariables();
         SetComputeShaderVariables();
         UpdateWaterTable();
     }
 
-    private void SetMaterialShaderVariables()
-    {
-        var focusPos = Singleton.PerspectiveController.Focus.position;
-        WaterRenderer.sharedMaterial.SetVector("_FocusPosition", new Vector4(focusPos.x, focusPos.y, focusPos.z, 0));
-        WaterRenderer.material.SetFloat("_SeaLevel", SeaLevel);
-        WaterRenderer.material.SetFloat("_FocusRadius", LandService.RingRadius);
-    }
     private void SetComputeShaderVariables()
     {
         WaterShader.SetFloat("MaxAmplitude", MaxAmplitude);

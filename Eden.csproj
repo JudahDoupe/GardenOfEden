@@ -135,9 +135,7 @@
     <Compile Include="Assets\Scripts\Plants\Environment\EnvironmentSystemGroup.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Resources\Shaders\Land.shader" />
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
-    <None Include="Assets\Resources\Shaders\Land.hlsl" />
     <None Include="Assets\Packages\LiteDB.5.0.10\lib\net45\LiteDB.xml" />
     <None Include="Assets\Resources\Shaders\Soil.compute" />
     <None Include="Assets\Resources\Shaders\Water.compute" />
@@ -155,11 +153,7 @@
     <None Include="Assets\Resources\Shaders\Colors.hlsl" />
     <None Include="Assets\Eden.asmdef" />
     <None Include="Assets\Resources\Shaders\Initialize.compute" />
-    <None Include="Assets\Resources\Shaders\Planet.hlsl" />
-    <None Include="Assets\Resources\Shaders\Water.hlsl" />
-    <None Include="Assets\Resources\Shaders\Water.shader" />
     <None Include="Assets\Imports\NuGet\Editor\NugetForUnity.dll" />
-    <None Include="Assets\Resources\Shaders\PlanetTests.compute" />
     <None Include="Assets\Resources\Shaders\CoordinateTransformsTests.compute" />
     <None Include="Assets\Packages\stateless.5.10.1\lib\net45\stateless.xml" />
     <None Include="Assets\Resources\Shaders\Land.compute" />
