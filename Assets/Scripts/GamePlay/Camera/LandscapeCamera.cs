@@ -40,7 +40,7 @@ public class LandscapeCamera : MonoBehaviour
         _targetAltitude = _altitude;
 
         Cursor.visible = false;
-        Screen.lockCursor = true;
+        Cursor.lockState = CursorLockMode.Locked;
 
         IsActive = true;
     }
@@ -48,7 +48,7 @@ public class LandscapeCamera : MonoBehaviour
     public void Disable()
     {
         Cursor.visible = true;
-        Screen.lockCursor = false;
+        Cursor.lockState = CursorLockMode.None;
         IsActive = false;
     }
 

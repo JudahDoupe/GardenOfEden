@@ -25,6 +25,12 @@ public static class Vector3Extensions
         if(sm < (double)min * (double)min) return v.normalized * min;
         return v;
     }
+
+    public static Vector3 ProjectPoint(this Vector3 point, Vector3 segmentStart, Vector3 segmentEnd)
+    {
+        return segmentStart + Vector3.Project(point - segmentStart, segmentEnd - segmentStart);
+    }
+
     public static Vector3 Abs(this Vector3 v)
     {
         return new Vector3(Mathf.Abs(v.x), Mathf.Abs(v.y), Mathf.Abs(v.z));
