@@ -19,6 +19,7 @@ public class LandscapeCamera : MonoBehaviour
     [Header("FOV")]
     public float MaxFov = 30;
     public float MinFov = 60;
+
     public bool IsActive { get; private set; }
 
     private Transform _camera;
@@ -39,17 +40,27 @@ public class LandscapeCamera : MonoBehaviour
         _altitude = _focus.localPosition.magnitude;
         _targetAltitude = _altitude;
 
-        Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-
         IsActive = true;
     }
 
     public void Disable()
     {
-        Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
         IsActive = false;
+    }
+
+    private void Update()
+    {
+        var ray = new Ray(_camera.position, _camera.forward);
+        if (Physics.Raycast(ray, out var hit))
+        {
+            hit.transform.SendMessage("Hover");
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                hit.transform.SendMessage("Click");
+            }
+        }
     }
 
     private void LateUpdate()

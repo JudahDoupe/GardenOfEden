@@ -19,6 +19,10 @@ namespace Assets.Scripts.Utils
         {
             Singleton.Instance.StartCoroutine(AnimateVector3(seconds, transform.localPosition, localPosition, pos => transform.localPosition = pos, callback));
         }
+        public static void AnimateScale(this Transform transform, float seconds, Vector3 localScale, Action callback = null)
+        {
+            Singleton.Instance.StartCoroutine(AnimateVector3(seconds, transform.localScale, localScale, scale => transform.localScale = scale, callback));
+        }
         public static void AnimateRotation(this Transform transform, float seconds, Quaternion localRotation, Action callback = null)
         {
             Singleton.Instance.StartCoroutine(AnimateQuaternion(seconds, transform.localRotation, localRotation, rot => transform.localRotation = rot, callback));
