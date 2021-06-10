@@ -105,6 +105,7 @@
     <Compile Include="Assets\Scripts\Plants\Dna\Dna.cs" />
     <Compile Include="Assets\Scripts\Environment\Components\Planet.cs" />
     <Compile Include="Assets\Scripts\Utils\Ui\StickyToggle.cs" />
+    <Compile Include="Assets\Resources\Evironment\SpawnPlantButton\SpawnPlantButton.cs" />
     <Compile Include="Assets\Scripts\Utils\Interfaces\IEventBus.cs" />
     <Compile Include="Assets\Scripts\GamePlay\LoadBalancer\ILoadBalancer.cs" />
     <Compile Include="Assets\Scripts\Utils\ReplacementShaderEffect.cs" />
@@ -124,6 +125,7 @@
     <Compile Include="Assets\Scripts\Utils\Ui\GrowOnHover.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions\MaterialExtensions.cs" />
     <Compile Include="Assets\Scripts\Plants\Dna\Gene.cs" />
+    <Compile Include="Assets\Scripts\Utils\Ui\Rotate.cs" />
     <Compile Include="Assets\Scripts\Utils\Extensions\EnumExtensions.cs" />
     <Compile Include="Assets\Scripts\Plants\Growth\EmbryoDispersalSystem.cs" />
     <Compile Include="Assets\Scripts\GamePlay\Ui\MainMenuUi.cs" />
@@ -133,8 +135,6 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMaterial.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Scripts\Plants\Environment\EnvironmentSystemGroup.cs" />
-    <Compile Include="Assets\Scripts\Utils\Ui\Rotate.cs" />
-    <Compile Include="Assets\Resources\Evironment\SpawnPlantButton\SpawnPlantButton.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
