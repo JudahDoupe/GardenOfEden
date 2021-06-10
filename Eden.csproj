@@ -133,6 +133,7 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMaterial.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Scripts\Plants\Environment\EnvironmentSystemGroup.cs" />
+    <Compile Include="Assets\Scripts\Utils\Ui\Rotate.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
