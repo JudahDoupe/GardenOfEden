@@ -99,6 +99,7 @@
     <Compile Include="Assets\Utils\Interfaces\IDataBaseObject.cs" />
     <Compile Include="Assets\GamePlay\Camera\CameraController.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthHormoneSystem.cs" />
+    <Compile Include="Assets\Utils\Rendering\DepthNormalsFeature.cs" />
     <Compile Include="Assets\GamePlay\Camera\SatelliteCamera.cs" />
     <Compile Include="Assets\GamePlay\PerspectiveController.cs" />
     <Compile Include="Assets\Environment\Services\LandService.cs" />
@@ -135,6 +136,7 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMaterial.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
+    <Compile Include="Assets\Utils\Rendering\BlitMaterialFeature.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
@@ -155,8 +157,10 @@
     <None Include="Assets\Resources\Shaders\Colors.hlsl" />
     <None Include="Assets\Eden.asmdef" />
     <None Include="Assets\Resources\Shaders\Initialize.compute" />
+    <None Include="Assets\Resources\Shaders\OutlinesInclude.hlsl" />
     <None Include="Assets\Imports\NuGet\Editor\NugetForUnity.dll" />
     <None Include="Assets\Resources\Shaders\CoordinateTransformsTests.compute" />
+    <None Include="Assets\Resources\Shaders\DecodeDepthNormals.hlsl" />
     <None Include="Assets\Packages\stateless.5.10.1\lib\net45\stateless.xml" />
     <None Include="Assets\Resources\Shaders\Land.compute" />
     <None Include="Assets\Packages\LiteDB.5.0.10\lib\net45\LiteDB.dll" />
@@ -830,6 +834,12 @@
     </Reference>
     <Reference Include="Unity.Transforms">
       <HintPath>Library\ScriptAssemblies\Unity.Transforms.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>

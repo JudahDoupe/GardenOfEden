@@ -52,6 +52,8 @@ public class LandscapeCamera : MonoBehaviour
 
     private void Update()
     {
+        if (!IsActive) return;
+
         var ray = new Ray(_camera.position, _camera.forward);
         if (Physics.Raycast(ray, out var hit))
         {

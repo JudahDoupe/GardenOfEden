@@ -3,7 +3,9 @@ using UnityEngine;
 
 public class SpawnPlantButton : MonoBehaviour
 {
-    public Renderer Outline;
+    public Renderer Model;
+
+    private float _lastHovering;
 
     void Start()
     {
@@ -14,7 +16,7 @@ public class SpawnPlantButton : MonoBehaviour
     }
     void LateUpdate()
     {
-        Outline.material.SetColor("_BaseColor", Color.black);
+        Model.material.SetInt("IsActive", _lastHovering >= (Time.time - Time.deltaTime) ? 1 : 0);
     }
 
     public void Click()
@@ -23,8 +25,7 @@ public class SpawnPlantButton : MonoBehaviour
     }
     public void Hover()
     {
-        Outline.material.SetColor("_BaseColor", Color.white);
-        Outline.material.SetColor("_Color", Color.white);
+        _lastHovering = Time.time;
     }
 
 
