@@ -67,6 +67,7 @@
     <Compile Include="Assets\Utils\Extensions\TransformExtensions.cs" />
     <Compile Include="Assets\Utils\Extensions\RenderTextureExtensions.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\CoordinateSystem.cs" />
+    <Compile Include="Assets\Utils\Rendering\OutlineFeature.cs" />
     <Compile Include="Assets\Utils\Extensions\Vector3Extensions.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\NodeDivisionSystem.cs" />
     <Compile Include="Assets\Utils\Extensions\FloatExtensions.cs" />
@@ -99,7 +100,6 @@
     <Compile Include="Assets\Utils\Interfaces\IDataBaseObject.cs" />
     <Compile Include="Assets\GamePlay\Camera\CameraController.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthHormoneSystem.cs" />
-    <Compile Include="Assets\Utils\Rendering\DepthNormalsFeature.cs" />
     <Compile Include="Assets\GamePlay\Camera\SatelliteCamera.cs" />
     <Compile Include="Assets\GamePlay\PerspectiveController.cs" />
     <Compile Include="Assets\Environment\Services\LandService.cs" />

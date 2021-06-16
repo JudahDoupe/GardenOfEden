@@ -9,9 +9,6 @@ public class SpawnPlantButton : MonoBehaviour
 
     void Start()
     {
-        var light = GetComponentInChildren<Light>();
-        light.intensity = 0;
-        transform.localScale = Vector3.zero;
         Open();
     }
     void LateUpdate()

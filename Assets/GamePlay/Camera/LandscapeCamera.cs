@@ -57,7 +57,7 @@ public class LandscapeCamera : MonoBehaviour
         var ray = new Ray(_camera.position, _camera.forward);
         if (Physics.Raycast(ray, out var hit))
         {
-            hit.transform.gameObject.SendMessage("Hover");
+            hit.transform.gameObject.SendMessage("Hover", SendMessageOptions.DontRequireReceiver);
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
                 hit.transform.gameObject.SendMessage("Click");

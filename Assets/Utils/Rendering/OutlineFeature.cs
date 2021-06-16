@@ -25,7 +25,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public class DepthNormalsFeature : ScriptableRendererFeature
+public class OutlineFeature : ScriptableRendererFeature
 {
     class RenderPass : ScriptableRenderPass
     {
@@ -38,35 +38,27 @@ public class DepthNormalsFeature : ScriptableRendererFeature
         public RenderPass(Material material)
         {
             this.material = material;
-            // This contains a list of shader tags. The renderer will only render objects with
-            // materials containing a shader with at least one tag in this list
             shaderTags = new List<ShaderTagId>
             {
-                new ShaderTagId("DepthOnly"),
-                //new ShaderTagId("SRPDefaultUnlit"),
-                //new ShaderTagId("UniversalForward"),
-                //new ShaderTagId("LightweightForward"),
+                new ShaderTagId("SRPDefaultUnlit"),
+                new ShaderTagId("UniversalForward"),
+                new ShaderTagId("LightweightForward"),
             };
-            // Render opaque materials
-            filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
-            destinationHandle.Init("_DepthNormalsTexture");
+            LayerMask layerMask = LayerMask.GetMask("OutlinedObjects");
+            filteringSettings = new FilteringSettings(RenderQueueRange.opaque, layerMask);
+            destinationHandle.Init("_OutlinedObjectsTexture");
         }
 
-        // Configure the pass by creating a temporary render texture and
-        // readying it for rendering
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            cmd.GetTemporaryRT(destinationHandle.id, cameraTextureDescriptor, FilterMode.Point);
+            cmd.GetTemporaryRT(destinationHandle.id, cameraTextureDescriptor, FilterMode.Bilinear);
             ConfigureTarget(destinationHandle.Identifier());
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-
-            // Create the draw settings, which configures a new draw call to the GPU
             var drawSettings = CreateDrawingSettings(shaderTags, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
-            // We cant to render all objects using our material
             drawSettings.overrideMaterial = material;
             context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
         }
@@ -77,15 +69,22 @@ public class DepthNormalsFeature : ScriptableRendererFeature
         }
     }
 
+    [System.Serializable]
+    public class Settings
+    {
+        public Material material;
+        public RenderPassEvent renderEvent = RenderPassEvent.AfterRenderingPrePasses;
+    }
+
+    [SerializeField]
+    private Settings settings = new Settings();
+
     private RenderPass renderPass;
 
     public override void Create()
     {
-        // We will use the built-in renderer's depth normals texture shader
-        Material material = CoreUtils.CreateEngineMaterial("Hidden/Internal-DepthNormalsTexture");
-        renderPass = new RenderPass(material);
-        // Render after shadow caster, depth, etc. passes
-        renderPass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
+        renderPass = new RenderPass(settings.material);
+        renderPass.renderPassEvent = settings.renderEvent;
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
