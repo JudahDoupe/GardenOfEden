@@ -1,3 +1,4 @@
+using Assets.Scripts.Plants.Dna;
 using Assets.Scripts.Utils;
 using UnityEngine;
 
@@ -18,6 +19,8 @@ public class SpawnPlantButton : MonoBehaviour
 
     public void Click()
     {
+        var dna = new Dna();
+        dna.Spawn(new Coordinate(-transform.localPosition));
         Close();
     }
     public void Hover()

@@ -49,7 +49,8 @@ public class ProximityLoadBalancer : MonoBehaviour, ILoadBalancer
             Radius = math.clamp(targetRadius, 10, Coordinate.PlanetRadius);
         }
 
-        CurrentChunk = CurrentChunk.IsEnvironmental ? ActiveEntityChunk : EnvironmentalChunk; 
+        CurrentChunk = CurrentChunk.IsEnvironmental ? ActiveEntityChunk : EnvironmentalChunk;
+        Radius = 100000;
     }
 
     public void RegisterEndSimulationAction(Action action)

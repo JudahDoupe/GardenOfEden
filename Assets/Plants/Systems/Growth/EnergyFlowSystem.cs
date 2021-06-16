@@ -22,29 +22,30 @@ namespace Assets.Scripts.Plants.Growth
     {
         protected override void OnUpdate()
         {
+            var planet = Planet.Entity;
+
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .ForEach(
-                    (ref EnergyFlow energyFlow, in EnergyStore energyStore, in Entity entity) =>
+                    (ref EnergyFlow energyFlow, in EnergyStore energyStore, in Parent parent, in Entity entity) =>
                     {
                         var energyStoreQuery = GetComponentDataFromEntity<EnergyStore>(true);
-                        var parentQuery = GetComponentDataFromEntity<Parent>(true);
                         var childrenQuery = GetBufferFromEntity<Child>(true);
 
-                        if (!parentQuery.HasComponent(entity)
-                            || parentQuery[entity].Value == Entity.Null
-                            || !energyStoreQuery.HasComponent(parentQuery[entity].Value)
-                            || !childrenQuery.HasComponent(parentQuery[entity].Value))
+                        if (parent.Value == planet
+                            || parent.Value == Entity.Null
+                            || !energyStoreQuery.HasComponent(parent.Value)
+                            || !childrenQuery.HasComponent(parent.Value))
                         {
                             energyFlow.Throughput = 0;
                         }
                         else
                         {
                             var headStore = energyStore;
-                            var tailStore = energyStoreQuery[parentQuery[entity].Value];
-                            var numBranches = childrenQuery[parentQuery[entity].Value].Length + 1;
+                            var tailStore = energyStoreQuery[parent.Value];
+                            var numBranches = childrenQuery[parent.Value].Length + 1;
 
-                            var resistance = 0f; //TODO: This sould be calculated from the length of the node
+                            var resistance = 0f; //TODO: This should be calculated from the length of the node
                             var flowRate = (1f / numBranches) / (1 + resistance);
 
                             if (tailStore.Pressure > headStore.Pressure)

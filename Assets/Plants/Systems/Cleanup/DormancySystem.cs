@@ -22,16 +22,15 @@ namespace Assets.Scripts.Plants.Cleanup
 
         protected override void OnUpdate()
         {
-
+            var planet = Planet.Entity;
             var ecb1 = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
-                .ForEach((in ParentDormancyTrigger trigger, in Entity entity, in int entityInQueryIndex) =>
+                .ForEach((in ParentDormancyTrigger trigger, in Parent parent, in Entity entity, in int entityInQueryIndex) =>
                 {
                     var isDormant = GetComponentDataFromEntity<Dormant>(true).HasComponent(entity);
-                    var hasParent = GetComponentDataFromEntity<Parent>(true).HasComponent(entity);
-                    var shouldBeDormant = (trigger.IsDormantWhenParented && hasParent) 
-                                           || (trigger.IsDormantWhenUnparented && !hasParent);
+                    var shouldBeDormant = (trigger.IsDormantWhenParented && parent.Value != planet) 
+                                           || (trigger.IsDormantWhenUnparented && parent.Value == planet);
 
                     if (!isDormant && shouldBeDormant)
                         ecb1.AddComponent<Dormant>(entityInQueryIndex, entity);

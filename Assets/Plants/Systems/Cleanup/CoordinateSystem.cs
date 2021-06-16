@@ -20,6 +20,7 @@ namespace Assets.Scripts.Plants.Cleanup
 
         protected override void OnUpdate()
         {
+            var planet = Planet.Entity;
             var seaLevel = LandService.SeaLevel;
             var landMaps = EnvironmentDataStore.LandMap.CachedTextures().Select(x => x.GetRawTextureData<Color>()).ToArray();
             var landMaps0 = landMaps[0];
@@ -32,7 +33,7 @@ namespace Assets.Scripts.Plants.Cleanup
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
-                .WithNone<Coordinate, LocalToParent, Parent>()
+                .WithNone<Coordinate>()
                 .WithNone<InternodeReference, NodeReference>()
                 .WithNativeDisableParallelForRestriction(landMaps0)
                 .WithNativeDisableParallelForRestriction(landMaps1)
@@ -41,23 +42,26 @@ namespace Assets.Scripts.Plants.Cleanup
                 .WithNativeDisableParallelForRestriction(landMaps4)
                 .WithNativeDisableParallelForRestriction(landMaps5)
                 .ForEach(
-                    (ref Translation translation, in Entity entity, in int entityInQueryIndex) =>
+                    (ref Translation translation, in Parent parent, in Entity entity, in int entityInQueryIndex) =>
                     {
-                        var coord = new Coordinate(translation.Value); 
-                        var landMap = coord.w switch
+                        if (parent.Value == planet)
                         {
-                            0 => landMaps0,
-                            1 => landMaps1,
-                            2 => landMaps2,
-                            3 => landMaps3,
-                            4 => landMaps4,
-                            5 => landMaps5,
-                            _ => throw new ArgumentOutOfRangeException()
-                        };
-                        coord.Altitude = seaLevel + landMap[coord.nativeArrayIndex].r;
-                        translation.Value = coord.xyz;
-                        ecb.AddComponent<Coordinate>(entityInQueryIndex, entity);
-                        ecb.SetComponent(entityInQueryIndex, entity, coord);
+                            var coord = new Coordinate(translation.Value); 
+                            var landMap = coord.w switch
+                            {
+                                0 => landMaps0,
+                                1 => landMaps1,
+                                2 => landMaps2,
+                                3 => landMaps3,
+                                4 => landMaps4,
+                                5 => landMaps5,
+                                _ => throw new ArgumentOutOfRangeException()
+                            };
+                            coord.Altitude = seaLevel + landMap[coord.nativeArrayIndex].r;
+                            translation.Value = coord.xyz;
+                            ecb.AddComponent<Coordinate>(entityInQueryIndex, entity);
+                            ecb.SetComponent(entityInQueryIndex, entity, coord);
+                        }
                     })
                 .WithName("AddCoordinateComponent")
                 .ScheduleParallel();

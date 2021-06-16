@@ -55,8 +55,7 @@ namespace Assets.Scripts.Plants.Dna
             var plant = em.Instantiate(GetProtoNode(NodeType.Embryo)); 
             em.SetSharedComponentData(plant, Singleton.LoadBalancer.ActiveEntityChunk);
             em.RemoveComponent<Dormant>(plant);
-            em.RemoveComponent<Parent>(plant);
-            em.RemoveComponent<LocalToParent>(plant);
+            em.SetComponentData(plant, new Parent {Value = Planet.Entity});
             em.SetComponentData(plant, new EnergyStore { Capacity = 0.0156f, Quantity = 0.0156f });
             em.SetComponentData(plant, new Translation { Value = coord.xyz });
             em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.Normalize(coord.xyz)) });

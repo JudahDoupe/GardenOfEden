@@ -72,12 +72,13 @@ namespace Assets.Scripts.Plants.Growth
                 })
                 .ScheduleParallel();
 
+            var planet = Planet.Entity;
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
-                .ForEach((ref NodeDivision nodeDivision, in ParentLifeStageTrigger trigger, in Entity e) =>
+                .ForEach((ref NodeDivision nodeDivision, in Parent parent, in ParentLifeStageTrigger trigger, in Entity e) =>
                 {
-                    nodeDivision.Stage = GetComponentDataFromEntity<Parent>(true).HasComponent(e) ? trigger.ParentedStage : trigger.UnparentedStage;
+                    nodeDivision.Stage = parent.Value != planet ? trigger.ParentedStage : trigger.UnparentedStage;
                 })
                 .ScheduleParallel();
         }

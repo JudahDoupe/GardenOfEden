@@ -58,17 +58,15 @@ namespace Assets.Scripts.Plants.Growth
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
-                .ForEach((ref NodeDivision nodeDivision, ref EnergyStore energyStore, in Entity entity, in int entityInQueryIndex) =>
+                .ForEach((ref NodeDivision nodeDivision, ref EnergyStore energyStore, in Parent parent, in Entity entity, in int entityInQueryIndex) =>
                 {
                     if (energyStore.Quantity / (energyStore.Capacity + float.Epsilon) < nodeDivision.MinEnergyPressure
                         || nodeDivision.RemainingDivisions < 0)
                         return;
 
-                    var parentQuery = GetComponentDataFromEntity<Parent>(true);
                     var childrenQuery = GetBufferFromEntity<Child>(true);
 
                     var instructions = GetBufferFromEntity<DivisionInstruction>(true)[entity];
-                    var parentNode = parentQuery.HasComponent(entity) ? parentQuery[entity].Value : Entity.Null;
                     var currentNode = entity;
                     var hasDivided = false;
                     for (var i = 0; i < instructions.Length; i++)
@@ -96,7 +94,7 @@ namespace Assets.Scripts.Plants.Growth
                         switch (instruction.Order)
                         {
                             case DivisionOrder.InPlace:
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
+                                ecb.SetComponent(entityInQueryIndex, newNode, parent);
                                 break;
                             case DivisionOrder.Replace:
                                 if (childrenQuery.HasComponent(currentNode))
@@ -109,12 +107,11 @@ namespace Assets.Scripts.Plants.Growth
                                     }
                                     ecb.RemoveComponent<Child>(entityInQueryIndex, currentNode);
                                 }
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
+                                ecb.SetComponent(entityInQueryIndex, newNode, parent);
                                 ecb.DestroyEntity(entityInQueryIndex, currentNode);
                                 break;
                             case DivisionOrder.PreNode:
-                                if (!parentQuery.HasComponent(currentNode)) ecb.AddComponent<Parent>(entityInQueryIndex, currentNode);
-                                ecb.SetComponent(entityInQueryIndex, newNode, new Parent { Value = parentNode });
+                                ecb.SetComponent(entityInQueryIndex, newNode, parent);
                                 ecb.SetComponent(entityInQueryIndex, currentNode, new Parent { Value = newNode });
                                 break;
                             case DivisionOrder.PostNode:
