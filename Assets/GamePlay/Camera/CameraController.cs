@@ -44,7 +44,7 @@ public class CameraController : MonoBehaviour
 
         Focus = transform.parent;
         Camera = transform;
-        FocusCoord = new Coordinate(Focus.position);
+        FocusCoord = new Coordinate(Focus.position, Planet.LocalToWorld);
         targetCameraDistance = Camera.localPosition.magnitude;
     }
 
@@ -67,7 +67,7 @@ public class CameraController : MonoBehaviour
 
     public void Move(float3 v)
     {
-        FocusCoord = ClampAboveTerrain(new Coordinate(FocusCoord.xyz + v));
+        FocusCoord = ClampAboveTerrain(new Coordinate(FocusCoord.Global(Planet.LocalToWorld) + v, Planet.LocalToWorld));
     }
 
     private void GetMovementInput()
@@ -77,18 +77,18 @@ public class CameraController : MonoBehaviour
 
         if (movementVector.magnitude > float.Epsilon)
         {
-            FocusCoord = ClampToTerrain(FocusCoord.xyz + movementVector.ToFloat3());
+            FocusCoord = ClampToTerrain(new Coordinate(FocusCoord.Global(Planet.LocalToWorld) + movementVector.ToFloat3(), Planet.LocalToWorld));
         }
         else
         {
-            FocusCoord = ClampToTerrain(FocusCoord.xyz);
+            FocusCoord = ClampToTerrain(FocusCoord);
         }
     }
 
     private void ApplyMovement()
     {
         var lerpSpeed = Time.deltaTime * _lerpSpeed * 2;
-        Focus.position = ClampAboveTerrain(Vector3.Lerp(Focus.position, FocusCoord.xyz, lerpSpeed)).xyz;
+        Focus.position = ClampAboveTerrain(new Coordinate(Vector3.Lerp(Focus.position, FocusCoord.Global(Planet.LocalToWorld), lerpSpeed), Planet.LocalToWorld)).Global(Planet.LocalToWorld);
         var upward = Focus.position.normalized;
         var forward = Vector3.Cross(Focus.right, upward);
         Focus.rotation = Quaternion.LookRotation(forward, upward);
@@ -137,7 +137,7 @@ public class CameraController : MonoBehaviour
         var lerpSpeed = Time.deltaTime * _lerpSpeed * 2;
         var targetLocalPos = Vector3.Lerp(minDir, maxDir, targetCameraAngle) * targetCameraDistance;
         Camera.localPosition = Vector3.Lerp(Camera.localPosition, targetLocalPos, lerpSpeed);
-        Camera.position = ClampAboveTerrain(Camera.position).xyz;
+        Camera.position = ClampAboveTerrain(new Coordinate(Camera.position, Planet.LocalToWorld)).Global(Planet.LocalToWorld);
         Camera.LookAt(Focus.position, Focus.up);
     }
 

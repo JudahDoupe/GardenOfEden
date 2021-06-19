@@ -20,7 +20,7 @@ public class SpawnPlantButton : MonoBehaviour
     public void Click()
     {
         var dna = new Dna();
-        dna.Spawn(new Coordinate(-transform.localPosition));
+        dna.Spawn(new Coordinate(transform.position, Planet.LocalToWorld));
         Close();
     }
     public void Hover()

@@ -116,7 +116,7 @@ public static class RenderTextureExtensions
 
     public static Color Sample(this RenderTexture rt, Coordinate coord)
     {
-        var uvw = coord.uvw;
+        var uvw = coord.TextureUvw;
         var uv = uvw.xy - (0.5f / 512.0f);
         int w = (int)math.round(uvw.z);
         var texArray = rt.CachedTextures();

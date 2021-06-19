@@ -148,7 +148,7 @@ namespace Tests
         [Test]
         public void CellIdGetsUpdated() 
         {
-            var cellId = new Coordinate(new float3(0,500,0)).xyw;
+            var cellId = new Coordinate(new float3(0,500,0), Planet.LocalToWorld).TextureXyw;
 
             Prop.ForAll(ArbAbsorberDataArray(1), data =>
             {

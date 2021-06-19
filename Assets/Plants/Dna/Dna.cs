@@ -57,8 +57,8 @@ namespace Assets.Scripts.Plants.Dna
             em.RemoveComponent<Dormant>(plant);
             em.SetComponentData(plant, new Parent {Value = Planet.Entity});
             em.SetComponentData(plant, new EnergyStore { Capacity = 0.0156f, Quantity = 0.0156f });
-            em.SetComponentData(plant, new Translation { Value = coord.xyz });
-            em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.Normalize(coord.xyz)) });
+            em.SetComponentData(plant, new Translation { Value = coord.Global(Planet.LocalToWorld) });
+            em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.Normalize(coord.Global(Planet.LocalToWorld))) });
             return plant;
         }
 

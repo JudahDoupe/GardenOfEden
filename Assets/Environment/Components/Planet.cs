@@ -5,8 +5,9 @@ using UnityEngine;
 public class Planet : MonoBehaviour
 {
     public float RotationSpeed;
-    public static Entity Entity;
 
+    public static Entity Entity;
+    public static LocalToWorld LocalToWorld => World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<LocalToWorld>(Entity);
 
     void Start()
     {

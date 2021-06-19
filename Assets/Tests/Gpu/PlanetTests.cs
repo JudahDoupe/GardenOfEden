@@ -63,7 +63,7 @@ namespace Tests
         {
             var input = new SamplerData[1];
             var output = new SamplerData[1];
-            var coord = new Coordinate(0, 0, 0) { uvw = uvw };
+            var coord = new Coordinate(Vector3.zero, Planet.LocalToWorld) { TextureUvw = uvw };
             input[0] = new SamplerData { uvw = uvw };
 
             using var buffer = new ComputeBuffer(1, Marshal.SizeOf(typeof(SamplerData)));

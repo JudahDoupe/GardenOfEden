@@ -4,7 +4,6 @@ using UnityEngine;
 public interface ILandService
 {
     float SampleHeight(Coordinate coord);
-    void SetBedrockHeight(Coordinate location, float radius, float height);
 }
 
 public class LandService : MonoBehaviour, ILandService
@@ -16,21 +15,6 @@ public class LandService : MonoBehaviour, ILandService
     public float SampleHeight(Coordinate coord)
     {
         return EnvironmentDataStore.LandMap.Sample(coord).r + SeaLevel;
-    }
-
-    public void SetBedrockHeight(Coordinate location, float radius, float height)
-    {
-        var shader = Resources.Load<ComputeShader>("Shaders/TerrainManipulation");
-        var kernelId = shader.FindKernel("SmoothLerp");
-        shader.SetInt("Channel", 0);
-        shader.SetFloat("Value", height - SeaLevel);
-        shader.SetFloat("Speed", Time.deltaTime * 1f);
-        shader.SetFloat("Radius", radius);
-        shader.SetFloats("AdditionCenter", location.x, location.y, location.z);
-        shader.SetTexture(kernelId, "Map", EnvironmentDataStore.LandMap);
-        shader.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
-
-        UpdateLand();
     }
 
     /* Inner Mechanations */

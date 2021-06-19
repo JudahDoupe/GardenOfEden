@@ -2,11 +2,6 @@
 {
     public class MockLandService : ILandService
     {
-        public void SetBedrockHeight(Coordinate location, float radius, float height)
-        {
-            
-        }
-
         public Coordinate ClampAboveLand(Coordinate coord, float minHeight = 1)
         {
             return coord;

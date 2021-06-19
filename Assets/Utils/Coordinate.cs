@@ -1,5 +1,6 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 
 public struct Coordinate : IComponentData
@@ -7,135 +8,97 @@ public struct Coordinate : IComponentData
     public static readonly int TextureWidthInPixels = 512;
     public static readonly int PlanetRadius = 1000;
 
-    private float3 globalCoord;
-    private float3 sphericalCoord;
-    private float3 textureCoord;
+    private float3 _localPlanetCoord;
+    private float3 _sphericalCoord;
+    private float3 _textureCoord;
 
-    public float3 xyz
+    public readonly float3 Global(LocalToWorld planet) => ((Matrix4x4) planet.Value).MultiplyPoint(_localPlanetCoord);
+    public float3 LocalPlanet
     {
-        get => globalCoord;
-        set => SetGlobalCoordCoordinates(value.x, value.y, value.z);
-    }
-    public float x
-    {
-        get => globalCoord.x;
-        set => SetGlobalCoordCoordinates(value, globalCoord.y, globalCoord.z);
+        get => _localPlanetCoord;
+        set => SetLocalPlanetCoordinates(value.x, value.y, value.z);
     }
 
-    public float y
+    public float Lat
     {
-        get => xyz.y;
-        set => SetGlobalCoordCoordinates(globalCoord.x, value, globalCoord.z);
+        get => _sphericalCoord.x;
+        set => SetSphericalCoordinates(value, _sphericalCoord.y, _sphericalCoord.z);
     }
-    public float z
+    public float Lon
     {
-        get => xyz.z;
-        set => SetGlobalCoordCoordinates(globalCoord.x, globalCoord.y, value);
-    }
-
-    public float theta
-    {
-        get => sphericalCoord.x;
-        set => SetSphericalCoordinates(value, sphericalCoord.y, sphericalCoord.z);
-    }
-    public float phi
-    {
-        get => sphericalCoord.y;
-        set => SetSphericalCoordinates(sphericalCoord.x, value, sphericalCoord.z);
+        get => _sphericalCoord.y;
+        set => SetSphericalCoordinates(_sphericalCoord.x, value, _sphericalCoord.z);
     }
     public float Altitude
     {
-        get => sphericalCoord.z;
-        set => SetSphericalCoordinates(sphericalCoord.x, sphericalCoord.y, value);
+        get => _sphericalCoord.z;
+        set => SetSphericalCoordinates(_sphericalCoord.x, _sphericalCoord.y, value);
     }
 
-    public int3 xyw
+    public int3 TextureXyw
     {
         get {
-            var xy = math.floor((uvw.xy - 0.00001f) * TextureWidthInPixels);
-            return math.int3(new float3(xy.x, xy.y, math.round(uvw.z)));
+            var xy = math.floor((TextureUvw.xy - 0.00001f) * TextureWidthInPixels);
+            return math.int3(new float3(xy.x, xy.y, math.round(TextureUvw.z)));
         }
         set {
             var tex = value.xy / new float2(TextureWidthInPixels - 1.0f);
             SetTextureCoordinates(tex.x, tex.y, value.z, Altitude);
         }
     }
-    public float3 uvw
+    public float3 TextureUvw
     {
-        get => textureCoord;
+        get => _textureCoord;
         set => SetTextureCoordinates(value.x, value.y, (int)math.round(value.z), Altitude);
     }
-    public float u
+    public int TextureW
     {
-        get => textureCoord.x;
-        set => SetTextureCoordinates(value, v, w, Altitude);
+        get => math.int3(math.round(_textureCoord)).z;
+        set => SetTextureCoordinates(_textureCoord.x, _textureCoord.y, (int)math.round(value), Altitude);
     }
-    public float v
-    {
-        get => textureCoord.y;
-        set => SetTextureCoordinates(u, value, w, Altitude);
-    }
-    public int w
-    {
-        get => math.int3(math.round(textureCoord)).z;
-        set => SetTextureCoordinates(u, v, (int)math.round(value), Altitude);
-    }
-
-    public int nativeArrayIndex
+    public int NativeArrayId
     {
         get
         {
-            var xy = xyw.xy;
+            var xy = TextureXyw.xy;
             return xy.y * TextureWidthInPixels + xy.x;
         }
     }
 
-    public Coordinate(float x, float y, float z)
+    public Coordinate(float3 globalPosition, LocalToWorld planet)
     {
-        globalCoord = new float3(0, 0, 0);
-        sphericalCoord = new float3(0, 0, 0);
-        textureCoord = new float3(0, 0, 0);
-        SetGlobalCoordCoordinates(x, y, z);
-    }
-    public Coordinate(float3 value)
-    {
-        globalCoord = new float3(0, 0, 0);
-        sphericalCoord = new float3(0, 0, 0);
-        textureCoord = new float3(0, 0, 0);
-        SetGlobalCoordCoordinates(value.x, value.y, value.z);
+        _localPlanetCoord = new float3(0, 0, 0);
+        _sphericalCoord = new float3(0, 0, 0);
+        _textureCoord = new float3(0, 0, 0);
+        SetGlobalCoordinates(globalPosition.x, globalPosition.y, globalPosition.z, planet);
     }
 
-    public static implicit operator Coordinate(float3 value)
+    private void SetGlobalCoordinates(float x, float y, float z, LocalToWorld planet)
     {
-        return new Coordinate(value);
-    }
-    public static implicit operator Coordinate(Vector3 value)
-    {
-        return new Coordinate(value);
-    }
+        _localPlanetCoord = Matrix4x4.Inverse(planet.Value).MultiplyPoint(new float3(x, y, z));
+        SetLocalPlanetCoordinates(_localPlanetCoord.x, _localPlanetCoord.y, _localPlanetCoord.z);
 
-    private void SetGlobalCoordCoordinates(float x, float y, float z)
+    }
+    private void SetLocalPlanetCoordinates(float x, float y, float z)
     {
-        globalCoord = new float3(x, y, z);
-        textureCoord = GetUvw(globalCoord);
+        _localPlanetCoord = new float3(x, y, z);
+        _textureCoord = GetUvw(_localPlanetCoord);
         var altitude = math.sqrt(math.pow(x, 2) + math.pow(y, 2) + math.pow(z, 2));
-        sphericalCoord = new float3(
+        _sphericalCoord = new float3(
             math.acos((z + math.EPSILON) / altitude),
             math.atan2(y, x),
             altitude);
 
     }
-
     private void SetSphericalCoordinates(float theta, float phi, float altitude)
     {
-        globalCoord = new float3(
+        _localPlanetCoord = new float3(
             altitude * math.sin(theta) * math.cos(phi),
             altitude * math.sin(theta) * math.sin(phi),
             altitude * math.cos(theta));
-        sphericalCoord = new float3(theta, phi, altitude);
-        textureCoord = GetUvw(globalCoord);
+        _sphericalCoord = new float3(theta, phi, altitude);
+        _textureCoord = GetUvw(_localPlanetCoord);
     }
-
     private void SetTextureCoordinates(float u, float v, int w, float altitude)
     {
         var uvw = new float3(u,v,w);
@@ -161,11 +124,11 @@ public struct Coordinate : IComponentData
         useComponents = useComponents * 2 - new float3(1, 1, 1);
         useComponents *= wasNegative ? -1 : 1;
 
-        globalCoord = Vector3.Normalize(useComponents) * altitude;
-        textureCoord = new float3(u, v, w);
-        sphericalCoord = new float3(
-            math.acos((z + math.EPSILON) / altitude),
-            math.atan2(y, x),
+        _localPlanetCoord = Vector3.Normalize(useComponents) * altitude;
+        _textureCoord = new float3(u, v, w);
+        _sphericalCoord = new float3(
+            math.acos((_localPlanetCoord.z + math.EPSILON) / altitude),
+            math.atan2(_localPlanetCoord.y, _localPlanetCoord.x),
             altitude);
     }
     private float3 GetUvw(float3 xyz)

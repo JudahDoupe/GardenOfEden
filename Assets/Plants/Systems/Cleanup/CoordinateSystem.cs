@@ -46,8 +46,8 @@ namespace Assets.Scripts.Plants.Cleanup
                     {
                         if (parent.Value == planet)
                         {
-                            var coord = new Coordinate(translation.Value); 
-                            var landMap = coord.w switch
+                            var coord = new Coordinate(translation.Value, GetComponent<LocalToWorld>(planet)); 
+                            var landMap = coord.TextureW switch
                             {
                                 0 => landMaps0,
                                 1 => landMaps1,
@@ -57,8 +57,8 @@ namespace Assets.Scripts.Plants.Cleanup
                                 5 => landMaps5,
                                 _ => throw new ArgumentOutOfRangeException()
                             };
-                            coord.Altitude = seaLevel + landMap[coord.nativeArrayIndex].r;
-                            translation.Value = coord.xyz;
+                            coord.Altitude = seaLevel + landMap[coord.NativeArrayId].r;
+                            translation.Value = coord.LocalPlanet;
                             ecb.AddComponent<Coordinate>(entityInQueryIndex, entity);
                             ecb.SetComponent(entityInQueryIndex, entity, coord);
                         }

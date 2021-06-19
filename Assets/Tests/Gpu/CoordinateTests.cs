@@ -45,7 +45,7 @@ namespace Tests
             {
                 var input = new CoordData [1];
                 var output = new CoordData [1];
-                var expected = new Coordinate(xyz);
+                var expected = new Coordinate(xyz, Planet.LocalToWorld);
                 input[0] = new CoordData { altitude = expected.Altitude, xyz = xyz };
 
                 using var buffer = new ComputeBuffer(1, Marshal.SizeOf(typeof(CoordData)));
@@ -57,8 +57,8 @@ namespace Tests
 
                 buffer.GetData(output);
 
-                output[0].uvw.Should().BeApproximately(expected.uvw, 0.00001f);
-                output[0].xyw.Should().Be(expected.xyw);
+                output[0].uvw.Should().BeApproximately(expected.TextureUvw, 0.00001f);
+                output[0].xyw.Should().Be(expected.TextureXyw);
 
             }).Check(FsCheckUtils.Config);
         }
@@ -70,7 +70,7 @@ namespace Tests
             {
                 var input = new CoordData[1];
                 var output = new CoordData[1];
-                var expected = new Coordinate(0, 0, 0) {xyw = xyw};
+                var expected = new Coordinate(Vector3.zero, Planet.LocalToWorld) {TextureXyw = xyw};
                 input[0] = new CoordData { altitude = expected.Altitude, xyw = xyw };
 
                 using var buffer = new ComputeBuffer(1, Marshal.SizeOf(typeof(CoordData)));
@@ -82,8 +82,8 @@ namespace Tests
 
                 buffer.GetData(output);
 
-                output[0].uvw.Should().BeApproximately(expected.uvw, 0.00001f);
-                output[0].xyz.Should().BeApproximately(expected.xyz, 0.00001f);
+                output[0].uvw.Should().BeApproximately(expected.TextureUvw, 0.00001f);
+                output[0].xyz.Should().BeApproximately(expected.Global(Planet.LocalToWorld), 0.00001f);
 
             }).Check(FsCheckUtils.Config);
         }
@@ -95,7 +95,7 @@ namespace Tests
             {
                 var input = new CoordData[1];
                 var output = new CoordData[1];
-                var expected = new Coordinate(0, 0, 0) { uvw = uvw };
+                var expected = new Coordinate(Vector3.zero, Planet.LocalToWorld) { TextureUvw = uvw };
                 input[0] = new CoordData { altitude = expected.Altitude, uvw = uvw };
 
                 using var buffer = new ComputeBuffer(1, Marshal.SizeOf(typeof(CoordData)));
@@ -107,8 +107,8 @@ namespace Tests
 
                 buffer.GetData(output);
 
-                output[0].xyw.Should().Be(expected.xyw);
-                output[0].xyz.Should().BeApproximately(expected.xyz, 0.00001f);
+                output[0].xyw.Should().Be(expected.TextureXyw);
+                output[0].xyz.Should().BeApproximately(expected.Global(Planet.LocalToWorld), 0.00001f);
 
             }).Check(FsCheckUtils.Config);
         }

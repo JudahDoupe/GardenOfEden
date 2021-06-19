@@ -27,6 +27,7 @@ namespace Assets.Scripts.Plants.Environment
 
         protected override void OnUpdate()
         {
+            var planet = Planet.Entity;
             var lightCells = new NativeMultiHashMap<int3, Entity>(Coordinate.TextureWidthInPixels * Coordinate.TextureWidthInPixels * 6, Allocator.TempJob);
             var lightCellsWriter = lightCells.AsParallelWriter();
 
@@ -38,12 +39,13 @@ namespace Assets.Scripts.Plants.Environment
 
                     if (nodeQuery.HasComponent(entity))
                     {
-                        var node = nodeQuery[entity];
+                        var node = nodeQuery[entity]; 
                         var internodeSize = new float3(2 * node.InternodeRadius, 2 * node.InternodeRadius, node.InternodeLength);
                         blocker.SurfaceArea = GetSurfaceArea(l2w, node.Size) + GetSurfaceArea(l2w, internodeSize);
                     }
 
-                    blocker.CellId = new Coordinate(l2w.Position).xyw;
+                    var pl2w = GetComponent<LocalToWorld>(planet);
+                    blocker.CellId = new Coordinate(l2w.Position, pl2w).TextureXyw;
                     lightCellsWriter.Add(blocker.CellId, entity);
 
                 })

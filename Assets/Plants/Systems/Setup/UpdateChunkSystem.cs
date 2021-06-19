@@ -34,6 +34,7 @@ namespace Assets.Scripts.Plants.Setup
 
         protected override void OnUpdate()
         {
+            var planet = Planet.Entity;
             var position = Singleton.LoadBalancer.Position;
             var radius = Singleton.LoadBalancer.Radius;
             var activeChunk = Singleton.LoadBalancer.ActiveEntityChunk;
@@ -44,8 +45,9 @@ namespace Assets.Scripts.Plants.Setup
                 .WithSharedComponentFilter(inactiveChunk)
                 .ForEach((in Entity entity, in Coordinate coord, in int entityInQueryIndex) =>
                 {
+                    var l2w = GetComponent<LocalToWorld>(planet);
                     var childrenQuery = GetBufferFromEntity<Child>(true);
-                    if (math.distance(coord.xyz, position) <= radius)
+                    if (math.distance(coord.Global(l2w), position) <= radius)
                     {
                         RecursivelySetChunk(entity, childrenQuery, activeChunk, ecb, entityInQueryIndex);
                     }
@@ -59,8 +61,9 @@ namespace Assets.Scripts.Plants.Setup
                 .WithSharedComponentFilter(activeChunk)
                 .ForEach((in Entity entity, in Coordinate coord, in int entityInQueryIndex) =>
                 {
+                    var l2w = GetComponent<LocalToWorld>(planet);
                     var childrenQuery = GetBufferFromEntity<Child>(true);
-                    if (math.distance(coord.xyz, position) > radius)
+                    if (math.distance(coord.Global(l2w), position) > radius)
                     {
                         RecursivelySetChunk(entity, childrenQuery, inactiveChunk, ecb2, entityInQueryIndex);
                     }

@@ -45,7 +45,7 @@ public class CameraUtils : MonoBehaviour
         foreach (var e in entities)
         {
             var coord = em.GetComponentData<Coordinate>(e);
-            var dist = Vector3.Distance(position, coord.xyz);
+            var dist = Vector3.Distance(position, coord.Global(Planet.LocalToWorld));
             if (dist < minDistance)
             {
                 minDistance = dist;
