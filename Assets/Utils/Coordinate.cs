@@ -65,6 +65,13 @@ public struct Coordinate : IComponentData
         }
     }
 
+    public Coordinate(float3 localPlanetPosition)
+    {
+        _localPlanetCoord = new float3(0, 0, 0);
+        _sphericalCoord = new float3(0, 0, 0);
+        _textureCoord = new float3(0, 0, 0);
+        SetLocalPlanetCoordinates(localPlanetPosition.x, localPlanetPosition.y, localPlanetPosition.z);
+    }
     public Coordinate(float3 globalPosition, LocalToWorld planet)
     {
         _localPlanetCoord = new float3(0, 0, 0);

@@ -44,8 +44,7 @@ namespace Assets.Scripts.Plants.Environment
                         blocker.SurfaceArea = GetSurfaceArea(l2w, node.Size) + GetSurfaceArea(l2w, internodeSize);
                     }
 
-                    var pl2w = GetComponent<LocalToWorld>(planet);
-                    blocker.CellId = new Coordinate(l2w.Position, pl2w).TextureXyw;
+                    blocker.CellId = new Coordinate(l2w.Position, GetComponent<LocalToWorld>(planet)).TextureXyw;
                     lightCellsWriter.Add(blocker.CellId, entity);
 
                 })

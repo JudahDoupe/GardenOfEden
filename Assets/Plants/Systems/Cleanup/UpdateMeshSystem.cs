@@ -43,7 +43,7 @@ namespace Assets.Scripts.Plants.Cleanup
                         var node = nodeQuery[nodeRef.Entity];
                         translation.Value = l2wQuery[nodeRef.Entity].Position;
                         rotation.Value = l2wQuery[nodeRef.Entity].Rotation;
-                        scale.Value = node.Size;
+                        scale.Value = node.Size * 100;
                     })
                 .WithName("UpdateNodeMesh")
                 .ScheduleParallel();

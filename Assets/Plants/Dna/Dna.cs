@@ -55,10 +55,11 @@ namespace Assets.Scripts.Plants.Dna
             var plant = em.Instantiate(GetProtoNode(NodeType.Embryo)); 
             em.SetSharedComponentData(plant, Singleton.LoadBalancer.ActiveEntityChunk);
             em.RemoveComponent<Dormant>(plant);
+            em.AddComponentData(plant, coord);
             em.SetComponentData(plant, new Parent {Value = Planet.Entity});
             em.SetComponentData(plant, new EnergyStore { Capacity = 0.0156f, Quantity = 0.0156f });
-            em.SetComponentData(plant, new Translation { Value = coord.Global(Planet.LocalToWorld) });
-            em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.Normalize(coord.Global(Planet.LocalToWorld))) });
+            em.SetComponentData(plant, new Translation { Value = coord.LocalPlanet });
+            em.SetComponentData(plant, new Rotation { Value = Quaternion.LookRotation(Vector3.Normalize(coord.LocalPlanet)) });
             return plant;
         }
 

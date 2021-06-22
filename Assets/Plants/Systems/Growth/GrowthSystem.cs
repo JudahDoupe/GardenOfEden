@@ -30,11 +30,13 @@ namespace Assets.Scripts.Plants.Growth
 
         protected override void OnUpdate()
         {
+            var planet = Planet.Entity;
+
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
-                    (ref EnergyStore energyStore, ref Node node, ref Translation translation, ref Health health, in PrimaryGrowth growth) =>
+                    (ref EnergyStore energyStore, ref Node node, ref Translation translation, ref Health health, in PrimaryGrowth growth, in Parent parent) =>
                     {
                         var currentVolume = node.Volume;
                         var maxVolume = growth.Volume;
@@ -61,7 +63,10 @@ namespace Assets.Scripts.Plants.Growth
                         node.Size = growth.NodeSize * t;
                         node.InternodeRadius = growth.InternodeRadius * t;
                         node.InternodeLength = growth.InternodeLength * t;
-                        translation.Value.z = node.InternodeLength;
+                        if (parent.Value != planet)
+                        {
+                            translation.Value.z = node.InternodeLength;
+                        }
                         energyStore.Quantity -= usedEnergy;
                     })
                 .WithName("PrimaryGrowth")
