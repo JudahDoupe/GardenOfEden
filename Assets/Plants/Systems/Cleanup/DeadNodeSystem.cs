@@ -1,9 +1,10 @@
-﻿using Assets.Scripts.Plants.Growth;
+﻿using System.Linq;
+using Assets.Scripts.Plants.Growth;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
-using UnityEngine;
 
-namespace Assets.Scripts.Plants.Cleanup
+namespace Assets.Plants.Systems.Cleanup
 {
 
     [UpdateInGroup(typeof(CleanupSystemGroup))]
@@ -27,28 +28,34 @@ namespace Assets.Scripts.Plants.Cleanup
                     (ref Health health, in Entity entity, in int entityInQueryIndex) =>
                     {
                         var nodeMesh = GetComponentDataFromEntity<NodeMeshReference>(true);
-                        var internodeMesh = GetComponentDataFromEntity<InternodeMeshReference>(true);
                         var childrenQuery = GetBufferFromEntity<Child>(true);
 
-                        if (health.Value < 0 && !childrenQuery.HasComponent(entity))
+                        if (health.Value < 0)
                         {
-                            if (nodeMesh.HasComponent(entity))
-                            {
-                                ecb.DestroyEntity(entityInQueryIndex, nodeMesh[entity].Entity);
-                            }
-
-                            if (internodeMesh.HasComponent(entity))
-                            {
-                                ecb.DestroyEntity(entityInQueryIndex, internodeMesh[entity].Entity);
-                            }
-
-                            ecb.DestroyEntity(entityInQueryIndex, entity);
+                            DestroyAllChildren(entity, ecb, entityInQueryIndex, childrenQuery);
                         }
                     })
                 .WithName("RemoveDeadNode")
                 .ScheduleParallel();
 
             _ecbSystem.AddJobHandleForProducer(Dependency);
+        }
+
+        public static void DestroyAllChildren(Entity e, EntityCommandBuffer.ParallelWriter ecb, int id, BufferFromEntity<Child> childrenQuery)
+        {
+            if (childrenQuery.HasComponent(e))
+            {
+                if (childrenQuery.HasComponent(e))
+                {
+                    var branches = childrenQuery[e];
+
+                    for (int i = 0; i < branches.Length; i++)
+                    {
+                        DestroyAllChildren(branches[i].Value, ecb, id, childrenQuery);
+                    }
+                }
+            }
+            ecb.DestroyEntity(id, e);
         }
     }
 }

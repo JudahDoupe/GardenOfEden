@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Plants.Cleanup;
+﻿using Assets.Plants.Systems.Cleanup;
 using FluentAssertions;
 using FsCheck;
 using NUnit.Framework;

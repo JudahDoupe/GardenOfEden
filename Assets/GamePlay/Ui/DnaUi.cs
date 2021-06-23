@@ -5,6 +5,7 @@ using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using Assets.Scripts.Utils;
+using Assets.Utils;
 using Unity.Mathematics;
 using UnityEngine.UI;
 

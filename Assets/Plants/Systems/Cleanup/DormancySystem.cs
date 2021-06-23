@@ -1,7 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Cleanup
+namespace Assets.Plants.Systems.Cleanup
 {
     public struct Dormant : IComponentData { }
     public struct ParentDormancyTrigger : IComponentData 

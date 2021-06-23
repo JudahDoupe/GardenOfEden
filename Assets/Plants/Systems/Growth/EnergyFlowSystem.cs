@@ -43,7 +43,15 @@ namespace Assets.Scripts.Plants.Growth
                         {
                             var headStore = energyStore;
                             var tailStore = energyStoreQuery[parent.Value];
-                            var numBranches = childrenQuery[parent.Value].Length + 1;
+                            var branches = childrenQuery[parent.Value];
+                            var numBranches = 0;
+                            for (int i = 0; i < branches.Length; i++)
+                            {
+                                if (energyStoreQuery.HasComponent(branches[i].Value))
+                                {
+                                    numBranches++;
+                                }
+                            }
 
                             var resistance = 0f; //TODO: This should be calculated from the length of the node
                             var flowRate = (1f / numBranches) / (1 + resistance);

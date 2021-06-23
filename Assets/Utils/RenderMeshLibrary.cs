@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Plants.Systems.Cleanup;
 using Unity.Entities;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -21,7 +22,10 @@ namespace Assets.Scripts.Utils
                 typeof(Translation),
                 typeof(Rotation),
                 typeof(NonUniformScale),
-                typeof(LocalToWorld)
+                typeof(LocalToParent),
+                typeof(LocalToWorld),
+                typeof(Parent),
+                typeof(NodeMesh)
             );
 
             foreach (var mesh in Meshes)

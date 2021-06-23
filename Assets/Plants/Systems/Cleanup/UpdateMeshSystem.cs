@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Cleanup
+namespace Assets.Plants.Systems.Cleanup
 {
 
     [UpdateInGroup(typeof(CleanupSystemGroup))]
@@ -12,38 +12,16 @@ namespace Assets.Scripts.Plants.Cleanup
         protected override void OnUpdate()
         {
             Entities
-                .WithNone<Dormant, LocalToParent>()
+                .WithAll<NodeMesh>()
                 .ForEach(
-                    (ref Rotation rotation, ref Translation translation, ref NonUniformScale scale, ref InternodeReference internodeRef, in LocalToWorld l2w) =>
+                    (ref NonUniformScale scale, in NodeMesh mesh, in Parent parent) =>
                     {
-                        var l2wQuery = GetComponentDataFromEntity<LocalToWorld>(true);
-                        var parentQuery = GetComponentDataFromEntity<Parent>(true);
-                        var nodeQuery = GetComponentDataFromEntity<Node>(true);
-
-                        var node = nodeQuery[internodeRef.Entity];
-                        var headPos = l2wQuery[internodeRef.Entity].Position;
-                        var tailPos = l2wQuery[parentQuery[internodeRef.Entity].Value].Position;
-                        float3 vector = headPos - tailPos + new float3(0,0,0.00001f);
-
-                        translation.Value = headPos;
-                        rotation.Value = UnityEngine.Quaternion.LookRotation(vector);
-                        scale.Value = new float3(node.InternodeRadius, node.InternodeRadius, node.InternodeLength);
-                    })
-                .WithName("UpdateInternodeMesh")
-                .ScheduleParallel();
-
-            Entities
-                .WithNone<Dormant, LocalToParent>()
-                .ForEach(
-                    (ref Rotation rotation, ref Translation translation, ref NonUniformScale scale, ref NodeReference nodeRef, in LocalToWorld l2w) =>
-                    {
-                        var l2wQuery = GetComponentDataFromEntity<LocalToWorld>(true);
-                        var nodeQuery = GetComponentDataFromEntity<Node>(true);
-
-                        var node = nodeQuery[nodeRef.Entity];
-                        translation.Value = l2wQuery[nodeRef.Entity].Position;
-                        rotation.Value = l2wQuery[nodeRef.Entity].Rotation;
-                        scale.Value = node.Size * 100;
+                        var query = GetComponentDataFromEntity<Node>(true);
+                        if (query.HasComponent(parent.Value))
+                        {
+                            var node = query[parent.Value];
+                            scale.Value = mesh.IsInternode ? new float3(node.InternodeRadius, node.InternodeRadius, -node.InternodeLength) : node.Size * 100;
+                        }
                     })
                 .WithName("UpdateNodeMesh")
                 .ScheduleParallel();

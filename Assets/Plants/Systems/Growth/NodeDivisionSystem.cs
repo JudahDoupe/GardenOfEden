@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Assets.Scripts.Plants.Cleanup;
+using Assets.Plants.Systems.Cleanup;
 using Assets.Scripts.Plants.Dna;
 using Unity.Entities;
 using Unity.Mathematics;

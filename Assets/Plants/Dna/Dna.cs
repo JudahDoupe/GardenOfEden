@@ -1,5 +1,5 @@
 ﻿using System;
-using Assets.Scripts.Plants.Cleanup;
+using Assets.Plants.Systems.Cleanup;
 using Assets.Scripts.Plants.Growth;
 using System.Collections.Generic;
 using System.Linq;

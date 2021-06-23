@@ -22,27 +22,36 @@ namespace Assets.Scripts.Plants.Growth
     {
         protected override void OnUpdate()
         {
+            var planet = Planet.Entity;
+
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .ForEach(
-                    (ref GrowthHormoneFlow hormoneFlow, in GrowthHormoneStore hormoneStore, in Entity entity) =>
+                    (ref GrowthHormoneFlow hormoneFlow, in GrowthHormoneStore hormoneStore, in Entity entity, in Parent parent) =>
                     {
                         var hormoneStoreQuery = GetComponentDataFromEntity<GrowthHormoneStore>(true);
-                        var parentQuery = GetComponentDataFromEntity<Parent>(true);
                         var childrenQuery = GetBufferFromEntity<Child>(true);
 
-                        if (!parentQuery.HasComponent(entity)
-                            || parentQuery[entity].Value == Entity.Null
-                            || !hormoneStoreQuery.HasComponent(parentQuery[entity].Value)
-                            || !childrenQuery.HasComponent(parentQuery[entity].Value))
+                        if (parent.Value == planet
+                            || parent.Value == Entity.Null
+                            || !hormoneStoreQuery.HasComponent(parent.Value)
+                            || !childrenQuery.HasComponent(parent.Value))
                         {
                             hormoneFlow.Throughput = 0;
                         }
                         else
                         {
                             var headStore = hormoneStore;
-                            var tailStore = hormoneStoreQuery[parentQuery[entity].Value];
-                            var numBranches = childrenQuery[parentQuery[entity].Value].Length + 1;
+                            var tailStore = hormoneStoreQuery[parent.Value];
+                            var branches = childrenQuery[parent.Value];
+                            var numBranches = 0;
+                            for (int i = 0; i < branches.Length; i++)
+                            {
+                                if (hormoneStoreQuery.HasComponent(branches[i].Value))
+                                {
+                                    numBranches++;
+                                }
+                            }
 
                             var resistance = 0f;
                             var flowRate = (1f / numBranches) / (1 + resistance);

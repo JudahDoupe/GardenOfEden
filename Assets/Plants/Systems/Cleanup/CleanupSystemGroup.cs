@@ -2,7 +2,7 @@
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Plants.Cleanup
+namespace Assets.Plants.Systems.Cleanup
 {
     [UpdateAfter(typeof(GrowthSystemGroup))]
     public class CleanupSystemGroup : ComponentSystemGroup { }

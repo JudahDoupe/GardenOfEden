@@ -1,4 +1,4 @@
-using Assets.Scripts.Plants.Cleanup;
+using Assets.Plants.Systems.Cleanup;
 using Assets.Scripts.Plants.Dna;
 using Assets.Scripts.Plants.Environment;
 using Assets.Scripts.Plants.Growth;
@@ -23,6 +23,7 @@ public class DnaService : MonoBehaviour
         GeneLibrary = new GeneLibrary();
         PlantNodeArchetype = em.CreateArchetype(
             typeof(Node),
+            typeof(NodeMeshReference),
             typeof(Translation),
             typeof(Rotation),
             typeof(Parent),

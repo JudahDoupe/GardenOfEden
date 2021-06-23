@@ -1,10 +1,10 @@
 ﻿using System.Linq;
-using Assets.Scripts.Plants.Cleanup;
+using Assets.Plants.Systems.Cleanup;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace Assets.Scripts.Utils
+namespace Assets.Utils
 {
     public static class EcsUtils
     {
@@ -18,21 +18,6 @@ namespace Assets.Scripts.Utils
                 {
                     DestroyAllChildren(child);
                 }
-            }
-
-            DestroyNode(e);
-        }
-
-        public static void DestroyNode(Entity e)
-        {
-            var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            if (em.HasComponent<NodeMeshReference>(e))
-            {
-                em.DestroyEntity(em.GetComponentData<NodeMeshReference>(e).Entity);
-            }
-            if (em.HasComponent<InternodeMeshReference>(e))
-            {
-                em.DestroyEntity(em.GetComponentData<InternodeMeshReference>(e).Entity);
             }
             em.DestroyEntity(e);
         }
