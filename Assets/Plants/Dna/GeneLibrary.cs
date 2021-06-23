@@ -186,7 +186,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithComponent(new PrimaryGrowth { DaysToMature = 8, NodeSize = 0.5f })
                 .WithComponent(new NodeDivision { Stage = LifeStage.Reproduction, RemainingDivisions = 5, MinEnergyPressure = 0.8f })
                 .WithComponent(new Metabolism { Resting = 0.1f })
-                .WithDivision(NodeType.Embryo, DivisionOrder.PostNode, LifeStage.Reproduction, Quaternion.LookRotation(Vector3.up))
+                .WithDivision(NodeType.Embryo, DivisionOrder.PostNode, LifeStage.Reproduction)
                 .Gene.ModifiesNode(NodeType.Embryo)
                 .WithName("Spore")
                 .WithComponent(new WindDispersal())
@@ -194,7 +194,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithComponent(new NodeDivision { Stage = LifeStage.Reproduction })
                 .WithComponent(new Metabolism { Resting = 0.0f })
                 .WithoutComponent<LightBlocker>()
-                .WithDivision(NodeType.Bud, DivisionOrder.PostNode, LifeStage.Vegetation, Quaternion.LookRotation(Vector3.forward, Vector3.right))
+                .WithDivision(NodeType.Bud, DivisionOrder.PostNode, LifeStage.Vegetation)
                 .Gene);
 
             AddGene( new Gene(GeneCategory.Reproduction, GeneType.VegetationTrigger, "Immediate", "Vegetation starts growing as soon as the embro disconnects from it's parent.")

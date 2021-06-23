@@ -50,7 +50,6 @@ public class ProximityLoadBalancer : MonoBehaviour, ILoadBalancer
         }
 
         CurrentChunk = CurrentChunk.IsEnvironmental ? ActiveEntityChunk : EnvironmentalChunk;
-        Radius = 100000;
     }
 
     public void RegisterEndSimulationAction(Action action)

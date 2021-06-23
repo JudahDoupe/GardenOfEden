@@ -47,9 +47,10 @@ namespace Assets.Scripts.Plants.Setup
                 {
                     var l2w = GetComponent<LocalToWorld>(planet);
                     var childrenQuery = GetBufferFromEntity<Child>(true);
+                    var nodeQuery = GetComponentDataFromEntity<Node>(true);
                     if (math.distance(coord.Global(l2w), position) <= radius)
                     {
-                        RecursivelySetChunk(entity, childrenQuery, activeChunk, ecb, entityInQueryIndex);
+                        RecursivelySetChunk(entity, childrenQuery, activeChunk, nodeQuery, ecb, entityInQueryIndex);
                     }
                 })
                 .WithoutBurst()
@@ -63,9 +64,10 @@ namespace Assets.Scripts.Plants.Setup
                 {
                     var l2w = GetComponent<LocalToWorld>(planet);
                     var childrenQuery = GetBufferFromEntity<Child>(true);
+                    var nodeQuery = GetComponentDataFromEntity<Node>(true);
                     if (math.distance(coord.Global(l2w), position) > radius)
                     {
-                        RecursivelySetChunk(entity, childrenQuery, inactiveChunk, ecb2, entityInQueryIndex);
+                        RecursivelySetChunk(entity, childrenQuery, inactiveChunk, nodeQuery, ecb2, entityInQueryIndex);
                     }
                 })
                 .WithoutBurst()
@@ -75,9 +77,12 @@ namespace Assets.Scripts.Plants.Setup
             _ecbSystem.AddJobHandleForProducer(Dependency);
         }
 
-        private static void RecursivelySetChunk(Entity entity, BufferFromEntity<Child> childrenQuery, UpdateChunk chunk, EntityCommandBuffer.ParallelWriter ecb, int entityInQueryIndex)
+        private static void RecursivelySetChunk(Entity entity, BufferFromEntity<Child> childrenQuery, UpdateChunk chunk, ComponentDataFromEntity<Node> nodeQuery, EntityCommandBuffer.ParallelWriter ecb, int entityInQueryIndex)
         {
-            ecb.SetSharedComponent(entityInQueryIndex, entity, chunk);
+            if (nodeQuery.HasComponent(entity))
+            {
+                ecb.SetSharedComponent(entityInQueryIndex, entity, chunk);
+            }
 
             if (childrenQuery.HasComponent(entity))
             {
@@ -85,7 +90,7 @@ namespace Assets.Scripts.Plants.Setup
 
                 for (int i = 0; i < children.Length; i++)
                 {
-                    RecursivelySetChunk(children[i].Value, childrenQuery, chunk, ecb, entityInQueryIndex); 
+                    RecursivelySetChunk(children[i].Value, childrenQuery, chunk, nodeQuery, ecb, entityInQueryIndex); 
                 }
             }
         }

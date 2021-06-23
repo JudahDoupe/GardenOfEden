@@ -18,6 +18,7 @@ namespace Assets.Plants.Systems.Cleanup
 
     public struct NodeMesh : IComponentData
     {
+        public Entity Node;
         public bool IsInternode;
     }
 
@@ -39,7 +40,7 @@ namespace Assets.Plants.Systems.Cleanup
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
-                    (ref NodeMeshReference meshReference, in AssignNodeMesh assignMesh, in Entity entity, in int entityInQueryIndex) =>
+                    (ref NodeMeshReference meshReference, in AssignNodeMesh assignMesh, in Parent parent, in Entity entity, in int entityInQueryIndex) =>
                     {
                         if (meshReference.Node != Entity.Null)
                         {
@@ -56,12 +57,13 @@ namespace Assets.Plants.Systems.Cleanup
                         {
                             meshReference.Node = ecb.Instantiate(entityInQueryIndex, assignMesh.Node);
                             ecb.SetComponent(entityInQueryIndex, meshReference.Node, new Parent{ Value = entity });
+                            ecb.SetComponent(entityInQueryIndex, meshReference.Node, new NodeMesh { IsInternode = false, Node = entity });
                         }
                         if (assignMesh.Internode != Entity.Null)
                         {
                             meshReference.Internode = ecb.Instantiate(entityInQueryIndex, assignMesh.Internode);
-                            ecb.SetComponent(entityInQueryIndex, meshReference.Internode, new Parent { Value = entity });
-                            ecb.SetComponent(entityInQueryIndex, meshReference.Internode, new NodeMesh{ IsInternode = true});
+                            ecb.SetComponent(entityInQueryIndex, meshReference.Internode, new Parent { Value = parent.Value });
+                            ecb.SetComponent(entityInQueryIndex, meshReference.Internode, new NodeMesh{ IsInternode = true, Node = entity });
                         }
 
                         ecb.RemoveComponent<AssignNodeMesh>(entityInQueryIndex, entity);
