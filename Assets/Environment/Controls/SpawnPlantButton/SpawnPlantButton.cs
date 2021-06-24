@@ -21,7 +21,7 @@ public class SpawnPlantButton : MonoBehaviour
 
     public void Click()
     {
-        var dna = new Dna(DnaService.GeneLibrary.GetGene("Straight Opposite"));
+        var dna = new Dna();
         var plant = dna.Spawn(new Coordinate(transform.position, Planet.LocalToWorld));
         Close();
         StartCoroutine(PositionCamera(plant));

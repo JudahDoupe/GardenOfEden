@@ -44,16 +44,21 @@ public class CirclingCamera : MonoBehaviour
         var bounds = CameraUtils.EncapsulateChildren(focusedEntity);
         var plantCoord = em.GetComponentData<Coordinate>(focusedEntity);
         var backCoord = new Coordinate(camera.position, Planet.LocalToWorld);
+        var focusCoord = new Coordinate(bounds.center, Planet.LocalToWorld);
         backCoord.Altitude = plantCoord.Altitude;
-        var distance = math.max(CameraUtils.GetDistanceToIncludeBounds(bounds, Fov), 1);
+        var distance = math.max(CameraUtils.GetDistanceToIncludeBounds(bounds, Fov), 2);
+        var focusRot = quaternion.LookRotation(math.normalize(plantCoord.LocalPlanet - backCoord.LocalPlanet), math.normalize(plantCoord.LocalPlanet));
         var cameraPos = Vector3.up * distance * 2f / 3f - Vector3.forward * distance;
+        var cameraCoord = new Coordinate(focusCoord.LocalPlanet + ((Quaternion) focusRot * cameraPos).ToFloat3());
+        cameraPos +=  Vector3.up * (CameraUtils.ClampAboveTerrain(cameraCoord).Altitude - cameraCoord.Altitude);
+
         return new CameraState(camera, focus)
         {
             CameraLocalPosition = cameraPos,
             CameraLocalRotation = quaternion.LookRotation(math.normalize(-cameraPos), Vector3.up),
             CameraParent = focus,
-            FocusLocalPosition = new Coordinate(bounds.center, Planet.LocalToWorld).LocalPlanet,
-            FocusLocalRotation = quaternion.LookRotation(math.normalize(plantCoord.LocalPlanet - backCoord.LocalPlanet), math.normalize(plantCoord.LocalPlanet)),
+            FocusLocalPosition = focusCoord.LocalPlanet,
+            FocusLocalRotation = focusRot,
             FocusParent = Planet.Transform,
             FieldOfView = Fov,
         };

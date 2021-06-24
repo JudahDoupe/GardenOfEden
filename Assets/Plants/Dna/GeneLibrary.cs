@@ -61,7 +61,7 @@ namespace Assets.Scripts.Plants.Dna
                 .ModifiesNode(NodeType.Vegetation)
                 .WithName("Node")
                 .WithComponent(new PrimaryGrowth { DaysToMature = 1, NodeSize = new float3(1f, 1f, 0.5f) })
-                .WithComponent(new Metabolism { Resting = 0 })
+                .WithComponent(new Metabolism { Resting = 0.01f })
                 .Gene
                 .ModifiesNode(NodeType.Bud)
                 .WithName("Bud")
@@ -164,7 +164,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithName("Leaf")
                 .WithComponent(new LightAbsorber())
                 .WithComponent(new Photosynthesis { Efficiency = 1 })
-                .WithComponent(new AssignNodeMesh { Internode = Singleton.RenderMeshLibrary.Library["GreenStem"].Entity, Node = Singleton.RenderMeshLibrary.Library["Leaf"].Entity })
+                .WithComponent(new AssignNodeMesh { Node = Singleton.RenderMeshLibrary.Library["Leaf"].Entity })
                 .WithComponent(new PrimaryGrowth { DaysToMature = 4, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = new float3(0.3f, 0.1f, 1) })
                 .WithComponent(new Metabolism { Resting = 0.025f })
                 .Gene);
@@ -173,7 +173,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithName("Leaf")
                 .WithComponent(new LightAbsorber())
                 .WithComponent(new Photosynthesis { Efficiency = 1 })
-                .WithComponent(new AssignNodeMesh { Internode = Singleton.RenderMeshLibrary.Library["GreenStem"].Entity, Node = Singleton.RenderMeshLibrary.Library["Leaf"].Entity })
+                .WithComponent(new AssignNodeMesh { Node = Singleton.RenderMeshLibrary.Library["Leaf"].Entity })
                 .WithComponent(new PrimaryGrowth { DaysToMature = 4, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = new float3(1, 0.1f, 1) })
                 .WithComponent(new Metabolism { Resting = 0.025f })
                 .Gene);
@@ -182,8 +182,8 @@ namespace Assets.Scripts.Plants.Dna
                 .WithDependency(GeneCategory.Reproduction, GeneType.VegetationTrigger)
                 .ModifiesNode(NodeType.Reproduction)
                 .WithName("Sporangia")
-                .WithComponent(new AssignNodeMesh { Node = Singleton.RenderMeshLibrary.Library["Sporangia"].Entity })
-                .WithComponent(new PrimaryGrowth { DaysToMature = 8, NodeSize = 0.5f })
+                .WithComponent(new AssignNodeMesh { Internode = Singleton.RenderMeshLibrary.Library["GreenStem"].Entity, Node = Singleton.RenderMeshLibrary.Library["Sporangia"].Entity })
+                .WithComponent(new PrimaryGrowth { DaysToMature = 8, NodeSize = 0.5f, InternodeLength = 0.2f, InternodeRadius = 0.07f})
                 .WithComponent(new NodeDivision { Stage = LifeStage.Reproduction, RemainingDivisions = 5, MinEnergyPressure = 0.8f })
                 .WithComponent(new Metabolism { Resting = 0.1f })
                 .WithDivision(NodeType.Embryo, DivisionOrder.PostNode, LifeStage.Reproduction)
@@ -192,7 +192,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithComponent(new WindDispersal())
                 .WithComponent(new PrimaryGrowth { DaysToMature = 3, NodeSize = 0.25f })
                 .WithComponent(new NodeDivision { Stage = LifeStage.Reproduction })
-                .WithComponent(new Metabolism { Resting = 0.0f })
+                .WithComponent(new Metabolism { Resting = 0.01f })
                 .WithoutComponent<LightBlocker>()
                 .WithDivision(NodeType.Bud, DivisionOrder.PostNode, LifeStage.Vegetation)
                 .Gene);
