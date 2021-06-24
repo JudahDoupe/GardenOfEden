@@ -1,10 +1,12 @@
 using Stateless;
+using Unity.Entities;
 using UnityEngine;
 
 public class PerspectiveController : MonoBehaviour
 {
     private StateMachine<State,Trigger> _stateMachine;
     private State _state;
+    private Entity _focusedEntity;
 
     public Transform Camera;
     public Transform Focus;
@@ -15,6 +17,11 @@ public class PerspectiveController : MonoBehaviour
     public void Pause() => _stateMachine.Fire(Trigger.Pause);
     public void Unpause() => _stateMachine.Fire(Trigger.Unpause);
 
+    public void Circle(Entity e)
+    {
+        _focusedEntity = e;
+        _stateMachine.Fire(Trigger.Circle);
+    }
 
     private void Start()
     {
@@ -58,6 +65,20 @@ public class PerspectiveController : MonoBehaviour
             })
             .Permit(Trigger.ZoomOut, State.Satellite)
             .Ignore(Trigger.ZoomIn)
+            .Permit(Trigger.Circle, State.Circle)
+            .Permit(Trigger.Pause, State.MainMenu);
+
+        _stateMachine.Configure(State.Circle)
+            .OnEntry(() =>
+            {
+                FindObjectOfType<CirclingCamera>().Enable(Camera, Focus, _focusedEntity);
+            })
+            .OnExit(() =>
+            {
+                FindObjectOfType<CirclingCamera>().Disable();
+            })
+            .Permit(Trigger.ZoomOut, State.Landscape)
+            .Ignore(Trigger.ZoomIn)
             .Permit(Trigger.Pause, State.MainMenu);
     }
 
@@ -72,6 +93,7 @@ public class PerspectiveController : MonoBehaviour
         MainMenu,
         Satellite,
         Landscape,
+        Circle,
     }
 
     private enum Trigger
@@ -80,5 +102,6 @@ public class PerspectiveController : MonoBehaviour
         ZoomOut,
         Pause,
         Unpause,
+        Circle,
     }
 }

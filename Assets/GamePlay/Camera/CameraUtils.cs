@@ -1,4 +1,7 @@
-﻿using Assets.Scripts.Plants.Setup;
+﻿using System;
+using System.Collections;
+using System.Linq;
+using Assets.Scripts.Plants.Setup;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -6,28 +9,12 @@ using UnityEngine;
 
 public class CameraUtils : MonoBehaviour
 {
-    public static Quaternion LookAtBoundsCenter(Bounds bounds)
-    {
-        var towardPlantDirection = (bounds.center - Camera.main.transform.position).normalized;
-        return Quaternion.LookRotation(towardPlantDirection, Vector3.up);
-    }
-    
-    public static Vector3 RotateAroundBounds(Vector3 startingPosition, Bounds bounds, float rotationAngle, float distanceMultiplier = 1)
-    {
-        var direction = (startingPosition - bounds.center).normalized;
-        direction.Scale(new Vector3(1,0,1));
-        direction.Normalize();
-        var distance = GetDistanceToIncludeBounds(bounds, distanceMultiplier);
-        var vector = direction * distance + new Vector3(0, bounds.extents.y, 0);
-        var newVector = Quaternion.Euler(0, rotationAngle, 0) * vector;
-        return bounds.center + newVector;
-    }
-    
-    public static float GetDistanceToIncludeBounds(Bounds bounds, float multiplier = 1)
+  
+    public static float GetDistanceToIncludeBounds(Bounds bounds, float fov, float multiplier = 1)
     {
         var sizes = bounds.max - bounds.min;
         var size = Mathf.Max(sizes.x, sizes.y, sizes.z) * multiplier;
-        var cameraView = 2.0f * Mathf.Tan(0.5f * Mathf.Deg2Rad * Camera.main.fieldOfView); // Visible height 1 meter in front
+        var cameraView = 2.0f * Mathf.Tan(0.5f * Mathf.Deg2Rad * fov); // Visible height 1 meter in front
         var distance = size / cameraView; // Combined wanted distance from the object
         distance += 0.5f * size; // Estimated offset from the center to the outside of the object
         return distance;
@@ -74,13 +61,72 @@ public class CameraUtils : MonoBehaviour
         return newBounds;
     }
 
+    public static Coordinate ClampAboveTerrain(Coordinate coord, float minDistance = 1)
+    {
+        var minAltitude = math.max(Singleton.Land.SampleHeight(coord), Singleton.Water.SampleHeight(coord)) + minDistance;
+        coord.Altitude = coord.Altitude < minAltitude ? minAltitude : coord.Altitude;
+        return coord;
+    }
+    public static Coordinate ClampToTerrain(Coordinate coord)
+    {
+        coord.Altitude = math.max(Singleton.Land.SampleHeight(coord), Singleton.Water.SampleHeight(coord));
+        return coord;
+    }
+
+    public static void Transition(CameraState end, Action callback = null, float transitionSpeed = 1)
+    {
+        end.Camera.parent = end.CameraParent;
+        end.Focus.parent = end.FocusParent;
+        var start = new CameraState(end.Camera, end.Focus);
+        var speed = new []
+        {
+            GetTransitionTime(start.CameraLocalPosition, end.CameraLocalPosition, transitionSpeed), 
+            GetTransitionTime(start.CameraLocalRotation, end.CameraLocalRotation, transitionSpeed),
+            GetTransitionTime(start.FocusLocalPosition, end.FocusLocalPosition, transitionSpeed),
+            GetTransitionTime(start.FocusLocalRotation, end.FocusLocalRotation, transitionSpeed),
+            GetTransitionTime(start.FieldOfView, end.FieldOfView, transitionSpeed),
+        }.Max();
+
+        Singleton.Instance.StartCoroutine(AnimateTransition(speed, start, end, callback));
+    }
+    private static IEnumerator AnimateTransition(float seconds, CameraState start, CameraState end, Action callback = null)
+    {
+        var remainingSeconds = seconds;
+        var t = 0f;
+        var camera = end.Camera.GetComponent<Camera>();
+
+        while (t < 1)
+        {
+            yield return new WaitForEndOfFrame();
+
+            end.Camera.localPosition = Vector3.Lerp(start.CameraLocalPosition, end.CameraLocalPosition, t);
+            end.Camera.localRotation = Quaternion.Lerp(start.CameraLocalRotation, end.CameraLocalRotation, t);
+            end.Focus.localPosition = Vector3.Lerp(start.FocusLocalPosition, end.FocusLocalPosition, t);
+            end.Focus.localRotation = Quaternion.Lerp(start.FocusLocalRotation, end.FocusLocalRotation, t);
+            camera.fieldOfView = math.lerp(start.FieldOfView, end.FieldOfView, t);
+
+            remainingSeconds -= Time.deltaTime;
+            t = 1 - (remainingSeconds / seconds);
+        }
+
+        end.Camera.localPosition = end.CameraLocalPosition;
+        end.Camera.localRotation = end.CameraLocalRotation;
+        end.Focus.localPosition = end.FocusLocalPosition;
+        end.Focus.localRotation = end.FocusLocalRotation;
+        camera.fieldOfView = end.FieldOfView;
+
+        callback?.Invoke();
+    }
     public static float GetTransitionTime(Vector3 start, Vector3 end, float transitionSpeed = 1)
     {
         return math.sqrt(Vector3.Distance(start, end)) * 0.05f / transitionSpeed;
     }
-
     public static float GetTransitionTime(Quaternion start, Quaternion end, float transitionSpeed = 1)
     {
         return math.sqrt(Quaternion.Angle(start, end)) * 0.05f / transitionSpeed;
+    }
+    public static float GetTransitionTime(float start, float end, float transitionSpeed = 1)
+    {
+        return math.sqrt(math.abs(start - end)) * 0.05f / transitionSpeed;
     }
 }

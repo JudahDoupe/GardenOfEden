@@ -7,6 +7,7 @@ public class Planet : MonoBehaviour
     public float RotationSpeed;
 
     public static Entity Entity;
+    public static Transform Transform;
     public static LocalToWorld LocalToWorld => World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<LocalToWorld>(Entity);
 
     void Start()
@@ -17,6 +18,7 @@ public class Planet : MonoBehaviour
         em.AddComponent<Rotation>(Entity);
         em.AddComponent<LocalToWorld>(Entity);
         em.SetName(Entity, "Planet");
+        Transform = transform;
     }
 
     void Update()

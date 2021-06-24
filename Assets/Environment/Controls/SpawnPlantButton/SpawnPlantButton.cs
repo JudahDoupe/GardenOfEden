@@ -1,5 +1,7 @@
+using System.Collections;
 using Assets.Scripts.Plants.Dna;
 using Assets.Scripts.Utils;
+using Unity.Entities;
 using UnityEngine;
 
 public class SpawnPlantButton : MonoBehaviour
@@ -20,9 +22,16 @@ public class SpawnPlantButton : MonoBehaviour
     public void Click()
     {
         var dna = new Dna(DnaService.GeneLibrary.GetGene("Straight Opposite"));
-        dna.Spawn(new Coordinate(transform.position, Planet.LocalToWorld));
+        var plant = dna.Spawn(new Coordinate(transform.position, Planet.LocalToWorld));
         Close();
+        StartCoroutine(PositionCamera(plant));
     }
+    private IEnumerator PositionCamera(Entity plant)
+    {
+        yield return new WaitForEndOfFrame();
+        Singleton.PerspectiveController.Circle(plant);
+    }
+
     public void Hover()
     {
         _lastHovering = Time.time;
