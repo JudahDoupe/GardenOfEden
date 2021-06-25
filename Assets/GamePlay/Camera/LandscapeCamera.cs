@@ -25,23 +25,30 @@ public class LandscapeCamera : MonoBehaviour
     private Transform _camera;
     private Transform _focus;
 
+    private Coordinate _focusCoord;
     private float _altitude;
-    private float _targetAltitude;
 
     public void Enable(Transform camera, Transform focus)
     {
         _camera = camera;
         _focus = focus;
-        _focus.parent = FindObjectOfType<Planet>().transform;
-        _focus.position = _camera.position;
-        _camera.parent = _focus;
+        _focusCoord = new Coordinate(camera.position, Planet.LocalToWorld);
+        _altitude = math.clamp(_focusCoord.Altitude, MinAltitude, MaxAltitude);
+        _focusCoord.Altitude = _altitude;
 
-        _camera.localPosition = new Vector3(0,0,-1);
-        _altitude = _focus.localPosition.magnitude;
-        _targetAltitude = _altitude;
+        CameraUtils.SetState(new CameraState(camera, focus)
+        {
+            CameraParent = focus,
+            CameraLocalPosition = new Vector3(0,0,-1), 
+            FocusParent = Planet.Transform,
+            FocusLocalPosition = _focusCoord.LocalPlanet,
+        });
+        CameraUtils.TransitionState(GetTargetState(camera, focus, _focusCoord), () =>
+        {
+            IsActive = true;
+            Cursor.lockState = CursorLockMode.Locked;
+        }, 1.5f);
 
-        Cursor.lockState = CursorLockMode.Locked;
-        IsActive = true;
     }
 
     public void Disable()
@@ -69,35 +76,44 @@ public class LandscapeCamera : MonoBehaviour
     {
         if (!IsActive) return;
 
-        var t = (MaxAltitude - _altitude) / (MaxAltitude - MinAltitude);
+        var t = (MaxAltitude - _focusCoord.Altitude) / (MaxAltitude - MinAltitude);
         var translation = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * math.lerp(MaxMovementSpeed, MinMovementSpeed, t);
         var rotation = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) * RotationSpeed;
-
-        var right = _camera.right;
-        var up = _camera.position.normalized;
-        var forward = Quaternion.AngleAxis(90, right) * up;
-
-        _targetAltitude -= Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t);
-        _targetAltitude = math.max(_targetAltitude, MinAltitude);
-        _altitude = math.lerp(_altitude, _targetAltitude, Time.deltaTime * LerpSpeed);
-        
-        t = (MaxAltitude - _altitude) / (MaxAltitude - MinAltitude);
-
-        _focus.LookAt(_focus.position + forward, up);
+        _altitude -= Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t);
+        _focusCoord.LocalPlanet += (_focus.localRotation * translation).ToFloat3();
+        _focusCoord.Altitude = math.lerp(_focusCoord.Altitude, _altitude, Time.deltaTime * LerpSpeed);
         _focus.Rotate(0,rotation.x,0);
-        _focus.Translate(translation, Space.Self);
-        _focus.localPosition = _focus.localPosition.normalized * _altitude;
 
-        _camera.localEulerAngles = new Vector3(1, 0, 0) * math.lerp(MaxAngle, MinAngle, t);
-        _camera.GetComponent<Camera>().fieldOfView = math.lerp(MaxFov, MinFov, t * t);
+        CameraUtils.SetState(GetTargetState(_camera, _focus, _focusCoord));
 
-        if (_focus.position.magnitude < MinAltitude)
+        if (_focusCoord.Altitude < MinAltitude)
         {
             Singleton.PerspectiveController.ZoomIn();
         }
-        if (_focus.position.magnitude > MaxAltitude)
+        if (_focusCoord.Altitude > MaxAltitude)
         {
             Singleton.PerspectiveController.ZoomOut();
         }
+    }
+
+    private CameraState GetTargetState(Transform camera, Transform focus, Coordinate focusCoord)
+    {
+        var t = (MaxAltitude - focusCoord.Altitude) / (MaxAltitude - MinAltitude);
+        var cameraRot = Quaternion.Euler(math.lerp(MaxAngle, MinAngle, t), 0, 0);
+
+        var right = Planet.Transform.InverseTransformDirection(camera.right);
+        var up = Planet.Transform.InverseTransformDirection(camera.position.normalized);
+        var forward = Quaternion.AngleAxis(90, right) * up;
+
+        return new CameraState(camera, focus)
+        {
+            CameraParent = focus,
+            CameraLocalPosition = Vector3.zero,
+            CameraLocalRotation = cameraRot,
+            FocusParent = Planet.Transform,
+            FocusLocalPosition = focusCoord.LocalPlanet,
+            FocusLocalRotation = quaternion.LookRotation(forward, up),
+            FieldOfView = math.lerp(MaxFov, MinFov, t * t),
+        };
     }
 }

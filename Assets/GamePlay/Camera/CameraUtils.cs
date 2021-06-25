@@ -73,7 +73,18 @@ public class CameraUtils : MonoBehaviour
         return coord;
     }
 
-    public static void Transition(CameraState end, Action callback = null, float transitionSpeed = 1)
+    public static void SetState(CameraState end)
+    {
+        var camera = end.Camera.GetComponent<Camera>();
+        end.Camera.parent = end.CameraParent;
+        end.Focus.parent = end.FocusParent;
+        end.Camera.localPosition = end.CameraLocalPosition;
+        end.Camera.localRotation = end.CameraLocalRotation;
+        end.Focus.localPosition = end.FocusLocalPosition;
+        end.Focus.localRotation = end.FocusLocalRotation;
+        camera.fieldOfView = end.FieldOfView;
+    }
+    public static void TransitionState(CameraState end, Action callback = null, float transitionSpeed = 1)
     {
         end.Camera.parent = end.CameraParent;
         end.Focus.parent = end.FocusParent;
@@ -99,21 +110,18 @@ public class CameraUtils : MonoBehaviour
         {
             yield return new WaitForEndOfFrame();
 
-            end.Camera.localPosition = Vector3.Lerp(start.CameraLocalPosition, end.CameraLocalPosition, t);
-            end.Camera.localRotation = Quaternion.Lerp(start.CameraLocalRotation, end.CameraLocalRotation, t);
-            end.Focus.localPosition = Vector3.Lerp(start.FocusLocalPosition, end.FocusLocalPosition, t);
-            end.Focus.localRotation = Quaternion.Lerp(start.FocusLocalRotation, end.FocusLocalRotation, t);
-            camera.fieldOfView = math.lerp(start.FieldOfView, end.FieldOfView, t);
+            var s = 1 / (1 + math.pow(math.E, 6 - 12 * t));
+            end.Camera.localPosition = Vector3.Lerp(start.CameraLocalPosition, end.CameraLocalPosition, s);
+            end.Camera.localRotation = Quaternion.Lerp(start.CameraLocalRotation, end.CameraLocalRotation, s);
+            end.Focus.localPosition = Vector3.Lerp(start.FocusLocalPosition, end.FocusLocalPosition, s);
+            end.Focus.localRotation = Quaternion.Lerp(start.FocusLocalRotation, end.FocusLocalRotation, s);
+            camera.fieldOfView = math.lerp(start.FieldOfView, end.FieldOfView, s);
 
             remainingSeconds -= Time.deltaTime;
             t = 1 - (remainingSeconds / seconds);
         }
 
-        end.Camera.localPosition = end.CameraLocalPosition;
-        end.Camera.localRotation = end.CameraLocalRotation;
-        end.Focus.localPosition = end.FocusLocalPosition;
-        end.Focus.localRotation = end.FocusLocalRotation;
-        camera.fieldOfView = end.FieldOfView;
+        SetState(end);
 
         callback?.Invoke();
     }

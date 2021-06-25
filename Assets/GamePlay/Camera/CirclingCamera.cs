@@ -19,7 +19,7 @@ public class CirclingCamera : MonoBehaviour
         _focus = focus;
         _camera = camera;
 
-        CameraUtils.Transition(GetTargetState(_camera, _focus, _focusedEntity), () => IsActive = true);
+        CameraUtils.TransitionState(GetTargetState(_camera, _focus, _focusedEntity), () => IsActive = true);
     }
 
     public void Disable()
