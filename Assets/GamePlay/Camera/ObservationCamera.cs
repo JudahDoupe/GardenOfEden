@@ -1,12 +1,15 @@
+using System;
+using System.Linq;
+using Assets.Scripts.Utils;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class LandscapeCamera : MonoBehaviour
+public class ObservationCamera : MonoBehaviour
 {
-    [Header("Altitude")] 
+    [Header("Altitude")]
     public float LerpSpeed = 2f;
-    public float MaxAltitude = 3000;
-    public float MinHeight = 100;
+    public float MaxHeight = 2000;
+    public float MinHeight = 2000;
     public float MaxZoomSpeed = 15f;
     public float MinZoomSpeed = 15f;
     [Header("Movement")]
@@ -14,11 +17,9 @@ public class LandscapeCamera : MonoBehaviour
     public float MinMovementSpeed = 30f;
     [Header("Rotation")]
     public Vector2 RotationSpeed;
+    public float MinAngle = 0;
     public float MaxAngle = 90;
-    public float MinAngle = 60;
-    [Header("FOV")]
-    public float MaxFov = 30;
-    public float MinFov = 60;
+    public float Fov = 60;
 
     public bool IsActive { get; private set; }
 
@@ -26,20 +27,19 @@ public class LandscapeCamera : MonoBehaviour
     private Transform _focus;
 
     private Coordinate _focusCoord;
-    private float _altitude;
+    private float _height;
 
     public void Enable(Transform camera, Transform focus)
     {
         _camera = camera;
         _focus = focus;
         _focusCoord = new Coordinate(camera.position, Planet.LocalToWorld);
-        _altitude = math.clamp(_focusCoord.Altitude, Singleton.Land.SampleHeight(_focusCoord) + MinHeight, MaxAltitude);
-        _focusCoord.Altitude = _altitude;
+        _height = _focusCoord.Altitude - Singleton.Land.SampleHeight(_focusCoord);
 
         CameraUtils.SetState(new CameraState(camera, focus)
         {
             CameraParent = focus,
-            CameraLocalPosition = new Vector3(0,0,-1), 
+            CameraLocalPosition = new Vector3(0, 0, -1),
             FocusParent = Planet.Transform,
             FocusLocalPosition = _focusCoord.LocalPlanet,
         });
@@ -76,21 +76,19 @@ public class LandscapeCamera : MonoBehaviour
     {
         if (!IsActive) return;
 
-        var t = (MaxAltitude - _focusCoord.Altitude) / (MaxAltitude - (Singleton.Land.SampleHeight(_focusCoord) + MinHeight));
+        var t = (MaxHeight - _height) / (MaxHeight - MinHeight);
         var translation = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * math.lerp(MaxMovementSpeed, MinMovementSpeed, t);
         var rotation = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) * RotationSpeed;
-        _altitude -= Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t);
+        _height = math.max(0, _height - Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t));
         _focusCoord.LocalPlanet += (_focus.localRotation * translation).ToFloat3();
-        _focusCoord.Altitude = math.lerp(_focusCoord.Altitude, _altitude, Time.deltaTime * LerpSpeed);
-        _focus.Rotate(0,rotation.x,0);
+        var landHeight = Singleton.Land.SampleHeight(_focusCoord);
+        _focusCoord.Altitude = math.max(landHeight + MinHeight, math.lerp(_focusCoord.Altitude, _height + landHeight, Time.deltaTime * LerpSpeed));
+        _focus.Rotate(0, rotation.x, 0);
+        _camera.Rotate(rotation.y,0,0);
 
         CameraUtils.SetState(GetTargetState(_camera, _focus, _focusCoord));
 
-        if (_focusCoord.Altitude < Singleton.Land.SampleHeight(_focusCoord) + MinHeight)
-        {
-            Singleton.PerspectiveController.ZoomIn();
-        }
-        if (_focusCoord.Altitude > MaxAltitude)
+        if (_height > MaxHeight)
         {
             Singleton.PerspectiveController.ZoomOut();
         }
@@ -98,8 +96,7 @@ public class LandscapeCamera : MonoBehaviour
 
     private CameraState GetTargetState(Transform camera, Transform focus, Coordinate focusCoord)
     {
-        var t = (MaxAltitude - focusCoord.Altitude) / (MaxAltitude - (Singleton.Land.SampleHeight(_focusCoord) + MinHeight));
-        var cameraRot = Quaternion.Euler(math.lerp(MaxAngle, MinAngle, t), 0, 0);
+        var cameraRot = Quaternion.Euler(math.clamp(camera.localRotation.eulerAngles.x, MinAngle, MaxAngle), 0, 0);
 
         var right = Planet.Transform.InverseTransformDirection(camera.right);
         var up = Planet.Transform.InverseTransformDirection(camera.position.normalized);
@@ -113,7 +110,7 @@ public class LandscapeCamera : MonoBehaviour
             FocusParent = Planet.Transform,
             FocusLocalPosition = focusCoord.LocalPlanet,
             FocusLocalRotation = quaternion.LookRotation(forward, up),
-            FieldOfView = math.lerp(MaxFov, MinFov, t * t),
+            FieldOfView = Fov,
         };
     }
 }

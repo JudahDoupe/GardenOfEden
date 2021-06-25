@@ -64,6 +64,20 @@ public class PerspectiveController : MonoBehaviour
                 FindObjectOfType<LandscapeCamera>().Disable();
             })
             .Permit(Trigger.ZoomOut, State.Satellite)
+            .Permit(Trigger.ZoomIn, State.Observation)
+            .Permit(Trigger.Circle, State.Circle)
+            .Permit(Trigger.Pause, State.MainMenu);
+
+        _stateMachine.Configure(State.Observation)
+            .OnEntry(() =>
+            {
+                FindObjectOfType<ObservationCamera>().Enable(Camera, Focus);
+            })
+            .OnExit(() =>
+            {
+                FindObjectOfType<ObservationCamera>().Disable();
+            })
+            .Permit(Trigger.ZoomOut, State.Landscape)
             .Ignore(Trigger.ZoomIn)
             .Permit(Trigger.Circle, State.Circle)
             .Permit(Trigger.Pause, State.MainMenu);
@@ -77,7 +91,7 @@ public class PerspectiveController : MonoBehaviour
             {
                 FindObjectOfType<CirclingCamera>().Disable();
             })
-            .Permit(Trigger.ZoomOut, State.Landscape)
+            .Permit(Trigger.ZoomOut, State.Observation)
             .Ignore(Trigger.ZoomIn)
             .Permit(Trigger.Pause, State.MainMenu);
     }
@@ -93,6 +107,7 @@ public class PerspectiveController : MonoBehaviour
         MainMenu,
         Satellite,
         Landscape,
+        Observation,
         Circle,
     }
 

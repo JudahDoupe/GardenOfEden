@@ -36,6 +36,11 @@ public class CirclingCamera : MonoBehaviour
 
         _camera.localPosition = Vector3.Lerp(_camera.localPosition, state.CameraLocalPosition, LerpSpeed * Time.deltaTime);
         _focus.localPosition = Vector3.Lerp(_focus.localPosition, state.FocusLocalPosition, LerpSpeed * Time.deltaTime);
+
+        if (Input.mouseScrollDelta.y < 0)
+        {
+            Singleton.PerspectiveController.ZoomOut();
+        }
     }
 
     public CameraState GetTargetState(Transform camera, Transform focus, Entity focusedEntity)
