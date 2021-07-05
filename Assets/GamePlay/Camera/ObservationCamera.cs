@@ -17,8 +17,7 @@ public class ObservationCamera : MonoBehaviour
     public float MinMovementSpeed = 30f;
     [Header("Rotation")]
     public Vector2 RotationSpeed;
-    public float MinAngle = 0;
-    public float MaxAngle = 90;
+    public float VerticalAngle = 80;
     public float Fov = 60;
 
     public bool IsActive { get; private set; }
@@ -96,7 +95,9 @@ public class ObservationCamera : MonoBehaviour
 
     private CameraState GetTargetState(Transform camera, Transform focus, Coordinate focusCoord)
     {
-        var cameraRot = Quaternion.Euler(math.clamp(camera.localRotation.eulerAngles.x, MinAngle, MaxAngle), 0, 0);
+        var xRot = camera.localRotation.eulerAngles.x;
+        xRot = xRot < 180 ? math.clamp(xRot, -VerticalAngle, VerticalAngle) : math.clamp(xRot, 360 - VerticalAngle, 360 + VerticalAngle);
+        var cameraRot = Quaternion.Euler(xRot, 0, 0);
 
         var right = Planet.Transform.InverseTransformDirection(camera.right);
         var up = Planet.Transform.InverseTransformDirection(camera.position.normalized);

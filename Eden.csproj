@@ -114,6 +114,7 @@
     <Compile Include="Assets\Utils\DBUtils\TransformDto.cs" />
     <Compile Include="Assets\Plants\Systems\Setup\SetupSystemGroup.cs" />
     <Compile Include="Assets\GamePlay\Ui\DnaCategoryPanel.cs" />
+    <Compile Include="Assets\GamePlay\Camera\ObservationCamera.cs" />
     <Compile Include="Assets\Utils\Ui\MatchToggleText.cs" />
     <Compile Include="Assets\Utils\Subject.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\EnergyFlowSystem.cs" />
@@ -136,7 +137,6 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Utils\Rendering\BlitMaterialFeature.cs" />
-    <Compile Include="Assets\GamePlay\Camera\ObservationCamera.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
