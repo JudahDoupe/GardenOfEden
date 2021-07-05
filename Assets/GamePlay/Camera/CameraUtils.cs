@@ -9,7 +9,8 @@ using UnityEngine;
 
 public class CameraUtils : MonoBehaviour
 {
-  
+    public static RenderTexture DepthTexture;
+
     public static float GetDistanceToIncludeBounds(Bounds bounds, float fov, float multiplier = 1)
     {
         var sizes = bounds.max - bounds.min;
@@ -136,5 +137,17 @@ public class CameraUtils : MonoBehaviour
     public static float GetTransitionTime(float start, float end, float transitionSpeed = 1)
     {
         return math.sqrt(math.abs(start - end)) * 0.05f / transitionSpeed;
+    }
+
+    public static float GetScreenDepthAtCursor()
+    {
+        RenderTexture.active = DepthTexture;
+        var texture = new Texture2D(1, 1, TextureFormat.RFloat, false);
+        texture.ReadPixels(new Rect(Input.mousePosition.x, Input.mousePosition.y, 1, 1), 0, 0);
+        texture.Apply();
+        var depth = texture.GetPixel(0, 0).r;
+        Debug.Log(depth);
+        RenderTexture.active = null;
+        return depth;
     }
 }

@@ -8,7 +8,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <ProjectGuid>{F49B5B11-5475-D98A-BF58-F6C878F5BC27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -53,7 +54,8 @@
     <UnityVersion>2021.1.9f1</UnityVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>
+    </CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
@@ -61,13 +63,13 @@
   <ItemGroup>
     <Compile Include="Assets\GamePlay\Camera\CirclingCamera.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusObject.cs" />
+    <Compile Include="Assets\Utils\Rendering\Features\OutlineFeature.cs" />
     <Compile Include="Assets\Utils\StateMachine\StateMachine.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\DormancySystem.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\LifeStageTriggerSystem.cs" />
     <Compile Include="Assets\Utils\Ui\EventOnClick.cs" />
     <Compile Include="Assets\Utils\Extensions\TransformExtensions.cs" />
     <Compile Include="Assets\Utils\Extensions\RenderTextureExtensions.cs" />
-    <Compile Include="Assets\Utils\Rendering\OutlineFeature.cs" />
     <Compile Include="Assets\Utils\Extensions\Vector3Extensions.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\NodeDivisionSystem.cs" />
     <Compile Include="Assets\Utils\Extensions\FloatExtensions.cs" />
@@ -136,7 +138,8 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMaterial.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
-    <Compile Include="Assets\Utils\Rendering\BlitMaterialFeature.cs" />
+    <Compile Include="Assets\Utils\Rendering\Features\BlitMaterialFeature.cs" />
+    <Compile Include="Assets\Utils\Rendering\Features\DepthTextureFeature.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />

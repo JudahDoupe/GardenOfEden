@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using Assets.Scripts.Utils;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -69,6 +66,8 @@ public class ObservationCamera : MonoBehaviour
                 hit.transform.gameObject.SendMessage("Click");
             }
         }
+
+
     }
 
     private void LateUpdate()
