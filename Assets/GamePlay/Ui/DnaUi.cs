@@ -8,10 +8,10 @@ using Assets.Scripts.Utils;
 using Assets.Utils;
 using Unity.Mathematics;
 using UnityEngine.UI;
+using System.Collections;
 
 public class DnaUi : MonoBehaviour
 {
-    public GameObject OpenMenuButton;
     public GameObject CarouselControls;
     public Button DoneButton;
 
@@ -26,9 +26,11 @@ public class DnaUi : MonoBehaviour
     private LinkedList<DnaCategoryPanel> _panels = new LinkedList<DnaCategoryPanel>();
 
 
-    public void Enable() => _stateMachine.Fire(UiTrigger.Enable);
-    public void Disable() => _stateMachine.Fire(UiTrigger.Disable);
-    public void EditDna() => _stateMachine.Fire(UiTrigger.EditDna);
+    public void EditDna(Entity plant)
+    {
+        _focusedPlant = plant;
+        _stateMachine.Fire(UiTrigger.EditDna);
+    }
     public void Flatten() => _stateMachine.Fire(UiTrigger.Flatten);
     public void SelectCategory(GeneCategory category) => _stateMachine.Fire(_selectCategory, category);
     public void NextCategory() => _stateMachine.Fire(UiTrigger.NextCategory);
@@ -40,35 +42,25 @@ public class DnaUi : MonoBehaviour
         var coordinate = em.GetComponentData<Coordinate>(_focusedPlant);
         var dna = DnaService.GetSpeciesDna(em.GetComponentData<DnaReference>(_focusedPlant).SpeciesId).Evolve(evolution);
         EcsUtils.DestroyAllChildren(_focusedPlant);
-        dna.Spawn(coordinate);
-        Done();
+        var plant = dna.Spawn(coordinate);
+        StartCoroutine(Circle(plant));
     }
-
+    private IEnumerator Circle(Entity plant)
+    {
+        yield return new WaitForEndOfFrame();
+        Singleton.PerspectiveController.Circle(plant);
+    }
 
     private void Start()
     {
         _stateMachine = new StateMachine<UiState, UiTrigger>(() => _state, s => _state = s);
         _selectCategory = _stateMachine.SetTriggerParameters<GeneCategory>(UiTrigger.SelectCategory);
 
-        _stateMachine.Configure(UiState.Disabled)
-            .Permit(UiTrigger.Enable, UiState.Closed);
-
         _stateMachine.Configure(UiState.Closed)
-            .SubstateOf(UiState.Enabled)
-            .OnEntry(() =>
-            {
-                OpenMenuButton.SetActive(true);
-                CarouselControls.SetActive(false);
-            })
-            .OnExit(() =>
-            {
-                OpenMenuButton.SetActive(false);
-            })
-            .Permit(UiTrigger.Disable, UiState.Disabled)
-            .Permit(UiTrigger.EditDna, UiState.Flat);
+            .Permit(UiTrigger.EditDna, UiState.Flat)
+            .Ignore(UiTrigger.Close);
 
         _stateMachine.Configure(UiState.Open)
-            .SubstateOf(UiState.Enabled)
             .OnEntryFrom(UiTrigger.EditDna, () =>
             {
                 var dnaReference = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<DnaReference>(_focusedPlant);
@@ -93,6 +85,7 @@ public class DnaUi : MonoBehaviour
 
                 _panels.Clear();
                 DoneButton.transform.AnimateTransform(0.3f, new Vector3(0, 0, 0), Vector3.zero, false);
+                CarouselControls.transform.AnimateTransform(0.3f, new Vector3(0, 0, 0), Vector3.zero, false);
             })
             .Permit(UiTrigger.Close, UiState.Closed);
 
@@ -132,19 +125,6 @@ public class DnaUi : MonoBehaviour
             .Permit(UiTrigger.Close, UiState.Closed);
 
 
-    }
-    private void Update()
-    {
-        if (_stateMachine.IsInState(UiState.Enabled))
-        {
-            _focusedPlant = CameraUtils.GetClosestEntity(Singleton.PerspectiveController.Focus.position);
-            if (_focusedPlant != Entity.Null)
-            {
-                _focusedBounds = CameraUtils.EncapsulateChildren(_focusedPlant);
-                var direction = Vector3.Normalize(_focusedBounds.center);
-                OpenMenuButton.transform.position = _focusedBounds.ClosestPoint(2 * _focusedBounds.center) + direction;
-            }
-        }
     }
 
     private void PositionOpenPanels()
@@ -202,8 +182,6 @@ public class DnaUi : MonoBehaviour
 
     public enum UiState
     {
-        Disabled,
-        Enabled,
         Closed,
         Open,
         Carousel,
@@ -211,8 +189,6 @@ public class DnaUi : MonoBehaviour
     }
     public enum UiTrigger
     {
-        Enable,
-        Disable,
         EditDna,
         Close,
         Flatten,

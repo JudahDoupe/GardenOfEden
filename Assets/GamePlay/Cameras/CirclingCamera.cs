@@ -19,7 +19,15 @@ public class CirclingCamera : MonoBehaviour
         _focus = focus;
         _camera = camera;
 
-        CameraUtils.TransitionState(GetTargetState(_camera, _focus, _focusedEntity), () => IsActive = true);
+        if (World.DefaultGameObjectInjectionWorld.EntityManager.Exists(focusedEntity))
+        {
+            CameraUtils.TransitionState(GetTargetState(_camera, _focus, _focusedEntity), () => IsActive = true);
+        }
+        else
+        {
+            Singleton.PerspectiveController.ZoomOut();
+        }
+
     }
 
     public void Disable()
@@ -30,6 +38,11 @@ public class CirclingCamera : MonoBehaviour
     private void LateUpdate()
     {
         if (!IsActive) return;
+        if (!World.DefaultGameObjectInjectionWorld.EntityManager.Exists(_focusedEntity))
+        {
+            Singleton.PerspectiveController.ZoomOut();
+            return;
+        }
 
         _focus.Rotate(Vector3.up, RotationSpeed * Time.deltaTime,Space.Self);
         var state = GetTargetState(_camera, _focus, _focusedEntity);

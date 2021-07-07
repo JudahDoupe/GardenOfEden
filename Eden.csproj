@@ -8,8 +8,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <ProjectGuid>{F49B5B11-5475-D98A-BF58-F6C878F5BC27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -54,22 +53,21 @@
     <UnityVersion>2021.1.9f1</UnityVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <CodeAnalysisRuleSet>
-    </CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\GamePlay\Camera\CirclingCamera.cs" />
+    <Compile Include="Assets\GamePlay\Cameras\CirclingCamera.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusObject.cs" />
-    <Compile Include="Assets\Utils\Rendering\Features\OutlineFeature.cs" />
     <Compile Include="Assets\Utils\StateMachine\StateMachine.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\DormancySystem.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\LifeStageTriggerSystem.cs" />
     <Compile Include="Assets\Utils\Ui\EventOnClick.cs" />
     <Compile Include="Assets\Utils\Extensions\TransformExtensions.cs" />
     <Compile Include="Assets\Utils\Extensions\RenderTextureExtensions.cs" />
+    <Compile Include="Assets\Utils\Rendering\Features\OutlineFeature.cs" />
     <Compile Include="Assets\Utils\Extensions\Vector3Extensions.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\NodeDivisionSystem.cs" />
     <Compile Include="Assets\Utils\Extensions\FloatExtensions.cs" />
@@ -82,9 +80,10 @@
     <Compile Include="Assets\Environment\Components\PlanetFactory.cs" />
     <Compile Include="Assets\Utils\Ui\FaceCamera.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthSystemGroup.cs" />
-    <Compile Include="Assets\GamePlay\Camera\LandscapeCamera.cs" />
+    <Compile Include="Assets\GamePlay\Cameras\LandscapeCamera.cs" />
+    <Compile Include="Assets\Utils\Rendering\Features\DepthTextureFeature.cs" />
     <Compile Include="Assets\Utils\Mathj.cs" />
-    <Compile Include="Assets\GamePlay\Camera\CameraState.cs" />
+    <Compile Include="Assets\GamePlay\Cameras\CameraState.cs" />
     <Compile Include="Assets\Utils\MessageBus.cs" />
     <Compile Include="Assets\GamePlay\LoadBalancer\ProximityLoadBalancer.cs" />
     <Compile Include="Assets\Environment\Services\WaterService.cs" />
@@ -95,13 +94,13 @@
     <Compile Include="Assets\Utils\Singleton.cs" />
     <Compile Include="Assets\Utils\DBUtils\ParameterDto.cs" />
     <Compile Include="Assets\Utils\EcsUtils.cs" />
-    <Compile Include="Assets\GamePlay\Camera\CameraUtils.cs" />
+    <Compile Include="Assets\GamePlay\Cameras\CameraUtils.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\DeadNodeSystem.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\PhotosynthesisSystem.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMeshes.cs" />
     <Compile Include="Assets\Utils\Interfaces\IDataBaseObject.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthHormoneSystem.cs" />
-    <Compile Include="Assets\GamePlay\Camera\SatelliteCamera.cs" />
+    <Compile Include="Assets\GamePlay\Cameras\SatelliteCamera.cs" />
     <Compile Include="Assets\GamePlay\PerspectiveController.cs" />
     <Compile Include="Assets\Environment\Services\LandService.cs" />
     <Compile Include="Assets\Plants\Dna\Dna.cs" />
@@ -116,7 +115,7 @@
     <Compile Include="Assets\Utils\DBUtils\TransformDto.cs" />
     <Compile Include="Assets\Plants\Systems\Setup\SetupSystemGroup.cs" />
     <Compile Include="Assets\GamePlay\Ui\DnaCategoryPanel.cs" />
-    <Compile Include="Assets\GamePlay\Camera\ObservationCamera.cs" />
+    <Compile Include="Assets\GamePlay\Cameras\ObservationCamera.cs" />
     <Compile Include="Assets\Utils\Ui\MatchToggleText.cs" />
     <Compile Include="Assets\Utils\Subject.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\EnergyFlowSystem.cs" />
@@ -124,7 +123,7 @@
     <Compile Include="Assets\Utils\Extensions\Bool3Extensions.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusConstants.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\CleanupSystemGroup.cs" />
-    <Compile Include="Assets\GamePlay\Camera\PausedCamera.cs" />
+    <Compile Include="Assets\GamePlay\Cameras\PausedCamera.cs" />
     <Compile Include="Assets\Utils\Ui\GrowOnHover.cs" />
     <Compile Include="Assets\Utils\Extensions\MaterialExtensions.cs" />
     <Compile Include="Assets\Plants\Dna\Gene.cs" />
@@ -139,7 +138,7 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Utils\Rendering\Features\BlitMaterialFeature.cs" />
-    <Compile Include="Assets\Utils\Rendering\Features\DepthTextureFeature.cs" />
+    <Compile Include="Assets\GamePlay\Controls\PlantSelectionControl.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />

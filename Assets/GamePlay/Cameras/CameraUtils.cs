@@ -21,19 +21,17 @@ public class CameraUtils : MonoBehaviour
         return distance;
     }
 
-    public static Entity GetClosestEntity(Vector3 position)
+    public static Entity GetClosestEntityWithComponent<T>(Vector3 position, float minDistance = 100) where T : IComponentData
     {
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        var q = em.CreateEntityQuery(typeof(Coordinate), typeof(UpdateChunk));
-        q.SetSharedComponentFilter(Singleton.LoadBalancer.ActiveEntityChunk);
+        var q = em.CreateEntityQuery(typeof(LocalToWorld), typeof(T));
         var entities = q.ToEntityArray(Unity.Collections.Allocator.Temp);
 
         var closest = Entity.Null;
-        var minDistance = Singleton.LoadBalancer.Radius;
         foreach (var e in entities)
         {
-            var coord = em.GetComponentData<Coordinate>(e);
-            var dist = Vector3.Distance(position, coord.Global(Planet.LocalToWorld));
+            var l2w = em.GetComponentData<LocalToWorld>(e);
+            var dist = Vector3.Distance(position, l2w.Position);
             if (dist < minDistance)
             {
                 minDistance = dist;
@@ -42,6 +40,13 @@ public class CameraUtils : MonoBehaviour
         }
 
         return closest;
+    }
+    public static Entity GetParentEntityWithComponent<T>(Entity entity) where T : IComponentData
+    {
+        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+        if (em.HasComponent<T>(entity)) return entity;
+        if (em.HasComponent<Parent>(entity)) return GetParentEntityWithComponent<T>(em.GetComponentData<Parent>(entity).Value);
+        return Entity.Null;
     }
 
     public static Bounds EncapsulateChildren(Entity entity, Bounds? bounds = null)
@@ -126,18 +131,9 @@ public class CameraUtils : MonoBehaviour
 
         callback?.Invoke();
     }
-    public static float GetTransitionTime(Vector3 start, Vector3 end, float transitionSpeed = 1)
-    {
-        return math.sqrt(Vector3.Distance(start, end)) * 0.05f / transitionSpeed;
-    }
-    public static float GetTransitionTime(Quaternion start, Quaternion end, float transitionSpeed = 1)
-    {
-        return math.sqrt(Quaternion.Angle(start, end)) * 0.05f / transitionSpeed;
-    }
-    public static float GetTransitionTime(float start, float end, float transitionSpeed = 1)
-    {
-        return math.sqrt(math.abs(start - end)) * 0.05f / transitionSpeed;
-    }
+    public static float GetTransitionTime(Vector3 start, Vector3 end, float transitionSpeed = 1) => math.sqrt(Vector3.Distance(start, end)) * 0.05f / transitionSpeed;
+    public static float GetTransitionTime(Quaternion start, Quaternion end, float transitionSpeed = 1) => math.sqrt(Quaternion.Angle(start, end)) * 0.05f / transitionSpeed;
+    public static float GetTransitionTime(float start, float end, float transitionSpeed = 1) => math.sqrt(math.abs(start - end)) * 0.05f / transitionSpeed;
 
     public static float GetScreenDepthAtCursor()
     {
@@ -146,8 +142,8 @@ public class CameraUtils : MonoBehaviour
         texture.ReadPixels(new Rect(Input.mousePosition.x, Input.mousePosition.y, 1, 1), 0, 0);
         texture.Apply();
         var depth = texture.GetPixel(0, 0).r;
-        Debug.Log(depth);
         RenderTexture.active = null;
         return depth;
     }
+    public static Vector3 GetCursorWorldPosition() => Camera.main.transform.position + Camera.main.transform.forward * GetScreenDepthAtCursor();
 }

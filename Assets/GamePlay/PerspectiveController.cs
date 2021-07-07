@@ -22,6 +22,11 @@ public class PerspectiveController : MonoBehaviour
         _focusedEntity = e;
         _stateMachine.Fire(Trigger.Circle);
     }
+    public void SelectPlant(Entity e)
+    {
+        _focusedEntity = e;
+        _stateMachine.Fire(Trigger.SelectPlant);
+    }
 
     private void Start()
     {
@@ -72,14 +77,17 @@ public class PerspectiveController : MonoBehaviour
             .OnEntry(() =>
             {
                 FindObjectOfType<ObservationCamera>().Enable(Camera, Focus);
+                FindObjectOfType<PlantSelectionControl>().Enable();
             })
             .OnExit(() =>
             {
                 FindObjectOfType<ObservationCamera>().Disable();
+                FindObjectOfType<PlantSelectionControl>().Disable();
             })
             .Permit(Trigger.ZoomOut, State.Landscape)
             .Ignore(Trigger.ZoomIn)
             .Permit(Trigger.Circle, State.Circle)
+            .Permit(Trigger.SelectPlant, State.EditDna)
             .Permit(Trigger.Pause, State.MainMenu);
 
         _stateMachine.Configure(State.Circle)
@@ -94,6 +102,21 @@ public class PerspectiveController : MonoBehaviour
             .Permit(Trigger.ZoomOut, State.Observation)
             .Ignore(Trigger.ZoomIn)
             .Permit(Trigger.Pause, State.MainMenu);
+
+        _stateMachine.Configure(State.EditDna)
+            .OnEntry(() =>
+            {
+                FindObjectOfType<CirclingCamera>().Enable(Camera, Focus, _focusedEntity);
+                FindObjectOfType<DnaUi>().EditDna(_focusedEntity);
+            })
+            .OnExit(() =>
+            {
+                FindObjectOfType<CirclingCamera>().Disable();
+                FindObjectOfType<DnaUi>().Done();
+            })
+            .Permit(Trigger.Circle, State.Circle)
+            .Ignore(Trigger.ZoomOut)
+            .Ignore(Trigger.Pause);
     }
 
     private void Update()
@@ -109,6 +132,7 @@ public class PerspectiveController : MonoBehaviour
         Landscape,
         Observation,
         Circle,
+        EditDna,
     }
 
     private enum Trigger
@@ -118,5 +142,6 @@ public class PerspectiveController : MonoBehaviour
         Pause,
         Unpause,
         Circle,
+        SelectPlant,
     }
 }
