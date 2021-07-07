@@ -137,13 +137,7 @@ public class CameraUtils : MonoBehaviour
 
     public static float GetScreenDepthAtCursor()
     {
-        RenderTexture.active = DepthTexture;
-        var texture = new Texture2D(1, 1, TextureFormat.RFloat, false);
-        texture.ReadPixels(new Rect(Input.mousePosition.x, Input.mousePosition.y, 1, 1), 0, 0);
-        texture.Apply();
-        var depth = texture.GetPixel(0, 0).r;
-        RenderTexture.active = null;
-        return depth;
+        return DepthTexture.Sample(math.round(Input.mousePosition.x), math.round(Input.mousePosition.y)).r;
     }
     public static Vector3 GetCursorWorldPosition() => Camera.main.transform.position + Camera.main.transform.forward * GetScreenDepthAtCursor();
 }

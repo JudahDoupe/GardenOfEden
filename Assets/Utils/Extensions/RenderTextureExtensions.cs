@@ -18,7 +18,11 @@ public static class RenderTextureExtensions
         }
         return tex;
     }
-    public static void UpdateTextureCache(this RenderTexture rt)
+    public static Texture2D CachedTexture(this RenderTexture rt)
+    {
+        return CachedTextures(rt)[0];
+    }
+    public static void UpdateTextureCache(this RenderTexture rt, int layers = 6, int chanels = 4)
     {
         if (!rt.IsTextureBeingUpdated())
         {
@@ -32,21 +36,38 @@ public static class RenderTextureExtensions
                 {
                     if (!RTCache.ContainsKey(rt))
                     {
-                        RTCache[rt] = new[] {
-                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false),
-                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false),
-                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false),
-                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false),
-                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false),
-                            new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat.RGBAFloat, false)
+                        var format = chanels switch
+                        {
+                            1 => TextureFormat.RFloat,
+                            2 => TextureFormat.RGFloat,
+                            _ => TextureFormat.RGBAFloat,
                         };
+
+                        var list = new List<Texture2D>();
+                        for (var i = 0; i< layers; i++)
+                        {
+                            list.Add(new Texture2D(rt.width, rt.height, format, false));
+                        }
+                        RTCache[rt] = list.ToArray();
                     }
 
-                    for (var i = 0; i < 6; i++)
+                    for (var i = 0; i < layers; i++)
                     {
                         if(RTCache[rt][i] != null)
                         {
-                            RTCache[rt][i].SetPixelData(request.GetData<Color>(i), 0);
+                            switch (chanels)
+                            {
+                                case 1:
+                                    RTCache[rt][i].SetPixelData(request.GetData<float>(i), 0);
+                                    break;
+                                case 2:
+                                    RTCache[rt][i].SetPixelData(request.GetData<float2>(i), 0);
+                                    break;
+                                default:
+                                    RTCache[rt][i].SetPixelData(request.GetData<float4>(i), 0);
+                                    break;
+
+                            }
                             RTCache[rt][i].Apply();
                         }
                     }
@@ -55,6 +76,18 @@ public static class RenderTextureExtensions
         }
 
     }
+    public static void ClearCache(this RenderTexture rt)
+    {
+        if (RTCache.ContainsKey(rt))
+        {
+            RTCache.Remove(rt);
+        }
+        if (RTRequest.ContainsKey(rt))
+        {
+            RTRequest.Remove(rt);
+        }
+    }
+
     public static RenderTexture ResetTexture(this RenderTexture tex)
     {
         tex.Release(); 
@@ -121,6 +154,18 @@ public static class RenderTextureExtensions
         int w = (int)math.round(uvw.z);
         var texArray = rt.CachedTextures();
         var color = texArray[w].GetPixelBilinear(uv.x, uv.y, 0);
+        return color;
+    }
+    public static Color Sample(this RenderTexture rt, int x, int y)
+    {
+        var tex = rt.CachedTexture();
+        var color = tex.GetPixel(x, y, 0);
+        return color;
+    }
+    public static Color Sample(this RenderTexture rt, float u, float v)
+    {
+        var tex = rt.CachedTexture();
+        var color = tex.GetPixelBilinear(u, v, 0);
         return color;
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class PlantSelectionControl : MonoBehaviour
 {
-    public float Range;
+    public float Range = 1;
     public bool Active { get; private set; }
 
     public bool Enable() => Active = true;
@@ -35,15 +35,12 @@ public class PlantSelectionControl : MonoBehaviour
     {
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         var cursorPos = CameraUtils.GetCursorWorldPosition();
-        var entity = CameraUtils.GetClosestEntityWithComponent<Node>(cursorPos);
-        if (Vector3.Distance(em.GetComponentData<LocalToWorld>(entity).Position, cursorPos) < Range)
+        var entity = CameraUtils.GetClosestEntityWithComponent<Node>(cursorPos, Range);
+        if (em.Exists(entity))
         {
             return CameraUtils.GetParentEntityWithComponent<Coordinate>(entity);
         }
-        else
-        {
-            return Entity.Null;
-        }
+        return Entity.Null;
     }
 
     private void SetChildrenLayer(Entity e)

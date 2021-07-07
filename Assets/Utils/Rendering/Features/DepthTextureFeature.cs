@@ -27,7 +27,11 @@ public class DepthTextureFeature : ScriptableRendererFeature
 
             if (outputTexture == null || screen.width != outputTexture.width || screen.height != outputTexture.height)
             {
-                if (outputTexture != null) outputTexture.Release();
+                if (outputTexture != null)
+                {
+                    outputTexture.ClearCache();
+                    outputTexture.Release();
+                }
                 CameraUtils.DepthTexture = outputTexture = new RenderTexture(screen.width, screen.height, 0, RenderTextureFormat.RFloat);
             }
 
@@ -35,6 +39,7 @@ public class DepthTextureFeature : ScriptableRendererFeature
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+            CameraUtils.DepthTexture.UpdateTextureCache(1, 1);
         }
     }
 

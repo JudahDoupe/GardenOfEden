@@ -94,6 +94,7 @@
     <Compile Include="Assets\Utils\Singleton.cs" />
     <Compile Include="Assets\Utils\DBUtils\ParameterDto.cs" />
     <Compile Include="Assets\Utils\EcsUtils.cs" />
+    <Compile Include="Assets\GamePlay\Controls\PlantSelectionControl.cs" />
     <Compile Include="Assets\GamePlay\Cameras\CameraUtils.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\DeadNodeSystem.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\PhotosynthesisSystem.cs" />
@@ -138,7 +139,6 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Utils\Rendering\Features\BlitMaterialFeature.cs" />
-    <Compile Include="Assets\GamePlay\Controls\PlantSelectionControl.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
