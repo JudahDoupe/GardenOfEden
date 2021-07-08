@@ -24,15 +24,13 @@ public class BlitMaterialFeature : ScriptableRendererFeature
 
         private string profilingName;
         private Material material;
-        private int materialPassIndex;
         private RenderTargetIdentifier sourceID;
         private RenderTargetHandle tempTextureHandle;
 
-        public RenderPass(string profilingName, Material material, int passIndex) : base()
+        public RenderPass(string profilingName, Material material) : base()
         {
             this.profilingName = profilingName;
             this.material = material;
-            this.materialPassIndex = passIndex;
             tempTextureHandle.Init("_TempBlitMaterialTexture");
         }
 
@@ -49,7 +47,7 @@ public class BlitMaterialFeature : ScriptableRendererFeature
             cameraTextureDesc.depthBufferBits = 0;
 
             cmd.GetTemporaryRT(tempTextureHandle.id, cameraTextureDesc, FilterMode.Bilinear);
-            Blit(cmd, sourceID, tempTextureHandle.Identifier(), material, materialPassIndex);
+            Blit(cmd, sourceID, tempTextureHandle.Identifier(), material);
             Blit(cmd, tempTextureHandle.Identifier(), sourceID);
 
             context.ExecuteCommandBuffer(cmd);
@@ -66,7 +64,6 @@ public class BlitMaterialFeature : ScriptableRendererFeature
     public class Settings
     {
         public Material material;
-        public int materialPassIndex = -1; // -1 means render all passes
         public RenderPassEvent renderEvent = RenderPassEvent.AfterRenderingOpaques;
     }
 
@@ -82,7 +79,7 @@ public class BlitMaterialFeature : ScriptableRendererFeature
 
     public override void Create()
     {
-        this.renderPass = new RenderPass(name, settings.material, settings.materialPassIndex);
+        this.renderPass = new RenderPass(name, settings.material);
         renderPass.renderPassEvent = settings.renderEvent;
     }
 

@@ -76,6 +76,7 @@
     <Compile Include="Assets\Plants\Systems\Setup\UpdateChunkSystem.cs" />
     <Compile Include="Assets\Environment\Services\TimeService.cs" />
     <Compile Include="Assets\Utils\AnimationUtils.cs" />
+    <Compile Include="Assets\Utils\Rendering\Features\BlitOutlineFeature.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\UpdateMeshSystem.cs" />
     <Compile Include="Assets\Environment\Components\PlanetFactory.cs" />
     <Compile Include="Assets\Utils\Ui\FaceCamera.cs" />

@@ -11,6 +11,9 @@
         },
         {
             "m_Id": "e6637d22a0154677b06e529551b57d65"
+        },
+        {
+            "m_Id": "6fa2d0622fbd459695fe5bc098baf1de"
         }
     ],
     "m_Keywords": [],
@@ -47,6 +50,9 @@
         },
         {
             "m_Id": "ac319fc7f30b49379d319e0249b2b5c8"
+        },
+        {
+            "m_Id": "f566aeec8289485a9a8538150ee7150d"
         }
     ],
     "m_GroupDatas": [],
@@ -149,6 +155,20 @@
                 },
                 "m_SlotId": 3
             }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "f566aeec8289485a9a8538150ee7150d"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "d418b9accf2d4c79b22e2c527032d367"
+                },
+                "m_SlotId": -1147934704
+            }
         }
     ],
     "m_VertexContext": {
@@ -211,6 +231,19 @@
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
+    "m_ObjectId": "07c2c41c31544fba8d870b3e76d8b1cc",
+    "m_Id": 0,
+    "m_DisplayName": "OutlineTexture",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_BareResource": false
 }
 
 {
@@ -378,10 +411,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -317.0000305175781,
-            "y": 199.99998474121095,
-            "width": 208.0,
-            "height": 362.0
+            "x": -305.9999694824219,
+            "y": 200.0,
+            "width": 208.00001525878907,
+            "height": 362.0000305175781
         }
     },
     "m_Slots": [
@@ -436,6 +469,19 @@
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.SamplerStateMaterialSlot",
+    "m_ObjectId": "3ffe3b4af8224d1089d2be978450a2f5",
+    "m_Id": -1744884851,
+    "m_DisplayName": "SamplerState",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "SamplerState_Linear_Repeat",
+    "m_StageCapability": 3,
+    "m_BareResource": false
 }
 
 {
@@ -527,6 +573,31 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalUnlitSubTarget",
     "m_ObjectId": "64199086368a4662905ff0068da5e3b8"
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Texture2DShaderProperty",
+    "m_ObjectId": "6fa2d0622fbd459695fe5bc098baf1de",
+    "m_Guid": {
+        "m_GuidSerialized": "44d6128c-6f37-4a04-891e-72e0c426b4c2"
+    },
+    "m_Name": "OutlineTexture",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "OutlineTexture",
+    "m_DefaultReferenceName": "OutlineTexture",
+    "m_OverrideReferenceName": "_OutlinedGroupTexture",
+    "m_GeneratePropertyBlock": false,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_Value": {
+        "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
+        "m_Guid": ""
+    },
+    "m_Modifiable": true,
+    "m_DefaultType": 0
 }
 
 {
@@ -670,6 +741,24 @@
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Texture2DInputMaterialSlot",
+    "m_ObjectId": "89da26ed32c5438caeb02b6af8a31bcd",
+    "m_Id": -1147934704,
+    "m_DisplayName": "OutlineTexture",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "OutlineTexture",
+    "m_StageCapability": 3,
+    "m_BareResource": false,
+    "m_Texture": {
+        "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
+        "m_Guid": ""
+    },
+    "m_DefaultType": 0
 }
 
 {
@@ -940,8 +1029,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -842.9999389648438,
-            "y": -346.0,
+            "x": -810.0,
+            "y": -358.9999694824219,
             "width": 151.99998474121095,
             "height": 33.999996185302737
         }
@@ -1018,6 +1107,12 @@
             "m_Id": "208b33f71a114aa8bbb24a2db2cd5773"
         },
         {
+            "m_Id": "89da26ed32c5438caeb02b6af8a31bcd"
+        },
+        {
+            "m_Id": "3ffe3b4af8224d1089d2be978450a2f5"
+        },
+        {
             "m_Id": "448cfd7e87854259a61672688020d1bb"
         }
     ],
@@ -1051,7 +1146,9 @@
         "63d7afb6-dbbd-4a91-909b-41b073f8f897",
         "b58c7eea-da02-493e-ac77-080b00dd2f0a",
         "c08866ae-546c-4830-8f5d-c89b46c23934",
-        "e75c253e-dcb3-44da-9448-adc62521dba8"
+        "e75c253e-dcb3-44da-9448-adc62521dba8",
+        "2611aaf6-d282-422e-abe1-4ffaa234bdc8",
+        "93a5691b-525a-42ea-8f54-56f72b79fb7c"
     ],
     "m_PropertyIds": [
         1580122293,
@@ -1075,7 +1172,9 @@
         -110434896,
         1737373662,
         1558458026,
-        -1762696884
+        -1762696884,
+        -1147934704,
+        -1744884851
     ]
 }
 
@@ -1168,6 +1267,41 @@
         "m_SerializableColors": []
     },
     "m_SerializedDescriptor": "VertexDescription.Normal"
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "f566aeec8289485a9a8538150ee7150d",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -848.9999389648438,
+            "y": 358.0000305175781,
+            "width": 150.0,
+            "height": 34.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "07c2c41c31544fba8d870b3e76d8b1cc"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "6fa2d0622fbd459695fe5bc098baf1de"
+    }
 }
 
 {
