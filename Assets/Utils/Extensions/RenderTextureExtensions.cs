@@ -22,7 +22,7 @@ public static class RenderTextureExtensions
     {
         return CachedTextures(rt)[0];
     }
-    public static void UpdateTextureCache(this RenderTexture rt, int layers = 6, int chanels = 4)
+    public static void UpdateTextureCache(this RenderTexture rt)
     {
         if (!rt.IsTextureBeingUpdated())
         {
@@ -36,31 +36,31 @@ public static class RenderTextureExtensions
                 {
                     if (!RTCache.ContainsKey(rt))
                     {
-                        var format = chanels switch
+                        var format = rt.format switch
                         {
-                            1 => TextureFormat.RFloat,
-                            2 => TextureFormat.RGFloat,
+                            RenderTextureFormat.RFloat => TextureFormat.RFloat,
+                            RenderTextureFormat.RGFloat => TextureFormat.RGFloat,
                             _ => TextureFormat.RGBAFloat,
                         };
 
                         var list = new List<Texture2D>();
-                        for (var i = 0; i< layers; i++)
+                        for (var i = 0; i< rt.volumeDepth; i++)
                         {
                             list.Add(new Texture2D(rt.width, rt.height, format, false));
                         }
                         RTCache[rt] = list.ToArray();
                     }
 
-                    for (var i = 0; i < layers; i++)
+                    for (var i = 0; i < rt.volumeDepth; i++)
                     {
                         if(RTCache[rt][i] != null)
                         {
-                            switch (chanels)
+                            switch (rt.format)
                             {
-                                case 1:
+                                case RenderTextureFormat.RFloat:
                                     RTCache[rt][i].SetPixelData(request.GetData<float>(i), 0);
                                     break;
-                                case 2:
+                                case RenderTextureFormat.RGFloat:
                                     RTCache[rt][i].SetPixelData(request.GetData<float2>(i), 0);
                                     break;
                                 default:

@@ -35,15 +35,19 @@ public class DnaUi : MonoBehaviour
     public void SelectCategory(GeneCategory category) => _stateMachine.Fire(_selectCategory, category);
     public void NextCategory() => _stateMachine.Fire(UiTrigger.NextCategory);
     public void LastCategory() => _stateMachine.Fire(UiTrigger.LastCategory);
-    public void Done() => _stateMachine.Fire(UiTrigger.Close);
+    public void Done()
+    {
+        _stateMachine.Fire(UiTrigger.Close);
+        StartCoroutine(Circle(_focusedPlant));
+    }
     public void Evolve(Gene evolution)
     {
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         var coordinate = em.GetComponentData<Coordinate>(_focusedPlant);
         var dna = DnaService.GetSpeciesDna(em.GetComponentData<DnaReference>(_focusedPlant).SpeciesId).Evolve(evolution);
         EcsUtils.DestroyAllChildren(_focusedPlant);
-        var plant = dna.Spawn(coordinate);
-        StartCoroutine(Circle(plant));
+        _focusedPlant = dna.Spawn(coordinate);
+        Done();
     }
     private IEnumerator Circle(Entity plant)
     {

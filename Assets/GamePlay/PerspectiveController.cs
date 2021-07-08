@@ -101,6 +101,7 @@ public class PerspectiveController : MonoBehaviour
             })
             .Permit(Trigger.ZoomOut, State.Observation)
             .Ignore(Trigger.ZoomIn)
+            .Ignore(Trigger.Circle)
             .Permit(Trigger.Pause, State.MainMenu);
 
         _stateMachine.Configure(State.EditDna)

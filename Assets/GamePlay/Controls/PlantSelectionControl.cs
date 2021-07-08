@@ -1,7 +1,5 @@
 using Assets.Scripts.Plants.Growth;
 using Unity.Entities;
-using Unity.Rendering;
-using Unity.Transforms;
 using UnityEngine;
 
 public class PlantSelectionControl : MonoBehaviour
@@ -21,10 +19,11 @@ public class PlantSelectionControl : MonoBehaviour
         var newPlant = GetSelectedPlant();
         if (newPlant != _selectedPlant)
         {
-            SetChildrenLayer(_selectedPlant, LayerMask.NameToLayer("Default"));
-            SetChildrenLayer(newPlant, LayerMask.NameToLayer("OutlinedGroup"));
+            CameraUtils.SetEntityOutline(_selectedPlant, false);
             _selectedPlant = newPlant;
         }
+
+        CameraUtils.SetEntityOutline(_selectedPlant, true);
 
         if (Input.GetKeyDown(KeyCode.Mouse0) && _selectedPlant != Entity.Null)
         {
@@ -42,26 +41,5 @@ public class PlantSelectionControl : MonoBehaviour
             return CameraUtils.GetParentEntityWithComponent<Coordinate>(entity);
         }
         return Entity.Null;
-    }
-
-    private void SetChildrenLayer(Entity entity, int layer)
-    {
-        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-
-        if (em.HasComponent<RenderMesh>(entity))
-        {
-            var mesh = em.GetSharedComponentData<RenderMesh>(entity);
-            mesh.layer = layer;
-            em.SetSharedComponentData(entity, mesh);
-        }
-
-        if (em.HasComponent<Child>(entity))
-        {
-            var children = em.GetBuffer<Child>(entity);
-            for (int i = 0; i < children.Length; i++)
-            {
-                SetChildrenLayer(entity, layer);
-            }
-        }
     }
 }

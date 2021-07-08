@@ -39,7 +39,7 @@ public class DepthTextureFeature : ScriptableRendererFeature
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-            CameraUtils.DepthTexture.UpdateTextureCache(1, 1);
+            CameraUtils.DepthTexture.UpdateTextureCache();
         }
     }
 

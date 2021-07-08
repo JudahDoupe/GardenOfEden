@@ -2,8 +2,10 @@
 using System.Collections;
 using System.Linq;
 using Assets.Scripts.Plants.Setup;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -137,7 +139,34 @@ public class CameraUtils : MonoBehaviour
 
     public static float GetScreenDepthAtCursor()
     {
-        return DepthTexture.Sample(math.round(Input.mousePosition.x), math.round(Input.mousePosition.y)).r;
+        return DepthTexture.Sample(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height).r;
     }
     public static Vector3 GetCursorWorldPosition() => Camera.main.transform.position + Camera.main.transform.forward * GetScreenDepthAtCursor();
+    
+    public static void SetEntityOutline(Entity entity, bool active)
+    {
+        SetLayer(entity, active ? LayerMask.NameToLayer("OutlinedGroup") : LayerMask.NameToLayer("Default"));
+    }
+    public static void SetLayer(Entity entity, int layer)
+    {
+        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+        if (em.HasComponent<Child>(entity))
+        {
+            var children = em.GetBuffer<Child>(entity).ToNativeArray(Allocator.Temp).ToArray().Select(x => x.Value);
+            foreach (var child in children)
+            {
+                SetLayer(child, layer);
+            }
+        }
+
+        if (em.HasComponent<RenderMesh>(entity))
+        {
+            var mesh = em.GetSharedComponentData<RenderMesh>(entity);
+            if (mesh.layer != layer)
+            {
+                mesh.layer = layer;
+                em.SetSharedComponentData(entity, mesh);
+            }
+        }
+    }
 }

@@ -32,6 +32,7 @@ public class CirclingCamera : MonoBehaviour
 
     public void Disable()
     {
+        CameraUtils.SetEntityOutline(_focusedEntity, false);
         IsActive = false;
     }
 
@@ -49,6 +50,8 @@ public class CirclingCamera : MonoBehaviour
 
         _camera.localPosition = Vector3.Lerp(_camera.localPosition, state.CameraLocalPosition, LerpSpeed * Time.deltaTime);
         _focus.localPosition = Vector3.Lerp(_focus.localPosition, state.FocusLocalPosition, LerpSpeed * Time.deltaTime);
+
+        CameraUtils.SetEntityOutline(_focusedEntity, true);
 
         if (Input.mouseScrollDelta.y < 0)
         {
