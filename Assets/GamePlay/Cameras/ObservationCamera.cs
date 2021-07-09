@@ -22,24 +22,25 @@ public class ObservationCamera : MonoBehaviour
     private Transform _camera;
     private Transform _focus;
 
-    private Coordinate _focusCoord;
+    private Coordinate _cameraCoord;
     private float _height;
 
     public void Enable(Transform camera, Transform focus)
     {
         _camera = camera;
         _focus = focus;
-        _focusCoord = new Coordinate(camera.position, Planet.LocalToWorld);
-        _height = _focusCoord.Altitude - Singleton.Land.SampleHeight(_focusCoord);
+        _cameraCoord = new Coordinate(camera.position, Planet.LocalToWorld);
+        _height = _cameraCoord.Altitude - Singleton.Land.SampleHeight(_cameraCoord);
 
         CameraUtils.SetState(new CameraState(camera, focus)
         {
-            CameraParent = focus,
-            CameraLocalPosition = new Vector3(0, 0, -1),
+            CameraParent = Planet.Transform,
+            CameraLocalPosition = _cameraCoord.LocalPlanet,
+            CameraLocalRotation = Quaternion.Inverse(Planet.Transform.rotation) * _camera.rotation,
             FocusParent = Planet.Transform,
-            FocusLocalPosition = _focusCoord.LocalPlanet,
+            FocusLocalPosition = new Coordinate(CameraUtils.GetCursorWorldPosition(), Planet.LocalToWorld).LocalPlanet,
         });
-        CameraUtils.TransitionState(GetTargetState(camera, focus, _focusCoord), () =>
+        CameraUtils.TransitionState(GetTargetState(camera, focus), () =>
         {
             IsActive = true;
             Cursor.lockState = CursorLockMode.Locked;
@@ -74,17 +75,7 @@ public class ObservationCamera : MonoBehaviour
     {
         if (!IsActive) return;
 
-        var t = (MaxHeight - _height) / (MaxHeight - MinHeight);
-        var translation = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * math.lerp(MaxMovementSpeed, MinMovementSpeed, t);
-        var rotation = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) * RotationSpeed;
-        _height = math.max(0, _height - Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t));
-        _focusCoord.LocalPlanet += (_focus.localRotation * translation).ToFloat3();
-        var landHeight = Singleton.Land.SampleHeight(_focusCoord);
-        _focusCoord.Altitude = math.max(landHeight + MinHeight, math.lerp(_focusCoord.Altitude, _height + landHeight, Time.deltaTime * LerpSpeed));
-        _focus.Rotate(0, rotation.x, 0);
-        _camera.Rotate(rotation.y,0,0);
-
-        CameraUtils.SetState(GetTargetState(_camera, _focus, _focusCoord));
+        CameraUtils.SetState(GetTargetState(_camera, _focus));
 
         if (_height > MaxHeight)
         {
@@ -92,24 +83,40 @@ public class ObservationCamera : MonoBehaviour
         }
     }
 
-    private CameraState GetTargetState(Transform camera, Transform focus, Coordinate focusCoord)
+    private CameraState GetTargetState(Transform camera, Transform focus)
     {
-        var xRot = camera.localRotation.eulerAngles.x;
-        xRot = xRot < 180 ? math.clamp(xRot, -VerticalAngle, VerticalAngle) : math.clamp(xRot, 360 - VerticalAngle, 360 + VerticalAngle);
-        var cameraRot = Quaternion.Euler(xRot, 0, 0);
+        var t = (MaxHeight - _height) / (MaxHeight - MinHeight);
+        var translation = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * math.lerp(MaxMovementSpeed, MinMovementSpeed, t);
+        var rotation = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) * RotationSpeed;
 
-        var right = Planet.Transform.InverseTransformDirection(camera.right);
-        var up = Planet.Transform.InverseTransformDirection(camera.position.normalized);
+        var right = camera.right;
+        var up = camera.position.normalized;
         var forward = Quaternion.AngleAxis(90, right) * up;
+
+        var cameraRotation = Quaternion.LookRotation(camera.forward, up);
+        cameraRotation = Quaternion.AngleAxis(rotation.x, up) * cameraRotation;
+        right = camera.right;
+        var desiredVerticalRotation = Quaternion.AngleAxis(rotation.y, right) * cameraRotation;
+        var desiredAngle = Quaternion.Angle(quaternion.LookRotation(forward, up), desiredVerticalRotation);
+        var currentAngle = Quaternion.Angle(quaternion.LookRotation(forward, up), cameraRotation);
+        if (desiredAngle <= VerticalAngle || desiredAngle < currentAngle)
+        {
+            cameraRotation = desiredVerticalRotation;
+        }
+        var localCameraRotation = Quaternion.Inverse(Planet.Transform.rotation) * cameraRotation;
+        var localFocusRotation = Quaternion.Inverse(Planet.Transform.rotation) * quaternion.LookRotation(forward, up);
+
+        _height = math.max(0, _height - Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t));
+        _cameraCoord.LocalPlanet += (localFocusRotation * translation).ToFloat3();
+        var landHeight = Singleton.Land.SampleHeight(_cameraCoord);
+        _cameraCoord.Altitude = math.max(landHeight + MinHeight, math.lerp(_cameraCoord.Altitude, _height + landHeight, Time.deltaTime * LerpSpeed));
 
         return new CameraState(camera, focus)
         {
-            CameraParent = focus,
-            CameraLocalPosition = Vector3.zero,
-            CameraLocalRotation = cameraRot,
-            FocusParent = Planet.Transform,
-            FocusLocalPosition = focusCoord.LocalPlanet,
-            FocusLocalRotation = quaternion.LookRotation(forward, up),
+            CameraLocalPosition = _cameraCoord.LocalPlanet,
+            CameraLocalRotation = localCameraRotation,
+            FocusLocalPosition = new Coordinate(CameraUtils.GetCursorWorldPosition(), Planet.LocalToWorld).LocalPlanet,
+            FocusLocalRotation = localFocusRotation,
             FieldOfView = Fov,
         };
     }

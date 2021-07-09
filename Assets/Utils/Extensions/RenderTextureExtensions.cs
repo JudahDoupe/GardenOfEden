@@ -24,11 +24,11 @@ public static class RenderTextureExtensions
     }
     public static void UpdateTextureCache(this RenderTexture rt)
     {
-        if (!rt.IsTextureBeingUpdated())
+        if (!rt.IsTextureBeingUpdated() && rt.IsCreated())
         {
             RTRequest[rt] = AsyncGPUReadback.Request(rt, 0, request =>
             {
-                if (request.hasError)
+                if (request.hasError || !rt.IsCreated())
                 {
                     Debug.Log("GPU readback error detected.");
                 }

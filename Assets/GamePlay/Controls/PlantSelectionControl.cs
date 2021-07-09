@@ -7,8 +7,8 @@ public class PlantSelectionControl : MonoBehaviour
     public float Range = 1;
     public bool Active { get; private set; }
 
-    public bool Enable() => Active = true;
-    public bool Disable() => Active = false;
+    public void Enable() => Active = true;
+    public void Disable() => Active = false;
 
     private Entity _selectedPlant;
 
