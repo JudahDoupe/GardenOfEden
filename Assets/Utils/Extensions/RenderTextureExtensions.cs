@@ -28,7 +28,7 @@ public static class RenderTextureExtensions
         {
             RTRequest[rt] = AsyncGPUReadback.Request(rt, 0, request =>
             {
-                if (request.hasError || !rt.IsCreated())
+                if (request.hasError || rt == null || !rt.IsCreated())
                 {
                     Debug.Log("GPU readback error detected.");
                 }

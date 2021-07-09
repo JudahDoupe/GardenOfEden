@@ -66,9 +66,9 @@ namespace Assets.Scripts.Plants.Growth
                         _ => throw new ArgumentOutOfRangeException()
                     };
                     var height = seaLevel + landMap[coord.NativeArrayId].r;
-                    var distance = math.max(2, (coord.Altitude - height) * 10);
+                    var distance = math.max(10, (coord.Altitude - height) * 10);
                     
-                    coord.Lat += (rand.NextFloat(-distance, distance) / Coordinate.PlanetRadius);
+                    coord.Lat += (rand.NextFloat(-distance, distance) / (Coordinate.PlanetRadius * 4));
                     coord.Lon += (rand.NextFloat(-distance, distance) / Coordinate.PlanetRadius);
                     landMap = coord.TextureW switch
                     {
