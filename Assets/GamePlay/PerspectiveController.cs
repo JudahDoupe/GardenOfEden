@@ -1,4 +1,5 @@
 using Stateless;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 
@@ -81,17 +82,23 @@ public class PerspectiveController : MonoBehaviour
     private void ConfigureSatelite()
     {
         var camera = FindObjectOfType<SatelliteCamera>();
+        var controls = FindObjectOfType<HoverAndClickControl>();
         _stateMachine.Configure(State.Satellite)
             .OnEntry(() =>
             {
                 camera.Enable(Camera, Focus);
+                controls.Enable();
+                FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
             })
             .OnExit(() =>
             {
                 camera.Disable();
+                controls.Disable();
+                FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Close());
             })
             .Ignore(Trigger.ZoomOut)
             .Permit(Trigger.ZoomIn, State.Observation)
+            .Permit(Trigger.Circle, State.Circle)
             .Permit(Trigger.Pause, State.MainMenu);
     }
     private void ConfigureObservation()

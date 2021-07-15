@@ -142,7 +142,11 @@ public class CameraUtils : MonoBehaviour
         return DepthTexture.Sample(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height).r;
     }
     public static Vector3 GetCursorWorldPosition() => Camera.main.transform.position + Camera.main.transform.forward * GetScreenDepthAtCursor();
-    
+
+    public static void SetOutline(GameObject gameObject, bool active)
+    {
+        gameObject.layer = active ? LayerMask.NameToLayer("OutlinedGroup") : LayerMask.NameToLayer("Default");
+    }
     public static void SetEntityOutline(Entity entity, bool active)
     {
         SetLayer(entity, active ? LayerMask.NameToLayer("OutlinedGroup") : LayerMask.NameToLayer("Default"));

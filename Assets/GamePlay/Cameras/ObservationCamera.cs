@@ -36,21 +36,6 @@ public class ObservationCamera : MonoBehaviour
         IsActive = false;
     }
 
-    private void Update()
-    {
-        if (!IsActive) return;
-
-        var ray = new Ray(_currentState.Camera.position, _currentState.Camera.forward);
-        if (Physics.Raycast(ray, out var hit))
-        {
-            hit.transform.gameObject.SendMessage("Hover", SendMessageOptions.DontRequireReceiver);
-            if (Input.GetKeyDown(KeyCode.Mouse0))
-            {
-                hit.transform.gameObject.SendMessage("Click");
-            }
-        }
-    }
-
     private void LateUpdate()
     {
         if (!IsActive) return;

@@ -10,20 +10,19 @@ public class SpawnPlantButton : MonoBehaviour
 
     private float _lastHovering;
 
-    void Start()
-    {
-        Open();
-    }
     void LateUpdate()
     {
-        Model.material.SetInt("IsActive", _lastHovering >= (Time.time - Time.deltaTime) ? 1 : 0);
+        if (_lastHovering < (Time.time - Time.deltaTime))
+        {
+            CameraUtils.SetOutline(Model.gameObject, false);
+        }
     }
 
     public void Click()
     {
         var dna = new Dna();
         var plant = dna.Spawn(new Coordinate(transform.position, Planet.LocalToWorld));
-        Close();
+        Close(true);
         StartCoroutine(PositionCamera(plant));
     }
     private IEnumerator PositionCamera(Entity plant)
@@ -35,21 +34,30 @@ public class SpawnPlantButton : MonoBehaviour
     public void Hover()
     {
         _lastHovering = Time.time;
+        CameraUtils.SetOutline(Model.gameObject, true);
     }
 
 
     public void Open()
     {
+        GetComponent<Collider>().enabled = true;
         var light = GetComponentInChildren<Light>();
-        StartCoroutine(AnimationUtils.AnimateFloat(0.3f, light.intensity, 1000, x => light.intensity = x));
-        transform.AnimateScale(0.3f, Vector3.one);
+        StartCoroutine(AnimationUtils.AnimateFloat(0.5f, light.intensity, 1000, x => light.intensity = x));
+        transform.AnimateScale(0.5f, Vector3.one);
     }
-    public void Close()
+    public void Close(bool killOnCompletion = false)
     {
         StopAllCoroutines();
+        GetComponent<Collider>().enabled = false;
         var light = GetComponentInChildren<Light>();
-        StartCoroutine(AnimationUtils.AnimateFloat(0.25f, light.intensity, 0, x => light.intensity = x));
-        transform.AnimateScale(0.3f, new Vector3(0,1,0), () => Destroy(gameObject));
+        StartCoroutine(AnimationUtils.AnimateFloat(0.45f, light.intensity, 0, x => light.intensity = x));
+        transform.AnimateScale(0.5f, new Vector3(0,0.5f,0), () =>
+        {
+            if (killOnCompletion)
+            {
+                Destroy(gameObject);
+            }
+        });
     }
 
 }
