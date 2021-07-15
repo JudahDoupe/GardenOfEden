@@ -81,7 +81,6 @@
     <Compile Include="Assets\Environment\Components\PlanetFactory.cs" />
     <Compile Include="Assets\Utils\Ui\FaceCamera.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthSystemGroup.cs" />
-    <Compile Include="Assets\GamePlay\Cameras\LandscapeCamera.cs" />
     <Compile Include="Assets\Utils\Rendering\Features\DepthTextureFeature.cs" />
     <Compile Include="Assets\Utils\Mathj.cs" />
     <Compile Include="Assets\GamePlay\Cameras\CameraState.cs" />

@@ -11,12 +11,10 @@ public class PerspectiveController : MonoBehaviour
     public Transform Camera;
     public Transform Focus;
 
-
     public void ZoomIn() => _stateMachine.Fire(Trigger.ZoomIn);
     public void ZoomOut() => _stateMachine.Fire(Trigger.ZoomOut);
     public void Pause() => _stateMachine.Fire(Trigger.Pause);
     public void Unpause() => _stateMachine.Fire(Trigger.Unpause);
-
     public void Circle(Entity e)
     {
         _focusedEntity = e;
@@ -33,93 +31,12 @@ public class PerspectiveController : MonoBehaviour
         _state = State.MainMenu;
         _stateMachine = new StateMachine<State, Trigger>(() => _state, s => _state = s);
 
-        _stateMachine.Configure(State.MainMenu)
-            .OnEntry(() =>
-            {
-                FindObjectOfType<PausedCamera>().Enable(Camera, Focus);
-                FindObjectOfType<MainMenuUi>().Enable();
-            })
-            .OnExit(() =>
-            {
-                FindObjectOfType<PausedCamera>().Disable();
-                FindObjectOfType<MainMenuUi>().Disable();
-            })
-            .Permit(Trigger.Unpause, State.Satellite);
-
-        _stateMachine.Configure(State.Satellite)
-            .OnEntry(() =>
-            {
-                FindObjectOfType<SatelliteCamera>().Enable(Camera, Focus);
-            })
-            .OnExit(() =>
-            {
-                FindObjectOfType<SatelliteCamera>().Disable();
-            })
-            .Ignore(Trigger.ZoomOut)
-            .Permit(Trigger.ZoomIn, State.Landscape)
-            .Permit(Trigger.Pause, State.MainMenu);
-
-        _stateMachine.Configure(State.Landscape)
-            .OnEntry(() =>
-            {
-                FindObjectOfType<LandscapeCamera>().Enable(Camera, Focus);
-            })
-            .OnExit(() =>
-            {
-                FindObjectOfType<LandscapeCamera>().Disable();
-            })
-            .Permit(Trigger.ZoomOut, State.Satellite)
-            .Permit(Trigger.ZoomIn, State.Observation)
-            .Permit(Trigger.Circle, State.Circle)
-            .Permit(Trigger.Pause, State.MainMenu);
-
-        _stateMachine.Configure(State.Observation)
-            .OnEntry(() =>
-            {
-                FindObjectOfType<ObservationCamera>().Enable(Camera, Focus);
-                FindObjectOfType<PlantSelectionControl>().Enable();
-            })
-            .OnExit(() =>
-            {
-                FindObjectOfType<ObservationCamera>().Disable();
-                FindObjectOfType<PlantSelectionControl>().Disable();
-            })
-            .Permit(Trigger.ZoomOut, State.Landscape)
-            .Ignore(Trigger.ZoomIn)
-            .Permit(Trigger.Circle, State.Circle)
-            .Permit(Trigger.SelectPlant, State.EditDna)
-            .Permit(Trigger.Pause, State.MainMenu);
-
-        _stateMachine.Configure(State.Circle)
-            .OnEntry(() =>
-            {
-                FindObjectOfType<CirclingCamera>().Enable(Camera, Focus, _focusedEntity);
-            })
-            .OnExit(() =>
-            {
-                FindObjectOfType<CirclingCamera>().Disable();
-            })
-            .Permit(Trigger.ZoomOut, State.Observation)
-            .Ignore(Trigger.ZoomIn)
-            .Ignore(Trigger.Circle)
-            .Permit(Trigger.Pause, State.MainMenu);
-
-        _stateMachine.Configure(State.EditDna)
-            .OnEntry(() =>
-            {
-                FindObjectOfType<CirclingCamera>().Enable(Camera, Focus, _focusedEntity);
-                FindObjectOfType<DnaUi>().EditDna(_focusedEntity);
-            })
-            .OnExit(() =>
-            {
-                FindObjectOfType<CirclingCamera>().Disable();
-                FindObjectOfType<DnaUi>().Done();
-            })
-            .Permit(Trigger.Circle, State.Circle)
-            .Ignore(Trigger.ZoomOut)
-            .Ignore(Trigger.Pause);
+        ConfigureMainMenu();
+        ConfigureSatelite();
+        ConfigureObservation();
+        ConfigureCircle();
+        ConfigureEditDna();
     }
-
     private void Update()
     {
         if(Input.GetKeyDown(KeyCode.Escape))Pause();
@@ -130,12 +47,10 @@ public class PerspectiveController : MonoBehaviour
     {
         MainMenu,
         Satellite,
-        Landscape,
         Observation,
         Circle,
         EditDna,
     }
-
     private enum Trigger
     {
         ZoomIn,
@@ -144,5 +59,122 @@ public class PerspectiveController : MonoBehaviour
         Unpause,
         Circle,
         SelectPlant,
+    }
+
+    private void ConfigureMainMenu()
+    {
+        var camera = FindObjectOfType<PausedCamera>();
+        var ui = FindObjectOfType<MainMenuUi>();
+        _stateMachine.Configure(State.MainMenu)
+            .OnEntry(() =>
+            {
+                camera.Enable(Camera, Focus);
+                ui.Enable();
+            })
+            .OnExit(() =>
+            {
+                camera.Disable();
+                ui.Disable();
+            })
+            .Permit(Trigger.Unpause, State.Satellite);
+    }
+    private void ConfigureSatelite()
+    {
+        var camera = FindObjectOfType<SatelliteCamera>();
+        _stateMachine.Configure(State.Satellite)
+            .OnEntry(() =>
+            {
+                camera.Enable(Camera, Focus);
+            })
+            .OnExit(() =>
+            {
+                camera.Disable();
+            })
+            .Ignore(Trigger.ZoomOut)
+            .Permit(Trigger.ZoomIn, State.Observation)
+            .Permit(Trigger.Pause, State.MainMenu);
+    }
+    private void ConfigureObservation()
+    {
+        var camera = FindObjectOfType<ObservationCamera>();
+        var controls = FindObjectOfType<PlantSelectionControl>();
+        _stateMachine.Configure(State.Observation)
+            .OnEntry(transition =>
+            {
+                var cameraState = new CameraState(Camera, Focus)
+                {
+                    CameraParent = Planet.Transform,
+                    CameraLocalPosition = new Coordinate(Camera.position, Planet.LocalToWorld).LocalPlanet,
+                    CameraLocalRotation = Quaternion.Inverse(Planet.Transform.rotation) * Camera.rotation,
+                    FocusParent = Planet.Transform,
+                    FocusLocalPosition = new Coordinate(CameraUtils.GetCursorWorldPosition(), Planet.LocalToWorld).LocalPlanet,
+                };
+                CameraUtils.SetState(cameraState);
+
+                cameraState = camera.GetTargetState(cameraState, false);
+                if (transition.Source == State.Satellite)
+                {
+                    var right = Planet.Transform.InverseTransformDirection(Camera.right);
+                    var up = Planet.Transform.InverseTransformDirection(Camera.position.normalized);
+                    var forward = Quaternion.AngleAxis(120, right) * up;
+
+                    var cameraCoord = new Coordinate(cameraState.CameraLocalPosition);
+                    cameraCoord.Lat -= camera.MaxHeight * 2;
+
+                    cameraState.CameraLocalRotation = Quaternion.LookRotation(forward, up);
+                    cameraState.CameraLocalPosition = cameraCoord.LocalPlanet;
+                }
+                CameraUtils.TransitionState(cameraState, () =>
+                {
+                    camera.Enable(cameraState);
+                    controls.Enable();
+                }, 1.5f);
+            })
+            .OnExit(() =>
+            {
+                camera.Disable();
+                controls.Disable();
+            })
+            .Permit(Trigger.ZoomOut, State.Satellite)
+            .Ignore(Trigger.ZoomIn)
+            .Permit(Trigger.Circle, State.Circle)
+            .Permit(Trigger.SelectPlant, State.EditDna)
+            .Permit(Trigger.Pause, State.MainMenu);
+    }
+    private void ConfigureCircle()
+    {
+        var camera = FindObjectOfType<CirclingCamera>();
+        _stateMachine.Configure(State.Circle)
+            .OnEntry(() =>
+            {
+                camera.Enable(Camera, Focus, _focusedEntity);
+            })
+            .OnExit(() =>
+            {
+                camera.Disable();
+            })
+            .Permit(Trigger.ZoomOut, State.Observation)
+            .Ignore(Trigger.ZoomIn)
+            .Ignore(Trigger.Circle)
+            .Permit(Trigger.Pause, State.MainMenu);
+    }
+    private void ConfigureEditDna()
+    {
+        var camera = FindObjectOfType<CirclingCamera>();
+        var ui = FindObjectOfType<DnaUi>();
+        _stateMachine.Configure(State.EditDna)
+            .OnEntry(() =>
+            {
+                camera.Enable(Camera, Focus, _focusedEntity);
+                ui.EditDna(_focusedEntity);
+            })
+            .OnExit(() =>
+            {
+                camera.Disable();
+                ui.Done();
+            })
+            .Permit(Trigger.Circle, State.Circle)
+            .Ignore(Trigger.ZoomOut)
+            .Ignore(Trigger.Pause);
     }
 }

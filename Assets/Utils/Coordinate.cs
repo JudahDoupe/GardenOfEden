@@ -19,15 +19,15 @@ public struct Coordinate : IComponentData
         set => SetLocalPlanetCoordinates(value.x, value.y, value.z);
     }
 
-    public float Lat
-    {
-        get => _sphericalCoord.x;
-        set => SetSphericalCoordinates(value, _sphericalCoord.y, _sphericalCoord.z);
-    }
     public float Lon
     {
-        get => _sphericalCoord.y;
-        set => SetSphericalCoordinates(_sphericalCoord.x, value, _sphericalCoord.z);
+        get => _sphericalCoord.x * PlanetRadius * 4f;
+        set => SetSphericalCoordinates(value / (PlanetRadius * 4f), _sphericalCoord.y, _sphericalCoord.z);
+    }
+    public float Lat
+    {
+        get => _sphericalCoord.y * PlanetRadius;
+        set => SetSphericalCoordinates(_sphericalCoord.x, value / PlanetRadius, _sphericalCoord.z);
     }
     public float Altitude
     {

@@ -68,8 +68,8 @@ namespace Assets.Scripts.Plants.Growth
                     var height = seaLevel + landMap[coord.NativeArrayId].r;
                     var distance = math.max(10, (coord.Altitude - height) * 10);
                     
-                    coord.Lat += (rand.NextFloat(-distance, distance) / (Coordinate.PlanetRadius * 4));
-                    coord.Lon += (rand.NextFloat(-distance, distance) / Coordinate.PlanetRadius);
+                    coord.Lon += rand.NextFloat(-distance, distance);
+                    coord.Lat += rand.NextFloat(-distance, distance);
                     landMap = coord.TextureW switch
                     {
                         0 => landMaps0,
