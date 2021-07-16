@@ -19,20 +19,20 @@ public struct Coordinate : IComponentData
         set => SetLocalPlanetCoordinates(value.x, value.y, value.z);
     }
 
-    public float Lon
+    public float Altitude
     {
-        get => _sphericalCoord.x * PlanetRadius * 4f;
-        set => SetSphericalCoordinates(value / (PlanetRadius * 4f), _sphericalCoord.y, _sphericalCoord.z);
+        get => _sphericalCoord.x;
+        set => SetSphericalCoordinates(value, _sphericalCoord.y, _sphericalCoord.z);
     }
     public float Lat
     {
-        get => _sphericalCoord.y * PlanetRadius;
-        set => SetSphericalCoordinates(_sphericalCoord.x, value / PlanetRadius, _sphericalCoord.z);
+        get => _sphericalCoord.y * (PlanetRadius / 2);
+        set => SetSphericalCoordinates(_sphericalCoord.x, value / (PlanetRadius / 2), _sphericalCoord.z);
     }
-    public float Altitude
+    public float Lon
     {
-        get => _sphericalCoord.z;
-        set => SetSphericalCoordinates(_sphericalCoord.x, _sphericalCoord.y, value);
+        get => _sphericalCoord.z * PlanetRadius;
+        set => SetSphericalCoordinates(_sphericalCoord.x, _sphericalCoord.y, value / PlanetRadius);
     }
 
     public int3 TextureXyw
@@ -92,18 +92,21 @@ public struct Coordinate : IComponentData
         _textureCoord = GetUvw(_localPlanetCoord);
         var altitude = math.sqrt(math.pow(x, 2) + math.pow(y, 2) + math.pow(z, 2));
         _sphericalCoord = new float3(
+            altitude,
             math.acos((z + math.EPSILON) / altitude),
-            math.atan2(y, x),
-            altitude);
+            math.atan2(y, x));
 
     }
-    private void SetSphericalCoordinates(float theta, float phi, float altitude)
+    private void SetSphericalCoordinates(float altitude, float theta, float phi)
     {
+        var polePadding = 0.0001f;
+        theta = math.clamp(theta, polePadding, math.PI - polePadding);
+        phi %= (2 * math.PI);
         _localPlanetCoord = new float3(
-            altitude * math.sin(theta) * math.cos(phi),
-            altitude * math.sin(theta) * math.sin(phi),
-            altitude * math.cos(theta));
-        _sphericalCoord = new float3(theta, phi, altitude);
+            altitude * math.cos(phi) * math.sin(theta),
+            altitude * math.cos(theta),
+            altitude * math.sin(phi) * math.sin(theta));
+        _sphericalCoord = new float3(altitude, theta, phi);
         _textureCoord = GetUvw(_localPlanetCoord);
     }
     private void SetTextureCoordinates(float u, float v, int w, float altitude)
@@ -134,9 +137,9 @@ public struct Coordinate : IComponentData
         _localPlanetCoord = Vector3.Normalize(useComponents) * altitude;
         _textureCoord = new float3(u, v, w);
         _sphericalCoord = new float3(
-            math.acos((_localPlanetCoord.z + math.EPSILON) / altitude),
+            altitude,
             math.atan2(_localPlanetCoord.y, _localPlanetCoord.x),
-            altitude);
+            math.acos((_localPlanetCoord.z + math.EPSILON) / altitude));
     }
     private float3 GetUvw(float3 xyz)
     {

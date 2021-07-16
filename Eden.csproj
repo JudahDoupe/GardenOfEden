@@ -128,6 +128,7 @@
     <Compile Include="Assets\Utils\Ui\GrowOnHover.cs" />
     <Compile Include="Assets\Utils\Extensions\MaterialExtensions.cs" />
     <Compile Include="Assets\Plants\Dna\Gene.cs" />
+    <Compile Include="Assets\GamePlay\Controls\HoverAndClickControl.cs" />
     <Compile Include="Assets\Utils\Ui\Rotate.cs" />
     <Compile Include="Assets\Utils\Extensions\EnumExtensions.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\EmbryoDispersalSystem.cs" />
@@ -139,7 +140,6 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Utils\Rendering\Features\BlitMaterialFeature.cs" />
-    <Compile Include="Assets\GamePlay\Controls\HoverAndClickControl.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />

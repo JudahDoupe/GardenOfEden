@@ -1,49 +1,11 @@
 using Stateless;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 
 public class PerspectiveController : MonoBehaviour
 {
-    private StateMachine<State,Trigger> _stateMachine;
-    private State _state;
-    private Entity _focusedEntity;
-
-    public Transform Camera;
-    public Transform Focus;
-
-    public void ZoomIn() => _stateMachine.Fire(Trigger.ZoomIn);
-    public void ZoomOut() => _stateMachine.Fire(Trigger.ZoomOut);
-    public void Pause() => _stateMachine.Fire(Trigger.Pause);
-    public void Unpause() => _stateMachine.Fire(Trigger.Unpause);
-    public void Circle(Entity e)
-    {
-        _focusedEntity = e;
-        _stateMachine.Fire(Trigger.Circle);
-    }
-    public void SelectPlant(Entity e)
-    {
-        _focusedEntity = e;
-        _stateMachine.Fire(Trigger.SelectPlant);
-    }
-
-    private void Start()
-    {
-        _state = State.MainMenu;
-        _stateMachine = new StateMachine<State, Trigger>(() => _state, s => _state = s);
-
-        ConfigureMainMenu();
-        ConfigureSatelite();
-        ConfigureObservation();
-        ConfigureCircle();
-        ConfigureEditDna();
-    }
-    private void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Escape))Pause();
-    }
-
-
     private enum State
     {
         MainMenu,
@@ -60,6 +22,52 @@ public class PerspectiveController : MonoBehaviour
         Unpause,
         Circle,
         SelectPlant,
+    }
+
+    public Transform Camera;
+    public Transform Focus;
+
+    public void ZoomIn() => _stateMachine.Fire(Trigger.ZoomIn);
+    public void ZoomOut() => _stateMachine.Fire(Trigger.ZoomOut);
+    public void Pause() => _stateMachine.Fire(Trigger.Pause);
+    public void Unpause() 
+    {
+        _isGeologyUnlocked = true; 
+        _stateMachine.Fire(Trigger.Unpause); 
+    }
+    public void Circle(Entity e)
+    {
+        _isBotanyUnlocked = true;
+        _focusedEntity = e;
+        _stateMachine.Fire(Trigger.Circle);
+    }
+    public void SelectPlant(Entity e)
+    {
+        _focusedEntity = e;
+        _stateMachine.Fire(Trigger.SelectPlant);
+    }
+
+    private StateMachine<State,Trigger> _stateMachine;
+    private State _state;
+    private Entity _focusedEntity;
+
+    //TODO: Move to a perminant datastructure tied to the planet
+    private bool _isGeologyUnlocked;
+    private bool _isBotanyUnlocked;
+
+    private void Start()
+    {
+        _state = State.MainMenu;
+        _stateMachine = new StateMachine<State, Trigger>(() => _state, s => _state = s);
+        ConfigureMainMenu();
+        ConfigureSatelite();
+        ConfigureObservation();
+        ConfigureCircle();
+        ConfigureEditDna();
+    }
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Escape))Pause();
     }
 
     private void ConfigureMainMenu()
@@ -86,8 +94,12 @@ public class PerspectiveController : MonoBehaviour
         _stateMachine.Configure(State.Satellite)
             .OnEntry(() =>
             {
-                camera.Enable(Camera, Focus);
-                controls.Enable();
+                var targetState = camera.GetTargetState(new CameraState(Camera, Focus), false);
+                CameraUtils.TransitionState(targetState, () =>
+                {
+                    camera.Enable(targetState);
+                    controls.Enable();
+                });
                 FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
             })
             .OnExit(() =>
@@ -97,7 +109,7 @@ public class PerspectiveController : MonoBehaviour
                 FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Close());
             })
             .Ignore(Trigger.ZoomOut)
-            .Permit(Trigger.ZoomIn, State.Observation)
+            .PermitIf(Trigger.ZoomIn, State.Observation, () => _isBotanyUnlocked)
             .Permit(Trigger.Circle, State.Circle)
             .Permit(Trigger.Pause, State.MainMenu);
     }

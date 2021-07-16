@@ -14,39 +14,13 @@ public class SatelliteCamera : MonoBehaviour
     public float Fov = 30;
     public bool IsActive { get; private set; }
 
-    private Transform _camera;
-    private Transform _focus;
-    private float _altitude;
+    private CameraState _currentState;
+    private Coordinate _coord;
 
-    public void Enable(Transform camera, Transform focus)
+    public void Enable(CameraState currentState)
     {
-        _camera = camera;
-        _focus = focus;
-        _altitude = math.clamp(_camera.position.magnitude, MinAltitude, MaxAltitude);
-        _camera.parent = null;
-
-        var cameraPos = _camera.position.normalized * _altitude;
-        var cameraRot = Quaternion.LookRotation(-cameraPos, Vector3.up);
-        var focusPos = Vector3.zero;
-        var time = new[]
-        {
-            CameraUtils.GetTransitionTime(_camera.position, cameraPos, 2),
-            CameraUtils.GetTransitionTime(_camera.rotation, cameraRot, 1.5f),
-        }.Max();
-        
-        _focus.AnimatePosition(time, focusPos);
-        _focus.AnimateRotation(time, cameraRot);
-        _camera.GetComponent<Camera>().AnimateFov(time, Fov);
-        _camera.AnimateRotation(time, cameraRot);
-        _camera.AnimatePosition(time, cameraPos, () =>
-        {
-            _focus.LookAt(_focus.position - _camera.position);
-            _focus.parent = FindObjectOfType<Planet>().transform;
-            _camera.parent = _focus;
-            _altitude = Vector3.Distance(_focus.position, _camera.position);
-            IsActive = true;
-        });
-
+        _currentState = currentState;
+        IsActive = true;
     }
 
     public void Disable()
@@ -58,25 +32,41 @@ public class SatelliteCamera : MonoBehaviour
     {
         if (!IsActive) return;
 
-        _camera.LookAt(_focus, Vector3.up);
+        _currentState = GetTargetState(_currentState, true);
+        CameraUtils.SetState(_currentState);
 
-        var poleAlignment = Vector3.Dot(_focus.forward, Vector3.up);
-        var x = Input.GetAxis("Horizontal");
-        var y = math.clamp(Input.GetAxis("Vertical"), poleAlignment < 0.99f ? -1 : 0, -0.99f < poleAlignment ? 1 : 0);
-        var z = -Input.mouseScrollDelta.y * ZoomSpeed;
-        _altitude = math.min(_altitude + z, MaxAltitude);
-
-        _focus.Rotate(Vector3.up, -x * MovementSpeed * Time.deltaTime, Space.World);
-        _focus.Rotate(Vector3.right, y * MovementSpeed * Time.deltaTime, Space.Self);
-        _camera.localPosition = Vector3.Lerp(_camera.localPosition, _camera.localPosition.normalized * _altitude, Time.deltaTime * LerpSpeed);
-
-        if (_camera.localPosition.magnitude < MinAltitude)
+        if (_currentState.Camera.localPosition.magnitude < MinAltitude)
         {
             Singleton.PerspectiveController.ZoomIn();
         }
-        if (_camera.localPosition.magnitude > MaxAltitude)
+        if (_currentState.Camera.localPosition.magnitude > MaxAltitude)
         {
             Singleton.PerspectiveController.ZoomOut();
         }
+    }
+
+    public CameraState GetTargetState(CameraState currentState, bool lerp)
+    {
+        _coord = IsActive ? _coord : new Coordinate(currentState.Camera.position, Planet.LocalToWorld);
+        var cameraPosition = (Vector3) _coord.LocalPlanet;
+        var poleAlignment = Vector3.Dot(currentState.Camera.forward, Vector3.up);
+        var translation = IsActive 
+            ? new Vector3(Input.GetAxis("Horizontal") * MovementSpeed, Input.GetAxis("Vertical") * -MovementSpeed, -Input.mouseScrollDelta.y * ZoomSpeed)
+            : Vector3.zero;
+
+        _coord.Altitude = math.clamp(_coord.Altitude + translation.z, MinAltitude + (IsActive ? -1 : 1), MaxAltitude - (IsActive ? -1 : 1));
+        _coord.Lat += translation.y;
+        _coord.Lon += translation.x;
+
+        cameraPosition = lerp ? Vector3.Lerp(cameraPosition, _coord.LocalPlanet, Time.deltaTime * LerpSpeed) : (Vector3 ) _coord.LocalPlanet;
+        return new CameraState(currentState.Camera, currentState.Focus)
+        {
+            CameraParent = Planet.Transform,
+            CameraLocalPosition = cameraPosition,
+            CameraLocalRotation = Quaternion.LookRotation(-cameraPosition.normalized, Vector3.up),
+            FocusParent = Planet.Transform,
+            FocusLocalPosition = Singleton.Land.SampleHeight(_coord) * cameraPosition.normalized,
+            FocusLocalRotation = Quaternion.LookRotation(-cameraPosition.normalized, Vector3.up),
+        };
     }
 }
