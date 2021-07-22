@@ -10,24 +10,19 @@ public class CirclingCamera : MonoBehaviour
     public bool IsActive { get; private set; }
 
     private Entity _focusedEntity;
-    private Transform _camera;
-    private Transform _focus;
+    private CameraState _currentState;
 
-    public void Enable(Transform camera, Transform focus, Entity focusedEntity)
+    public void Enable(CameraState currentState, Entity focusedEntity)
     {
         _focusedEntity = focusedEntity;
-        _focus = focus;
-        _camera = camera;
+        _currentState = currentState;
 
-        if (World.DefaultGameObjectInjectionWorld.EntityManager.Exists(focusedEntity))
-        {
-            CameraUtils.TransitionState(GetTargetState(_camera, _focus, _focusedEntity), () => IsActive = true);
-        }
-        else
+        if (!World.DefaultGameObjectInjectionWorld.EntityManager.Exists(focusedEntity))
         {
             Singleton.PerspectiveController.ZoomOut();
         }
 
+        IsActive = true;
     }
 
     public void Disable()
@@ -45,11 +40,11 @@ public class CirclingCamera : MonoBehaviour
             return;
         }
 
-        _focus.Rotate(Vector3.up, RotationSpeed * Time.deltaTime,Space.Self);
-        var state = GetTargetState(_camera, _focus, _focusedEntity);
+        _currentState.Focus.Rotate(Vector3.up, RotationSpeed * Time.deltaTime,Space.Self);
+        var state = GetTargetState(_currentState, _focusedEntity);
 
-        _camera.localPosition = Vector3.Lerp(_camera.localPosition, state.CameraLocalPosition, LerpSpeed * Time.deltaTime);
-        _focus.localPosition = Vector3.Lerp(_focus.localPosition, state.FocusLocalPosition, LerpSpeed * Time.deltaTime);
+        _currentState.Camera.localPosition = Vector3.Lerp(_currentState.Camera.localPosition, state.CameraLocalPosition, LerpSpeed * Time.deltaTime);
+        _currentState.Focus.localPosition = Vector3.Lerp(_currentState.Focus.localPosition, state.FocusLocalPosition, LerpSpeed * Time.deltaTime);
 
         CameraUtils.SetEntityOutline(_focusedEntity, true);
 
@@ -59,12 +54,12 @@ public class CirclingCamera : MonoBehaviour
         }
     }
 
-    public CameraState GetTargetState(Transform camera, Transform focus, Entity focusedEntity)
+    public CameraState GetTargetState(CameraState currentState, Entity focusedEntity)
     {
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         var bounds = CameraUtils.EncapsulateChildren(focusedEntity);
         var plantCoord = em.GetComponentData<Coordinate>(focusedEntity);
-        var backCoord = new Coordinate(camera.position, Planet.LocalToWorld);
+        var backCoord = new Coordinate(currentState.Camera.position, Planet.LocalToWorld);
         var focusCoord = new Coordinate(bounds.center, Planet.LocalToWorld);
         backCoord.Altitude = plantCoord.Altitude;
         var distance = math.max(CameraUtils.GetDistanceToIncludeBounds(bounds, Fov), 2);
@@ -73,11 +68,11 @@ public class CirclingCamera : MonoBehaviour
         var cameraCoord = new Coordinate(focusCoord.LocalPlanet + ((Quaternion) focusRot * cameraPos).ToFloat3());
         cameraPos +=  Vector3.up * (CameraUtils.ClampAboveTerrain(cameraCoord).Altitude - cameraCoord.Altitude);
 
-        return new CameraState(camera, focus)
+        return new CameraState(currentState.Camera, currentState.Focus)
         {
             CameraLocalPosition = cameraPos,
             CameraLocalRotation = quaternion.LookRotation(math.normalize(-cameraPos), Vector3.up),
-            CameraParent = focus,
+            CameraParent = currentState.Focus,
             FocusLocalPosition = focusCoord.LocalPlanet,
             FocusLocalRotation = focusRot,
             FocusParent = Planet.Transform,

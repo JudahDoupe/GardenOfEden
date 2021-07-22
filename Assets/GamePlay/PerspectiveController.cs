@@ -1,4 +1,5 @@
 using Stateless;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
@@ -26,6 +27,7 @@ public class PerspectiveController : MonoBehaviour
 
     public Transform Camera;
     public Transform Focus;
+    public CameraState CurrentState => new CameraState(Camera, Focus);
 
     public void ZoomIn() => _stateMachine.Fire(Trigger.ZoomIn);
     public void ZoomOut() => _stateMachine.Fire(Trigger.ZoomOut);
@@ -72,129 +74,157 @@ public class PerspectiveController : MonoBehaviour
 
     private void ConfigureMainMenu()
     {
-        var camera = FindObjectOfType<PausedCamera>();
-        var ui = FindObjectOfType<MainMenuUi>();
-        _stateMachine.Configure(State.MainMenu)
-            .OnEntry(() =>
-            {
-                CameraUtils.TransitionState(camera.GetTargetState(new CameraState(Camera, Focus)), transitionSpeed: 2.5f, ease: Ease.In);
-                camera.Enable();
-                ui.Enable();
-            })
-            .OnExit(() =>
-            {
-                camera.Disable();
-                ui.Disable();
-            })
-            .Permit(Trigger.Unpause, State.Satellite);
+        try{
+            var camera = FindObjectOfType<PausedCamera>();
+            var ui = FindObjectOfType<MainMenuUi>();
+            _stateMachine.Configure(State.MainMenu)
+                .OnEntry(() =>
+                {
+                    CameraUtils.TransitionState(camera.GetTargetState(CurrentState), transitionSpeed: 2.5f, ease: Ease.In);
+                    camera.Enable();
+                    ui.Enable();
+                })
+                .OnExit(() =>
+                {
+                    camera.Disable();
+                    ui.Disable();
+                })
+                .Permit(Trigger.Unpause, State.Satellite);
+        }
+        catch (InvalidOperationException) { }
     }
     private void ConfigureSatelite()
     {
-        var camera = FindObjectOfType<SatelliteCamera>();
-        var controls = FindObjectOfType<HoverAndClickControl>();
-        _stateMachine.Configure(State.Satellite)
-            .OnEntry(() =>
-            {
-                var targetState = camera.GetTargetState(new CameraState(Camera, Focus), false);
-                CameraUtils.TransitionState(targetState, () =>
+        try
+        {
+            var camera = FindObjectOfType<SatelliteCamera>();
+            var controls = FindObjectOfType<HoverAndClickControl>();
+            _stateMachine.Configure(State.Satellite)
+                .OnEntry(() =>
                 {
-                    camera.Enable(targetState);
-                    controls.Enable();
-                }, 1.5f);
-                FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
-            })
-            .OnExit(() =>
-            {
-                camera.Disable();
-                controls.Disable();
-                FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Close());
-            })
-            .Ignore(Trigger.ZoomOut)
-            .PermitIf(Trigger.ZoomIn, State.Observation, () => _isBotanyUnlocked)
-            .Permit(Trigger.Circle, State.Circle)
-            .Permit(Trigger.Pause, State.MainMenu);
+                    var targetState = camera.GetTargetState(CurrentState, false);
+                    CameraUtils.TransitionState(targetState, () =>
+                    {
+                        camera.Enable(targetState);
+                        controls.Enable();
+                    }, 1.5f);
+                    FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
+                })
+                .OnExit(() =>
+                {
+                    camera.Disable();
+                    controls.Disable();
+                    FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Close());
+                })
+                .Ignore(Trigger.ZoomOut)
+                .PermitIf(Trigger.ZoomIn, State.Observation, () => _isBotanyUnlocked)
+                .Permit(Trigger.Circle, State.Circle)
+                .Permit(Trigger.Pause, State.MainMenu);
+        }
+        catch (InvalidOperationException) { }
     }
     private void ConfigureObservation()
     {
-        var camera = FindObjectOfType<ObservationCamera>();
-        var controls = FindObjectOfType<PlantSelectionControl>();
-        _stateMachine.Configure(State.Observation)
-            .OnEntry(transition =>
-            {
-                var cameraState = new CameraState(Camera, Focus)
+        try
+        {
+            var camera = FindObjectOfType<ObservationCamera>();
+            var controls = FindObjectOfType<PlantSelectionControl>();
+            _stateMachine.Configure(State.Observation)
+                .OnEntry(transition =>
                 {
-                    CameraParent = Planet.Transform,
-                    CameraLocalPosition = new Coordinate(Camera.position, Planet.LocalToWorld).LocalPlanet,
-                    CameraLocalRotation = Quaternion.Inverse(Planet.Transform.rotation) * Camera.rotation,
-                    FocusParent = Planet.Transform,
-                    FocusLocalPosition = new Coordinate(CameraUtils.GetCursorWorldPosition(), Planet.LocalToWorld).LocalPlanet,
-                };
-                CameraUtils.SetState(cameraState);
+                    var cameraState = new CameraState(Camera, Focus)
+                    {
+                        CameraParent = Planet.Transform,
+                        CameraLocalPosition = new Coordinate(Camera.position, Planet.LocalToWorld).LocalPlanet,
+                        CameraLocalRotation = Quaternion.Inverse(Planet.Transform.rotation) * Camera.rotation,
+                        FocusParent = Planet.Transform,
+                        FocusLocalPosition = new Coordinate(CameraUtils.GetCursorWorldPosition(), Planet.LocalToWorld).LocalPlanet,
+                    };
+                    CameraUtils.SetState(cameraState);
 
-                cameraState = camera.GetTargetState(cameraState, false);
-                if (transition.Source == State.Satellite)
+                    cameraState = camera.GetTargetState(cameraState, false);
+                    if (transition.Source == State.Satellite)
+                    {
+                        var right = Planet.Transform.InverseTransformDirection(Camera.right);
+                        var up = Planet.Transform.InverseTransformDirection(Camera.position.normalized);
+                        var forward = Quaternion.AngleAxis(120, right) * up;
+
+                        var cameraCoord = new Coordinate(cameraState.CameraLocalPosition);
+                        cameraCoord.Lat -= camera.MaxHeight * 2;
+
+                        cameraState.CameraLocalRotation = Quaternion.LookRotation(forward, up);
+                        cameraState.CameraLocalPosition = cameraCoord.LocalPlanet;
+                    }
+                    CameraUtils.TransitionState(cameraState, () =>
+                    {
+                        camera.Enable(cameraState);
+                        controls.Enable();
+                    }, 1f);
+                })
+                .OnExit(() =>
                 {
-                    var right = Planet.Transform.InverseTransformDirection(Camera.right);
-                    var up = Planet.Transform.InverseTransformDirection(Camera.position.normalized);
-                    var forward = Quaternion.AngleAxis(120, right) * up;
-
-                    var cameraCoord = new Coordinate(cameraState.CameraLocalPosition);
-                    cameraCoord.Lat -= camera.MaxHeight * 2;
-
-                    cameraState.CameraLocalRotation = Quaternion.LookRotation(forward, up);
-                    cameraState.CameraLocalPosition = cameraCoord.LocalPlanet;
-                }
-                CameraUtils.TransitionState(cameraState, () =>
-                {
-                    camera.Enable(cameraState);
-                    controls.Enable();
-                }, 1.5f);
-            })
-            .OnExit(() =>
-            {
-                camera.Disable();
-                controls.Disable();
-            })
-            .Permit(Trigger.ZoomOut, State.Satellite)
-            .Ignore(Trigger.ZoomIn)
-            .Permit(Trigger.Circle, State.Circle)
-            .Permit(Trigger.SelectPlant, State.EditDna)
-            .Permit(Trigger.Pause, State.MainMenu);
+                    camera.Disable();
+                    controls.Disable();
+                })
+                .Permit(Trigger.ZoomOut, State.Satellite)
+                .Ignore(Trigger.ZoomIn)
+                .Permit(Trigger.Circle, State.Circle)
+                .Permit(Trigger.SelectPlant, State.EditDna)
+                .Permit(Trigger.Pause, State.MainMenu);
+        }
+        catch (InvalidOperationException) { }
     }
     private void ConfigureCircle()
     {
-        var camera = FindObjectOfType<CirclingCamera>();
-        _stateMachine.Configure(State.Circle)
-            .OnEntry(() =>
-            {
-                camera.Enable(Camera, Focus, _focusedEntity);
-            })
-            .OnExit(() =>
-            {
-                camera.Disable();
-            })
-            .Permit(Trigger.ZoomOut, State.Observation)
-            .Ignore(Trigger.ZoomIn)
-            .Ignore(Trigger.Circle)
-            .Permit(Trigger.Pause, State.MainMenu);
+        try
+        {
+            var camera = FindObjectOfType<CirclingCamera>();
+            _stateMachine.Configure(State.Circle)
+                .OnEntry(() =>
+                {
+                    var targetState = camera.GetTargetState(CurrentState, _focusedEntity);
+                    CameraUtils.TransitionState(targetState, () =>
+                    {
+                        camera.Enable(CurrentState, _focusedEntity);
+                    }, 1, Ease.Out);
+                    FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
+                })
+                .OnExit(() =>
+                {
+                    camera.Disable();
+                })
+                .Permit(Trigger.ZoomOut, State.Observation)
+                .Ignore(Trigger.ZoomIn)
+                .Ignore(Trigger.Circle)
+                .Permit(Trigger.Pause, State.MainMenu);
+        }
+        catch (InvalidOperationException) { }
     }
     private void ConfigureEditDna()
     {
-        var camera = FindObjectOfType<CirclingCamera>();
-        var ui = FindObjectOfType<DnaUi>();
-        _stateMachine.Configure(State.EditDna)
-            .OnEntry(() =>
-            {
-                camera.Enable(Camera, Focus, _focusedEntity);
-                ui.EditDna(_focusedEntity);
-            })
-            .OnExit(() =>
-            {
-                camera.Disable();
-                ui.Done();
-            })
-            .Permit(Trigger.Circle, State.Circle)
-            .Ignore(Trigger.ZoomOut)
-            .Ignore(Trigger.Pause);
+        try
+        {
+            var camera = FindObjectOfType<CirclingCamera>();
+            var ui = FindObjectOfType<DnaUi>();
+            _stateMachine.Configure(State.EditDna)
+                .OnEntry(() =>
+                {
+                    var targetState = camera.GetTargetState(CurrentState, _focusedEntity);
+                    CameraUtils.TransitionState(targetState, () =>
+                    {
+                        camera.Enable(CurrentState, _focusedEntity);
+                    }, 0.1f, Ease.Out);
+                    ui.EditDna(_focusedEntity);
+                })
+                .OnExit(() =>
+                {
+                    camera.Disable();
+                    ui.Done();
+                })
+                .Permit(Trigger.Circle, State.Circle)
+                .Ignore(Trigger.ZoomOut)
+                .Ignore(Trigger.Pause);
+        }
+        catch (InvalidOperationException) { }
     }
 }

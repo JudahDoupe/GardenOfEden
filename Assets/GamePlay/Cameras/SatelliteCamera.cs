@@ -48,7 +48,7 @@ public class SatelliteCamera : MonoBehaviour
     public CameraState GetTargetState(CameraState currentState, bool lerp)
     {
         _coord = IsActive ? _coord : new Coordinate(currentState.Camera.position, Planet.LocalToWorld);
-        var cameraPosition = (Vector3) _coord.LocalPlanet;
+        var cameraPosition = currentState.Camera.localPosition;
         var translation = IsActive 
             ? new Vector3(Input.GetAxis("Horizontal") * MovementSpeed * Time.deltaTime, Input.GetAxis("Vertical") * -MovementSpeed * Time.deltaTime, -Input.mouseScrollDelta.y * ZoomSpeed)
             : Vector3.zero;
