@@ -49,16 +49,15 @@ public class SatelliteCamera : MonoBehaviour
     {
         _coord = IsActive ? _coord : new Coordinate(currentState.Camera.position, Planet.LocalToWorld);
         var cameraPosition = (Vector3) _coord.LocalPlanet;
-        var poleAlignment = Vector3.Dot(currentState.Camera.forward, Vector3.up);
         var translation = IsActive 
-            ? new Vector3(Input.GetAxis("Horizontal") * MovementSpeed, Input.GetAxis("Vertical") * -MovementSpeed, -Input.mouseScrollDelta.y * ZoomSpeed)
+            ? new Vector3(Input.GetAxis("Horizontal") * MovementSpeed * Time.deltaTime, Input.GetAxis("Vertical") * -MovementSpeed * Time.deltaTime, -Input.mouseScrollDelta.y * ZoomSpeed)
             : Vector3.zero;
 
         _coord.Altitude = math.clamp(_coord.Altitude + translation.z, MinAltitude + (IsActive ? -1 : 1), MaxAltitude - (IsActive ? -1 : 1));
         _coord.Lat += translation.y;
         _coord.Lon += translation.x;
 
-        cameraPosition = lerp ? Vector3.Lerp(cameraPosition, _coord.LocalPlanet, Time.deltaTime * LerpSpeed) : (Vector3 ) _coord.LocalPlanet;
+        cameraPosition = lerp ? Vector3.Lerp(cameraPosition, _coord.LocalPlanet, Time.deltaTime * LerpSpeed) : (Vector3) _coord.LocalPlanet;
         return new CameraState(currentState.Camera, currentState.Focus)
         {
             CameraParent = Planet.Transform,
@@ -67,6 +66,7 @@ public class SatelliteCamera : MonoBehaviour
             FocusParent = Planet.Transform,
             FocusLocalPosition = Singleton.Land.SampleHeight(_coord) * cameraPosition.normalized,
             FocusLocalRotation = Quaternion.LookRotation(-cameraPosition.normalized, Vector3.up),
+            FieldOfView = Fov,
         };
     }
 }

@@ -77,7 +77,8 @@ public class PerspectiveController : MonoBehaviour
         _stateMachine.Configure(State.MainMenu)
             .OnEntry(() =>
             {
-                camera.Enable(Camera, Focus);
+                CameraUtils.TransitionState(camera.GetTargetState(new CameraState(Camera, Focus)), transitionSpeed: 2.5f, ease: Ease.In);
+                camera.Enable();
                 ui.Enable();
             })
             .OnExit(() =>
@@ -99,7 +100,7 @@ public class PerspectiveController : MonoBehaviour
                 {
                     camera.Enable(targetState);
                     controls.Enable();
-                });
+                }, 1.5f);
                 FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
             })
             .OnExit(() =>

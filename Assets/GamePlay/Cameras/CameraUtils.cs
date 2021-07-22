@@ -92,7 +92,7 @@ public class CameraUtils : MonoBehaviour
         end.Focus.localRotation = end.FocusLocalRotation;
         camera.fieldOfView = end.FieldOfView;
     }
-    public static void TransitionState(CameraState end, Action callback = null, float transitionSpeed = 1)
+    public static void TransitionState(CameraState end, Action callback = null, float transitionSpeed = 1, Ease ease = Ease.InOut)
     {
         end.Camera.parent = end.CameraParent;
         end.Focus.parent = end.FocusParent;
@@ -106,9 +106,9 @@ public class CameraUtils : MonoBehaviour
             GetTransitionTime(start.FieldOfView, end.FieldOfView, transitionSpeed),
         }.Max();
 
-        Singleton.Instance.StartCoroutine(AnimateTransition(speed, start, end, callback));
+        Singleton.Instance.StartCoroutine(AnimateTransition(speed, start, end, callback, ease));
     }
-    private static IEnumerator AnimateTransition(float seconds, CameraState start, CameraState end, Action callback = null)
+    private static IEnumerator AnimateTransition(float seconds, CameraState start, CameraState end, Action callback, Ease ease)
     {
         var remainingSeconds = seconds;
         var t = 0f;
@@ -118,12 +118,19 @@ public class CameraUtils : MonoBehaviour
         {
             yield return new WaitForEndOfFrame();
 
-            var s = 1 / (1 + math.pow(math.E, 6 - 12 * t));
-            end.Camera.localPosition = Vector3.Lerp(start.CameraLocalPosition, end.CameraLocalPosition, s);
-            end.Camera.localRotation = Quaternion.Lerp(start.CameraLocalRotation, end.CameraLocalRotation, s);
-            end.Focus.localPosition = Vector3.Lerp(start.FocusLocalPosition, end.FocusLocalPosition, s);
-            end.Focus.localRotation = Quaternion.Lerp(start.FocusLocalRotation, end.FocusLocalRotation, s);
-            camera.fieldOfView = math.lerp(start.FieldOfView, end.FieldOfView, s);
+            var lerp = ease switch
+            {
+                Ease.In => 1f - math.cos((t * math.PI) / 2),
+                Ease.Out => math.sin((t * math.PI) / 2f),
+                Ease.InOut => -(math.cos(math.PI * t) - 1f) / 2f,
+                _ => t,
+            };
+            end.Camera.localPosition = Vector3.Lerp(start.CameraLocalPosition, end.CameraLocalPosition, lerp);
+            end.Camera.position = ClampAboveTerrain(new Coordinate(end.Camera.position, Planet.LocalToWorld)).Global(Planet.LocalToWorld);
+            end.Camera.localRotation = Quaternion.Lerp(start.CameraLocalRotation, end.CameraLocalRotation, lerp);
+            end.Focus.localPosition = Vector3.Lerp(start.FocusLocalPosition, end.FocusLocalPosition, lerp);
+            end.Focus.localRotation = Quaternion.Lerp(start.FocusLocalRotation, end.FocusLocalRotation, lerp);
+            camera.fieldOfView = math.lerp(start.FieldOfView, end.FieldOfView, lerp);
 
             remainingSeconds -= Time.deltaTime;
             t = 1 - (remainingSeconds / seconds);
@@ -173,4 +180,13 @@ public class CameraUtils : MonoBehaviour
             }
         }
     }
+
+}
+
+public enum Ease
+{
+    Linear,
+    In,
+    Out,
+    InOut,
 }

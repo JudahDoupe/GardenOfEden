@@ -84,7 +84,6 @@ public struct Coordinate : IComponentData
     {
         _localPlanetCoord = Matrix4x4.Inverse(planet.Value).MultiplyPoint(new float3(x, y, z));
         SetLocalPlanetCoordinates(_localPlanetCoord.x, _localPlanetCoord.y, _localPlanetCoord.z);
-
     }
     private void SetLocalPlanetCoordinates(float x, float y, float z)
     {
@@ -93,8 +92,8 @@ public struct Coordinate : IComponentData
         var altitude = math.sqrt(math.pow(x, 2) + math.pow(y, 2) + math.pow(z, 2));
         _sphericalCoord = new float3(
             altitude,
-            math.acos((z + math.EPSILON) / altitude),
-            math.atan2(y, x));
+            math.acos((y + math.EPSILON) / altitude),
+            math.atan2(z, x));
 
     }
     private void SetSphericalCoordinates(float altitude, float theta, float phi)
@@ -102,11 +101,11 @@ public struct Coordinate : IComponentData
         var polePadding = 0.0001f;
         theta = math.clamp(theta, polePadding, math.PI - polePadding);
         phi %= (2 * math.PI);
+        _sphericalCoord = new float3(altitude, theta, phi);
         _localPlanetCoord = new float3(
             altitude * math.cos(phi) * math.sin(theta),
             altitude * math.cos(theta),
             altitude * math.sin(phi) * math.sin(theta));
-        _sphericalCoord = new float3(altitude, theta, phi);
         _textureCoord = GetUvw(_localPlanetCoord);
     }
     private void SetTextureCoordinates(float u, float v, int w, float altitude)
