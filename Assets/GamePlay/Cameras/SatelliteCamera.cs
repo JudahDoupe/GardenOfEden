@@ -1,10 +1,8 @@
-using System;
-using System.Linq;
-using Assets.Scripts.Utils;
+using Assets.GamePlay.Cameras;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class SatelliteCamera : MonoBehaviour
+public class SatelliteCamera : CameraController
 {
     public float LerpSpeed = 5f;
     public float MovementSpeed = 30f;
@@ -12,14 +10,12 @@ public class SatelliteCamera : MonoBehaviour
     public float MaxAltitude = 4000;
     public float MinAltitude = 3000;
     public float Fov = 30;
-    public bool IsActive { get; private set; }
 
-    private CameraState _currentState;
     private Coordinate _coord;
 
     public void Enable(CameraState currentState)
     {
-        _currentState = currentState;
+        CurrentState = currentState;
         IsActive = true;
     }
 
@@ -32,14 +28,14 @@ public class SatelliteCamera : MonoBehaviour
     {
         if (!IsActive) return;
 
-        _currentState = GetTargetState(_currentState, true);
-        CameraUtils.SetState(_currentState);
+        CurrentState = GetTargetState(CurrentState, true);
+        CameraUtils.SetState(CurrentState);
 
-        if (_currentState.Camera.localPosition.magnitude < MinAltitude)
+        if (CurrentState.Camera.localPosition.magnitude < MinAltitude)
         {
             Singleton.PerspectiveController.ZoomIn();
         }
-        if (_currentState.Camera.localPosition.magnitude > MaxAltitude)
+        if (CurrentState.Camera.localPosition.magnitude > MaxAltitude)
         {
             Singleton.PerspectiveController.ZoomOut();
         }

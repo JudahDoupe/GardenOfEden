@@ -13,6 +13,7 @@ public struct CameraState
         FocusLocalPosition = focus.localPosition;
         FocusLocalRotation = focus.localRotation;
         FieldOfView = camera.GetComponent<Camera>().fieldOfView;
+        Cursor = CursorLockMode.None;
     }
 
     public Transform Camera;
@@ -24,4 +25,5 @@ public struct CameraState
     public Vector3 FocusLocalPosition;
     public Quaternion FocusLocalRotation;
     public float FieldOfView;
+    public CursorLockMode Cursor;
 }

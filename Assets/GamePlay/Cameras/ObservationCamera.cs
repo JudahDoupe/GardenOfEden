@@ -1,7 +1,8 @@
+using Assets.GamePlay.Cameras;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class ObservationCamera : MonoBehaviour
+public class ObservationCamera : CameraController
 {
     [Header("Altitude")]
     public float LerpSpeed = 2f;
@@ -17,22 +18,17 @@ public class ObservationCamera : MonoBehaviour
     public float VerticalAngle = 80;
     public float Fov = 60;
 
-    public bool IsActive { get; private set; }
-
-    private CameraState _currentState;
     private Coordinate _cameraCoord;
     private float _height;
 
     public void Enable(CameraState currentState)
     {
-        _currentState = GetTargetState(currentState, true);
-        Cursor.lockState = CursorLockMode.Locked;
+        CurrentState = GetTargetState(currentState, true);
         IsActive = true;
     }
 
     public void Disable()
     {
-        Cursor.lockState = CursorLockMode.None;
         IsActive = false;
     }
 
@@ -40,8 +36,8 @@ public class ObservationCamera : MonoBehaviour
     {
         if (!IsActive) return;
 
-        _currentState = GetTargetState(_currentState, true);
-        CameraUtils.SetState(_currentState);
+        CurrentState = GetTargetState(CurrentState, true);
+        CameraUtils.SetState(CurrentState);
 
         if (_height > MaxHeight)
         {
@@ -108,6 +104,7 @@ public class ObservationCamera : MonoBehaviour
             FocusLocalPosition = new Coordinate(CameraUtils.GetCursorWorldPosition(), Planet.LocalToWorld).LocalPlanet,
             FocusLocalRotation = localFocusRotation,
             FieldOfView = Fov,
+            Cursor = CursorLockMode.Locked,
         };
     }
 }

@@ -1,21 +1,20 @@
+using Assets.GamePlay.Cameras;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class CirclingCamera : MonoBehaviour
+public class CirclingCamera : CameraController
 {
     public float LerpSpeed = 5f;
     public float RotationSpeed = 10f;
     public float Fov = 60;
-    public bool IsActive { get; private set; }
 
     private Entity _focusedEntity;
-    private CameraState _currentState;
 
     public void Enable(CameraState currentState, Entity focusedEntity)
     {
         _focusedEntity = focusedEntity;
-        _currentState = currentState;
+        CurrentState = currentState;
 
         if (!World.DefaultGameObjectInjectionWorld.EntityManager.Exists(focusedEntity))
         {
@@ -40,11 +39,11 @@ public class CirclingCamera : MonoBehaviour
             return;
         }
 
-        _currentState.Focus.Rotate(Vector3.up, RotationSpeed * Time.deltaTime,Space.Self);
-        var state = GetTargetState(_currentState, _focusedEntity);
+        CurrentState.Focus.Rotate(Vector3.up, RotationSpeed * Time.deltaTime,Space.Self);
+        var state = GetTargetState(CurrentState, _focusedEntity);
 
-        _currentState.Camera.localPosition = Vector3.Lerp(_currentState.Camera.localPosition, state.CameraLocalPosition, LerpSpeed * Time.deltaTime);
-        _currentState.Focus.localPosition = Vector3.Lerp(_currentState.Focus.localPosition, state.FocusLocalPosition, LerpSpeed * Time.deltaTime);
+        CurrentState.Camera.localPosition = Vector3.Lerp(CurrentState.Camera.localPosition, state.CameraLocalPosition, LerpSpeed * Time.deltaTime);
+        CurrentState.Focus.localPosition = Vector3.Lerp(CurrentState.Focus.localPosition, state.FocusLocalPosition, LerpSpeed * Time.deltaTime);
 
         CameraUtils.SetEntityOutline(_focusedEntity, true);
 

@@ -91,11 +91,13 @@ public class CameraUtils : MonoBehaviour
         end.Focus.localPosition = end.FocusLocalPosition;
         end.Focus.localRotation = end.FocusLocalRotation;
         camera.fieldOfView = end.FieldOfView;
+        Cursor.lockState = end.Cursor;
     }
     public static void TransitionState(CameraState end, Action callback = null, float transitionSpeed = 1, Ease ease = Ease.InOut)
     {
         end.Camera.parent = end.CameraParent;
         end.Focus.parent = end.FocusParent;
+        Cursor.lockState = end.Cursor;
         var start = new CameraState(end.Camera, end.Focus);
         var speed = new []
         {

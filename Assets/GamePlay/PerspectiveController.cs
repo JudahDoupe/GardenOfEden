@@ -7,7 +7,14 @@ using UnityEngine;
 
 public class PerspectiveController : MonoBehaviour
 {
-    private enum State
+    [Serializable]
+    public struct Transition
+    {
+        public State State;
+        public float Speed;
+        public Ease EaseIn;
+    }
+    public enum State
     {
         MainMenu,
         Satellite,
@@ -15,7 +22,7 @@ public class PerspectiveController : MonoBehaviour
         Circle,
         EditDna,
     }
-    private enum Trigger
+    public enum Trigger
     {
         ZoomIn,
         ZoomOut,
@@ -27,6 +34,7 @@ public class PerspectiveController : MonoBehaviour
 
     public Transform Camera;
     public Transform Focus;
+    public List<Transition> Transitions;
     public CameraState CurrentState => new CameraState(Camera, Focus);
 
     public void ZoomIn() => _stateMachine.Fire(Trigger.ZoomIn);
@@ -75,12 +83,16 @@ public class PerspectiveController : MonoBehaviour
     private void ConfigureMainMenu()
     {
         try{
+            var state = State.MainMenu;
+            var transition = GetTransition(state);
             var camera = FindObjectOfType<PausedCamera>();
             var ui = FindObjectOfType<MainMenuUi>();
-            _stateMachine.Configure(State.MainMenu)
+            _stateMachine.Configure(state)
                 .OnEntry(() =>
                 {
-                    CameraUtils.TransitionState(camera.GetTargetState(CurrentState), transitionSpeed: 2.5f, ease: Ease.In);
+                    CameraUtils.TransitionState(camera.GetTargetState(CurrentState), 
+                        transitionSpeed: transition.Speed, 
+                        ease: transition.EaseIn);
                     camera.Enable();
                     ui.Enable();
                 })
@@ -97,17 +109,21 @@ public class PerspectiveController : MonoBehaviour
     {
         try
         {
+            var state = State.Satellite;
+            var transition = GetTransition(state);
             var camera = FindObjectOfType<SatelliteCamera>();
             var controls = FindObjectOfType<HoverAndClickControl>();
-            _stateMachine.Configure(State.Satellite)
+            _stateMachine.Configure(state)
                 .OnEntry(() =>
                 {
                     var targetState = camera.GetTargetState(CurrentState, false);
                     CameraUtils.TransitionState(targetState, () =>
-                    {
-                        camera.Enable(targetState);
-                        controls.Enable();
-                    }, 1.5f);
+                        {
+                            camera.Enable(targetState);
+                            controls.Enable();
+                        },
+                        transitionSpeed: transition.Speed,
+                        ease: transition.EaseIn);
                     FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
                 })
                 .OnExit(() =>
@@ -127,10 +143,12 @@ public class PerspectiveController : MonoBehaviour
     {
         try
         {
+            var state = State.Observation;
+            var transition = GetTransition(state);
             var camera = FindObjectOfType<ObservationCamera>();
             var controls = FindObjectOfType<PlantSelectionControl>();
-            _stateMachine.Configure(State.Observation)
-                .OnEntry(transition =>
+            _stateMachine.Configure(state)
+                .OnEntry(from =>
                 {
                     var cameraState = new CameraState(Camera, Focus)
                     {
@@ -143,7 +161,7 @@ public class PerspectiveController : MonoBehaviour
                     CameraUtils.SetState(cameraState);
 
                     cameraState = camera.GetTargetState(cameraState, false);
-                    if (transition.Source == State.Satellite)
+                    if (from.Source == State.Satellite)
                     {
                         var right = Planet.Transform.InverseTransformDirection(Camera.right);
                         var up = Planet.Transform.InverseTransformDirection(Camera.position.normalized);
@@ -156,10 +174,12 @@ public class PerspectiveController : MonoBehaviour
                         cameraState.CameraLocalPosition = cameraCoord.LocalPlanet;
                     }
                     CameraUtils.TransitionState(cameraState, () =>
-                    {
-                        camera.Enable(cameraState);
-                        controls.Enable();
-                    }, 1f);
+                        {
+                            camera.Enable(cameraState);
+                            controls.Enable();
+                        },
+                        transitionSpeed: transition.Speed,
+                        ease: transition.EaseIn);
                 })
                 .OnExit(() =>
                 {
@@ -178,15 +198,19 @@ public class PerspectiveController : MonoBehaviour
     {
         try
         {
+            var state = State.Circle;
+            var transition = GetTransition(state);
             var camera = FindObjectOfType<CirclingCamera>();
-            _stateMachine.Configure(State.Circle)
+            _stateMachine.Configure(state)
                 .OnEntry(() =>
                 {
                     var targetState = camera.GetTargetState(CurrentState, _focusedEntity);
                     CameraUtils.TransitionState(targetState, () =>
-                    {
-                        camera.Enable(CurrentState, _focusedEntity);
-                    }, 1, Ease.Out);
+                        {
+                            camera.Enable(CurrentState, _focusedEntity);
+                        },
+                        transitionSpeed: transition.Speed,
+                        ease: transition.EaseIn);
                     FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
                 })
                 .OnExit(() =>
@@ -204,16 +228,20 @@ public class PerspectiveController : MonoBehaviour
     {
         try
         {
+            var state = State.EditDna;
+            var transition = GetTransition(state);
             var camera = FindObjectOfType<CirclingCamera>();
             var ui = FindObjectOfType<DnaUi>();
-            _stateMachine.Configure(State.EditDna)
+            _stateMachine.Configure(state)
                 .OnEntry(() =>
                 {
                     var targetState = camera.GetTargetState(CurrentState, _focusedEntity);
                     CameraUtils.TransitionState(targetState, () =>
-                    {
-                        camera.Enable(CurrentState, _focusedEntity);
-                    }, 0.1f, Ease.Out);
+                        {
+                            camera.Enable(CurrentState, _focusedEntity);
+                        },
+                        transitionSpeed: transition.Speed,
+                        ease: transition.EaseIn);
                     ui.EditDna(_focusedEntity);
                 })
                 .OnExit(() =>
@@ -227,4 +255,9 @@ public class PerspectiveController : MonoBehaviour
         }
         catch (InvalidOperationException) { }
     }
+
+
+    private Transition GetTransition(State state) => Transitions.Any(x => x.State == state)
+        ? Transitions.First(x => x.State == state)
+        : new Transition { EaseIn = Ease.InOut, Speed = 1f };
 }

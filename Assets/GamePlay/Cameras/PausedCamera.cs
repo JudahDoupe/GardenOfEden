@@ -1,9 +1,9 @@
+using Assets.GamePlay.Cameras;
 using UnityEngine;
 
-public class PausedCamera : MonoBehaviour
+public class PausedCamera : CameraController
 {
     public float Fov = 30f;
-    public bool IsActive { get; private set; }
 
     public void Enable()
     {
