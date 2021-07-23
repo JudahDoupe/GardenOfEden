@@ -101,6 +101,7 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMeshes.cs" />
     <Compile Include="Assets\Utils\Interfaces\IDataBaseObject.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthHormoneSystem.cs" />
+    <Compile Include="Assets\GamePlay\Cameras\CameraController.cs" />
     <Compile Include="Assets\GamePlay\Cameras\SatelliteCamera.cs" />
     <Compile Include="Assets\GamePlay\PerspectiveController.cs" />
     <Compile Include="Assets\Environment\Services\LandService.cs" />
@@ -140,7 +141,6 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Utils\Rendering\Features\BlitMaterialFeature.cs" />
-    <Compile Include="Assets\GamePlay\Cameras\CameraController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />

@@ -39,11 +39,8 @@ public class CirclingCamera : CameraController
             return;
         }
 
-        CurrentState.Focus.Rotate(Vector3.up, RotationSpeed * Time.deltaTime,Space.Self);
-        var state = GetTargetState(CurrentState, _focusedEntity);
-
-        CurrentState.Camera.localPosition = Vector3.Lerp(CurrentState.Camera.localPosition, state.CameraLocalPosition, LerpSpeed * Time.deltaTime);
-        CurrentState.Focus.localPosition = Vector3.Lerp(CurrentState.Focus.localPosition, state.FocusLocalPosition, LerpSpeed * Time.deltaTime);
+        CameraUtils.SetState(GetTargetState(CurrentState, _focusedEntity));
+        CurrentState.Focus.Rotate(Vector3.up, RotationSpeed * Time.deltaTime, Space.Self);
 
         CameraUtils.SetEntityOutline(_focusedEntity, true);
 
@@ -69,10 +66,14 @@ public class CirclingCamera : CameraController
 
         return new CameraState(currentState.Camera, currentState.Focus)
         {
-            CameraLocalPosition = cameraPos,
+            CameraLocalPosition = IsActive 
+                ? Vector3.Lerp(currentState.Camera.localPosition, cameraPos, LerpSpeed * Time.deltaTime)
+                : cameraPos,
             CameraLocalRotation = quaternion.LookRotation(math.normalize(-cameraPos), Vector3.up),
             CameraParent = currentState.Focus,
-            FocusLocalPosition = focusCoord.LocalPlanet,
+            FocusLocalPosition = IsActive
+                ? Vector3.Lerp(currentState.Focus.localPosition, focusCoord.LocalPlanet, LerpSpeed * Time.deltaTime)
+                : (Vector3)focusCoord.LocalPlanet,
             FocusLocalRotation = focusRot,
             FocusParent = Planet.Transform,
             FieldOfView = Fov,

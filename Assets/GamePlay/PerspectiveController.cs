@@ -70,7 +70,7 @@ public class PerspectiveController : MonoBehaviour
         _state = State.MainMenu;
         _stateMachine = new StateMachine<State, Trigger>(() => _state, s => _state = s);
         ConfigureMainMenu();
-        ConfigureSatelite();
+        ConfigureSatellite();
         ConfigureObservation();
         ConfigureCircle();
         ConfigureEditDna();
@@ -105,7 +105,7 @@ public class PerspectiveController : MonoBehaviour
         }
         catch (InvalidOperationException) { }
     }
-    private void ConfigureSatelite()
+    private void ConfigureSatellite()
     {
         try
         {
@@ -150,36 +150,22 @@ public class PerspectiveController : MonoBehaviour
             _stateMachine.Configure(state)
                 .OnEntry(from =>
                 {
-                    var cameraState = new CameraState(Camera, Focus)
+                    if (from.Source == State.Circle)
                     {
-                        CameraParent = Planet.Transform,
-                        CameraLocalPosition = new Coordinate(Camera.position, Planet.LocalToWorld).LocalPlanet,
-                        CameraLocalRotation = Quaternion.Inverse(Planet.Transform.rotation) * Camera.rotation,
-                        FocusParent = Planet.Transform,
-                        FocusLocalPosition = new Coordinate(CameraUtils.GetCursorWorldPosition(), Planet.LocalToWorld).LocalPlanet,
-                    };
-                    CameraUtils.SetState(cameraState);
-
-                    cameraState = camera.GetTargetState(cameraState, false);
-                    if (from.Source == State.Satellite)
-                    {
-                        var right = Planet.Transform.InverseTransformDirection(Camera.right);
-                        var up = Planet.Transform.InverseTransformDirection(Camera.position.normalized);
-                        var forward = Quaternion.AngleAxis(120, right) * up;
-
-                        var cameraCoord = new Coordinate(cameraState.CameraLocalPosition);
-                        cameraCoord.Lat -= camera.MaxHeight * 2;
-
-                        cameraState.CameraLocalRotation = Quaternion.LookRotation(forward, up);
-                        cameraState.CameraLocalPosition = cameraCoord.LocalPlanet;
+                        camera.Enable(CurrentState);
+                        controls.Enable();
                     }
-                    CameraUtils.TransitionState(cameraState, () =>
-                        {
-                            camera.Enable(cameraState);
-                            controls.Enable();
-                        },
-                        transitionSpeed: transition.Speed,
-                        ease: transition.EaseIn);
+                    else
+                    {
+                        var cameraState = camera.GetTargetState(CurrentState, false);
+                        CameraUtils.TransitionState(cameraState, () =>
+                            {
+                                camera.Enable(cameraState);
+                                controls.Enable();
+                            },
+                            transitionSpeed: transition.Speed,
+                            ease: transition.EaseIn);
+                    }
                 })
                 .OnExit(() =>
                 {
