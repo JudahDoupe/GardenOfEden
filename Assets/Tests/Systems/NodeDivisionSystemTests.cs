@@ -1,13 +1,8 @@
-﻿using Assets.Plants.Systems.Cleanup;
-using Assets.Scripts.Plants.Dna;
-using Assets.Scripts.Plants.Growth;
+﻿using Assets.Scripts.Plants.Growth;
 using NUnit.Framework;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.Tests;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Tests
 {

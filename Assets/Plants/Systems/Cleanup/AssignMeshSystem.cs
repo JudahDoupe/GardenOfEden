@@ -26,15 +26,18 @@ namespace Assets.Plants.Systems.Cleanup
     class AssignMeshSystem : SystemBase
     {
         CleanupEcbSystem _ecbSystem;
+        DeleteEntityEcbSystem _trashEcbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
             _ecbSystem = World.GetOrCreateSystem<CleanupEcbSystem>();
+            _trashEcbSystem = World.GetOrCreateSystem<DeleteEntityEcbSystem>();
         }
 
         protected override void OnUpdate()
         {
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
+            var trashEcb = _trashEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
@@ -44,12 +47,12 @@ namespace Assets.Plants.Systems.Cleanup
                     {
                         if (meshReference.Node != Entity.Null)
                         {
-                            ecb.DestroyEntity(entityInQueryIndex, meshReference.Node);
+                            trashEcb.DestroyEntity(entityInQueryIndex, meshReference.Node);
                             meshReference.Node = Entity.Null;
                         }
                         if (meshReference.Internode != Entity.Null)
                         {
-                            ecb.DestroyEntity(entityInQueryIndex, meshReference.Internode);
+                            trashEcb.DestroyEntity(entityInQueryIndex, meshReference.Internode);
                             meshReference.Internode = Entity.Null;
                         }
 

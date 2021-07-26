@@ -10,16 +10,16 @@ namespace Assets.Plants.Systems.Cleanup
     [UpdateInGroup(typeof(CleanupSystemGroup))]
     public class DeadNodeSystem : SystemBase
     {
-        CleanupEcbSystem _ecbSystem;
+        DeleteEntityEcbSystem _trashEcbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
-            _ecbSystem = World.GetOrCreateSystem<CleanupEcbSystem>();
+            _trashEcbSystem = World.GetOrCreateSystem<DeleteEntityEcbSystem>();
         }
 
         protected override void OnUpdate()
         {
-            var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
+            var trashEcb = _trashEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
             Entities
                 .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
@@ -32,16 +32,16 @@ namespace Assets.Plants.Systems.Cleanup
 
                         if (health.Value < 0)
                         {
-                            DestroyAllChildren(entity, ecb, entityInQueryIndex, childrenQuery);
+                            DestroyAllChildren(entity, trashEcb, entityInQueryIndex, childrenQuery);
                         }
                     })
                 .WithName("RemoveDeadNode")
                 .ScheduleParallel();
 
-            _ecbSystem.AddJobHandleForProducer(Dependency);
+            _trashEcbSystem.AddJobHandleForProducer(Dependency);
         }
 
-        public static void DestroyAllChildren(Entity e, EntityCommandBuffer.ParallelWriter ecb, int id, BufferFromEntity<Child> childrenQuery)
+        public static void DestroyAllChildren(Entity e, EntityCommandBuffer.ParallelWriter trashEcb, int id, BufferFromEntity<Child> childrenQuery)
         {
             if (childrenQuery.HasComponent(e))
             {
@@ -51,11 +51,11 @@ namespace Assets.Plants.Systems.Cleanup
 
                     for (int i = 0; i < branches.Length; i++)
                     {
-                        DestroyAllChildren(branches[i].Value, ecb, id, childrenQuery);
+                        DestroyAllChildren(branches[i].Value, trashEcb, id, childrenQuery);
                     }
                 }
             }
-            ecb.DestroyEntity(id, e);
+            trashEcb.DestroyEntity(id, e);
         }
     }
 }

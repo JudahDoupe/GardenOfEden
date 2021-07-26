@@ -44,15 +44,18 @@ namespace Assets.Scripts.Plants.Growth
     public class NodeDivisionSystem : SystemBase
     {
         GrowthEcbSystem _ecbSystem;
+        DeleteEntityEcbSystem _trashEcbSystem;
         protected override void OnCreate()
         {
             base.OnCreate();
             _ecbSystem = World.GetOrCreateSystem<GrowthEcbSystem>();
+            _trashEcbSystem = World.GetOrCreateSystem<DeleteEntityEcbSystem>();
         }
 
         protected override void OnUpdate() 
         {
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
+            var trashEcb = _trashEcbSystem.CreateCommandBuffer().AsParallelWriter();
             var genericSeed = new System.Random().Next();
 
             Entities
@@ -108,7 +111,7 @@ namespace Assets.Scripts.Plants.Growth
                                     ecb.RemoveComponent<Child>(entityInQueryIndex, currentNode);
                                 }
                                 ecb.SetComponent(entityInQueryIndex, newNode, parent);
-                                ecb.DestroyEntity(entityInQueryIndex, currentNode);
+                                trashEcb.DestroyEntity(entityInQueryIndex, currentNode);
                                 break;
                             case DivisionOrder.PreNode:
                                 ecb.SetComponent(entityInQueryIndex, newNode, parent);
