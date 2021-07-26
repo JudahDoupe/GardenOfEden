@@ -1,8 +1,53 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
-  <defs>
-    <bx:grid x="0" y="0" width="50.125" height="46.384"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 500 500"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="Panel_1.svg"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   inkscape:export-filename="C:\_Projects\GardenOfEden\Assets\GamePlay\Ui\Sprites\Panel_1.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:bx="https://boxy-svg.com">
+  <sodipodi:namedview
+     id="namedview10"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     showgrid="false"
+     inkscape:zoom="1.664"
+     inkscape:cx="252.70433"
+     inkscape:cy="214.24279"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="1072"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg8" />
+  <defs
+     id="defs2">
+    <bx:grid
+       x="0"
+       y="0"
+       width="50.125"
+       height="46.384" />
   </defs>
-  <path d="M 477.632 139.901 L 501.25 185.536 L 501.25 324.688 L 475.365 371.072 L 22.503 371.072 L 0 324.688 L -0.623 186.02 L 26.588 139.944 L 477.632 139.901 Z" style="stroke: rgb(0, 0, 0); paint-order: fill; stroke-opacity: 0; fill: rgba(0, 0, 0, 0.5);"/>
-  <polygon style="stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);" points="-0.656000018119812 186.26499938964844 -0.5239997506141663 93.11599731445312 26.128000259399414 46.37300109863281 478.53399658203125 46.37900161743164 501.3190002441406 92.64800262451172 501.34100341796875 185.81100463867188 477.59100341796875 139.97999572753906 26.68400001525879 139.9080047607422"/>
+  <path
+     d="M 477.632 139.901 L 501.25 185.536 L 501.25 324.688 L 475.365 371.072 L 22.503 371.072 L 0 324.688 L -0.623 186.02 L 26.588 139.944 L 477.632 139.901 Z"
+     style="stroke:rgb(0, 0, 0);paint-order:fill;stroke-opacity:0;fill:#1a1a1a;fill-opacity:1"
+     id="path4"
+     inkscape:export-filename="C:\_Projects\GardenOfEden\Assets\GamePlay\Ui\Sprites\path4.png"
+     inkscape:export-xdpi="96"
+     inkscape:export-ydpi="96" />
+  <polygon
+     style="stroke: rgba(0, 0, 0, 0); fill: rgb(255, 255, 255);"
+     points="-0.656000018119812 186.26499938964844 -0.5239997506141663 93.11599731445312 26.128000259399414 46.37300109863281 478.53399658203125 46.37900161743164 501.3190002441406 92.64800262451172 501.34100341796875 185.81100463867188 477.59100341796875 139.97999572753906 26.68400001525879 139.9080047607422"
+     id="polygon6" />
 </svg>

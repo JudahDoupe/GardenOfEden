@@ -1,8 +1,52 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
-  <defs>
-    <bx:grid x="0" y="0" width="50.125" height="46.384"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 500 500"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="Button_1.svg"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   inkscape:export-filename="C:\_Projects\GardenOfEden\Assets\GamePlay\Ui\Sprites\Button_1.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:bx="https://boxy-svg.com">
+  <sodipodi:namedview
+     id="namedview10"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     showgrid="false"
+     inkscape:zoom="1.664"
+     inkscape:cx="249.69952"
+     inkscape:cy="153.54567"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg8" />
+  <defs
+     id="defs2">
+    <bx:grid
+       x="0"
+       y="0"
+       width="50.125"
+       height="46.384" />
   </defs>
-  <polygon style="stroke: rgb(0, 0, 0); paint-order: fill; stroke-opacity: 0; fill: rgba(0, 0, 0, 0.51);" points="451.372 0.831 500 91.854 451.372 185.993 49.252 185.37 -0.623 92.477 51.122 -0.416"/>
-  <polygon style="stroke: rgb(0, 0, 0); fill: rgb(255, 255, 255); stroke-opacity: 0;" points="-0.6539999842643738 92.47799682617188 50.47999954223633 0.41600000858306885 452.3110046386719 0.8259997963905334 63.60100173950195 25.01799964904785"/>
+  <polygon
+     style="stroke:#000000;stroke-opacity:0;paint-order:fill"
+     points="478.059,233.074 24.12,232.457 -0.623,186.02 26.588,139.944 477.632,139.901 499.999,185.709 "
+     id="polygon4"
+     transform="matrix(1,0,0,1.1475606,0.92275892,-156.91459)" />
+  <polygon
+     style="fill:#ffffff;stroke:#000000;stroke-opacity:0"
+     points="-0.65400022,186.021 26.367001,140 451.26501,139.94299 39.848,152.298 "
+     id="polygon6"
+     transform="matrix(1,0,0,1.1475606,0.92275892,-156.91459)" />
 </svg>
