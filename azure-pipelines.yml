@@ -1,5 +1,6 @@
 pool:
-  vmImage: ubuntu-latest
+  name: default
+  demands: Unity_2021.1.9f1
 
 steps:
 - script: echo Hello, world!
