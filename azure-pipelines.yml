@@ -3,10 +3,8 @@ pool:
   demands: Unity_2021.1.9f1
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- task: UnityBuildTask@3
+  inputs:
+    buildTarget: 'Win64'
+    outputPath: '$(Build.BinariesDirectory)'
+    outputFileName: 'Eden'
