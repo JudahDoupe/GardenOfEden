@@ -3,6 +3,7 @@ using Assets.Plants.Systems.Cleanup;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace Assets.Utils
 {
@@ -20,6 +21,14 @@ namespace Assets.Utils
                 }
             }
             em.DestroyEntity(e);
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Initialize()
+        {
+#if UNITY_DISABLE_AUTOMATIC_SYSTEM_BOOTSTRAP
+            DefaultWorldInitialization.Initialize("Default World", false);
+#endif
         }
     }
 }

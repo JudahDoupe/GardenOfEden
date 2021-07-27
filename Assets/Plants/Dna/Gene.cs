@@ -70,11 +70,12 @@ namespace Assets.Scripts.Plants.Dna
             {
                 var node = dna.GetProtoNode(modification.Key);
                 var mod = modification.Value;
+#if UNITY_EDITOR
                 if (mod.Name != null)
                 {
                     em.SetName(node, mod.Name);
                 }
-
+#endif
                 foreach (var action in mod.Components)
                 {
                     action.Invoke(em, node);

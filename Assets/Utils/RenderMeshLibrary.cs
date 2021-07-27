@@ -36,7 +36,9 @@ namespace Assets.Scripts.Utils
                     mesh.Mesh.castShadows,
                     mesh.Mesh.receiveShadows);
                 mesh.Entity = em.CreateEntity(meshArchetype);
+#if UNITY_EDITOR
                 em.SetName(mesh.Entity, $"Mesh_{mesh.Name}");
+#endif
                 RenderMeshUtility.AddComponents(mesh.Entity, em, mesh.Desc);
 
                 Library.Add(mesh.Name, mesh);

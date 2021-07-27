@@ -17,7 +17,9 @@ public class Planet : MonoBehaviour
         em.AddComponent<Translation>(Entity);
         em.AddComponent<Rotation>(Entity);
         em.AddComponent<LocalToWorld>(Entity);
+#if UNITY_EDITOR
         em.SetName(Entity, "Planet");
+#endif
         Transform = transform;
     }
 
