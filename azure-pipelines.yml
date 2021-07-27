@@ -6,5 +6,7 @@ steps:
 - task: UnityBuildTask@3
   inputs:
     buildTarget: 'Win64'
+    unityEditorsPathMode: 'specify'
+    customUnityEditorsPath: 'C:\_Projects\2021.1.9f1\Editor\Unity.exe'
     outputPath: '$(Build.BinariesDirectory)'
     outputFileName: 'Eden'
