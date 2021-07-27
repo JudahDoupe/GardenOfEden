@@ -36,11 +36,11 @@ steps:
 #    workingFolder: '$(Build.Repository.LocalPath)\Installer'
 
 #upload artifact
-#- task: PublishBuildArtifacts@1
-#  inputs:
-#    PathtoPublish: '$(Build.ArtifactStagingDirectory)\SetupCreation'
-#    ArtifactName: 'drop'
-#    publishLocation: 'Container'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.BinariesDirectory)\Build'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
 
 #secure the library for performance reasons
 - task: DeleteFiles@1
