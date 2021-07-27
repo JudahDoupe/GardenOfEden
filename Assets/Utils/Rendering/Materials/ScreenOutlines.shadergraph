@@ -328,8 +328,6 @@
         "m_GuidSerialized": "f5730dda-a185-4945-b1fa-1b15fc852d9b"
     },
     "m_Name": "OutlineThickness",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "OutlineThickness",
     "m_DefaultReferenceName": "OutlineThickness",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -583,8 +581,6 @@
         "m_GuidSerialized": "44d6128c-6f37-4a04-891e-72e0c426b4c2"
     },
     "m_Name": "OutlineTexture",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "OutlineTexture",
     "m_DefaultReferenceName": "OutlineTexture",
     "m_OverrideReferenceName": "_OutlinedGroupTexture",
     "m_GeneratePropertyBlock": false,
@@ -1219,8 +1215,6 @@
         "m_GuidSerialized": "56a5db21-152a-4f9a-8b52-f23faaf5d26c"
     },
     "m_Name": "OutlineStrength",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "OutlineStrength",
     "m_DefaultReferenceName": "OutlineStrength",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -1312,8 +1306,6 @@
         "m_GuidSerialized": "886ef279-1bb5-488a-bb8b-9f157a34c377"
     },
     "m_Name": "Main Texture",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Main Texture",
     "m_DefaultReferenceName": "Main_Texture",
     "m_OverrideReferenceName": "_MainTex",
     "m_GeneratePropertyBlock": true,

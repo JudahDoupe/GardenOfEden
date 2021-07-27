@@ -536,8 +536,6 @@
         "m_GuidSerialized": "2a156df2-1675-4a9d-83b8-ed51b48dcc80"
     },
     "m_Name": "HeightMap",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "HeightMap",
     "m_DefaultReferenceName": "HeightMap",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
@@ -560,8 +558,6 @@
         "m_GuidSerialized": "0d9ac294-26bd-4bf8-ba75-334e5006d45b"
     },
     "m_Name": "SeaLevel",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "SeaLevel",
     "m_DefaultReferenceName": "SeaLevel",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -1017,8 +1013,6 @@
         "m_GuidSerialized": "01103493-dbe6-4b95-8e8b-ac881fd24488"
     },
     "m_Name": "BedrockColor",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "BedrockColor",
     "m_DefaultReferenceName": "BedrockColor",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -1388,8 +1382,6 @@
         "m_GuidSerialized": "7c8d5801-7191-400a-a02e-1d2a6a2a01ae"
     },
     "m_Name": "RandomizeDistance",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "RandomizeDistance",
     "m_DefaultReferenceName": "RandomizeDistance",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -1670,8 +1662,6 @@
         "m_GuidSerialized": "f4fbded2-bab5-40a8-b038-22a22976aa92"
     },
     "m_Name": "Smoothness",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Smoothness",
     "m_DefaultReferenceName": "Smoothness",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -1908,8 +1898,6 @@
         "m_GuidSerialized": "de74a695-2adb-421b-8c9b-a35a268b117e"
     },
     "m_Name": "NormalSampleDistance",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "NormalSampleDistance",
     "m_DefaultReferenceName": "NormalSampleDistance",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
