@@ -64,7 +64,7 @@ public class CirclingCamera : CameraController
         var cameraCoord = new Coordinate(focusCoord.LocalPlanet + ((Quaternion) focusRot * cameraPos).ToFloat3());
         cameraPos +=  Vector3.up * (CameraUtils.ClampAboveTerrain(cameraCoord).Altitude - cameraCoord.Altitude);
 
-        return new CameraState(currentState.Camera, currentState.Focus)
+        var x = new CameraState(currentState.Camera, currentState.Focus)
         {
             CameraLocalPosition = IsActive 
                 ? Vector3.Lerp(currentState.Camera.localPosition, cameraPos, LerpSpeed * Time.deltaTime)
@@ -78,6 +78,13 @@ public class CirclingCamera : CameraController
             FocusParent = Planet.Transform,
             FieldOfView = Fov,
         };
+
+        if(x.CameraLocalPosition.x == float.NaN)
+        {
+            x = new CameraState();
+        }
+
+        return x;
     }
 
 }

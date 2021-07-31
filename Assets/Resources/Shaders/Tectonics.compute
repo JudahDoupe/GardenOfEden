@@ -1,0 +1,38 @@
+#pragma kernel SetIds
+#include "CoordinateTransforms.hlsl"
+#include "Noise.hlsl"
+
+struct Node
+{
+    int Id;
+    float3 Position;
+    float2 Velocity;
+};
+RWStructuredBuffer<Node> Nodes;
+RWTexture2DArray<float> TectonicsPlateIdMap;
+float SeaLevel;
+float Noise;
+
+[numthreads(8,8,1)]
+void SetIds (uint3 id : SV_DispatchThreadID)
+{
+    [unroll]
+    for (int w = 0; w < 6; w++) 
+    {
+        int3 xyw = int3(id.xy, w);
+        float3 xyz = xyw_to_xyz(xyw, SeaLevel);
+        xyz = xyz + noise3d(xyz, Noise);
+        int minId = -1;
+        float minDist = 100002.0f;
+        float dist = 0.0f;
+        for (uint i = 0; i < (int)Nodes.Length; i++)
+        {
+            dist = distance(Nodes[i].Position, xyz);
+            if (dist < minDist) {
+                minDist = dist;
+                minId = Nodes[i].Id;
+            }
+        }
+        TectonicsPlateIdMap[xyw] = minId;
+    }
+}
