@@ -11,6 +11,9 @@ public class LandService : MonoBehaviour, ILandService
 {
     public int NumPlates = 5;
     public float FaultLineNoise = 0;
+    public float PlateDriftSpeed = 1;
+    [Range(0, 1)]
+    public float PlateVelocityDampening = 0.5f;
     public static float SeaLevel = 1000f;
     public static Renderer Renderer;
 
@@ -50,8 +53,14 @@ public class LandService : MonoBehaviour, ILandService
         }
 
         PlateTectonics.FaultLineNoise = FaultLineNoise;
+        PlateTectonics.DriftSpeed = PlateDriftSpeed;
+        PlateTectonics.Dampening = PlateVelocityDampening;
 
-        PlateTectonics.UpdatePlates();
+        PlateTectonics.UpdatePlateIdMap();
+        PlateTectonics.UpdatePlateVelocity();
+        PlateTectonics.IntegratePlateVelocity();
+
+        EnvironmentDataStore.TectonicPlateIdMap.UpdateTextureCache();
         EnvironmentDataStore.LandMap.UpdateTextureCache();
     }
 }

@@ -38,7 +38,6 @@ public class MovePlatePuck : MonoBehaviour
 
     public void Click()
     {
-        Debug.Log("Click");
         _dragging = true;
     }
 
@@ -50,17 +49,18 @@ public class MovePlatePuck : MonoBehaviour
 
     public void Drag()
     {
-        Debug.Log("Drag");
         var screenPos = Input.mousePosition;
         screenPos.z = Vector3.Distance(Camera.main.transform.position, transform.position);
         var target = Camera.main.ScreenToWorldPoint(screenPos);
         var vector = target - transform.position;
         var movement = vector.normalized * math.min(vector.magnitude, MaxVelocity * MovementMultiplier);
-        var velocity = movement / MovementMultiplier;
-        var coord = new Coordinate(transform.position + movement, Planet.LocalToWorld);
-        coord.Altitude = math.max(Singleton.Land.SampleHeight(coord), Singleton.Water.SampleHeight(coord)) + 10;
+        var oldCoord = new Coordinate(transform.localPosition);
+        var newCoord = new Coordinate(transform.position + movement, Planet.LocalToWorld);
+        newCoord.Altitude = math.max(Singleton.Land.SampleHeight(newCoord), Singleton.Water.SampleHeight(newCoord)) + 10;
 
-        _puckLocalPosition = transform.InverseTransformPoint(coord.Global(Planet.LocalToWorld));
+        _puckLocalPosition = transform.InverseTransformPoint(newCoord.Global(Planet.LocalToWorld));
+        var velocity = (newCoord.LocalPlanet - oldCoord.LocalPlanet) / MovementMultiplier;
+
         PlateTectonics.Plates[PlateId].Nodes.ForEach(x => x.Velocity = velocity);
     }
 

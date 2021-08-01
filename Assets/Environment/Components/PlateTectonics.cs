@@ -9,6 +9,8 @@ public class PlateTectonics
 {
     public static List<Plate> Plates = new List<Plate>();
     public static float FaultLineNoise = 0;
+    public static float DriftSpeed = 1;
+    public static float Dampening = 0.1f;
 
     public static void Regenerate(int numPlates, int nodesPerPlate)
     {
@@ -26,7 +28,6 @@ public class PlateTectonics
                 var coord = new Coordinate(new float3(Singleton.Water.SeaLevel, 0, 0));
                 coord.TextureUvw = new float3(Random.value, Random.value, Random.Range(0, 6));
                 node.Coord = coord;
-                node.Velocity = new Vector2(Random.value, Random.value).normalized;
                 plate.Nodes.Add(node);
             }
             Plates.Add(plate);
@@ -35,8 +36,8 @@ public class PlateTectonics
         LandService.Renderer.material.SetTexture("TectonicPlateIdMap", EnvironmentDataStore.TectonicPlateIdMap);
         LandService.Renderer.material.SetInt("NumTectonicPlates", numPlates);
     }
-
-    public static void UpdatePlates()
+    
+    public static void UpdatePlateIdMap()
     {
         var tectonicsShader = Resources.Load<ComputeShader>("Shaders/Tectonics");
         int idsKernel = tectonicsShader.FindKernel("SetIds");
@@ -54,16 +55,52 @@ public class PlateTectonics
         tectonicsShader.SetFloat("Noise", FaultLineNoise);
         tectonicsShader.Dispatch(idsKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
+    public static void UpdatePlateVelocity()
+    {
+        var nodes = Plates.SelectMany(x => x.Nodes);
+        foreach (var node in nodes)
+        {
+            node.Velocity = Vector3.Lerp(node.Velocity, CalculateDriftVelocity(node), Dampening);
+        }
+    }
+    public static void IntegratePlateVelocity()
+    {
+        var nodes = Plates.SelectMany(x => x.Nodes);
+        foreach (var node in nodes)
+        {
+            node.Coord.LocalPlanet += node.Velocity;
+            node.Coord.Altitude = Singleton.Water.SeaLevel;
+        }
+    }
+
+    private static float3 CalculateDriftVelocity(PlateNode node)
+    {
+        var nodes = Plates.SelectMany(x => x.Nodes);
+        Vector3 drift = Vector3.zero;
+        foreach (var otherNode in nodes)
+        {
+            var vector = (node.Coord.LocalPlanet - otherNode.Coord.LocalPlanet).ToVector3();
+            var direction = vector.normalized;
+            var distance = vector.magnitude;
+            var magnitude = 1 - math.pow(distance / Singleton.Water.SeaLevel, 3);
+            drift += direction * magnitude;
+        }
+        drift /= nodes.Count();
+        drift *= DriftSpeed;
+        var driftCoord = new Coordinate(drift.ToFloat3());
+        driftCoord.Altitude = Singleton.Water.SeaLevel;
+        return (driftCoord.LocalPlanet - node.Coord.LocalPlanet) * DriftSpeed;
+    }
 
     private struct PlateNodeData
     {
         public int Id;
         public float3 Position;
-        public float2 Velocity;
+        public float3 Velocity;
     }
 }
 
-public struct Plate
+public class Plate
 {
     public int Id;
     public List<PlateNode> Nodes;
@@ -78,8 +115,8 @@ public struct Plate
     }
 }
 
-public struct PlateNode
+public class PlateNode
 {
     public Coordinate Coord;
-    public Vector2 Velocity;
+    public float3 Velocity;
 }

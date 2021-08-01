@@ -6,10 +6,11 @@ struct Node
 {
     int Id;
     float3 Position;
-    float2 Velocity;
+    float3 Velocity;
 };
 RWStructuredBuffer<Node> Nodes;
 RWTexture2DArray<float> TectonicsPlateIdMap;
+RWTexture2DArray<float2> TectonicsPlateVelocityMap;
 float SeaLevel;
 float Noise;
 
@@ -35,4 +36,16 @@ void SetIds (uint3 id : SV_DispatchThreadID)
         }
         TectonicsPlateIdMap[xyw] = minId;
     }
+}
+
+[numthreads(8, 8, 1)]
+void SetVelocities(uint3 id : SV_DispatchThreadID)
+{
+
+}
+
+[numthreads(8, 8, 1)]
+void IntegrateVelocities(uint3 id : SV_DispatchThreadID)
+{
+
 }

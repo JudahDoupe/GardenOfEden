@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 
 public class EnvironmentDataStore : MonoBehaviour
 {
@@ -24,9 +23,9 @@ public class EnvironmentDataStore : MonoBehaviour
     {
         var format = channels switch
         {
-            1 => GraphicsFormat.R16_SFloat,
-            2 => GraphicsFormat.R16G16_SFloat,
-            _ => GraphicsFormat.R32G32B32A32_SFloat
+            1 => RenderTextureFormat.RFloat,
+            2 => RenderTextureFormat.RGFloat,
+            _ => RenderTextureFormat.ARGBFloat
         };
         return new RenderTexture(512, 512, 4, format, 0).ResetTexture().Initialize();
     }
