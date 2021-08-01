@@ -120,16 +120,18 @@ public class PerspectiveController : MonoBehaviour
                     CameraUtils.TransitionState(targetState, () =>
                         {
                             camera.Enable(targetState);
-                            controls.Enable();
+                            FindObjectOfType<HoverAndClickControl>().Enable();
                         },
                         transitionSpeed: transition.Speed,
                         ease: transition.EaseIn);
+                    FindObjectOfType<MovePlateContol>().Enable();
                     FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
                 })
                 .OnExit(() =>
                 {
                     camera.Disable();
-                    controls.Disable();
+                    FindObjectOfType<HoverAndClickControl>().Disable();
+                    FindObjectOfType<MovePlateContol>().Disable();
                     FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Close());
                 })
                 .Ignore(Trigger.ZoomOut)

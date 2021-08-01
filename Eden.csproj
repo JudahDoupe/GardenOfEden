@@ -94,7 +94,7 @@
     <Compile Include="Assets\Utils\Singleton.cs" />
     <Compile Include="Assets\Utils\DBUtils\ParameterDto.cs" />
     <Compile Include="Assets\Utils\EcsUtils.cs" />
-    <Compile Include="Assets\GamePlay\Controls\PlantSelectionControl.cs" />
+    <Compile Include="Assets\GamePlay\Controls\Common\PlantSelectionControl.cs" />
     <Compile Include="Assets\GamePlay\Cameras\CameraUtils.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\DeadNodeSystem.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\PhotosynthesisSystem.cs" />
@@ -129,7 +129,7 @@
     <Compile Include="Assets\Utils\Ui\GrowOnHover.cs" />
     <Compile Include="Assets\Utils\Extensions\MaterialExtensions.cs" />
     <Compile Include="Assets\Plants\Dna\Gene.cs" />
-    <Compile Include="Assets\GamePlay\Controls\HoverAndClickControl.cs" />
+    <Compile Include="Assets\GamePlay\Controls\Common\HoverAndClickControl.cs" />
     <Compile Include="Assets\Utils\Ui\Rotate.cs" />
     <Compile Include="Assets\Utils\Extensions\EnumExtensions.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\EmbryoDispersalSystem.cs" />
@@ -142,6 +142,8 @@
     <Compile Include="Assets\Environment\Components\PlateTectonics.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Utils\Rendering\Features\BlitMaterialFeature.cs" />
+    <Compile Include="Assets\GamePlay\Controls\MovePlateControl\MovePlateContol.cs" />
+    <Compile Include="Assets\GamePlay\Controls\MovePlateControl\MovePlatePuck.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />

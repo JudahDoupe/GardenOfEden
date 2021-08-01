@@ -67,6 +67,15 @@ public struct Plate
 {
     public int Id;
     public List<PlateNode> Nodes;
+    public float3 Center() 
+    {
+        float3 sum = new float3(0,0,0);
+        foreach(var node in Nodes)
+        {
+            sum += node.Coord.LocalPlanet;
+        }
+        return sum / Nodes.Count();
+    }
 }
 
 public struct PlateNode
