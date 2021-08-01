@@ -99,7 +99,7 @@ public class PlateTectonics
         buffer.SetData(nodeData);
         shader.SetBuffer(kernel, "Nodes", buffer);
         shader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
-        shader.SetTexture(kernel, "ContinentalHeightMap", EnvironmentDataStore.ConntinentalHeightMap);
+        shader.SetTexture(kernel, "ContinentalHeightMap", EnvironmentDataStore.ContinentalHeightMap);
         shader.SetTexture(kernel, "ContinentalVelocityMap", EnvironmentDataStore.ContinentalVelocityMap);
         shader.SetFloat("SeaLevel", Singleton.Water.SeaLevel);
         shader.SetFloat("FaultLineNoise", FaultLineNoise);

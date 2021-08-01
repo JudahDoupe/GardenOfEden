@@ -19,9 +19,11 @@ public class LandService : MonoBehaviour, ILandService
 
     /* Publicly Accessible Methods */
 
+    private bool _showContinents;
+
     public float SampleHeight(Coordinate coord)
     {
-        return EnvironmentDataStore.LandMap.Sample(coord).r + SeaLevel;
+        return EnvironmentDataStore.ContinentalHeightMap.Sample(coord).r;
     }
 
     /* Inner Mechanations */
@@ -31,18 +33,19 @@ public class LandService : MonoBehaviour, ILandService
         Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
 
         Renderer = GetComponent<Renderer>();
-        Renderer.material.SetTexture("HeightMap", EnvironmentDataStore.LandMap);
+        Renderer.material.SetTexture("HeightMap", EnvironmentDataStore.ContinentalHeightMap);
         Renderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000,2000,2000));
 
         PlateTectonics.Regenerate(NumPlates, 1);
     }
 
-    private void UpdateLand()
+    void Update()
     {
-        var updateShader = Resources.Load<ComputeShader>("Shaders/Land");
-        int updateKernel = updateShader.FindKernel("Update");
-        updateShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandMap);
-        updateShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            _showContinents = !_showContinents;
+            Renderer.material.SetFloat("ShowContinents", _showContinents ? 1 : 0);
+        }
     }
 
     public void ProcessDay()
@@ -60,7 +63,6 @@ public class LandService : MonoBehaviour, ILandService
         PlateTectonics.UpdatePlateVelocity();
         PlateTectonics.IntegratePlateVelocity();
 
-        EnvironmentDataStore.ContinentalIdMap.UpdateTextureCache();
-        EnvironmentDataStore.LandMap.UpdateTextureCache();
+        EnvironmentDataStore.ContinentalHeightMap.UpdateTextureCache();
     }
 }

@@ -4,18 +4,16 @@ public class EnvironmentDataStore : MonoBehaviour
 {
     public static RenderTexture WaterSourceMap { get; set; }
     public static RenderTexture WaterMap { get; set; }
-    public static RenderTexture LandMap { get; set; }
     public static RenderTexture ContinentalIdMap { get; set; }
-    public static RenderTexture ConntinentalHeightMap { get; set; }
+    public static RenderTexture ContinentalHeightMap { get; set; }
     public static RenderTexture ContinentalVelocityMap { get; set; }
 
     void Awake()
     {
-        LandMap = NewTexture(4);
         WaterMap = NewTexture(4);
         WaterSourceMap = NewTexture(4);
         ContinentalIdMap = NewTexture(1);
-        ConntinentalHeightMap = NewTexture(1);
+        ContinentalHeightMap = NewTexture(1);
         ContinentalVelocityMap = NewTexture(2);
     }
 

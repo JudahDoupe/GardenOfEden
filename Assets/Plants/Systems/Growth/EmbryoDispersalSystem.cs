@@ -28,7 +28,7 @@ namespace Assets.Scripts.Plants.Growth
             var genericSeed = new System.Random().Next();
             var planet = Planet.Entity;
             var seaLevel = LandService.SeaLevel;
-            var landMaps = EnvironmentDataStore.LandMap.CachedTextures().Select(x => x.GetRawTextureData<Color>()).ToArray();
+            var landMaps = EnvironmentDataStore.ContinentalHeightMap.CachedTextures().Select(x => x.GetRawTextureData<float>()).ToArray();
             var landMaps0 = landMaps[0];
             var landMaps1 = landMaps[1];
             var landMaps2 = landMaps[2];
@@ -65,7 +65,7 @@ namespace Assets.Scripts.Plants.Growth
                         5 => landMaps5,
                         _ => throw new ArgumentOutOfRangeException()
                     };
-                    var height = seaLevel + landMap[coord.NativeArrayId].r;
+                    var height = seaLevel + landMap[coord.NativeArrayId];
                     var distance = math.max(10, (coord.Altitude - height) * 10);
                     
                     coord.Lon += rand.NextFloat(-distance, distance);
@@ -80,7 +80,7 @@ namespace Assets.Scripts.Plants.Growth
                         5 => landMaps5,
                         _ => throw new ArgumentOutOfRangeException()
                     };
-                    coord.Altitude = seaLevel + landMap[coord.NativeArrayId].r;
+                    coord.Altitude = seaLevel + landMap[coord.NativeArrayId];
 
                     ecb.RemoveComponent<WindDispersal>(entityInQueryIndex, entity);
                     ecb.AddComponent<Coordinate>(entityInQueryIndex, entity);

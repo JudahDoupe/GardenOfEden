@@ -1,11 +1,12 @@
 ﻿#pragma kernel Update
 #include "CoordinateTransforms.hlsl"
 
-Texture2DArray<float4> LandMap;
+Texture2DArray<float> LandMap;
 Texture2DArray<float4> WaterSourceMap;
 RWTexture2DArray<float4> WaterMap;
 
 static float MaxHeight = 1000.0f;
+static float SeaLevel = 1000.0f;
 
 static float GridSpacing = TextureWidthInMeters / TextureWidthInPixels;
 static float SimulationSpeed = 1.0f / 50.0f; //speed in time steps per second. 1 = seconds | 50 = steps.  this is the speed of FixedUpdate
@@ -21,7 +22,7 @@ static float Eps = 0.00001f;
 
 float GetTerrainHeight(int3 xyw)
 {
-    return LandMap[xyw].r;
+    return LandMap[xyw].r - SeaLevel;
 }
 float GetWaterSouceDepth(int3 xyw)
 {
