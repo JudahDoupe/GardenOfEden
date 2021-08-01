@@ -1,4 +1,6 @@
 #pragma kernel SetIds
+#pragma kernel SetVelocities
+#pragma kernel IntegrateVelocities
 #include "CoordinateTransforms.hlsl"
 #include "Noise.hlsl"
 
@@ -6,13 +8,14 @@ struct Node
 {
     int Id;
     float3 Position;
-    float3 Velocity;
+    float2 Velocity;
 };
 RWStructuredBuffer<Node> Nodes;
-RWTexture2DArray<float> TectonicsPlateIdMap;
-RWTexture2DArray<float2> TectonicsPlateVelocityMap;
+RWTexture2DArray<float> ContinentalIdMap;
+RWTexture2DArray<float> ContinentalHeightMap;
+RWTexture2DArray<float2> ContinentalVelocityMap;
 float SeaLevel;
-float Noise;
+float FaultLineNoise;
 
 [numthreads(8,8,1)]
 void SetIds (uint3 id : SV_DispatchThreadID)
@@ -22,7 +25,7 @@ void SetIds (uint3 id : SV_DispatchThreadID)
     {
         int3 xyw = int3(id.xy, w);
         float3 xyz = xyw_to_xyz(xyw, SeaLevel);
-        xyz = xyz + noise3d(xyz, Noise);
+        xyz = xyz + noise3d(xyz, FaultLineNoise);
         int minId = -1;
         float minDist = 100002.0f;
         float dist = 0.0f;
@@ -34,18 +37,41 @@ void SetIds (uint3 id : SV_DispatchThreadID)
                 minId = Nodes[i].Id;
             }
         }
-        TectonicsPlateIdMap[xyw] = minId;
+        ContinentalIdMap[xyw] = minId;
     }
 }
 
 [numthreads(8, 8, 1)]
 void SetVelocities(uint3 id : SV_DispatchThreadID)
 {
+    [unroll]
+    for (int w = 0; w < 6; w++)
+    {
+        int3 xyw = int3(id.xy, w);
+        int plateId = round(ContinentalIdMap[xyw].r);
+        float2 velocity = float2(0, 0);
+        for (uint i = 0; i < (int)Nodes.Length; i++)
+        {
+            if (plateId == Nodes[i].Id) 
+            {
+                int nodeW = round(xyz_to_uvw(Nodes[i].Position).z);
+                velocity = Nodes[i].Velocity;
+                int rotations = get_src_rotations(nodeW, w);
+                velocity = rotate_clockwise(velocity, rotations);
 
+            }
+        }
+        
+        ContinentalVelocityMap[xyw] = velocity;
+    }
 }
 
 [numthreads(8, 8, 1)]
 void IntegrateVelocities(uint3 id : SV_DispatchThreadID)
 {
+    [unroll]
+    for (int w = 0; w < 6; w++)
+    {
 
+    }
 }

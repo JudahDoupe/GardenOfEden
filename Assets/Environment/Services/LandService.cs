@@ -60,7 +60,7 @@ public class LandService : MonoBehaviour, ILandService
         PlateTectonics.UpdatePlateVelocity();
         PlateTectonics.IntegratePlateVelocity();
 
-        EnvironmentDataStore.TectonicPlateIdMap.UpdateTextureCache();
+        EnvironmentDataStore.ContinentalIdMap.UpdateTextureCache();
         EnvironmentDataStore.LandMap.UpdateTextureCache();
     }
 }

@@ -64,6 +64,20 @@ public struct Coordinate : IComponentData
             return xy.y * TextureWidthInPixels + xy.x;
         }
     }
+    public int2 TextureXy(int w)
+    {
+        return math.int2(math.floor((TextureUv(w) - 0.00001f) * TextureWidthInPixels));
+    }
+    public float2 TextureUv(int w)
+    {
+        Vector3 v = _localPlanetCoord.ToVector3().normalized;
+        float2 uv = new float2(w < 2 ? v.y : v.x, w >= 4 ? v.y : v.z);
+        uv /= v[w / 2];
+        uv *= (TextureWidthInPixels - 2.0f) / TextureWidthInPixels;
+        uv = uv * 0.5f + new float2(0.5f, 0.5f);
+        return uv;
+    }
+
 
     public Coordinate(float3 localPlanetPosition)
     {

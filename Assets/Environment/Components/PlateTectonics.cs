@@ -33,27 +33,15 @@ public class PlateTectonics
             Plates.Add(plate);
         }
 
-        LandService.Renderer.material.SetTexture("TectonicPlateIdMap", EnvironmentDataStore.TectonicPlateIdMap);
+        LandService.Renderer.material.SetTexture("TectonicPlateIdMap", EnvironmentDataStore.ContinentalIdMap);
         LandService.Renderer.material.SetInt("NumTectonicPlates", numPlates);
     }
     
     public static void UpdatePlateIdMap()
     {
         var tectonicsShader = Resources.Load<ComputeShader>("Shaders/Tectonics");
-        int idsKernel = tectonicsShader.FindKernel("SetIds");
-        var nodes = Plates.SelectMany(p => p.Nodes.Select(n => new PlateNodeData 
-        {
-            Id = p.Id,
-            Position = n.Coord.LocalPlanet,
-            Velocity = n.Velocity 
-        })).ToArray();
-        using var buffer = new ComputeBuffer(nodes.Length, Marshal.SizeOf(typeof(PlateNodeData)));
-        buffer.SetData(nodes);
-        tectonicsShader.SetBuffer(idsKernel, "Nodes", buffer);
-        tectonicsShader.SetTexture(idsKernel, "TectonicsPlateIdMap", EnvironmentDataStore.TectonicPlateIdMap);
-        tectonicsShader.SetFloat("SeaLevel", Singleton.Water.SeaLevel);
-        tectonicsShader.SetFloat("Noise", FaultLineNoise);
-        tectonicsShader.Dispatch(idsKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
+        int kernel = tectonicsShader.FindKernel("SetIds");
+        RunTectonicKernel(tectonicsShader, kernel);
     }
     public static void UpdatePlateVelocity()
     {
@@ -62,9 +50,17 @@ public class PlateTectonics
         {
             node.Velocity = Vector3.Lerp(node.Velocity, CalculateDriftVelocity(node), Dampening);
         }
+
+        var tectonicsShader = Resources.Load<ComputeShader>("Shaders/Tectonics");
+        int kernel = tectonicsShader.FindKernel("SetVelocities");
+        RunTectonicKernel(tectonicsShader, kernel);
     }
     public static void IntegratePlateVelocity()
     {
+        var tectonicsShader = Resources.Load<ComputeShader>("Shaders/Tectonics");
+        int kernel = tectonicsShader.FindKernel("IntegrateVelocities");
+        RunTectonicKernel(tectonicsShader, kernel);
+
         var nodes = Plates.SelectMany(x => x.Nodes);
         foreach (var node in nodes)
         {
@@ -91,12 +87,30 @@ public class PlateTectonics
         driftCoord.Altitude = Singleton.Water.SeaLevel;
         return (driftCoord.LocalPlanet - node.Coord.LocalPlanet) * DriftSpeed;
     }
+    private static void RunTectonicKernel(ComputeShader shader, int kernel)
+    {
+        var nodeData = Plates.SelectMany(p => p.Nodes.Select(n => new PlateNodeData
+            {
+                Id = p.Id,
+                Position = n.Coord.LocalPlanet,
+                Velocity = (new Coordinate(n.Coord.LocalPlanet + n.Velocity).TextureUv(n.Coord.TextureW) - n.Coord.TextureUvw.xy) * Coordinate.TextureWidthInPixels
+            })).ToArray();
+        using var buffer = new ComputeBuffer(nodeData.Length, Marshal.SizeOf(typeof(PlateNodeData)));
+        buffer.SetData(nodeData);
+        shader.SetBuffer(kernel, "Nodes", buffer);
+        shader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
+        shader.SetTexture(kernel, "ContinentalHeightMap", EnvironmentDataStore.ConntinentalHeightMap);
+        shader.SetTexture(kernel, "ContinentalVelocityMap", EnvironmentDataStore.ContinentalVelocityMap);
+        shader.SetFloat("SeaLevel", Singleton.Water.SeaLevel);
+        shader.SetFloat("FaultLineNoise", FaultLineNoise);
+        shader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
+    }
 
     private struct PlateNodeData
     {
         public int Id;
         public float3 Position;
-        public float3 Velocity;
+        public float2 Velocity;
     }
 }
 
