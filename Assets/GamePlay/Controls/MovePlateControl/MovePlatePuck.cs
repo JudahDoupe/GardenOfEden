@@ -1,32 +1,44 @@
 using Assets.Scripts.Utils;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class MovePlatePuck : MonoBehaviour
 {
+    public float MaxVelocity = 5;
+    public float MovementMultiplier = 10;
+    public float LerpSpeed = 1;
     public Renderer Model;
     public GameObject Puck;
+    public int PlateId;
 
     private float _lastHovering;
     private bool _dragging;
+    private Vector3 _puckLocalPosition;
 
     void LateUpdate()
     {
-        if (_lastHovering < (Time.time - Time.deltaTime))
+        if (Input.GetKeyUp(KeyCode.Mouse0))
+        {
+            _dragging = false;
+            _puckLocalPosition = Vector3.zero;
+        }
+
+        if (!_dragging && _lastHovering < (Time.time - Time.deltaTime))
         {
             CameraUtils.SetOutline(Model.gameObject, false);
         }
-        if (Input.GetMouseButtonUp(1))
-        {
-            _dragging = false;
-        }
+
         if (_dragging)
         {
             Drag();
         }
+
+        Puck.transform.localPosition = Vector3.Lerp(Puck.transform.localPosition, _puckLocalPosition, Time.deltaTime * LerpSpeed);
     }
 
     public void Click()
     {
+        Debug.Log("Click");
         _dragging = true;
     }
 
@@ -38,7 +50,18 @@ public class MovePlatePuck : MonoBehaviour
 
     public void Drag()
     {
+        Debug.Log("Drag");
+        var screenPos = Input.mousePosition;
+        screenPos.z = Vector3.Distance(Camera.main.transform.position, transform.position);
+        var target = Camera.main.ScreenToWorldPoint(screenPos);
+        var vector = target - transform.position;
+        var movement = vector.normalized * math.min(vector.magnitude, MaxVelocity * MovementMultiplier);
+        var velocity = movement / MovementMultiplier;
+        var coord = new Coordinate(transform.position + movement, Planet.LocalToWorld);
+        coord.Altitude = math.max(Singleton.Land.SampleHeight(coord), Singleton.Water.SampleHeight(coord)) + 10;
 
+        _puckLocalPosition = transform.InverseTransformPoint(coord.Global(Planet.LocalToWorld));
+        PlateTectonics.Plates[PlateId].Nodes.ForEach(x => x.Velocity = velocity);
     }
 
 

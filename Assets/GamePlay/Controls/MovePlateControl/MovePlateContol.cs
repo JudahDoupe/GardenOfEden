@@ -43,6 +43,7 @@ public class MovePlateContol : MonoBehaviour
             {
                 control = Instantiate(Prefab).GetComponent<MovePlatePuck>();
                 control.transform.parent = Planet.Transform;
+                control.PlateId = plate.Id;
                 control.Open();
                 _controls.Add(plate.Id, control);
             }
