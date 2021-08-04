@@ -10,7 +10,9 @@ public interface ILandService
 public class LandService : MonoBehaviour, ILandService
 {
     public int NumPlates = 5;
+    [Range(0, 1)]
     public float FaultLineNoise = 0;
+    [Range(0, 1)]
     public float PlateDriftSpeed = 1;
     [Range(0, 1)]
     public float PlateVelocityDampening = 0.5f;
@@ -56,8 +58,8 @@ public class LandService : MonoBehaviour, ILandService
         }
 
         PlateTectonics.FaultLineNoise = FaultLineNoise;
-        PlateTectonics.DriftSpeed = PlateDriftSpeed;
-        PlateTectonics.Dampening = PlateVelocityDampening;
+        PlateTectonics.DriftSpeed = PlateDriftSpeed / 100;
+        PlateTectonics.Dampening = PlateVelocityDampening / 10;
 
         PlateTectonics.UpdatePlateIdMap();
         PlateTectonics.UpdatePlateVelocity();
