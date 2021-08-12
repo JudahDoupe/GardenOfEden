@@ -15,7 +15,7 @@ RWTexture2DArray<float> ContinentalIdMap;
 RWTexture2DArray<float> ContinentalHeightMap;
 RWTexture2DArray<float2> ContinentalVelocityMap;
 float SeaLevel = 1000.0;
-float FaultLineNoise = 0.5f;
+float FaultLineNoise = 0.25f;
 
 static float GridSpacing = TextureWidthInMeters / TextureWidthInPixels;
 static float OceanFloorAltitude = 900.0f;

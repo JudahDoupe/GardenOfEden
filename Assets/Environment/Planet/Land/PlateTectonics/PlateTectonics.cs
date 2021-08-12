@@ -7,13 +7,13 @@ using System.Runtime.InteropServices;
 
 public class PlateTectonics : MonoBehaviour
 {
-    public int NumPlates = 5;
-    [Range(0, 1)]
-    public float FaultLineNoise = 0.5f;
-    [Range(0, 1)]
-    public float PlateDriftSpeed = 1;
-    [Range(0, 1)]
-    public float PlateVelocityDampening = 0.5f;
+    public int NumPlates = 50;
+    [Range(0.0001f, 1)]
+    public float FaultLineNoise = 0.25f;
+    [Range(0, 0.01f)]
+    public float PlateDriftSpeed = 0.001f;
+    [Range(0, 0.1f)]
+    public float PlateVelocityDampening = 0.08f;
 
     public List<Plate> Plates = new List<Plate>();
     public ComputeShader TectonicsShader;
@@ -104,7 +104,7 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetTexture(kernel, "ContinentalHeightMap", EnvironmentDataStore.ContinentalHeightMap);
         TectonicsShader.SetTexture(kernel, "ContinentalVelocityMap", EnvironmentDataStore.ContinentalVelocityMap);
         TectonicsShader.SetFloat("SeaLevel", Singleton.Water.SeaLevel);
-        TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise);
+        TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise * 100);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
     private float3 CalculateDriftVelocity(PlateNode node)
