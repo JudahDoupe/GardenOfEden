@@ -37,7 +37,7 @@ public class MovePlateContol : MonoBehaviour
 
     private void UpdateContols()
     {
-        foreach (var plate in PlateTectonics.Plates)
+        foreach (var plate in Singleton.PlateTectonics.Plates)
         {
             if (!_controls.TryGetValue(plate.Id, out var control))
             {
@@ -52,7 +52,7 @@ public class MovePlateContol : MonoBehaviour
             control.transform.localPosition = coord.LocalPlanet;
             control.transform.localRotation = Quaternion.LookRotation(control.transform.localPosition.normalized, Vector3.up);
         }
-        foreach (var id in _controls.Keys.Where(x => !PlateTectonics.Plates.Select(p => p.Id).Contains(x)))
+        foreach (var id in _controls.Keys.Where(x => !Singleton.PlateTectonics.Plates.Select(p => p.Id).Contains(x)))
         {
             Destroy(_controls[id].gameObject);
             _controls.Remove(id);

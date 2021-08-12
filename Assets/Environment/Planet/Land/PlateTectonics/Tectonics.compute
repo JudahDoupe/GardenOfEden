@@ -1,8 +1,8 @@
 #pragma kernel SetIds
 #pragma kernel SetVelocities
 #pragma kernel IntegrateVelocities
-#include "CoordinateTransforms.hlsl"
-#include "Noise.hlsl"
+#include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
+#include "../../../../Resources/Shaders/Noise.hlsl"
 
 struct Node
 {
@@ -14,8 +14,8 @@ RWStructuredBuffer<Node> Nodes;
 RWTexture2DArray<float> ContinentalIdMap;
 RWTexture2DArray<float> ContinentalHeightMap;
 RWTexture2DArray<float2> ContinentalVelocityMap;
-float SeaLevel;
-float FaultLineNoise;
+float SeaLevel = 1000.0;
+float FaultLineNoise = 0.5f;
 
 static float GridSpacing = TextureWidthInMeters / TextureWidthInPixels;
 static float OceanFloorAltitude = 900.0f;

@@ -65,7 +65,7 @@ namespace Assets.Scripts.Plants.Growth
                         5 => landMaps5,
                         _ => throw new ArgumentOutOfRangeException()
                     };
-                    var height = seaLevel + landMap[coord.NativeArrayId];
+                    var height = landMap[coord.NativeArrayId];
                     var distance = math.max(10, (coord.Altitude - height) * 10);
                     
                     coord.Lon += rand.NextFloat(-distance, distance);
@@ -80,7 +80,7 @@ namespace Assets.Scripts.Plants.Growth
                         5 => landMaps5,
                         _ => throw new ArgumentOutOfRangeException()
                     };
-                    coord.Altitude = seaLevel + landMap[coord.NativeArrayId];
+                    coord.Altitude = landMap[coord.NativeArrayId];
 
                     ecb.RemoveComponent<WindDispersal>(entityInQueryIndex, entity);
                     ecb.AddComponent<Coordinate>(entityInQueryIndex, entity);
