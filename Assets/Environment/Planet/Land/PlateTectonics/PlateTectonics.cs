@@ -10,10 +10,10 @@ public class PlateTectonics : MonoBehaviour
     public int NumPlates = 50;
     [Range(0.0001f, 1)]
     public float FaultLineNoise = 0.25f;
-    [Range(0, 0.01f)]
+    [Range(0, 20f)]
     public float PlateDriftSpeed = 0.001f;
-    [Range(0, 0.1f)]
-    public float PlateVelocityDampening = 0.08f;
+    [Range(0, 1f)]
+    public float PlateInertia = 0.9f;
 
     public List<Plate> Plates = new List<Plate>();
     public ComputeShader TectonicsShader;
@@ -72,7 +72,19 @@ public class PlateTectonics : MonoBehaviour
         var nodes = Plates.SelectMany(x => x.Nodes);
         foreach (var node in nodes)
         {
-            node.Velocity = Vector3.Lerp(node.Velocity, CalculateDriftVelocity(node), PlateVelocityDampening);
+            Vector3 drift = Vector3.zero;
+            foreach (var otherNode in nodes)
+            {
+                var vector = (node.Coord.LocalPlanet - otherNode.Coord.LocalPlanet).ToVector3();
+                var direction = vector.normalized;
+                var distance = vector.magnitude;
+                var magnitude = math.pow(1 - distance / (2 * Coordinate.PlanetRadius), 2);
+                drift += direction * magnitude;
+            }
+            drift /= nodes.Count();
+            drift *= PlateDriftSpeed;
+
+            node.Velocity = Vector3.Lerp(node.Velocity, drift, 1-PlateInertia);
         }
 
         RunTectonicKernel("SetVelocities");
@@ -106,24 +118,6 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetFloat("SeaLevel", Singleton.Water.SeaLevel);
         TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise * 100);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
-    }
-    private float3 CalculateDriftVelocity(PlateNode node)
-    {
-        var nodes = Plates.SelectMany(x => x.Nodes);
-        Vector3 drift = Vector3.zero;
-        foreach (var otherNode in nodes)
-        {
-            var vector = (node.Coord.LocalPlanet - otherNode.Coord.LocalPlanet).ToVector3();
-            var direction = vector.normalized;
-            var distance = vector.magnitude;
-            var magnitude = 1 - math.pow(distance / Singleton.Water.SeaLevel, 3);
-            drift += direction * magnitude;
-        }
-        drift /= nodes.Count();
-        drift *= PlateDriftSpeed;
-        var driftCoord = new Coordinate(drift.ToFloat3());
-        driftCoord.Altitude = Singleton.Water.SeaLevel;
-        return (driftCoord.LocalPlanet - node.Coord.LocalPlanet) * PlateDriftSpeed;
     }
 
     private struct PlateNodeData
