@@ -14,6 +14,8 @@ public class PlateTectonics : MonoBehaviour
     public float PlateDriftSpeed = 0.001f;
     [Range(0, 1f)]
     public float PlateInertia = 0.9f;
+    [Range(500, 1000)]
+    public float OceanFloorAltitude = 900;
 
     public List<Plate> Plates = new List<Plate>();
     public ComputeShader TectonicsShader;
@@ -117,6 +119,7 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetTexture(kernel, "ContinentalVelocityMap", EnvironmentDataStore.ContinentalVelocityMap);
         TectonicsShader.SetFloat("SeaLevel", Singleton.Water.SeaLevel);
         TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise * 100);
+        TectonicsShader.SetFloat("OceanFloorAltitude", OceanFloorAltitude);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 

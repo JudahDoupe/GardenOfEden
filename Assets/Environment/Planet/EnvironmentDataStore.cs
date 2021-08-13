@@ -25,6 +25,6 @@ public class EnvironmentDataStore : MonoBehaviour
             2 => RenderTextureFormat.RGFloat,
             _ => RenderTextureFormat.ARGBFloat
         };
-        return new RenderTexture(512, 512, 4, format, 0).ResetTexture().Initialize();
+        return new RenderTexture(512, 512, 0, format, 0).ResetTexture().Initialize();
     }
 }

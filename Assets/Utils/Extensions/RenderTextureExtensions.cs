@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 public static class RenderTextureExtensions
@@ -109,6 +110,20 @@ public static class RenderTextureExtensions
         cs.SetFloats("Values", r, g, b, a);
         cs.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
 
+        return tex;
+    }
+    public static RenderTexture Initialize(this RenderTexture tex, Color[][] colors)
+    {
+        var texture = new Texture2D(colors.Length, colors[0].Length, tex.graphicsFormat, TextureCreationFlags.None);
+        for (int x = 0; x < texture.width * .2f; x++) 
+        {
+            for (int y = 0; y < texture.height; y++)
+            {
+                texture.SetPixel(x, y, colors[x][y]);
+            } 
+        }
+        texture.Apply();
+        Graphics.Blit(texture, tex);
         return tex;
     }
     public static RenderTexture InitializeRandom(this RenderTexture tex, float seed, float min = -500, float max = 500)

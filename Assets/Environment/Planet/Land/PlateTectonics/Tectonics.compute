@@ -16,9 +16,9 @@ RWTexture2DArray<float> ContinentalHeightMap;
 RWTexture2DArray<float2> ContinentalVelocityMap;
 float SeaLevel = 1000.0;
 float FaultLineNoise = 0.25f;
+float OceanFloorAltitude = 900.0f;
 
 static float GridSpacing = TextureWidthInMeters / TextureWidthInPixels;
-static float OceanFloorAltitude = 900.0f;
 
 float MaxAmplitude = 2.0f;
 float MaxVelocity = 2.0f;
