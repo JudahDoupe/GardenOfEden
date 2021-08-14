@@ -42,7 +42,6 @@ public class PerspectiveController : MonoBehaviour
     public void Pause() => _stateMachine.Fire(Trigger.Pause);
     public void Unpause() 
     {
-        _isGeologyUnlocked = true; 
         _stateMachine.Fire(Trigger.Unpause); 
     }
     public void Circle(Entity e)
@@ -62,7 +61,6 @@ public class PerspectiveController : MonoBehaviour
     private Entity _focusedEntity;
 
     //TODO: Move to a perminant datastructure tied to the planet
-    private bool _isGeologyUnlocked;
     private bool _isBotanyUnlocked;
 
     private void Start()

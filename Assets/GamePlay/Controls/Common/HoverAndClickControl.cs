@@ -17,7 +17,7 @@ public class HoverAndClickControl : MonoBehaviour
             hit.transform.gameObject.SendMessage("Hover", SendMessageOptions.DontRequireReceiver);
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
-                hit.transform.gameObject.SendMessage("Click");
+                hit.transform.gameObject.SendMessage("Click", SendMessageOptions.DontRequireReceiver);
             }
         }
     }

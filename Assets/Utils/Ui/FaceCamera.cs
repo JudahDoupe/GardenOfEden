@@ -25,18 +25,21 @@ public class FaceCamera : MonoBehaviour
             SpaceType.Camera => Camera.main.transform.up,
             SpaceType.World => Vector3.up,
             SpaceType.Object => transform.parent.up,
+            _ => throw new NotImplementedException(),
         };
         Vector3 right = Space switch
         {
             SpaceType.Camera => Camera.main.transform.right,
             SpaceType.World => Vector3.right,
             SpaceType.Object => transform.parent.right,
+            _ => throw new NotImplementedException(),
         };
         Vector3 forward = Space switch
         {
             SpaceType.Camera => Camera.main.transform.forward,
             SpaceType.World => Vector3.forward,
             SpaceType.Object => transform.parent.forward,
+            _ => throw new NotImplementedException(),
         };
 
         var dir = transform.position - Camera.main.transform.position;

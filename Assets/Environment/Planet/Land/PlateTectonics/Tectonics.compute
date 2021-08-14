@@ -18,8 +18,6 @@ float SeaLevel = 1000.0;
 float FaultLineNoise = 0.25f;
 float OceanFloorAltitude = 900.0f;
 
-static float GridSpacing = TextureWidthInMeters / TextureWidthInPixels;
-
 float MaxAmplitude = 2.0f;
 float MaxVelocity = 2.0f;
 
@@ -27,15 +25,15 @@ float MaxVelocity = 2.0f;
 void SetIds (uint3 id : SV_DispatchThreadID)
 {
     [unroll]
-    for (int w = 0; w < 6; w++) 
+    for (uint w = 0; w < 6; w++) 
     {
-        int3 xyw = int3(id.xy, w);
+        uint3 xyw = uint3(id.xy, w);
         float3 xyz = xyw_to_xyz(xyw, SeaLevel);
         xyz = xyz + noise3d(xyz, FaultLineNoise);
         int minId = -1;
         float minDist = 100002.0f;
         float dist = 0.0f;
-        for (uint i = 0; i < (int)Nodes.Length; i++)
+        for (uint i = 0; i < (uint)Nodes.Length; i++)
         {
             dist = distance(Nodes[i].Position, xyz);
             if (dist < minDist) {
@@ -53,10 +51,10 @@ void SetVelocities(uint3 id : SV_DispatchThreadID)
     [unroll]
     for (int w = 0; w < 6; w++)
     {
-        int3 xyw = int3(id.xy, w);
+        uint3 xyw = uint3(id.xy, w);
         int plateId = round(ContinentalIdMap[xyw].r);
         float2 velocity = float2(0, 0);
-        for (uint i = 0; i < (int)Nodes.Length; i++)
+        for (uint i = 0; i < (uint)Nodes.Length; i++)
         {
             if (plateId == Nodes[i].Id) 
             {
@@ -72,65 +70,31 @@ void SetVelocities(uint3 id : SV_DispatchThreadID)
     }
 }
 
-
-float GetVelocityFace(int3 xyw, int3 offset)
-{
-    if (offset.x == 1) { return ContinentalVelocityMap[xyw].x; }
-    else if (offset.y == 1) { return ContinentalVelocityMap[xyw].y; }
-    else if (offset.x == -1) { return ContinentalVelocityMap[xyw + offset].x; }
-    else if (offset.y == -1) { return ContinentalVelocityMap[xyw + offset].y; }
-    else { return 0; }
-}
-float UpwindHeight(int3 xyw, int3 offset)
-{
-    int dir = dot(offset.xy, int2(1, 1));
-    if (GetVelocityFace(xyw, offset) * dir <= 0)
-        return ContinentalHeightMap[xyw + offset];
-    else
-        return ContinentalHeightMap[xyw];
-}
-float StabilizedUpwindHeight(int3 xyw, int3 offset)
-{
-    float averageUpwind = (UpwindHeight(xyw, int3(1, 0, 0)) +
-        UpwindHeight(xyw, int3(0, 1, 0)) +
-        UpwindHeight(xyw, int3(-1, 0, 0)) +
-        UpwindHeight(xyw, int3(0, -1, 0))) / 4;
-    float adjacentHeight = max(0, (averageUpwind));
-    return UpwindHeight(xyw, offset) - adjacentHeight;
-}
-float Runoff(int3 xyw, int3 offset)
-{
-    return StabilizedUpwindHeight(xyw, offset) * GetVelocityFace(xyw, offset);
-}
-float GetChangeInHeight(int3 xyw)
-{
-    float xRunoff = (Runoff(xyw, int3(1, 0, 0)) - Runoff(xyw, int3(-1, 0, 0))) / GridSpacing;
-    float yRunoff = (Runoff(xyw, int3(0, 1, 0)) - Runoff(xyw, int3(0, -1, 0))) / GridSpacing;
-
-    return -(xRunoff + yRunoff);
-}
-
 [numthreads(8, 8, 1)]
 void IntegrateVelocities(uint3 id : SV_DispatchThreadID)
 {
     [unroll]
-    for (int i = 0; i < 6; ++i)
+    for (uint i = 0; i < 6; ++i)
     {
-        int3 xyw = int3(id.xy, i);
+        uint3 xyw = uint3(id.xy, i);
+        float2 p1 = float2(xyw.xy);
+        float height = 0;
 
-        ContinentalHeightMap[xyw] = max(ContinentalHeightMap[xyw] + GetChangeInHeight(xyw), OceanFloorAltitude);
-    }
-
-    AllMemoryBarrierWithGroupSync();
-
-    [unroll]
-    for (int i = 0; i < 6; ++i)
-    {
-        if (is_boundry_pixel(id.xy))
+        [unroll]
+        for (int x = -1; x < 1; ++x)
         {
-            int3 dst_xyw = int3(id.xy, i);
-            int3 src_xyw = get_source_xyw(dst_xyw);
-            ContinentalHeightMap[dst_xyw] = ContinentalHeightMap[src_xyw];
+            [unroll]
+            for (int y = -1; y <= 1; ++y)
+            {
+                int3 sampleXyw = int3(xyw.x + x, xyw.y + y, i);
+                float sampleHeight = ContinentalHeightMap[sampleXyw];
+                float2 sampleVelocity = ContinentalVelocityMap[sampleXyw];
+                float2 p2 = float2(float2(sampleXyw.xy) + sampleVelocity);
+
+                height += max(0, 1 - distance(p1, p2)) * sampleHeight;
+            }
         }
+
+        ContinentalHeightMap[xyw] = max(height, OceanFloorAltitude);
     }
 }
