@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -114,13 +115,10 @@ public static class RenderTextureExtensions
     }
     public static RenderTexture Initialize(this RenderTexture tex, Color[][] colors)
     {
-        var texture = new Texture2D(colors.Length, colors[0].Length, tex.graphicsFormat, TextureCreationFlags.None);
-        for (int x = 0; x < texture.width * .2f; x++) 
+        var texture = new Texture2DArray(colors.Length, colors[0].Length, 6, tex.graphicsFormat, TextureCreationFlags.None);
+        for (int w = 0; w < 6; w++)
         {
-            for (int y = 0; y < texture.height; y++)
-            {
-                texture.SetPixel(x, y, colors[x][y]);
-            } 
+            texture.SetPixels(colors.SelectMany(x => x).ToArray(), w);
         }
         texture.Apply();
         Graphics.Blit(texture, tex);

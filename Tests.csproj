@@ -78,10 +78,12 @@
     <Compile Include="Assets\Tests\Systems\EmbryoDispersalSystemTests.cs" />
     <Compile Include="Assets\Tests\Gpu\PlateTectonicsTests.cs" />
     <Compile Include="Assets\Tests\TestUtils\CSVReader.cs" />
+    <Compile Include="Assets\Tests\TestUtils\Tstring.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Tests\Gpu\TestCases\tectonics_velocity_integration_3.csv" />
+    <None Include="Assets\Tests\Gpu\TestCases\tectonics_velocity_integration_2.csv" />
     <None Include="Assets\Tests\Gpu\TestCases\tectonics_velocity_integration_1.csv" />
-    <None Include="Assets\Tests\Gpu\TestCases\tectonics_velocity_integration_1.csv.meta" />
     <None Include="Assets\Tests\Tests.asmdef" />
   </ItemGroup>
   <ItemGroup>
