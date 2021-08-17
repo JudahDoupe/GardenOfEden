@@ -23,7 +23,7 @@ namespace Tests
         [Test]
         public void TestTextureSampling()
         {
-            var texture = new RenderTexture(512, 512, 0, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture().InitializeXyw();
+            var texture = new RenderTexture(512, 512, 0, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture(6).InitializeXyw();
             Prop.ForAll(GenCroppedUvw().ToArbitrary(), uvw =>
             {
                 TestHeightSample(uvw, 0.001f, texture);
@@ -51,7 +51,7 @@ namespace Tests
         [TestCase(0.00048828125f, 0.00048828125f)]
         public void TestTextureSamplingExpliciate(float u, float v)
         {
-            var texture = new RenderTexture(512, 512, 0, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture().InitializeXyw();
+            var texture = new RenderTexture(512, 512, 0, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture(6).InitializeXyw();
             for(var i = 0; i < 6; i++)
             {
                 var uvw = new float3(u, v, 3);

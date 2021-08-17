@@ -13,8 +13,8 @@ namespace Tests
         public void VelocityIntegrationTests([Values(1,2,3)] int caseNumer)
         {
             var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Environment/Planet/Land/PlateTectonics/Tectonics.compute");
-            var continentalHeightMap = new RenderTexture(4, 4, 0, RenderTextureFormat.RFloat, 0).ResetTexture().Initialize();
-            var continentalVelocityMap = new RenderTexture(4, 4, 0, RenderTextureFormat.RGFloat, 0).ResetTexture().Initialize();
+            var continentalHeightMap = new RenderTexture(4, 4, 0, RenderTextureFormat.RFloat, 0).ResetTexture(6).Initialize();
+            var continentalVelocityMap = new RenderTexture(4, 4, 0, RenderTextureFormat.RGFloat, 0).ResetTexture(6).Initialize();
 
             var textures = CSVReader.ReadTextures(@$"Assets\Tests\Gpu\TestCases\tectonics_velocity_integration_{caseNumer}.csv");
             continentalHeightMap.Initialize(textures[0]);

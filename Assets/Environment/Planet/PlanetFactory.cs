@@ -26,7 +26,7 @@ public class PlanetFactory : MonoBehaviour
     {
         ComputeShader cs = (ComputeShader)Resources.Load("Shaders/TerrainGenerator");
         var kernelId = cs.FindKernel("Generate");
-        cs.SetTexture(kernelId, "LandMap", EnvironmentDataStore.ContinentalHeightMap);
+        cs.SetTexture(kernelId, "LandMap", EnvironmentDataStore.LandHeightMap);
         cs.SetTexture(kernelId, "WaterMap", EnvironmentDataStore.WaterMap);
         cs.SetFloat("Seed", Random.value);
         cs.SetFloat("Min", MountainHeight);

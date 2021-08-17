@@ -18,7 +18,7 @@ public class LandService : MonoBehaviour, ILandService
 
     public float SampleHeight(Coordinate coord)
     {
-        return EnvironmentDataStore.ContinentalHeightMap.Sample(coord).r;
+        return EnvironmentDataStore.LandHeightMap.Sample(coord).r;
     }
 
     /* Inner Mechanations */
@@ -28,7 +28,7 @@ public class LandService : MonoBehaviour, ILandService
         Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
 
         Renderer = GetComponent<Renderer>();
-        Renderer.material.SetTexture("HeightMap", EnvironmentDataStore.ContinentalHeightMap);
+        Renderer.material.SetTexture("HeightMap", EnvironmentDataStore.LandHeightMap);
         Renderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000,2000,2000));
     }
 
@@ -43,6 +43,6 @@ public class LandService : MonoBehaviour, ILandService
 
     public void ProcessDay()
     {
-        EnvironmentDataStore.ContinentalHeightMap.UpdateTextureCache();
+        EnvironmentDataStore.LandHeightMap.UpdateTextureCache();
     }
 }

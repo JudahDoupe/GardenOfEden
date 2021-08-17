@@ -47,7 +47,7 @@ public class MovePlateContol : MonoBehaviour
                 control.Open();
                 _controls.Add(plate.Id, control);
             }
-            var coord = new Coordinate(plate.Center());
+            var coord = new Coordinate(plate.Center);
             coord.Altitude = math.max(Singleton.Land.SampleHeight(coord), Singleton.Water.SampleHeight(coord)) + 10;
             control.transform.localPosition = coord.LocalPlanet;
             control.transform.localRotation = Quaternion.LookRotation(control.transform.localPosition.normalized, Vector3.up);

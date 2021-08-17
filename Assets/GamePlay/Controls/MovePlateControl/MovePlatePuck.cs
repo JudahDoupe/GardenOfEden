@@ -61,7 +61,8 @@ public class MovePlatePuck : MonoBehaviour
         _puckLocalPosition = transform.InverseTransformPoint(newCoord.Global(Planet.LocalToWorld));
         var velocity = (newCoord.LocalPlanet - oldCoord.LocalPlanet) / MovementMultiplier;
 
-        Singleton.PlateTectonics.Plates[PlateId].Nodes.ForEach(x => x.Velocity = velocity);
+        //TODO: apply rotation
+        //Singleton.PlateTectonics.Plates[PlateId].Nodes.ForEach(x => x.Velocity = velocity);
     }
 
 

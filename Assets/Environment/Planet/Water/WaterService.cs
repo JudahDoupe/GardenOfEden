@@ -65,7 +65,7 @@ public class WaterService : MonoBehaviour
     private void UpdateWaterTable()
     {
         int updateKernel = WaterShader.FindKernel("Update");
-        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.ContinentalHeightMap);
+        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandHeightMap);
         WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentDataStore.WaterMap);
         WaterShader.SetTexture(updateKernel, "WaterSourceMap", EnvironmentDataStore.WaterSourceMap);
         WaterShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);

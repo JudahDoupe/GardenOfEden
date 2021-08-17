@@ -90,11 +90,11 @@ public static class RenderTextureExtensions
         }
     }
 
-    public static RenderTexture ResetTexture(this RenderTexture tex)
+    public static RenderTexture ResetTexture(this RenderTexture tex, int layers)
     {
         tex.Release(); 
         tex.dimension = TextureDimension.Tex2DArray;
-        tex.volumeDepth = 6;
+        tex.volumeDepth = layers;
         tex.wrapMode = TextureWrapMode.Clamp;
         tex.filterMode = FilterMode.Trilinear;
         tex.enableRandomWrite = true;

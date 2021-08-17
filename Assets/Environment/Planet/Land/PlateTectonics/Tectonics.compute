@@ -1,100 +1,56 @@
-#pragma kernel SetIds
-#pragma kernel SetVelocities
-#pragma kernel IntegrateVelocities
+#pragma kernel UpdateHeightMap
+#pragma kernel UpdateContinentalIdMap
+
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
 #include "../../../../Resources/Shaders/Noise.hlsl"
 
-struct Node
-{
-    int Id;
-    float3 Position;
-    float2 Velocity;
-};
-RWStructuredBuffer<Node> Nodes;
 RWTexture2DArray<float> ContinentalIdMap;
-RWTexture2DArray<float> ContinentalHeightMap;
-RWTexture2DArray<float2> ContinentalVelocityMap;
-float SeaLevel = 1000.0;
-float FaultLineNoise = 0.25f;
-float OceanFloorAltitude = 900.0f;
+RWTexture2DArray<float> LandHeightMap;
+RWTexture2DArray<float> PlateThicknessMaps;
 
-float MaxAmplitude = 2.0f;
-float MaxVelocity = 2.0f;
+uint NumPlates;
+float OceanFloorHeight;
 
 [numthreads(8,8,1)]
-void SetIds (uint3 id : SV_DispatchThreadID)
+void UpdateHeightMap (uint3 id : SV_DispatchThreadID)
 {
     [unroll]
-    for (uint w = 0; w < 6; w++) 
+    for (uint w = 0; w < 6; w++)
     {
         uint3 xyw = uint3(id.xy, w);
-        float3 xyz = xyw_to_xyz(xyw, SeaLevel);
-        xyz = xyz + noise3d(xyz, FaultLineNoise);
-        int minId = -1;
-        float minDist = 100002.0f;
-        float dist = 0.0f;
-        for (uint i = 0; i < (uint)Nodes.Length; i++)
-        {
-            dist = distance(Nodes[i].Position, xyz);
-            if (dist < minDist) {
-                minDist = dist;
-                minId = Nodes[i].Id;
-            }
-        }
-        ContinentalIdMap[xyw] = minId;
-    }
-}
-
-[numthreads(8, 8, 1)]
-void SetVelocities(uint3 id : SV_DispatchThreadID)
-{
-    [unroll]
-    for (int w = 0; w < 6; w++)
-    {
-        uint3 xyw = uint3(id.xy, w);
-        int plateId = round(ContinentalIdMap[xyw].r);
-        float2 velocity = float2(0, 0);
-        for (uint i = 0; i < (uint)Nodes.Length; i++)
-        {
-            if (plateId == Nodes[i].Id) 
-            {
-                int nodeW = round(xyz_to_uvw(Nodes[i].Position).z);
-                velocity = Nodes[i].Velocity;
-                int rotations = get_src_rotations(nodeW, w);
-                velocity = rotate_clockwise(velocity, rotations);
-
-            }
-        }
-        
-        ContinentalVelocityMap[xyw] = velocity;
-    }
-}
-
-[numthreads(8, 8, 1)]
-void IntegrateVelocities(uint3 id : SV_DispatchThreadID)
-{
-    [unroll]
-    for (uint i = 0; i < 6; ++i)
-    {
-        uint3 xyw = uint3(id.xy, i);
-        float2 p1 = float2(xyw.xy);
         float height = 0;
 
-        [unroll]
-        for (int x = -1; x < 1; ++x)
+        for (uint p = 0; p < NumPlates; p++)
         {
-            [unroll]
-            for (int y = -1; y <= 1; ++y)
-            {
-                int3 sampleXyw = int3(xyw.x + x, xyw.y + y, i);
-                float sampleHeight = ContinentalHeightMap[sampleXyw];
-                float2 sampleVelocity = ContinentalVelocityMap[sampleXyw];
-                float2 p2 = float2(float2(sampleXyw.xy) + sampleVelocity);
+            uint3 sampleXyw = uint3(id.xy, p);
+            height += PlateThicknessMaps[sampleXyw];
+        }
 
-                height += max(0, 1 - distance(p1, p2)) * sampleHeight;
+        LandHeightMap[xyw] = OceanFloorHeight + height;
+    }
+}
+
+[numthreads(8, 8, 1)]
+void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
+{
+    [unroll]
+    for (uint w = 0; w < 6; w++)
+    {
+        uint3 xyw = uint3(id.xy, w);
+        float maxThickness = 0;
+        uint plateId = 0;
+
+        for (uint p = 0; p < NumPlates; p++)
+        {
+            uint3 sampleXyw = uint3(id.xy, p);
+            float thickness = PlateThicknessMaps[sampleXyw];
+            if (thickness > maxThickness)
+            {
+                maxThickness = thickness;
+                plateId = p;
             }
         }
 
-        ContinentalHeightMap[xyw] = max(height, OceanFloorAltitude);
+        ContinentalIdMap[xyw] = plateId;
     }
 }
