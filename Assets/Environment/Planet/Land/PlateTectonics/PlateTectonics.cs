@@ -1,13 +1,9 @@
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
-using System.Linq;
-using Random = UnityEngine.Random;
-using System.Runtime.InteropServices;
 
 public class PlateTectonics : MonoBehaviour
 {
-    [Range(3, 30)]
+    [Range(1, 30)]
     public int NumPlates = 2;
     [Range(500, 1000)]
     public float OceanFloorHeight = 900;
@@ -41,6 +37,8 @@ public class PlateTectonics : MonoBehaviour
             };
             Plates.Add(plate);
         }
+
+        RunTectonicKernel("GeneratePlate");
     }
 
     public void ProcessDay()

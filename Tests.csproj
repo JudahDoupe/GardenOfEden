@@ -8,8 +8,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <ProjectGuid>{C1E30D98-63CC-AC46-21E1-90F35AD60979}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -54,19 +53,20 @@
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <CodeAnalysisRuleSet>
-    </CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Tests\Systems\MetabolismSystemTests.cs" />
+    <Compile Include="Assets\Tests\TestUtils\CSVReader.cs" />
     <Compile Include="Assets\Tests\TestUtils\GpuTestBase.cs" />
     <Compile Include="Assets\Tests\TestUtils\MockLoadBalancer.cs" />
     <Compile Include="Assets\Tests\TestUtils\SystemTestBase.cs" />
     <Compile Include="Assets\Tests\Gpu\PlanetTests.cs" />
     <Compile Include="Assets\Tests\Gpu\CoordinateTests.cs" />
+    <Compile Include="Assets\Tests\Gpu\PlateTectonicsTests.cs" />
     <Compile Include="Assets\Tests\Systems\LightSystemTests.cs" />
     <Compile Include="Assets\Tests\Systems\NodeDivisionSystemTests.cs" />
     <Compile Include="Assets\Tests\Systems\EnergyFlowSystemTests.cs" />
@@ -76,14 +76,9 @@
     <Compile Include="Assets\Tests\Systems\DormancySystemTests.cs" />
     <Compile Include="Assets\Tests\TestUtils\FluentAssertionsExtensions.cs" />
     <Compile Include="Assets\Tests\Systems\EmbryoDispersalSystemTests.cs" />
-    <Compile Include="Assets\Tests\Gpu\PlateTectonicsTests.cs" />
-    <Compile Include="Assets\Tests\TestUtils\CSVReader.cs" />
     <Compile Include="Assets\Tests\TestUtils\Tstring.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Tests\Gpu\TestCases\tectonics_velocity_integration_3.csv" />
-    <None Include="Assets\Tests\Gpu\TestCases\tectonics_velocity_integration_2.csv" />
-    <None Include="Assets\Tests\Gpu\TestCases\tectonics_velocity_integration_1.csv" />
     <None Include="Assets\Tests\Tests.asmdef" />
   </ItemGroup>
   <ItemGroup>
@@ -727,7 +722,6 @@
       <Name>Eden</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

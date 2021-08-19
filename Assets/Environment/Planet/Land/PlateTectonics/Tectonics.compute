@@ -1,5 +1,6 @@
 #pragma kernel UpdateHeightMap
 #pragma kernel UpdateContinentalIdMap
+#pragma kernel GeneratePlate
 
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
 #include "../../../../Resources/Shaders/Noise.hlsl"
@@ -22,8 +23,9 @@ void UpdateHeightMap (uint3 id : SV_DispatchThreadID)
 
         for (uint p = 0; p < NumPlates; p++)
         {
-            uint3 sampleXyw = uint3(id.xy, p);
-            height += PlateThicknessMaps[sampleXyw];
+            uint3 sampleXyw = xyw;
+            uint3 sampleXyp = uint3(sampleXyw.xy, p);
+            height += PlateThicknessMaps[sampleXyp] * (sampleXyw.z == 2);
         }
 
         LandHeightMap[xyw] = OceanFloorHeight + height;
@@ -52,5 +54,17 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
         }
 
         ContinentalIdMap[xyw] = plateId;
+    }
+}
+
+[numthreads(8, 8, 1)]
+void GeneratePlate(uint3 id : SV_DispatchThreadID)
+{
+    for (uint p = 0; p < NumPlates; p++)
+    {
+        uint3 xyw = uint3(id.xy, p);
+        float3 uvw = xyw_to_uvw(uint3(id.xy, 0));
+        
+        PlateThicknessMaps[xyw] = (1 - smoothstep(0.2f, 0.4f, distance(uvw.xy, float2(0.5, 0.5)))) * 100;
     }
 }
