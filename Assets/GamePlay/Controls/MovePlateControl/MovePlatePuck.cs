@@ -6,10 +6,10 @@ public class MovePlatePuck : MonoBehaviour
 {
     public float MaxVelocity = 5;
     public float MovementMultiplier = 10;
-    public float LerpSpeed = 1;
+    public float LerpSpeed = 5;
     public Renderer Model;
     public GameObject Puck;
-    public int PlateId;
+    public PlateTectonics.Plate Plate;
 
     private float _lastHovering;
     private bool _dragging;
@@ -61,8 +61,7 @@ public class MovePlatePuck : MonoBehaviour
         _puckLocalPosition = transform.InverseTransformPoint(newCoord.Global(Planet.LocalToWorld));
         var velocity = (newCoord.LocalPlanet - oldCoord.LocalPlanet) / MovementMultiplier;
 
-        //TODO: apply rotation
-        //Singleton.PlateTectonics.Plates[PlateId].Nodes.ForEach(x => x.Velocity = velocity);
+        Plate.Velocity = velocity;
     }
 
 

@@ -1,5 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using Unity.Mathematics;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class PlateTectonics : MonoBehaviour
 {
@@ -33,7 +37,7 @@ public class PlateTectonics : MonoBehaviour
             var plate = new Plate
             {
                 Id = p,
-                Rotation = Quaternion.identity,
+                Rotation = Random.rotation,
             };
             Plates.Add(plate);
         }
@@ -43,8 +47,16 @@ public class PlateTectonics : MonoBehaviour
 
     public void ProcessDay()
     {
+        UpdateVelocity();
         UpdateHeightMap();
         UpdateContinentalIdMap();
+    }
+    public void UpdateVelocity()
+    {
+        foreach (var plate in Plates)
+        {
+            plate.Rotation = Quaternion.LookRotation(plate.Center + plate.Velocity, Vector3.up);
+        }
     }
     public void UpdateHeightMap()
     {
@@ -59,6 +71,9 @@ public class PlateTectonics : MonoBehaviour
     private void RunTectonicKernel(string kernelName)
     {
         int kernel = TectonicsShader.FindKernel(kernelName);
+        using var buffer = new ComputeBuffer(NumPlates, Marshal.SizeOf(typeof(Plate.Data)));
+        buffer.SetData(Plates.Select(x => x.ToData()).ToArray());
+        TectonicsShader.SetBuffer(kernel, "Plates", buffer);
         TectonicsShader.SetTexture(kernel, "LandHeightMap", EnvironmentDataStore.LandHeightMap);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentDataStore.PlateThicknessMaps);
         TectonicsShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
@@ -71,6 +86,14 @@ public class PlateTectonics : MonoBehaviour
     {
         public int Id;
         public Quaternion Rotation;
-        public Vector3 Center => Rotation * Vector3.up * (Singleton.Water.SeaLevel + 100);
+        public Vector3 Velocity;
+        public Vector3 Center => Rotation * Vector3.forward * (Singleton.Water.SeaLevel + 100);
+        public Data ToData() => new Data { Id = Id, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]) };
+
+        public struct Data
+        {
+            public int Id;
+            public float4 Rotation;
+        }
     }
 }

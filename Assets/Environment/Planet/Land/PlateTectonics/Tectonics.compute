@@ -3,14 +3,23 @@
 #pragma kernel GeneratePlate
 
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
+#include "../../../../Resources/Shaders/Quaternion.hlsl"
 #include "../../../../Resources/Shaders/Noise.hlsl"
 
 RWTexture2DArray<float> ContinentalIdMap;
 RWTexture2DArray<float> LandHeightMap;
 RWTexture2DArray<float> PlateThicknessMaps;
 
+struct Plate
+{
+    int Id;
+    float4 Rotation;
+};
+RWStructuredBuffer<Plate> Plates;
 uint NumPlates;
 float OceanFloorHeight;
+
+
 
 [numthreads(8,8,1)]
 void UpdateHeightMap (uint3 id : SV_DispatchThreadID)
@@ -23,9 +32,12 @@ void UpdateHeightMap (uint3 id : SV_DispatchThreadID)
 
         for (uint p = 0; p < NumPlates; p++)
         {
-            uint3 sampleXyw = xyw;
+            Plate plate = Plates[p];
+            float3 xyz = xyw_to_xyz(xyw, OceanFloorHeight);
+            xyz = rotate_vector(xyz, q_inverse(plate.Rotation));
+            uint3 sampleXyw = xyz_to_xyw(xyz);
             uint3 sampleXyp = uint3(sampleXyw.xy, p);
-            height += PlateThicknessMaps[sampleXyp] * (sampleXyw.z == 2);
+            height += PlateThicknessMaps[sampleXyp] * (sampleXyw.z == 4);
         }
 
         LandHeightMap[xyw] = OceanFloorHeight + height;
