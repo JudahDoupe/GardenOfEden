@@ -11,6 +11,8 @@ public class PlateTectonics : MonoBehaviour
     public int NumPlates = 2;
     [Range(500, 1000)]
     public float OceanFloorHeight = 900;
+    [Range(0, 1)]
+    public float SubductionRate = 0.01f;
 
     public ComputeShader TectonicsShader;
     public List<Plate> Plates = new List<Plate>();
@@ -48,8 +50,9 @@ public class PlateTectonics : MonoBehaviour
     public void ProcessDay()
     {
         UpdateVelocity();
-        UpdateHeightMap();
         UpdateContinentalIdMap();
+        UpdatePlateThicknessMaps();
+        UpdateHeightMap();
     }
     public void UpdateVelocity()
     {
@@ -57,6 +60,11 @@ public class PlateTectonics : MonoBehaviour
         {
             plate.Rotation = Quaternion.LookRotation(plate.Center + plate.Velocity, Vector3.up);
         }
+    }
+    public void UpdatePlateThicknessMaps()
+    {
+        RunTectonicKernel("UpdatePlateThicknessMaps");
+        EnvironmentDataStore.PlateThicknessMaps.UpdateTextureCache();
     }
     public void UpdateHeightMap()
     {
@@ -79,6 +87,7 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
         TectonicsShader.SetInt("NumPlates", NumPlates);
         TectonicsShader.SetFloat("OceanFloorHeight", OceanFloorHeight);
+        TectonicsShader.SetFloat("SubductionRate", SubductionRate);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 

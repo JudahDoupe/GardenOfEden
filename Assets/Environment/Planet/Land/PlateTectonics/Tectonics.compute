@@ -1,4 +1,5 @@
 #pragma kernel UpdateHeightMap
+#pragma kernel UpdatePlateThicknessMaps
 #pragma kernel UpdateContinentalIdMap
 #pragma kernel GeneratePlate
 
@@ -19,6 +20,7 @@ struct Plate
 RWStructuredBuffer<Plate> Plates;
 uint NumPlates;
 float OceanFloorHeight;
+float SubductionRate;
 
 SamplerState Sampler
 {
@@ -73,6 +75,42 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
         }
 
         ContinentalIdMap[xyw] = plateId;
+    }
+}
+
+[numthreads(8, 8, 1)]
+void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
+{
+    [unroll]
+    for (uint w = 0; w < 6; w++)
+    {
+        uint3 xyw = uint3(id.xy, w);
+        int topPlate = ContinentalIdMap[xyw]
+
+        for (uint p0 = 0; p0 < NumPlates; p0++)
+        {
+            Plate myPlate = Plates[p0];
+            int sign = ((plate0.Id  == topPlate) * 2) - 1;
+            float otherThickness = 0;
+            
+            float3 myXyz = xyw_to_xyz(xyw, OceanFloorHeight);
+            myXyz = rotate_vector(myXyz, q_inverse(myPlate.Rotation));
+            uint3 myXyw = xyz_to_xyw(myXyz);
+            uint3 myXyp = uint3(myXyw.xy, p0);
+
+            for (uint p1 = 0; p1 < NumPlates; p1++)
+            {
+                Plate otherPlate = Plates[p1];
+                float3 otherXyz = xyw_to_xyz(xyw, OceanFloorHeight);
+                otherXyz = rotate_vector(otherXyz, q_inverse(myPlate.Rotation));
+                uint3 otherXyw = xyz_to_xyw(otherXyz);
+                uint3 otherXyp = uint3(otherXyw.xy, p1);
+
+                otherThickness += PlateThicknessMaps[otherXyp] * (otherXyw.z == 4) * (p0 != p1);
+            }
+
+            PlateThicknessMaps[myXyp] += sign * otherThickness * SubductionRate;
+        }
     }
 }
 
