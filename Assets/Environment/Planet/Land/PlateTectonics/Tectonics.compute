@@ -6,6 +6,7 @@
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
 #include "../../../../Resources/Shaders/Noise.hlsl"
 
+Texture2DArray<float> ContinentalIdMap_Safe;
 RWTexture2DArray<float> ContinentalIdMap;
 RWTexture2DArray<float> LandHeightMap;
 RWTexture2DArray<float> PlateThicknessMaps;
@@ -19,7 +20,13 @@ RWStructuredBuffer<Plate> Plates;
 uint NumPlates;
 float OceanFloorHeight;
 
-
+SamplerState Sampler
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    BorderColor = 0;
+    AddressU = Border;
+    AddressV = Border;
+};
 
 [numthreads(8,8,1)]
 void UpdateHeightMap (uint3 id : SV_DispatchThreadID)
@@ -32,12 +39,12 @@ void UpdateHeightMap (uint3 id : SV_DispatchThreadID)
 
         for (uint p = 0; p < NumPlates; p++)
         {
-            Plate plate = Plates[p];
+            Plate plate = Plates[p]; 
             float3 xyz = xyw_to_xyz(xyw, OceanFloorHeight);
             xyz = rotate_vector(xyz, q_inverse(plate.Rotation));
-            uint3 sampleXyw = xyz_to_xyw(xyz);
-            uint3 sampleXyp = uint3(sampleXyw.xy, p);
-            height += PlateThicknessMaps[sampleXyp] * (sampleXyw.z == 4);
+            float3 sampleUvw = xyz_to_uvw(xyz);
+            float3 sampleUvp = float3(sampleUvw.xy, p);
+            height += ContinentalIdMap_Safe.SampleLevel(Sampler, sampleUvp, 0).x * (sampleUvw.z == 4);
         }
 
         LandHeightMap[xyw] = OceanFloorHeight + height;
