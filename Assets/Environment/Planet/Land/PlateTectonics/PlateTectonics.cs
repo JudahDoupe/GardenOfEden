@@ -34,7 +34,7 @@ public class PlateTectonics : MonoBehaviour
     public void Regenerate(int numPlates)
     {
         Plates.Clear();
-        EnvironmentDataStore.PlateThicknessMaps.ResetTexture(numPlates);
+        EnvironmentDataStore.PlateThicknessMaps.ResetTexture(numPlates * 6);
         LandService.Renderer.material.SetTexture("ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
         LandService.Renderer.material.SetInt("NumTectonicPlates", numPlates);
 
