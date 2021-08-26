@@ -12,6 +12,15 @@ RWTexture2DArray<float> ContinentalIdMap;
 RWTexture2DArray<float> LandHeightMap;
 RWTexture2DArray<float> PlateThicknessMaps;
 
+Texture2DArray<float> PlateThicknessMaps_Read;
+SamplerState samplerPlateThicknessMaps_Read
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    BorderColor = 0;
+    AddressU = Border;
+    AddressV = Border;
+};
+
 struct Plate
 {
     int Id;
@@ -21,14 +30,6 @@ RWStructuredBuffer<Plate> Plates;
 uint NumPlates;
 float OceanFloorHeight;
 float SubductionRate;
-
-SamplerState Sampler
-{
-    Filter = MIN_MAG_MIP_LINEAR;
-    BorderColor = 0;
-    AddressU = Border;
-    AddressV = Border;
-};
 
 [numthreads(8,8,1)]
 void UpdateHeightMap (uint3 id : SV_DispatchThreadID)
@@ -46,7 +47,7 @@ void UpdateHeightMap (uint3 id : SV_DispatchThreadID)
             xyz = rotate_vector(xyz, q_inverse(plate.Rotation));
             float3 sampleUvw = xyz_to_uvw(xyz);
             float3 sampleUvp = float3(sampleUvw.xy, p);
-            height += ContinentalIdMap_Safe.SampleLevel(Sampler, sampleUvp, 0).x * (sampleUvw.z == 4);
+            height += PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, sampleUvp, 0).x * (sampleUvw.z == 4);
         }
 
         LandHeightMap[xyw] = OceanFloorHeight + height;
@@ -65,8 +66,12 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 
         for (uint p = 0; p < NumPlates; p++)
         {
-            uint3 sampleXyw = uint3(id.xy, p);
-            float thickness = PlateThicknessMaps[sampleXyw];
+            Plate plate = Plates[p];
+            float3 xyz = xyw_to_xyz(xyw, OceanFloorHeight);
+            xyz = rotate_vector(xyz, q_inverse(plate.Rotation));
+            float3 sampleUvw = xyz_to_uvw(xyz);
+            float3 sampleUvp = float3(sampleUvw.xy, p);
+            float thickness = PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, sampleUvp, 0).x;
             if (thickness > maxThickness)
             {
                 maxThickness = thickness;
@@ -85,12 +90,12 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
     for (uint w = 0; w < 6; w++)
     {
         uint3 xyw = uint3(id.xy, w);
-        int topPlate = ContinentalIdMap[xyw]
+        int topPlate = ContinentalIdMap[xyw];
 
         for (uint p0 = 0; p0 < NumPlates; p0++)
         {
             Plate myPlate = Plates[p0];
-            int sign = ((plate0.Id  == topPlate) * 2) - 1;
+            int sign = ((myPlate.Id  == topPlate) * 2) - 1;
             float otherThickness = 0;
             
             float3 myXyz = xyw_to_xyz(xyw, OceanFloorHeight);
@@ -102,14 +107,14 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
             {
                 Plate otherPlate = Plates[p1];
                 float3 otherXyz = xyw_to_xyz(xyw, OceanFloorHeight);
-                otherXyz = rotate_vector(otherXyz, q_inverse(myPlate.Rotation));
-                uint3 otherXyw = xyz_to_xyw(otherXyz);
-                uint3 otherXyp = uint3(otherXyw.xy, p1);
+                otherXyz = rotate_vector(otherXyz, q_inverse(otherPlate.Rotation));
+                float3 otherUvw = xyz_to_uvw(otherXyz);
+                float3 otherUvp = float3(otherUvw.xy, p1);
 
-                otherThickness += PlateThicknessMaps[otherXyp] * (otherXyw.z == 4) * (p0 != p1);
+                otherThickness += PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, otherUvp, 0).x * (otherUvw.z == 4) * (p0 != p1);
             }
 
-            PlateThicknessMaps[myXyp] += sign * otherThickness * SubductionRate;
+            PlateThicknessMaps[myXyp] = PlateThicknessMaps[myXyp] + sign * otherThickness * SubductionRate;
         }
     }
 }

@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class MovePlatePuck : MonoBehaviour
 {
-    public float MaxVelocity = 5;
     public float MovementMultiplier = 10;
     public float LerpSpeed = 5;
     public Renderer Model;
@@ -53,7 +52,7 @@ public class MovePlatePuck : MonoBehaviour
         screenPos.z = Vector3.Distance(Camera.main.transform.position, transform.position);
         var target = Camera.main.ScreenToWorldPoint(screenPos);
         var vector = target - transform.position;
-        var movement = vector.normalized * math.min(vector.magnitude, MaxVelocity * MovementMultiplier);
+        var movement = vector.normalized * math.min(vector.magnitude, Singleton.PlateTectonics.MaxPlateSpeed * MovementMultiplier);
         var oldCoord = new Coordinate(transform.localPosition);
         var newCoord = new Coordinate(transform.position + movement, Planet.LocalToWorld);
         newCoord.Altitude = math.max(Singleton.Land.SampleHeight(newCoord), Singleton.Water.SampleHeight(newCoord)) + 10;

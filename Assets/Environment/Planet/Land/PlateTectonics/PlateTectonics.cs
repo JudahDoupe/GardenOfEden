@@ -11,6 +11,8 @@ public class PlateTectonics : MonoBehaviour
     public int NumPlates = 2;
     [Range(500, 1000)]
     public float OceanFloorHeight = 900;
+    [Range(1, 10)]
+    public float MaxPlateSpeed = 5;
     [Range(0, 1)]
     public float SubductionRate = 0.01f;
 
@@ -33,6 +35,8 @@ public class PlateTectonics : MonoBehaviour
     {
         Plates.Clear();
         EnvironmentDataStore.PlateThicknessMaps.ResetTexture(numPlates);
+        LandService.Renderer.material.SetTexture("ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
+        LandService.Renderer.material.SetInt("NumTectonicPlates", numPlates);
 
         for (int p = 0; p < numPlates; p++)
         {
@@ -84,6 +88,7 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetBuffer(kernel, "Plates", buffer);
         TectonicsShader.SetTexture(kernel, "LandHeightMap", EnvironmentDataStore.LandHeightMap);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentDataStore.PlateThicknessMaps);
+        TectonicsShader.SetTexture(kernel, "PlateThicknessMaps_Read", EnvironmentDataStore.PlateThicknessMaps);
         TectonicsShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
         TectonicsShader.SetInt("NumPlates", NumPlates);
         TectonicsShader.SetFloat("OceanFloorHeight", OceanFloorHeight);

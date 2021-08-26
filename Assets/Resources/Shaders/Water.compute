@@ -192,7 +192,8 @@ void Update(uint3 id : SV_DispatchThreadID)
         AllMemoryBarrierWithGroupSync();
         
         depth = SuppressHighFrequencies(xyw); 
-        waterHeight = terrainHeight + depth;
+        float heightFalloff = saturate(max(depth * depth, 0.8));
+        waterHeight = (terrainHeight + depth) * heightFalloff;
         WaterMap[xyw] = float4(velocity, depth, waterHeight);
     }
 
