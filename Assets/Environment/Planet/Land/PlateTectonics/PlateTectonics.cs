@@ -7,14 +7,20 @@ using Random = UnityEngine.Random;
 
 public class PlateTectonics : MonoBehaviour
 {
+    [Header("Generation")]
     [Range(1, 30)]
     public int NumPlates = 2;
-    [Range(500, 1000)]
     public float OceanFloorHeight = 900;
+    public float InitialPlateThickness = 10;
+
+    [Header("Simulation")]
     [Range(1, 10)]
     public float MaxPlateSpeed = 5;
     [Range(0, 1)]
-    public float SubductionRate = 0.01f;
+    public float PlateInertia = 0.3f;
+    [Range(0, 0.01f)]
+    public float SubductionRate = 0.001f;
+
 
     public ComputeShader TectonicsShader;
     public List<Plate> Plates = new List<Plate>();
@@ -57,16 +63,17 @@ public class PlateTectonics : MonoBehaviour
 
     public void ProcessDay()
     {
-        UpdateVelocity();
         UpdateContinentalIdMap();
-        UpdatePlateThicknessMaps();
         UpdateHeightMap();
+        UpdateVelocity();
+        UpdatePlateThicknessMaps();
     }
     public void UpdateVelocity()
     {
         foreach (var plate in Plates)
         {
             plate.Rotation = Quaternion.LookRotation(plate.Center + plate.Velocity, Vector3.up);
+            plate.Velocity = Vector3.Lerp(plate.Velocity, Vector3.zero, 1 - PlateInertia);
         }
     }
     public void UpdatePlateThicknessMaps()
@@ -91,10 +98,12 @@ public class PlateTectonics : MonoBehaviour
         buffer.SetData(Plates.Select(x => x.ToData()).ToArray());
         TectonicsShader.SetBuffer(kernel, "Plates", buffer);
         TectonicsShader.SetTexture(kernel, "LandHeightMap", EnvironmentDataStore.LandHeightMap);
+        TectonicsShader.SetTexture(kernel, "LandHeightMap_Read", EnvironmentDataStore.LandHeightMap);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentDataStore.PlateThicknessMaps);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps_Read", EnvironmentDataStore.PlateThicknessMaps);
         TectonicsShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
         TectonicsShader.SetInt("NumPlates", NumPlates);
+        TectonicsShader.SetFloat("InitialThickness", InitialPlateThickness);
         TectonicsShader.SetFloat("OceanFloorHeight", OceanFloorHeight);
         TectonicsShader.SetFloat("SubductionRate", SubductionRate);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);

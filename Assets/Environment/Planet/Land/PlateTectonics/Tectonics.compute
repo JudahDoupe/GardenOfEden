@@ -7,11 +7,19 @@
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
 #include "../../../../Resources/Shaders/Noise.hlsl"
 
-Texture2DArray<float> ContinentalIdMap_Safe;
 RWTexture2DArray<float> ContinentalIdMap;
-RWTexture2DArray<float> LandHeightMap;
-RWTexture2DArray<float> PlateThicknessMaps;
 
+RWTexture2DArray<float> LandHeightMap;
+Texture2DArray<float> LandHeightMap_Read;
+SamplerState samplerLandHeightMap_Read
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    BorderColor = 0;
+    AddressU = Border;
+    AddressV = Border;
+};
+
+RWTexture2DArray<float> PlateThicknessMaps;
 Texture2DArray<float> PlateThicknessMaps_Read;
 SamplerState samplerPlateThicknessMaps_Read
 {
@@ -30,96 +38,95 @@ RWStructuredBuffer<Plate> Plates;
 uint NumPlates;
 float OceanFloorHeight;
 float SubductionRate;
+float InitialThickness;
 
-[numthreads(8, 8, 1)]
+[numthreads(8, 8, 6)]
 void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 {
-    [unroll]
-    for (uint w = 0; w < 6; w++)
+    uint3 xyw = id;
+    float maxThickness = 0;
+    uint plateId = 0;
+    for (uint p = 0; p < NumPlates; p++)
     {
-        uint3 xyw = uint3(id.xy, w);
-        float maxThickness = 0;
-        uint plateId = 0;
-        for (uint p = 0; p < NumPlates; p++)
+        Plate plate = Plates[p];
+        float3 sampleXyz = rotate_vector(xyw_to_xyz(xyw, OceanFloorHeight), q_inverse(plate.Rotation));
+        float3 sampleUvw = xyz_to_uvw(sampleXyz);
+        float3 sampleUvp = float3(sampleUvw.xy, sampleUvw.z + (p * 6));
+        float thickness = PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, sampleUvp, 0).x;
+        if (thickness > maxThickness)
         {
-            Plate plate = Plates[p];
-            float3 sampleXyz = rotate_vector(xyw_to_xyz(xyw, OceanFloorHeight), q_inverse(plate.Rotation));
-            float3 sampleUvw = xyz_to_uvw(sampleXyz);
-            float3 sampleUvp = float3(sampleUvw.xy, sampleUvw.z + (p * 6));
-            float thickness = PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, sampleUvp, 0).x;
-            if (thickness > maxThickness)
-            {
-                maxThickness = thickness;
-                plateId = p;
-            }
+            maxThickness = thickness;
+            plateId = p;
         }
-
-        ContinentalIdMap[xyw] = plateId;
     }
+
+    ContinentalIdMap[xyw] = plateId;
 }
 
-[numthreads(8, 8, 1)]
+[numthreads(8, 8, 6)]
 void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 {
-    [unroll]
-    for (uint w = 0; w < 6; w++)
+    for (uint p = 0; p < NumPlates; p++)
     {
-        uint3 xyw = uint3(id.xy, w);
-        int topPlate = ContinentalIdMap[xyw];
+        Plate myPlate = Plates[p];
+        uint3 xyp = uint3(id.xy, id.z + p * 6);
+        float3 xyz = rotate_vector(xyw_to_xyz(id, OceanFloorHeight), myPlate.Rotation);
+        float3 uvw = xyz_to_uvw(xyz);
 
-        for (uint p0 = 0; p0 < NumPlates * 6; p0++)
-        {
-            Plate myPlate = Plates[p0 / 6];
-            int sign = ((myPlate.Id  == topPlate) * 2) - 1;
-            
-            float3 myXyz = xyw_to_xyz(xyw, OceanFloorHeight);
-            myXyz = rotate_vector(myXyz, q_inverse(myPlate.Rotation));
-            uint3 myXyw = xyz_to_xyw(myXyz);
-            uint3 myXyp = uint3(myXyw.xy, p0);
+        float myThickness = PlateThicknessMaps[xyp];
+        float otherThickness = LandHeightMap_Read.SampleLevel(samplerLandHeightMap_Read, uvw, 0).x - OceanFloorHeight - myThickness;
+        int topPlate = ContinentalIdMap[uvw_to_xyw(uvw)];
 
-            float myThickness = PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, myXyp, 0).x;
-            float otherThickness = LandHeightMap[xyw] - OceanFloorHeight - myThickness;
+        myThickness -= SubductionRate * (myPlate.Id != topPlate) * myThickness;
+        myThickness += SubductionRate * (myPlate.Id == topPlate) * otherThickness;
 
-            PlateThicknessMaps[myXyp] = PlateThicknessMaps[myXyp] + sign * otherThickness * SubductionRate;
-        }
+        PlateThicknessMaps[xyp] = myThickness;
     }
 }
 
-[numthreads(8, 8, 1)]
-void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
+[numthreads(8, 8, 6)]
+void UpdateHeightMap(uint3 id : SV_DispatchThreadID) 
 {
-    [unroll]
-    for (uint w = 0; w < 6; w++)
+    uint3 xyw = id;
+    float height = 0;
+
+    for (uint p = 0; p < NumPlates; p++)
     {
-        uint3 xyw = uint3(id.xy, w);
-        float height = 0;
-
-        for (uint p = 0; p < NumPlates; p++)
-        {
-            Plate plate = Plates[p];
-            float3 xyz = xyw_to_xyz(xyw, OceanFloorHeight);
-            xyz = rotate_vector(xyz, q_inverse(plate.Rotation));
-            float3 sampleUvw = xyz_to_uvw(xyz);
-            float3 sampleUvp = float3(sampleUvw.xy, sampleUvw.z + (p * 6));
-            height += PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, sampleUvp, 0).x;
-        }
-
-        LandHeightMap[xyw] = OceanFloorHeight + height;
+        Plate plate = Plates[p];
+        float3 xyz = xyw_to_xyz(xyw, OceanFloorHeight);
+        xyz = rotate_vector(xyz, q_inverse(plate.Rotation));
+        float3 sampleUvw = xyz_to_uvw(xyz);
+        float3 sampleUvp = float3(sampleUvw.xy, sampleUvw.z + (p * 6));
+        height += PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, sampleUvp, 0).x;
     }
+
+    LandHeightMap[xyw] = OceanFloorHeight + height;
 }
 
-[numthreads(8, 8, 1)]
+[numthreads(8, 8, 6)]
 void Reset(uint3 id : SV_DispatchThreadID)
 {
     for (uint p = 0; p < NumPlates; p++)
     {
-        for (uint i = 0; i < 6; i++)
-        {
-            uint3 xyw = uint3(id.xy, p * 6 + i);
-            float3 xyz = xyw_to_xyz(uint3(id.xy, i), OceanFloorHeight);
-            float dist = distance(xyz, float3(0, 0, OceanFloorHeight));
+        Plate plate = Plates[p];
+        uint3 xyp = uint3(id.xy, id.z + (p * 6));
+        float3 xyz = rotate_vector(xyw_to_xyz(id, OceanFloorHeight), plate.Rotation);
+        int minId = 0;
+        float minDist = OceanFloorHeight * 10;
 
-            PlateThicknessMaps[xyw] = 100 * (1 - smoothstep(500, 700, dist)) + (1 - smoothstep(0, 2 * OceanFloorHeight, dist));
+        for (uint p2 = 0; p2 < NumPlates; p2++)
+        {
+            Plate plate2 = Plates[p2];
+            float3 xyz2 = rotate_vector(float3(0, 0, OceanFloorHeight), plate2.Rotation);
+            float dist = distance(xyz, xyz2);
+
+            if (dist < minDist)
+            {
+                minDist = dist;
+                minId = plate2.Id;
+            }
         }
+
+        PlateThicknessMaps[xyp] = InitialThickness * (minId == plate.Id);
     }
 }
