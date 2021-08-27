@@ -26,12 +26,13 @@ public class WaterService : MonoBehaviour
         return EnvironmentDataStore.WaterMap.Sample(coord).a + SeaLevel;
     }
 
-    public void Rain(float meters)
+    public void Regenerate()
     {
-        int kernelId = WaterShader.FindKernel("Rain");
-        WaterShader.SetFloat("RainDepthInMeters", meters);
-        WaterShader.SetTexture(kernelId, "WaterMap", EnvironmentDataStore.WaterMap);
-        WaterShader.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
+        int updateKernel = WaterShader.FindKernel("Reset");
+        SetComputeShaderVariables();
+        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandHeightMap);
+        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentDataStore.WaterMap);
+        WaterShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
     /* Inner Mechanations */

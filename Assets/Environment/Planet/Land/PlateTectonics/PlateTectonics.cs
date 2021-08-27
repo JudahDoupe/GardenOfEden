@@ -31,6 +31,7 @@ public class PlateTectonics : MonoBehaviour
         }
     }
 
+    public void Regenerate() => Regenerate(Plates.Count);
     public void Regenerate(int numPlates)
     {
         Plates.Clear();
@@ -48,7 +49,10 @@ public class PlateTectonics : MonoBehaviour
             Plates.Add(plate);
         }
 
-        RunTectonicKernel("GeneratePlate");
+        RunTectonicKernel("Reset");
+        UpdateContinentalIdMap();
+        UpdateHeightMap();
+        Singleton.Water.Regenerate();
     }
 
     public void ProcessDay()

@@ -56,7 +56,7 @@
     <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Tests\Systems\MetabolismSystemTests.cs" />
@@ -64,6 +64,7 @@
     <Compile Include="Assets\Tests\TestUtils\GpuTestBase.cs" />
     <Compile Include="Assets\Tests\TestUtils\MockLoadBalancer.cs" />
     <Compile Include="Assets\Tests\TestUtils\SystemTestBase.cs" />
+    <Compile Include="Assets\Tests\TestUtils\Tstring.cs" />
     <Compile Include="Assets\Tests\Gpu\PlanetTests.cs" />
     <Compile Include="Assets\Tests\Gpu\CoordinateTests.cs" />
     <Compile Include="Assets\Tests\Gpu\PlateTectonicsTests.cs" />
@@ -76,7 +77,6 @@
     <Compile Include="Assets\Tests\Systems\DormancySystemTests.cs" />
     <Compile Include="Assets\Tests\TestUtils\FluentAssertionsExtensions.cs" />
     <Compile Include="Assets\Tests\Systems\EmbryoDispersalSystemTests.cs" />
-    <Compile Include="Assets\Tests\TestUtils\Tstring.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Tests\Tests.asmdef" />

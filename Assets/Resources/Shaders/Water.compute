@@ -1,4 +1,5 @@
 ﻿#pragma kernel Update
+#pragma kernel Reset
 #include "CoordinateTransforms.hlsl"
 
 Texture2DArray<float> LandMap;
@@ -223,5 +224,17 @@ void Update(uint3 id : SV_DispatchThreadID)
             WaterMap[dst_xyw] = src_water;
             
         }
+    }
+}
+
+[numthreads(8, 8, 1)]
+void Reset(uint3 id : SV_DispatchThreadID)
+{
+    [unroll]
+    for (int i = 0; i < 6; ++i)
+    {
+        float land = LandMap[int3(id.xy, i)];
+        float w = max(SeaLevel - land, 0);
+        WaterMap[int3(id.xy, i)] = float4(0, 0, w, land + w);
     }
 }

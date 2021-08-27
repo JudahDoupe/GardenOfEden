@@ -1,7 +1,7 @@
 #pragma kernel UpdateHeightMap
 #pragma kernel UpdatePlateThicknessMaps
 #pragma kernel UpdateContinentalIdMap
-#pragma kernel GeneratePlate
+#pragma kernel Reset
 
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
@@ -67,27 +67,18 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         uint3 xyw = uint3(id.xy, w);
         int topPlate = ContinentalIdMap[xyw];
 
-        for (uint p0 = 0; p0 < NumPlates; p0++)
+        for (uint p0 = 0; p0 < NumPlates * 6; p0++)
         {
-            Plate myPlate = Plates[p0];
+            Plate myPlate = Plates[p0 / 6];
             int sign = ((myPlate.Id  == topPlate) * 2) - 1;
-            float otherThickness = 0;
             
             float3 myXyz = xyw_to_xyz(xyw, OceanFloorHeight);
             myXyz = rotate_vector(myXyz, q_inverse(myPlate.Rotation));
             uint3 myXyw = xyz_to_xyw(myXyz);
             uint3 myXyp = uint3(myXyw.xy, p0);
 
-            for (uint p1 = 0; p1 < NumPlates; p1++)
-            {
-                Plate otherPlate = Plates[p1];
-                float3 otherXyz = xyw_to_xyz(xyw, OceanFloorHeight);
-                otherXyz = rotate_vector(otherXyz, q_inverse(otherPlate.Rotation));
-                float3 otherUvw = xyz_to_uvw(otherXyz);
-                float3 otherUvp = float3(otherUvw.xy, otherUvw.z + (p1 * 6));
-
-                otherThickness += PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, otherUvp, 0).x * (p0 != p1);
-            }
+            float myThickness = PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, myXyp, 0).x;
+            float otherThickness = LandHeightMap[xyw] - OceanFloorHeight - myThickness;
 
             PlateThicknessMaps[myXyp] = PlateThicknessMaps[myXyp] + sign * otherThickness * SubductionRate;
         }
@@ -118,7 +109,7 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(8, 8, 1)]
-void GeneratePlate(uint3 id : SV_DispatchThreadID)
+void Reset(uint3 id : SV_DispatchThreadID)
 {
     for (uint p = 0; p < NumPlates; p++)
     {

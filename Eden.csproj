@@ -8,8 +8,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <ProjectGuid>{F49B5B11-5475-D98A-BF58-F6C878F5BC27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -54,11 +53,10 @@
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <CodeAnalysisRuleSet>
-    </CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\GamePlay\Cameras\CirclingCamera.cs" />
@@ -80,7 +78,6 @@
     <Compile Include="Assets\Utils\AnimationUtils.cs" />
     <Compile Include="Assets\Utils\Rendering\Features\BlitOutlineFeature.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\UpdateMeshSystem.cs" />
-    <Compile Include="Assets\Environment\Planet\PlanetFactory.cs" />
     <Compile Include="Assets\Utils\Ui\FaceCamera.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthSystemGroup.cs" />
     <Compile Include="Assets\Utils\Rendering\Features\DepthTextureFeature.cs" />
@@ -153,6 +150,7 @@
     <None Include="Assets\Resources\Shaders\Soil.compute" />
     <None Include="Assets\Resources\Shaders\Water.compute" />
     <None Include="Assets\Packages\QuikGraph.2.3.0\lib\net45\QuikGraph.xml" />
+    <None Include="Assets\Resources\Shaders\Quaternion.hlsl" />
     <None Include="Assets\Resources\Shaders\CoordinateTransforms.hlsl" />
     <None Include="Assets\Packages\FSharp.Core.4.2.3\lib\net45\FSharp.Core.dll" />
     <None Include="Assets\Packages\FSharp.Core.4.2.3\lib\net45\FSharp.Core.xml" />
@@ -162,7 +160,6 @@
     <None Include="Assets\Resources\Shaders\TerrainManipulation.compute" />
     <None Include="Assets\Packages\FsCheck.2.14.4\lib\net452\FsCheck.xml" />
     <None Include="Assets\Packages\QuikGraph.2.3.0\lib\net45\QuikGraph.dll" />
-    <None Include="Assets\Resources\Shaders\TerrainGenerator.compute" />
     <None Include="Assets\Packages\FsCheck.2.14.4\lib\net452\FsCheck.dll" />
     <None Include="Assets\Resources\Shaders\Colors.hlsl" />
     <None Include="Assets\Eden.asmdef" />
@@ -860,7 +857,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Resources\Shaders\Quaternion.hlsl" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
