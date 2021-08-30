@@ -12,6 +12,8 @@ public class PlateTectonics : MonoBehaviour
     public int NumPlates = 2;
     public float OceanFloorHeight = 900;
     public float InitialPlateThickness = 10;
+    [Range(0,100)]
+    public float FaultLineNoise = 0.25f;
 
     [Header("Simulation")]
     [Range(1, 10)]
@@ -51,6 +53,7 @@ public class PlateTectonics : MonoBehaviour
             {
                 Id = p,
                 Rotation = Random.rotation,
+                Velocity = Vector3.zero,
             };
             Plates.Add(plate);
         }
@@ -72,7 +75,7 @@ public class PlateTectonics : MonoBehaviour
     {
         foreach (var plate in Plates)
         {
-            plate.Rotation = Quaternion.LookRotation(plate.Center + plate.Velocity, Vector3.up);
+            plate.Rotation = Quaternion.LookRotation(plate.Center + plate.Velocity, plate.Rotation * Vector3.up);
             plate.Velocity = Vector3.Lerp(plate.Velocity, Vector3.zero, 1 - PlateInertia);
         }
     }
@@ -106,6 +109,7 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetFloat("InitialThickness", InitialPlateThickness);
         TectonicsShader.SetFloat("OceanFloorHeight", OceanFloorHeight);
         TectonicsShader.SetFloat("SubductionRate", SubductionRate);
+        TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
