@@ -65,7 +65,7 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
     ContinentalIdMap[xyw] = plateId;
 }
 
-float CalculateThicknessTransfer(float rate, float preasure) { return (4 * rate * preasure) - (4 * rate * pow(preasure, 2)); }
+float CalculateInflation(float preasure) { return (4 * InflationRate * preasure) - (4 * InflationRate * pow(preasure, 2)); }
 
 [numthreads(8, 8, 6)]
 void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
@@ -83,8 +83,8 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         
         float preasure = (myThickness - otherThickness) / (myThickness + otherThickness + 0.00000001f);
 
-        float subduction = myThickness * CalculateThicknessTransfer(SubductionRate, max(-preasure, 0));
-        float inflation = myThickness * CalculateThicknessTransfer(InflationRate, max(preasure, 0));
+        float subduction = myThickness * max(-preasure, 0) * SubductionRate;
+        float inflation = myThickness * CalculateInflation(max(preasure, 0));
 
         PlateThicknessMaps[xyp] = max(myThickness + inflation - subduction, 0);
     }

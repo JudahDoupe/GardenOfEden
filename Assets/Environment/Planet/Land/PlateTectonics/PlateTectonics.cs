@@ -20,9 +20,9 @@ public class PlateTectonics : MonoBehaviour
     public float MaxPlateSpeed = 5;
     [Range(0, 1)]
     public float PlateInertia = 0.3f;
-    [Range(0, 0.01f)]
+    [Range(0, 0.1f)]
     public float SubductionRate = 0.001f;
-    [Range(0, 0.01f)]
+    [Range(0, 0.1f)]
     public float InflationRate = 0.001f;
 
 
@@ -55,7 +55,7 @@ public class PlateTectonics : MonoBehaviour
             {
                 Id = p,
                 Rotation = Random.rotation,
-                Velocity = Vector3.zero,
+                Velocity = new Vector3(Random.value, Random.value, Random.value).normalized,
             };
             Plates.Add(plate);
         }
