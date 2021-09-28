@@ -7,16 +7,18 @@ public class BlitOutlineFeature : ScriptableRendererFeature
 {
     class RenderPass : ScriptableRenderPass
     {
+        private string layerName;
         private Material renderMaterial;
         private Material outlineMaterial;
         private RenderTargetIdentifier sourceID;
         private RenderTargetHandle tempTextureHandle;
         private RenderTargetHandle outlineTextureHandle;
 
-        public RenderPass(Material renderMaterial, Material outlineMaterial) : base()
+        public RenderPass(Material renderMaterial, Material outlineMaterial, string layerName) : base()
         {
             this.renderMaterial = renderMaterial;
             this.outlineMaterial = outlineMaterial;
+            this.layerName = layerName;
             outlineTextureHandle.Init("_OutlinedGroupTexture");
             tempTextureHandle.Init("_TempOutlineBlitMaterialTexture");
         }
@@ -42,7 +44,7 @@ public class BlitOutlineFeature : ScriptableRendererFeature
                 new ShaderTagId("UniversalForward"),
                 new ShaderTagId("LightweightForward"),
             };
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, LayerMask.GetMask("OutlinedGroup"));
+            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, LayerMask.GetMask(layerName));
             var drawSettings = CreateDrawingSettings(shaderTags, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
             drawSettings.overrideMaterial = outlineMaterial;
             context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
@@ -69,8 +71,9 @@ public class BlitOutlineFeature : ScriptableRendererFeature
     [System.Serializable]
     public class Settings
     {
+        public string layerName = "OutlinedGroup";
         public Material renderMaterial;
-        public Material outlineMaterial;
+        public Material replacementMaterial;
         public RenderPassEvent renderEvent = RenderPassEvent.AfterRenderingOpaques;
     }
 
@@ -81,7 +84,7 @@ public class BlitOutlineFeature : ScriptableRendererFeature
 
     public override void Create()
     {
-        this.renderPass = new RenderPass(settings.renderMaterial, settings.outlineMaterial);
+        this.renderPass = new RenderPass(settings.renderMaterial, settings.replacementMaterial, settings.layerName);
         renderPass.renderPassEvent = settings.renderEvent;
     }
 

@@ -1,3 +1,4 @@
+using Assets.Scripts.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -25,9 +26,16 @@ public class PlateTectonics : MonoBehaviour
     [Range(0, 0.1f)]
     public float InflationRate = 0.001f;
 
-
     public ComputeShader TectonicsShader;
     public List<Plate> Plates = new List<Plate>();
+
+    [Header("Visualization")]
+    public Material OutlineReplacementMaterial;
+    public Material FaultLineMaterial;
+    public void ShowFaultLines(bool show) 
+    {
+        StartCoroutine(AnimationUtils.AnimateFloat(1, show ? 0 : 2, show ? 2 : 0, x => FaultLineMaterial.SetFloat("OutlineStrength", x))); 
+    }
 
     private void Start()
     {
@@ -46,8 +54,8 @@ public class PlateTectonics : MonoBehaviour
     {
         Plates.Clear();
         EnvironmentDataStore.PlateThicknessMaps.ResetTexture(numPlates * 6);
-        LandService.Renderer.material.SetTexture("ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
-        LandService.Renderer.material.SetInt("NumTectonicPlates", numPlates);
+        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
+        OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentDataStore.LandHeightMap);
 
         for (int p = 0; p < numPlates; p++)
         {
@@ -55,7 +63,7 @@ public class PlateTectonics : MonoBehaviour
             {
                 Id = p,
                 Rotation = Random.rotation,
-                Velocity = new Vector3(Random.value, Random.value, Random.value).normalized,
+                Velocity = Vector3.zero,
             };
             Plates.Add(plate);
         }

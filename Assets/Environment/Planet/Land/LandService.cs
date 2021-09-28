@@ -12,8 +12,6 @@ public class LandService : MonoBehaviour, ILandService
 
     /* Publicly Accessible Methods */
 
-    private bool _showContinents;
-
     public float SampleHeight(Coordinate coord)
     {
         return EnvironmentDataStore.LandHeightMap.Sample(coord).r;
@@ -32,11 +30,6 @@ public class LandService : MonoBehaviour, ILandService
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            _showContinents = !_showContinents;
-            Renderer.material.SetFloat("ShowContinents", _showContinents ? 1 : 0);
-        }
     }
 
     public void ProcessDay()

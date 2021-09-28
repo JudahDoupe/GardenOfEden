@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -53,9 +53,6 @@
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Assets\GamePlay\Cameras\CirclingCamera.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusObject.cs" />
     <Compile Include="Assets\Utils\StateMachine\StateMachine.cs" />
@@ -64,7 +61,7 @@
     <Compile Include="Assets\Utils\Ui\EventOnClick.cs" />
     <Compile Include="Assets\Utils\Extensions\TransformExtensions.cs" />
     <Compile Include="Assets\Utils\Extensions\RenderTextureExtensions.cs" />
-    <Compile Include="Assets\Utils\Rendering\Features\OutlineFeature.cs" />
+    <Compile Include="Assets\Rendering\Features\OutlineFeature.cs" />
     <Compile Include="Assets\Utils\Extensions\Vector3Extensions.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\NodeDivisionSystem.cs" />
     <Compile Include="Assets\Utils\Extensions\FloatExtensions.cs" />
@@ -73,11 +70,11 @@
     <Compile Include="Assets\Plants\Systems\Setup\UpdateChunkSystem.cs" />
     <Compile Include="Assets\Environment\Time\TimeService.cs" />
     <Compile Include="Assets\Utils\AnimationUtils.cs" />
-    <Compile Include="Assets\Utils\Rendering\Features\BlitOutlineFeature.cs" />
+    <Compile Include="Assets\Rendering\Features\BlitOutlineFeature.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\UpdateMeshSystem.cs" />
     <Compile Include="Assets\Utils\Ui\FaceCamera.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthSystemGroup.cs" />
-    <Compile Include="Assets\Utils\Rendering\Features\DepthTextureFeature.cs" />
+    <Compile Include="Assets\Rendering\Features\DepthTextureFeature.cs" />
     <Compile Include="Assets\Utils\Mathj.cs" />
     <Compile Include="Assets\GamePlay\Cameras\CameraState.cs" />
     <Compile Include="Assets\Utils\MessageBus.cs" />
@@ -139,7 +136,7 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
     <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\PlateTectonics.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
-    <Compile Include="Assets\Utils\Rendering\Features\BlitMaterialFeature.cs" />
+    <Compile Include="Assets\Rendering\Features\BlitMaterialFeature.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />

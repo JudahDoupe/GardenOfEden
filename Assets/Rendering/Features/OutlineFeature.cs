@@ -7,13 +7,14 @@ public class OutlineFeature : ScriptableRendererFeature
 {
     class RenderPass : ScriptableRenderPass
     {
-
+        private string layerName;
         private Material outlineMaterial;
         private RenderTargetHandle destinationHandle;
 
-        public RenderPass(Material material)
+        public RenderPass(Material material, string layerName)
         {
             this.outlineMaterial = material;
+            this.layerName = layerName;
             destinationHandle.Init("_OutlinedObjectsTexture");
         }
 
@@ -32,7 +33,7 @@ public class OutlineFeature : ScriptableRendererFeature
                 new ShaderTagId("UniversalForward"),
                 new ShaderTagId("LightweightForward"),
             };
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, LayerMask.GetMask("OutlinedObjects"));
+            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, LayerMask.GetMask(layerName));
             var drawSettings = CreateDrawingSettings(shaderTags, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
             drawSettings.overrideMaterial = outlineMaterial;
             context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
@@ -47,6 +48,7 @@ public class OutlineFeature : ScriptableRendererFeature
     [System.Serializable]
     public class Settings
     {
+        public string layerName = "OutlinedObjects";
         public Material outlineMaterial;
         public RenderPassEvent renderEvent = RenderPassEvent.AfterRenderingPrePasses;
     }
@@ -58,7 +60,7 @@ public class OutlineFeature : ScriptableRendererFeature
 
     public override void Create()
     {
-        renderPass = new RenderPass(settings.outlineMaterial);
+        renderPass = new RenderPass(settings.outlineMaterial, settings.layerName);
         renderPass.renderPassEvent = settings.renderEvent;
     }
 
