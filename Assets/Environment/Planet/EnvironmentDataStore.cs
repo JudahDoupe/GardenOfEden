@@ -6,6 +6,7 @@ public class EnvironmentDataStore : MonoBehaviour
     public static RenderTexture WaterMap { get; set; }
     public static RenderTexture LandHeightMap { get; set; }
     public static RenderTexture PlateThicknessMaps { get; set; }
+    public static RenderTexture PlateThicknessMaps_AxisAligned { get; set; }
     public static RenderTexture ContinentalIdMap { get; set; }
     void Awake()
     {
@@ -13,6 +14,7 @@ public class EnvironmentDataStore : MonoBehaviour
         WaterSourceMap = NewTexture(4, 6);
         LandHeightMap = NewTexture(1, 6);
         PlateThicknessMaps = NewTexture(1, 1);
+        PlateThicknessMaps_AxisAligned = NewTexture(1, 1);
         ContinentalIdMap = NewTexture(1, 6);
     }
 

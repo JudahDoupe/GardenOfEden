@@ -8,6 +8,17 @@
 #include "../../../../Resources/Shaders/Noise.hlsl"
 
 RWTexture2DArray<float> ContinentalIdMap;
+RWTexture2DArray<float> PlateThicknessMaps_AxisAligned;
+
+RWTexture2DArray<float> PlateThicknessMaps;
+Texture2DArray<float> PlateThicknessMaps_Read;
+SamplerState samplerPlateThicknessMaps_Read
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    BorderColor = 0;
+    AddressU = Border;
+    AddressV = Border;
+};
 
 RWTexture2DArray<float> LandHeightMap;
 Texture2DArray<float> LandHeightMap_Read;
@@ -19,15 +30,6 @@ SamplerState samplerLandHeightMap_Read
     AddressV = Border;
 };
 
-RWTexture2DArray<float> PlateThicknessMaps;
-Texture2DArray<float> PlateThicknessMaps_Read;
-SamplerState samplerPlateThicknessMaps_Read
-{
-    Filter = MIN_MAG_MIP_LINEAR;
-    BorderColor = 0;
-    AddressU = Border;
-    AddressV = Border;
-};
 
 struct Plate
 {
@@ -51,10 +53,8 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
     for (uint p = 0; p < NumPlates; p++)
     {
         Plate plate = Plates[p];
-        float3 sampleXyz = rotate_vector(xyw_to_xyz(xyw, OceanFloorHeight), q_inverse(plate.Rotation));
-        float3 sampleUvw = xyz_to_uvw(sampleXyz);
-        float3 sampleUvp = float3(sampleUvw.xy, sampleUvw.z + (p * 6));
-        float thickness = PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, sampleUvp, 0).x;
+        float3 xyp = float3(xyw.xy, xyw.z + (p * 6));
+        float thickness = PlateThicknessMaps_AxisAligned[xyp];
         if (thickness > maxThickness)
         {
             maxThickness = thickness;
@@ -66,6 +66,19 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 }
 
 float CalculateInflation(float preasure) { return (4 * InflationRate * preasure) - (4 * InflationRate * pow(preasure, 2)); }
+
+void UpdateAxisAlignedPlateMaps(uint3 id) {
+    for (uint p = 0; p < NumPlates; p++)
+    {
+        Plate myPlate = Plates[p];
+        uint3 alignedXyp = uint3(id.xy, id.z + p * 6);
+        float3 xyz = rotate_vector(xyw_to_xyz(id, OceanFloorHeight), q_inverse(myPlate.Rotation));
+        uint3 xyw = xyz_to_xyw(xyz);
+        uint3 xyp = float3(xyw.xy, xyw.z + p * 6);
+
+        PlateThicknessMaps_AxisAligned[alignedXyp] = PlateThicknessMaps[xyp];
+    }
+}
 
 [numthreads(8, 8, 6)]
 void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
@@ -88,6 +101,8 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 
         PlateThicknessMaps[xyp] = max(myThickness + inflation - subduction, 0);
     }
+
+    UpdateAxisAlignedPlateMaps(id);
 }
 
 [numthreads(8, 8, 6)]
@@ -99,11 +114,8 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
     for (uint p = 0; p < NumPlates; p++)
     {
         Plate plate = Plates[p];
-        float3 xyz = xyw_to_xyz(xyw, OceanFloorHeight);
-        xyz = rotate_vector(xyz, q_inverse(plate.Rotation));
-        float3 sampleUvw = xyz_to_uvw(xyz);
-        float3 sampleUvp = float3(sampleUvw.xy, sampleUvw.z + (p * 6));
-        height += PlateThicknessMaps_Read.SampleLevel(samplerPlateThicknessMaps_Read, sampleUvp, 0) / 2;
+        float3 xyp = float3(xyw.xy, xyw.z + (p * 6));
+        height += PlateThicknessMaps_AxisAligned[xyp] / 2;
     }
 
     LandHeightMap[xyw] = height;
@@ -135,4 +147,6 @@ void Reset(uint3 id : SV_DispatchThreadID)
         uint3 xyp = uint3(id.xy, id.z + (p * 6));
         PlateThicknessMaps[xyp] = (InitialThickness + plate.Id) * (closestPlateId == plate.Id);
     }
+
+    UpdateAxisAlignedPlateMaps(id);
 }

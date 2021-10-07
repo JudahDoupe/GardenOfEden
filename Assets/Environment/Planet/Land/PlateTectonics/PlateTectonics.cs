@@ -54,6 +54,7 @@ public class PlateTectonics : MonoBehaviour
     {
         Plates.Clear();
         EnvironmentDataStore.PlateThicknessMaps.ResetTexture(numPlates * 6);
+        EnvironmentDataStore.PlateThicknessMaps_AxisAligned.ResetTexture(numPlates * 6);
         OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
         OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentDataStore.LandHeightMap);
 
@@ -76,10 +77,10 @@ public class PlateTectonics : MonoBehaviour
 
     public void ProcessDay()
     {
-        UpdateContinentalIdMap();
         UpdateHeightMap();
         UpdateVelocity();
         UpdatePlateThicknessMaps();
+        UpdateContinentalIdMap();
     }
     public void UpdateVelocity()
     {
@@ -93,6 +94,7 @@ public class PlateTectonics : MonoBehaviour
     {
         RunTectonicKernel("UpdatePlateThicknessMaps");
         EnvironmentDataStore.PlateThicknessMaps.UpdateTextureCache();
+        EnvironmentDataStore.PlateThicknessMaps_AxisAligned.UpdateTextureCache();
     }
     public void UpdateHeightMap()
     {
@@ -114,6 +116,7 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetTexture(kernel, "LandHeightMap_Read", EnvironmentDataStore.LandHeightMap);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentDataStore.PlateThicknessMaps);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps_Read", EnvironmentDataStore.PlateThicknessMaps);
+        TectonicsShader.SetTexture(kernel, "PlateThicknessMaps_AxisAligned", EnvironmentDataStore.PlateThicknessMaps_AxisAligned);
         TectonicsShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
         TectonicsShader.SetInt("NumPlates", NumPlates);
         TectonicsShader.SetFloat("InitialThickness", InitialPlateThickness);
