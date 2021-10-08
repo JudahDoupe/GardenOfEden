@@ -15,27 +15,34 @@ struct Plate
 {
     int Id;
     float4 Rotation;
-};
+    float3 Velocity;
+}; 
 RWStructuredBuffer<Plate> Plates;
 uint NumPlates;
 float InitialThickness;
-float FaultLineNoise;
+float FaultLineNoise; 
 float OceanFloorHeight;
 float SubductionRate;
 float InflationRate;
+float MinThickness;
+int RenderPlate;
+
+uint3 xyz_to_xyp(float3 xyz, float4 rotation, int p) {
+    float3 sampleXyz = rotate_vector(xyz, q_inverse(rotation));
+    uint3 xyw = xyz_to_xyw(sampleXyz);
+    return uint3(xyw.xy, xyw.z + (p * 6));
+}
 
 [numthreads(8, 8, 6)]
 void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 {
-    uint3 xyw = id;
     float maxThickness = 0;
     uint plateId = 0;
+    float3 xyz = xyw_to_xyz(id, OceanFloorHeight);
     for (uint p = 0; p < NumPlates; p++)
     {
         Plate plate = Plates[p];
-        float3 sampleXyz = rotate_vector(xyw_to_xyz(xyw, OceanFloorHeight), q_inverse(plate.Rotation));
-        uint3 xyw = xyz_to_xyw(sampleXyz);
-        float3 xyp = float3(xyw.xy, xyw.z + (p * 6));
+        uint3 xyp = xyz_to_xyp(xyz, plate.Rotation, p);
         float thickness = PlateThicknessMaps[xyp];
         if (thickness > maxThickness)
         {
@@ -44,7 +51,7 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
         }
     }
 
-    ContinentalIdMap[xyw] = plateId;
+    ContinentalIdMap[id] = plateId;
 }
 
 float CalculateInflation(float preasure) { return (4 * InflationRate * preasure) - (4 * InflationRate * pow(preasure, 2)); }
@@ -56,24 +63,37 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
     {
         Plate myPlate = Plates[p];
         uint3 xyp = uint3(id.xy, id.z + p * 6);
+        float3 xyz = rotate_vector(xyw_to_xyz(id, OceanFloorHeight), myPlate.Rotation);
 
         float myThickness = PlateThicknessMaps[xyp];
         float otherThickness = 0;
+        bool oceanSpreading = true;
         for (uint p2 = 0; p2 < NumPlates; p2++)
         {
+            if (p2 == p) continue;
             Plate otherPlate = Plates[p2];
-            float3 xyz = rotate_vector(xyw_to_xyz(id, OceanFloorHeight), otherPlate.Rotation);
-            float3 xyw = xyz_to_uvw(xyz);
-            uint3 otherXyp = uint3(xyw.xy, xyw.z + p * 6);
+            uint3 otherXyp = xyz_to_xyp(xyz, otherPlate.Rotation, p2);
             otherThickness += PlateThicknessMaps[otherXyp];
+            oceanSpreading = oceanSpreading && length(myPlate.Velocity) > length(otherPlate.Velocity);
         }
 
+        //Sample surrounding areas for plate Id to see if we should spread
+
+        /* 
         float preasure = (myThickness - otherThickness) / (myThickness + otherThickness + 0.00000001f);
 
         float subduction = myThickness * max(-preasure, 0) * SubductionRate;
         float inflation = myThickness * CalculateInflation(max(preasure, 0));
 
-        PlateThicknessMaps[xyp] = max(myThickness + inflation - subduction, 0);
+        myThickness = max(myThickness + inflation - subduction, 0);
+        */
+
+        if (oceanSpreading && myThickness + otherThickness  < MinThickness)
+        {
+            myThickness = max(MinThickness - otherThickness, myThickness);
+        }
+
+        PlateThicknessMaps[xyp] = myThickness;
     }
 }
 
@@ -83,7 +103,14 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
     uint3 xyw = id;
     float height = OceanFloorHeight;
 
-    for (uint p = 0; p < NumPlates; p++)
+    int start = 0;
+    int end = NumPlates;
+    if (0 <= RenderPlate && RenderPlate < NumPlates) {
+        start = RenderPlate;
+        end = RenderPlate+1;
+    } 
+
+    for (int p = start; p < end; p++)
     {
         Plate plate = Plates[p];
         float3 xyz = xyw_to_xyz(xyw, OceanFloorHeight);

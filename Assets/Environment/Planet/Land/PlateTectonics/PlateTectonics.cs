@@ -25,6 +25,7 @@ public class PlateTectonics : MonoBehaviour
     public float SubductionRate = 0.001f;
     [Range(0, 0.1f)]
     public float InflationRate = 0.001f;
+    public float MinPlateThickness = 5;
 
     public ComputeShader TectonicsShader;
     public List<Plate> Plates = new List<Plate>();
@@ -32,9 +33,11 @@ public class PlateTectonics : MonoBehaviour
     [Header("Visualization")]
     public Material OutlineReplacementMaterial;
     public Material FaultLineMaterial;
+    [Range(-1, 10)]
+    public int ShowPlateThickness = -1;
     public void ShowFaultLines(bool show) 
     {
-        StartCoroutine(AnimationUtils.AnimateFloat(1, show ? 0 : 2, show ? 2 : 0, x => FaultLineMaterial.SetFloat("OutlineStrength", x))); 
+        StartCoroutine(AnimationUtils.AnimateFloat(1, show ? 0 : 1, show ? 1 : 0, x => FaultLineMaterial.SetFloat("Transparency", x))); 
     }
 
     private void Start()
@@ -70,16 +73,16 @@ public class PlateTectonics : MonoBehaviour
         }
 
         RunTectonicKernel("Reset");
-        UpdateContinentalIdMap();
         UpdateHeightMap();
+        UpdateContinentalIdMap();
         Singleton.Water.Regenerate();
     }
 
     public void ProcessDay()
     {
-        UpdateHeightMap();
         UpdateVelocity();
         UpdatePlateThicknessMaps();
+        UpdateHeightMap();
         UpdateContinentalIdMap();
     }
     public void UpdateVelocity()
@@ -118,8 +121,10 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetFloat("InitialThickness", InitialPlateThickness);
         TectonicsShader.SetFloat("OceanFloorHeight", OceanFloorHeight);
         TectonicsShader.SetFloat("SubductionRate", SubductionRate);
+        TectonicsShader.SetFloat("MinThickness", MinPlateThickness);
         TectonicsShader.SetFloat("InflationRate", InflationRate);
         TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise);
+        TectonicsShader.SetInt("RenderPlate", ShowPlateThickness);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
@@ -129,12 +134,13 @@ public class PlateTectonics : MonoBehaviour
         public Quaternion Rotation;
         public Vector3 Velocity;
         public Vector3 Center => Rotation * Vector3.forward * (Singleton.Water.SeaLevel + 100);
-        public Data ToData() => new Data { Id = Id, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]) };
+        public Data ToData() => new Data { Id = Id, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]), Velocity = Velocity.ToFloat3() };
 
         public struct Data
         {
             public int Id;
             public float4 Rotation;
+            public float3 Velocity;
         }
     }
 }
