@@ -72,8 +72,8 @@ public class PlateTectonics : MonoBehaviour
             Plates.Add(plate);
         }
 
-        RunTectonicKernel("Reset");
-        UpdateContinentalIdMap();
+        RunTectonicKernel("ResetPlateThicknessMaps");
+        RunTectonicKernel("ResetContinentalIdMap");
         UpdateHeightMap();
         Singleton.Water.Regenerate();
     }

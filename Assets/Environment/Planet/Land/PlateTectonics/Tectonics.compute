@@ -1,4 +1,5 @@
-#pragma kernel Reset
+#pragma kernel ResetPlateThicknessMaps
+#pragma kernel ResetContinentalIdMap
 #pragma kernel UpdateContinentalIdMap
 #pragma kernel UpdatePlateThicknessMaps
 #pragma kernel UpdateHeightMap
@@ -40,20 +41,38 @@ float3 xyp_to_xyz(uint3 xyp, float4 rotation) {
 [numthreads(8, 8, 6)]
 void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 {
+	int neighbors[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     float maxThickness = 0;
-    uint plateId = 0;
+	uint plateId = ContinentalIdMap[id];
     float3 xyz = xyw_to_xyz(id, OceanFloorHeight);
+    
+	for (int x = -1; x <= 1; x++)
+	{
+		for (int y = -1; y <= 1; y++)
+		{
+			int n = (x + 1) * 3 + (y + 1);
+			int3 xyw = int3(id.x + x, id.y + y, id.z);
+			neighbors[n] = ContinentalIdMap[xyw];
+		}
+	}
+    
     for (uint p = 0; p < NumPlates; p++)
-    {
-        Plate plate = Plates[p];
-        uint3 xyp = xyz_to_xyp(xyz, plate.Rotation, p);
-        float thickness = PlateThicknessMaps[xyp];
-        if (thickness > maxThickness)
-        {
-            maxThickness = thickness;
-            plateId = p;
-        }
-    }
+	{
+		Plate plate = Plates[p];
+		uint3 xyp = xyz_to_xyp(xyz, plate.Rotation, p);
+		float thickness = PlateThicknessMaps[xyp];
+		if (thickness > maxThickness)
+		{
+			for (int i = 0; i < 9; i++)
+			{
+				if (neighbors[i] == plate.Id)
+				{
+					maxThickness = thickness;
+					plateId = plate.Id;
+				}
+			}
+		}
+	}
 
     ContinentalIdMap[id] = plateId;
 }
@@ -124,7 +143,7 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(8, 8, 6)]
-void Reset(uint3 id : SV_DispatchThreadID)
+void ResetPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 {
     for (uint p = 0; p < NumPlates; p++)
 	{
@@ -150,4 +169,26 @@ void Reset(uint3 id : SV_DispatchThreadID)
 
 		PlateThicknessMaps[xyp] = (InitialThickness + myPlate.Id) * (closestPlateId == myPlate.Id);
 	}
+}
+
+[numthreads(8, 8, 6)]
+void ResetContinentalIdMap(uint3 id : SV_DispatchThreadID)
+{
+	float maxThickness = 0;
+	uint plateId = ContinentalIdMap[id];
+	float3 xyz = xyw_to_xyz(id, OceanFloorHeight);
+    
+	for (uint p = 0; p < NumPlates; p++)
+	{
+		Plate plate = Plates[p];
+		uint3 xyp = xyz_to_xyp(xyz, plate.Rotation, p);
+		float thickness = PlateThicknessMaps[xyp];
+		if (thickness > maxThickness)
+		{
+			maxThickness = thickness;
+			plateId = plate.Id;
+		}
+	}
+
+	ContinentalIdMap[id] = plateId;
 }
