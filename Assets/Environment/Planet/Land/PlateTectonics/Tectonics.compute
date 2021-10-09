@@ -85,36 +85,34 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
     for (uint p = 0; p < NumPlates; p++)
     {
         Plate myPlate = Plates[p];
-        uint3 xyp = uint3(id.xy, id.z + p * 6);
+        
+		uint3 xyp = uint3(id.xy, id.z + p * 6);
         float3 xyz = xyp_to_xyz(xyp, myPlate.Rotation);
+		uint3 xyw = xyz_to_xyw(xyz);
+        
+		float myThickness = PlateThicknessMaps[xyp];
+		bool isTopPlate = ContinentalIdMap[xyw] == myPlate.Id;
 
-        float myThickness = PlateThicknessMaps[xyp];
         float otherThickness = 0;
-        bool oceanSpreading = true;
         for (uint p2 = 0; p2 < NumPlates; p2++)
         {
             if (p2 == p) continue;
             Plate otherPlate = Plates[p2];
             uint3 otherXyp = xyz_to_xyp(xyz, otherPlate.Rotation, p2);
             otherThickness += PlateThicknessMaps[otherXyp];
-            oceanSpreading = oceanSpreading && length(myPlate.Velocity) > length(otherPlate.Velocity);
         }
-
-        //Sample surrounding areas for plate Id to see if we should spread
-
-        /* 
+		
         float preasure = (myThickness - otherThickness) / (myThickness + otherThickness + 0.00000001f);
 
-        float subduction = myThickness * max(-preasure, 0) * SubductionRate;
-        float inflation = myThickness * CalculateInflation(max(preasure, 0));
+		float subduction = myThickness * max(-preasure, 0) * SubductionRate * !isTopPlate;
+		float inflation = 0; //myThickness * CalculateInflation(max(preasure, 0)) * isTopPlate;
 
         myThickness = max(myThickness + inflation - subduction, 0);
-        */
 
-        if (oceanSpreading && myThickness + otherThickness  < MinThickness)
+		if (isTopPlate && myThickness < MinThickness)
         {
-            myThickness = max(MinThickness - otherThickness, myThickness);
-        }
+			myThickness = lerp(myThickness, MinThickness, InflationRate);
+		}
 
         PlateThicknessMaps[xyp] = myThickness;
     }
@@ -136,7 +134,7 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
     {
         Plate plate = Plates[p];
         float3 xyp = xyz_to_xyp(xyw_to_xyz(id, OceanFloorHeight), plate.Rotation, p);
-        height += PlateThicknessMaps[xyp] / 2;
+        height += PlateThicknessMaps[xyp];
     }
 
     LandHeightMap[id] = height;
