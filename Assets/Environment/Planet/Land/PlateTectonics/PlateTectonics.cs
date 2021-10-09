@@ -37,7 +37,7 @@ public class PlateTectonics : MonoBehaviour
     public int ShowPlateThickness = -1;
     public void ShowFaultLines(bool show) 
     {
-        StartCoroutine(AnimationUtils.AnimateFloat(1, show ? 0 : 1, show ? 1 : 0, x => FaultLineMaterial.SetFloat("Transparency", x))); 
+        StartCoroutine(AnimationUtils.AnimateFloat(1, show ? 0 : 0.3f, show ? 0.3f : 0, x => FaultLineMaterial.SetFloat("Transparency", x))); 
     }
 
     private void Start()
@@ -73,17 +73,13 @@ public class PlateTectonics : MonoBehaviour
         }
 
         RunTectonicKernel("Reset");
-        UpdateHeightMap();
-        UpdateContinentalIdMap();
         Singleton.Water.Regenerate();
     }
 
     public void ProcessDay()
     {
         UpdateVelocity();
-        UpdatePlateThicknessMaps();
-        UpdateHeightMap();
-        UpdateContinentalIdMap();
+        UpdatePlateMaps();
     }
     public void UpdateVelocity()
     {
@@ -93,19 +89,9 @@ public class PlateTectonics : MonoBehaviour
             plate.Velocity = Vector3.Lerp(plate.Velocity, Vector3.zero, 1 - PlateInertia);
         }
     }
-    public void UpdatePlateThicknessMaps()
+    public void UpdatePlateMaps()
     {
-        RunTectonicKernel("UpdatePlateThicknessMaps");
-        EnvironmentDataStore.PlateThicknessMaps.UpdateTextureCache();
-    }
-    public void UpdateHeightMap()
-    {
-        RunTectonicKernel("UpdateHeightMap");
-        EnvironmentDataStore.LandHeightMap.UpdateTextureCache();
-    }
-    public void UpdateContinentalIdMap()
-    {
-        RunTectonicKernel("UpdateContinentalIdMap");
+        RunTectonicKernel("UpdatePlateMaps");
         EnvironmentDataStore.LandHeightMap.UpdateTextureCache();
     }
     private void RunTectonicKernel(string kernelName)

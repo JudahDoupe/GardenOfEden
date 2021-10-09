@@ -1,7 +1,5 @@
-#pragma kernel UpdateHeightMap
-#pragma kernel UpdatePlateThicknessMaps
-#pragma kernel UpdateContinentalIdMap
 #pragma kernel Reset
+#pragma kernel UpdatePlateMaps
 
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
@@ -33,8 +31,7 @@ uint3 xyz_to_xyp(float3 xyz, float4 rotation, int p) {
     return uint3(xyw.xy, xyw.z + (p * 6));
 }
 
-[numthreads(8, 8, 6)]
-void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
+void UpdateContinentalIdMap(uint3 id)
 {
     float maxThickness = 0;
     uint plateId = 0;
@@ -56,8 +53,7 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 
 float CalculateInflation(float preasure) { return (4 * InflationRate * preasure) - (4 * InflationRate * pow(preasure, 2)); }
 
-[numthreads(8, 8, 6)]
-void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
+void UpdatePlateThicknessMaps(uint3 id)
 {
     for (uint p = 0; p < NumPlates; p++)
     {
@@ -97,8 +93,7 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
     }
 }
 
-[numthreads(8, 8, 6)]
-void UpdateHeightMap(uint3 id : SV_DispatchThreadID) 
+void UpdateHeightMap(uint3 id) 
 {
     uint3 xyw = id;
     float height = OceanFloorHeight;
@@ -121,6 +116,14 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
     }
 
     LandHeightMap[xyw] = height;
+}
+
+[numthreads(8, 8, 6)]
+void UpdatePlateMaps(uint3 id : SV_DispatchThreadID)
+{
+    UpdateContinentalIdMap(id);
+    UpdatePlateThicknessMaps(id);
+    UpdateHeightMap(id);
 }
 
 [numthreads(8, 8, 6)]
