@@ -73,13 +73,17 @@ public class PlateTectonics : MonoBehaviour
         }
 
         RunTectonicKernel("Reset");
+        UpdateContinentalIdMap();
+        UpdateHeightMap();
         Singleton.Water.Regenerate();
     }
 
     public void ProcessDay()
     {
         UpdateVelocity();
-        UpdatePlateMaps();
+        UpdateContinentalIdMap();
+        UpdatePlateThicknessMaps();
+        UpdateHeightMap();
     }
     public void UpdateVelocity()
     {
@@ -89,9 +93,18 @@ public class PlateTectonics : MonoBehaviour
             plate.Velocity = Vector3.Lerp(plate.Velocity, Vector3.zero, 1 - PlateInertia);
         }
     }
-    public void UpdatePlateMaps()
+    public void UpdateContinentalIdMap()
     {
-        RunTectonicKernel("UpdatePlateMaps");
+        RunTectonicKernel("UpdateContinentalIdMap");
+        EnvironmentDataStore.ContinentalIdMap.UpdateTextureCache();
+    }
+    public void UpdatePlateThicknessMaps()
+    {
+        RunTectonicKernel("UpdatePlateThicknessMaps");
+    }
+    public void UpdateHeightMap()
+    {
+        RunTectonicKernel("UpdateHeightMap");
         EnvironmentDataStore.LandHeightMap.UpdateTextureCache();
     }
     private void RunTectonicKernel(string kernelName)

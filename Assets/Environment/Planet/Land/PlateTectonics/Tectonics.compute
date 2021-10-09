@@ -1,5 +1,7 @@
 #pragma kernel Reset
-#pragma kernel UpdatePlateMaps
+#pragma kernel UpdateContinentalIdMap
+#pragma kernel UpdatePlateThicknessMaps
+#pragma kernel UpdateHeightMap
 
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
@@ -26,12 +28,17 @@ float MinThickness;
 int RenderPlate;
 
 uint3 xyz_to_xyp(float3 xyz, float4 rotation, int p) {
-    float3 sampleXyz = rotate_vector(xyz, q_inverse(rotation));
-    uint3 xyw = xyz_to_xyw(sampleXyz);
+	uint3 xyw = xyz_to_xyw(rotate_vector(xyz, q_inverse(rotation)));
     return uint3(xyw.xy, xyw.z + (p * 6));
 }
+float3 xyp_to_xyz(uint3 xyp, float4 rotation) {
 
-void UpdateContinentalIdMap(uint3 id)
+    uint3 xyw = uint3(xyp.xy, xyp.z % 6);
+    return rotate_vector(xyw_to_xyz(xyw, OceanFloorHeight), rotation);
+}
+
+[numthreads(8, 8, 6)]
+void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 {
     float maxThickness = 0;
     uint plateId = 0;
@@ -53,13 +60,14 @@ void UpdateContinentalIdMap(uint3 id)
 
 float CalculateInflation(float preasure) { return (4 * InflationRate * preasure) - (4 * InflationRate * pow(preasure, 2)); }
 
-void UpdatePlateThicknessMaps(uint3 id)
+[numthreads(8, 8, 6)]
+void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 {
     for (uint p = 0; p < NumPlates; p++)
     {
         Plate myPlate = Plates[p];
         uint3 xyp = uint3(id.xy, id.z + p * 6);
-        float3 xyz = rotate_vector(xyw_to_xyz(id, OceanFloorHeight), myPlate.Rotation);
+        float3 xyz = xyp_to_xyz(xyp, myPlate.Rotation);
 
         float myThickness = PlateThicknessMaps[xyp];
         float otherThickness = 0;
@@ -93,9 +101,9 @@ void UpdatePlateThicknessMaps(uint3 id)
     }
 }
 
-void UpdateHeightMap(uint3 id) 
+[numthreads(8, 8, 6)]
+void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
 {
-    uint3 xyw = id;
     float height = OceanFloorHeight;
 
     int start = 0;
@@ -108,48 +116,38 @@ void UpdateHeightMap(uint3 id)
     for (int p = start; p < end; p++)
     {
         Plate plate = Plates[p];
-        float3 xyz = xyw_to_xyz(xyw, OceanFloorHeight);
-        xyz = rotate_vector(xyz, q_inverse(plate.Rotation));
-        float3 xyw = xyz_to_xyw(xyz);
-        float3 xyp = float3(xyw.xy, xyw.z + (p * 6));
+        float3 xyp = xyz_to_xyp(xyw_to_xyz(id, OceanFloorHeight), plate.Rotation, p);
         height += PlateThicknessMaps[xyp] / 2;
     }
 
-    LandHeightMap[xyw] = height;
-}
-
-[numthreads(8, 8, 6)]
-void UpdatePlateMaps(uint3 id : SV_DispatchThreadID)
-{
-    UpdateContinentalIdMap(id);
-    UpdatePlateThicknessMaps(id);
-    UpdateHeightMap(id);
+    LandHeightMap[id] = height;
 }
 
 [numthreads(8, 8, 6)]
 void Reset(uint3 id : SV_DispatchThreadID)
 {
     for (uint p = 0; p < NumPlates; p++)
-    {
-        Plate plate = Plates[p];
-        float3 xyz = rotate_vector(xyw_to_xyz(id, OceanFloorHeight), plate.Rotation);
-        xyz = xyz + noise3d(xyz, FaultLineNoise);
-        float3 centerXyz = rotate_vector(float3(0, 0, OceanFloorHeight), plate.Rotation);
-        float minDist = 1000000;
-        int closestPlateId = 0;
+	{
+		Plate myPlate = Plates[p];
+		uint3 xyp = uint3(id.xy, id.z + p * 6);
+		float3 xyz = rotate_vector(xyw_to_xyz(id, OceanFloorHeight), myPlate.Rotation);
+	    xyz = xyz + noise3d(xyz, FaultLineNoise);
+		float minDist = 1000000;
+		int closestPlateId = 0;
 
-        for (uint p2 = 0; p2 < NumPlates; p2++)
-        {
-            Plate plate2 = Plates[p2];
-            float3 centerXyz2 = rotate_vector(float3(0, 0, OceanFloorHeight), plate2.Rotation);
-            float dist = distance(xyz, centerXyz2);
-            if (dist < minDist) {
-                minDist = dist;
-                closestPlateId = plate2.Id;
-            }
-        }
+		for (uint p2 = 0; p2 < NumPlates; p2++)
+		{
+			Plate plate = Plates[p2];
+			float3 centerXyz = rotate_vector(float3(0, 0, OceanFloorHeight), plate.Rotation);
 
-        uint3 xyp = uint3(id.xy, id.z + (p * 6));
-        PlateThicknessMaps[xyp] = (InitialThickness + plate.Id) * (closestPlateId == plate.Id);
-    }
+			float dist = distance(xyz, centerXyz);
+			if (dist < minDist)
+			{
+				minDist = dist;
+				closestPlateId = plate.Id;
+			}
+		}
+
+		PlateThicknessMaps[xyp] = (InitialThickness + myPlate.Id) * (closestPlateId == myPlate.Id);
+	}
 }
