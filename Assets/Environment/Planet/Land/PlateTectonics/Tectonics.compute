@@ -105,7 +105,7 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         float preasure = (myThickness - otherThickness) / (myThickness + otherThickness + 0.00000001f);
 
 		float subduction = myThickness * max(-preasure, 0) * SubductionRate * !isTopPlate;
-        float inflation = 0; //otherThickness * max(preasure, 0) * InflationRate * isTopPlate;
+        float inflation = 0; //otherThickness * InflationRate * isTopPlate;
 
         myThickness = max(myThickness + inflation - subduction, 0);
 
@@ -122,19 +122,13 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
 {
     float height = OceanFloorHeight;
+    int plateId = ContinentalIdMap[id] * (RenderPlate == 0) + RenderPlate * (RenderPlate != 0);
 
-    int start = 0;
-    int end = NumPlates;
-    if (0 <= RenderPlate && RenderPlate < NumPlates) {
-        start = RenderPlate;
-        end = RenderPlate+1;
-    } 
-
-    for (int p = start; p < end; p++)
+    for (int p = 0; p < NumPlates; p++)
     {
         Plate plate = Plates[p];
         float3 xyp = xyz_to_xyp(xyw_to_xyz(id, OceanFloorHeight), plate.Rotation, p);
-        height += PlateThicknessMaps[xyp];
+        height += PlateThicknessMaps[xyp] * (plate.Id == plateId);
     }
 
     LandHeightMap[id] = height;

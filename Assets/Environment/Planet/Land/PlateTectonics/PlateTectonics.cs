@@ -33,8 +33,8 @@ public class PlateTectonics : MonoBehaviour
     [Header("Visualization")]
     public Material OutlineReplacementMaterial;
     public Material FaultLineMaterial;
-    [Range(-1, 10)]
-    public int ShowPlateThickness = -1;
+    [Range(0, 10)]
+    public int ShowIndividualPlate = 0;
     public void ShowFaultLines(bool show) 
     {
         StartCoroutine(AnimationUtils.AnimateFloat(1, show ? 0 : 0.3f, show ? 0.3f : 0, x => FaultLineMaterial.SetFloat("Transparency", x))); 
@@ -123,7 +123,7 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetFloat("MinThickness", MinPlateThickness);
         TectonicsShader.SetFloat("InflationRate", InflationRate);
         TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise);
-        TectonicsShader.SetInt("RenderPlate", ShowPlateThickness);
+        TectonicsShader.SetInt("RenderPlate", ShowIndividualPlate);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
