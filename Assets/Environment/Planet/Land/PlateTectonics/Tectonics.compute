@@ -3,6 +3,8 @@
 #pragma kernel UpdateContinentalIdMap
 #pragma kernel UpdatePlateThicknessMaps
 #pragma kernel UpdateHeightMap
+#pragma kernel StartAligningPlateThicknessMaps
+#pragma kernel FinishAligningPlateThicknessMaps
 
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
@@ -10,6 +12,7 @@
 
 RWTexture2DArray<float> ContinentalIdMap;
 RWTexture2DArray<float> PlateThicknessMaps;
+RWTexture2DArray<float> TmpPlateThicknessMaps;
 RWTexture2DArray<float> LandHeightMap;
 
 struct Plate
@@ -20,7 +23,6 @@ struct Plate
 }; 
 RWStructuredBuffer<Plate> Plates;
 uint NumPlates;
-float InitialThickness;
 float FaultLineNoise; 
 float OceanFloorHeight;
 float SubductionRate;
@@ -90,29 +92,27 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         float3 xyz = xyp_to_xyz(xyp, myPlate.Rotation);
 		uint3 xyw = xyz_to_xyw(xyz);
         
-		float myThickness = PlateThicknessMaps[xyp];
-		bool isTopPlate = ContinentalIdMap[xyw] == myPlate.Id;
-
-        float otherThickness = 0;
+        float totalThickness = 0;
         for (uint p2 = 0; p2 < NumPlates; p2++)
         {
-            if (p2 == p) continue;
             Plate otherPlate = Plates[p2];
             uint3 otherXyp = xyz_to_xyp(xyz, otherPlate.Rotation, p2);
-            otherThickness += PlateThicknessMaps[otherXyp];
+            totalThickness += PlateThicknessMaps[otherXyp];
         }
 		
-        float preasure = (myThickness - otherThickness) / (myThickness + otherThickness + 0.00000001f);
-
-		float subduction = myThickness * max(-preasure, 0) * SubductionRate * !isTopPlate;
-        float inflation = 0; //otherThickness * InflationRate * isTopPlate;
-
-        myThickness = max(myThickness + inflation - subduction, 0);
-
-		if (isTopPlate && myThickness < MinThickness)
+		float myThickness = PlateThicknessMaps[xyp];
+		bool isTopPlate = ContinentalIdMap[xyw] == myPlate.Id;
+		if (isTopPlate)
         {
-			myThickness = lerp(myThickness, MinThickness, InflationRate);
-		}
+			float targetThickness = max(MinThickness, totalThickness);
+            myThickness = lerp(myThickness, targetThickness, InflationRate);
+        }
+        else
+        {
+			float preasure = (myThickness - (totalThickness - myThickness)) / (totalThickness + 0.00000001f);
+			float subduction = myThickness * max(-preasure, 0) * SubductionRate;
+			myThickness = max(myThickness - subduction, 0);
+        }
 
         PlateThicknessMaps[xyp] = myThickness;
     }
@@ -124,7 +124,7 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
     float height = OceanFloorHeight;
     int plateId = ContinentalIdMap[id] * (RenderPlate == 0) + RenderPlate * (RenderPlate != 0);
 
-    for (int p = 0; p < NumPlates; p++)
+    for (uint p = 0; p < NumPlates; p++)
     {
         Plate plate = Plates[p];
         float3 xyp = xyz_to_xyp(xyw_to_xyz(id, OceanFloorHeight), plate.Rotation, p);
@@ -132,6 +132,30 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
     }
 
     LandHeightMap[id] = height;
+}
+
+[numthreads(8, 8, 6)]
+void StartAligningPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
+{
+    float3 xyz = xyw_to_xyz(id, OceanFloorHeight);
+	
+    for (uint p = 0; p < NumPlates; p++)
+    {
+        Plate plate = Plates[p];
+        uint3 xyp = xyz_to_xyp(xyz, plate.Rotation, p);
+        uint3 xypTmp = uint3(id.xy, id.z + p * 6);
+        TmpPlateThicknessMaps[xypTmp] = PlateThicknessMaps[xyp];
+    }
+}
+
+[numthreads(8, 8, 6)]
+void FinishAligningPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
+{
+    for (uint p = 0; p < NumPlates; p++)
+    {
+        uint3 xyp = uint3(id.xy, id.z + p * 6);
+        PlateThicknessMaps[xyp] = TmpPlateThicknessMaps[xyp];
+    }
 }
 
 [numthreads(8, 8, 6)]
@@ -159,7 +183,7 @@ void ResetPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 			}
 		}
 
-		PlateThicknessMaps[xyp] = (InitialThickness + myPlate.Id) * (closestPlateId == myPlate.Id);
+		PlateThicknessMaps[xyp] = myPlate.Id * (closestPlateId == myPlate.Id);
 	}
 }
 

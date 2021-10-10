@@ -12,7 +12,6 @@ public class PlateTectonics : MonoBehaviour
     [Range(1, 30)]
     public int NumPlates = 2;
     public float OceanFloorHeight = 900;
-    public float InitialPlateThickness = 10;
     [Range(0,100)]
     public float FaultLineNoise = 0.25f;
 
@@ -58,6 +57,7 @@ public class PlateTectonics : MonoBehaviour
     {
         Plates.Clear();
         EnvironmentDataStore.PlateThicknessMaps.ResetTexture(numPlates * 6);
+        EnvironmentDataStore.TmpPlateThicknessMaps.ResetTexture(numPlates * 6);
         OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
         OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentDataStore.LandHeightMap);
 
@@ -74,6 +74,7 @@ public class PlateTectonics : MonoBehaviour
 
         RunTectonicKernel("ResetPlateThicknessMaps");
         RunTectonicKernel("ResetContinentalIdMap");
+        AlignPlateThicknessMaps();
         UpdateHeightMap();
         Singleton.Water.Regenerate();
     }
@@ -84,6 +85,13 @@ public class PlateTectonics : MonoBehaviour
         UpdateContinentalIdMap();
         UpdatePlateThicknessMaps();
         UpdateHeightMap();
+
+        var arePlatesAligned = Plates.All(x => Quaternion.Angle(x.Rotation, Quaternion.identity) < 0.001f);
+        var arePlatesStopped = Plates.All(x => x.Velocity.magnitude < 0.1f);
+        if (!arePlatesAligned && arePlatesStopped)
+        {
+            AlignPlateThicknessMaps();
+        }
     }
     public void UpdateVelocity()
     {
@@ -107,6 +115,16 @@ public class PlateTectonics : MonoBehaviour
         RunTectonicKernel("UpdateHeightMap");
         EnvironmentDataStore.LandHeightMap.UpdateTextureCache();
     }
+    public void AlignPlateThicknessMaps()
+    {
+        RunTectonicKernel("StartAligningPlateThicknessMaps");
+        foreach(var plate in Plates)
+        {
+            plate.Rotation = Quaternion.identity;
+            plate.Velocity = Vector3.zero;
+        }
+        RunTectonicKernel("FinishAligningPlateThicknessMaps");
+    }
     private void RunTectonicKernel(string kernelName)
     {
         int kernel = TectonicsShader.FindKernel(kernelName);
@@ -115,9 +133,9 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetBuffer(kernel, "Plates", buffer);
         TectonicsShader.SetTexture(kernel, "LandHeightMap", EnvironmentDataStore.LandHeightMap);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentDataStore.PlateThicknessMaps);
+        TectonicsShader.SetTexture(kernel, "TmpPlateThicknessMaps", EnvironmentDataStore.TmpPlateThicknessMaps);
         TectonicsShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
         TectonicsShader.SetInt("NumPlates", NumPlates);
-        TectonicsShader.SetFloat("InitialThickness", InitialPlateThickness);
         TectonicsShader.SetFloat("OceanFloorHeight", OceanFloorHeight);
         TectonicsShader.SetFloat("SubductionRate", SubductionRate);
         TectonicsShader.SetFloat("MinThickness", MinPlateThickness);
