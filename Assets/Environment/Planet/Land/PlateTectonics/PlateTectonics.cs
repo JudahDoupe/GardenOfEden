@@ -61,7 +61,7 @@ public class PlateTectonics : MonoBehaviour
         OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
         OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentDataStore.LandHeightMap);
 
-        for (int p = 0; p < numPlates; p++)
+        for (int p = 1; p <= numPlates; p++)
         {
             var plate = new Plate
             {
