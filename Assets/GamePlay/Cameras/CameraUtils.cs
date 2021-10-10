@@ -146,11 +146,11 @@ public class CameraUtils : MonoBehaviour
     public static float GetTransitionTime(Quaternion start, Quaternion end, float transitionSpeed = 1) => math.sqrt(Quaternion.Angle(start, end)) * 0.05f / transitionSpeed;
     public static float GetTransitionTime(float start, float end, float transitionSpeed = 1) => math.sqrt(math.abs(start - end)) * 0.05f / transitionSpeed;
 
-    public static float GetScreenDepthAtCursor()
+    public static float GetScreenDepthAtCursor(float maxDepth = 10000)
     {
-        return DepthTexture.Sample(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height).r;
+        return math.max(DepthTexture.Sample(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height).r, maxDepth);
     }
-    public static Vector3 GetCursorWorldPosition() => Camera.main.transform.position + Camera.main.transform.forward * GetScreenDepthAtCursor();
+    public static Vector3 GetCursorWorldPosition(float maxDepth = 10000) => Camera.main.transform.position + Camera.main.transform.forward * GetScreenDepthAtCursor(maxDepth);
 
     public static void SetOutline(GameObject gameObject, bool active)
     {

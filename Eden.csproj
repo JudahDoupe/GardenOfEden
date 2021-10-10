@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -53,9 +53,6 @@
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Assets\GamePlay\Cameras\CirclingCamera.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusObject.cs" />
     <Compile Include="Assets\Utils\StateMachine\StateMachine.cs" />
@@ -94,7 +91,7 @@
     <Compile Include="Assets\GamePlay\Cameras\CameraUtils.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\DeadNodeSystem.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\PhotosynthesisSystem.cs" />
-    <Compile Include="Assets\GamePlay\Controls\MovePlateControl\MovePlateContol.cs" />
+    <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\TectonicPlateControls.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMeshes.cs" />
     <Compile Include="Assets\Utils\Interfaces\IDataBaseObject.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthHormoneSystem.cs" />
@@ -119,7 +116,6 @@
     <Compile Include="Assets\Utils\Subject.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\EnergyFlowSystem.cs" />
     <Compile Include="Assets\Plants\Dna\GeneLibrary.cs" />
-    <Compile Include="Assets\GamePlay\Controls\MovePlateControl\MovePlatePuck.cs" />
     <Compile Include="Assets\Utils\Extensions\Bool3Extensions.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusConstants.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\CleanupSystemGroup.cs" />
