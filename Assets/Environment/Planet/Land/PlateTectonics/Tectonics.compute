@@ -2,6 +2,7 @@
 #pragma kernel ResetContinentalIdMap
 #pragma kernel UpdateContinentalIdMap
 #pragma kernel UpdatePlateThicknessMaps
+#pragma kernel SmoothPlates
 #pragma kernel UpdateHeightMap
 #pragma kernel StartAligningPlateThicknessMaps
 #pragma kernel FinishAligningPlateThicknessMaps
@@ -10,7 +11,7 @@
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
 #include "../../../../Resources/Shaders/Noise.hlsl"
 
-RWTexture2DArray<float> ContinentalIdMap;
+RWTexture2DArray<float> ContinentalIdMap; 
 RWTexture2DArray<float> PlateThicknessMaps;
 RWTexture2DArray<float> TmpPlateThicknessMaps;
 RWTexture2DArray<float> LandHeightMap;
@@ -79,8 +80,6 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
     ContinentalIdMap[id] = plateId;
 }
 
-float CalculateInflation(float preasure) { return (4 * InflationRate * preasure) - (4 * InflationRate * pow(preasure, 2)); }
-
 [numthreads(8, 8, 6)]
 void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 {
@@ -100,8 +99,8 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
             totalThickness += PlateThicknessMaps[otherXyp];
         }
 		
-		float myThickness = PlateThicknessMaps[xyp];
 		bool isTopPlate = ContinentalIdMap[xyw] == myPlate.Id;
+		float myThickness = PlateThicknessMaps[xyp];
 		if (isTopPlate)
         {
 			float targetThickness = max(MinThickness, totalThickness);
@@ -113,8 +112,33 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 			float subduction = myThickness * max(-preasure, 0) * SubductionRate;
 			myThickness = max(myThickness - subduction, 0);
         }
-
+		
         PlateThicknessMaps[xyp] = myThickness;
+    }
+}
+
+[numthreads(8, 8, 6)]
+void SmoothPlates(uint3 id : SV_DispatchThreadID)
+{
+    for (uint p = 0; p < NumPlates; p++)
+    {
+        Plate myPlate = Plates[p];
+        
+        uint3 xyp = uint3(id.xy, id.z + p * 6);
+        
+        float totalThickness = 0;
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int y = -1; y <= 1; y++)
+            {
+                int3 xyw = int3(id.x + x, id.y + y, id.z);
+                int3 xyp2 = xyz_to_xyw(xyw_to_xyz(xyw, OceanFloorHeight));
+                xyp2.z = xyp.z + p * 6;
+                totalThickness += PlateThicknessMaps[xyp];
+            }
+        }
+		
+		PlateThicknessMaps[xyp] = totalThickness / 9.0;
     }
 }
 

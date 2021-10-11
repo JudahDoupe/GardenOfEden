@@ -16,8 +16,6 @@ public class PlateTectonics : MonoBehaviour
     public float FaultLineNoise = 0.25f;
 
     [Header("Simulation")]
-    [Range(1, 10)]
-    public float MaxPlateSpeed = 5;
     [Range(0, 1)]
     public float PlateInertia = 0.3f;
     [Range(0, 0.1f)]
@@ -109,6 +107,7 @@ public class PlateTectonics : MonoBehaviour
     public void UpdatePlateThicknessMaps()
     {
         RunTectonicKernel("UpdatePlateThicknessMaps");
+        RunTectonicKernel("SmoothPlates");
     }
     public void UpdateHeightMap()
     {
