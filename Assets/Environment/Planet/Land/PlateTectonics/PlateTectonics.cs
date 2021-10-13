@@ -22,6 +22,8 @@ public class PlateTectonics : MonoBehaviour
     public float SubductionRate = 0.001f;
     [Range(0, 0.1f)]
     public float InflationRate = 0.001f;
+    [Range(0.00001f, 10f)]
+    public float Smoothing = 1f;
     public float MinPlateThickness = 5;
 
     public ComputeShader TectonicsShader;
@@ -139,6 +141,7 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetFloat("SubductionRate", SubductionRate);
         TectonicsShader.SetFloat("MinThickness", MinPlateThickness);
         TectonicsShader.SetFloat("InflationRate", InflationRate);
+        TectonicsShader.SetFloat("Smoothing", Smoothing);
         TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise);
         TectonicsShader.SetInt("RenderPlate", ShowIndividualPlate);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
