@@ -10,21 +10,23 @@ public class PlateTectonics : MonoBehaviour
 {
     [Header("Generation")]
     [Range(1, 30)]
-    public int NumPlates = 2;
-    public float OceanFloorHeight = 900;
+    public int NumPlates = 16;
+    public float MantleHeight = 900;
     [Range(0,100)]
     public float FaultLineNoise = 0.25f;
 
     [Header("Simulation")]
-    [Range(0, 1)]
-    public float PlateInertia = 0.3f;
+    public float OceanicCrustThickness = 25;
     [Range(0, 0.1f)]
     public float SubductionRate = 0.001f;
     [Range(0, 0.1f)]
     public float InflationRate = 0.001f;
     [Range(0.00001f, 10f)]
-    public float Smoothing = 1f;
-    public float MinPlateThickness = 5;
+    public float Gravity = 1f;
+    [Range(1, 2)]
+    public float PlateCohesion = 1.5f;
+    [Range(0, 1)]
+    public float PlateInertia = 0.3f;
 
     public ComputeShader TectonicsShader;
     public List<Plate> Plates = new List<Plate>();
@@ -137,11 +139,12 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetTexture(kernel, "TmpPlateThicknessMaps", EnvironmentDataStore.TmpPlateThicknessMaps);
         TectonicsShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
         TectonicsShader.SetInt("NumPlates", NumPlates);
-        TectonicsShader.SetFloat("OceanFloorHeight", OceanFloorHeight);
+        TectonicsShader.SetFloat("OceanicCrustThickness", OceanicCrustThickness);
+        TectonicsShader.SetFloat("MantleHeight", MantleHeight);
         TectonicsShader.SetFloat("SubductionRate", SubductionRate);
-        TectonicsShader.SetFloat("MinThickness", MinPlateThickness);
         TectonicsShader.SetFloat("InflationRate", InflationRate);
-        TectonicsShader.SetFloat("Smoothing", Smoothing);
+        TectonicsShader.SetFloat("Gravity", Gravity);
+        TectonicsShader.SetFloat("PlateCohesion", PlateCohesion);
         TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise);
         TectonicsShader.SetInt("RenderPlate", ShowIndividualPlate);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);

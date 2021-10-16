@@ -54,6 +54,9 @@ public class WaterService : MonoBehaviour
     {
         SetComputeShaderVariables();
         UpdateWaterTable();
+
+
+        WaterRenderer.material.SetFloat("SeaLevel", SeaLevel);
     }
 
     private void SetComputeShaderVariables()

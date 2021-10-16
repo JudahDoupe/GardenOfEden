@@ -1096,7 +1096,7 @@
     "m_RefNameGeneratedByDisplayName": "SeaLevel",
     "m_DefaultReferenceName": "SeaLevel",
     "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
+    "m_GeneratePropertyBlock": false,
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
