@@ -69,7 +69,7 @@ public class PlateTectonics : MonoBehaviour
             {
                 Id = p,
                 Rotation = Random.rotation,
-                Velocity = Vector3.zero,
+                Velocity = Quaternion.identity,
             };
             Plates.Add(plate);
         }
@@ -88,9 +88,7 @@ public class PlateTectonics : MonoBehaviour
         UpdatePlateThicknessMaps();
         UpdateHeightMap();
 
-        var arePlatesAligned = Plates.All(x => Quaternion.Angle(x.Rotation, Quaternion.identity) < 0.001f);
-        var arePlatesStopped = Plates.All(x => x.Velocity.magnitude < 0.1f);
-        if (!arePlatesAligned && arePlatesStopped)
+        if (Plates.Any(x => !x.IsAligned) && Plates.All(x => x.IsStopped))
         {
             AlignPlateThicknessMaps();
         }
@@ -99,8 +97,8 @@ public class PlateTectonics : MonoBehaviour
     {
         foreach (var plate in Plates)
         {
-            plate.Rotation = Quaternion.LookRotation(plate.Center + plate.Velocity, plate.Rotation * Vector3.up);
-            plate.Velocity = Vector3.Lerp(plate.Velocity, Vector3.zero, 1 - PlateInertia);
+            plate.Rotation *= plate.Velocity;
+            plate.Velocity = Quaternion.Slerp(plate.Velocity, Quaternion.identity, 1 - PlateInertia);
         }
     }
     public void UpdateContinentalIdMap()
@@ -124,7 +122,7 @@ public class PlateTectonics : MonoBehaviour
         foreach(var plate in Plates)
         {
             plate.Rotation = Quaternion.identity;
-            plate.Velocity = Vector3.zero;
+            plate.Velocity = Quaternion.identity;
         }
         RunTectonicKernel("FinishAligningPlateThicknessMaps");
     }
@@ -154,15 +152,16 @@ public class PlateTectonics : MonoBehaviour
     {
         public int Id;
         public Quaternion Rotation;
-        public Vector3 Velocity;
+        public Quaternion Velocity;
         public Vector3 Center => Rotation * Vector3.forward * (Singleton.Water.SeaLevel + 100);
-        public Data ToData() => new Data { Id = Id, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]), Velocity = Velocity.ToFloat3() };
+        public bool IsStopped => Quaternion.Angle(Velocity, Quaternion.identity) < 0.001f;
+        public bool IsAligned => Quaternion.Angle(Rotation, Quaternion.identity) < 0.001f;
+        public Data ToData() => new Data { Id = Id, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]) };
 
         public struct Data
         {
             public int Id;
             public float4 Rotation;
-            public float3 Velocity;
         }
     }
 }

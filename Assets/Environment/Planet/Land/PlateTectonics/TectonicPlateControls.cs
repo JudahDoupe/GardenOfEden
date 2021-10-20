@@ -47,15 +47,36 @@ public class TectonicPlateControls : MonoBehaviour
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hit))
             {
-                var currentCoord = new Coordinate(hit.point, Planet.LocalToWorld);
-                var target = Vector3.Lerp(_lastCoord.LocalPlanet, currentCoord.LocalPlanet, VelocityLerp);
-                var vector = target - _lastCoord.LocalPlanet.ToVector3();
-                var velocity = vector.normalized * math.min(vector.magnitude, MaxVelocity);
                 var plate = Singleton.PlateTectonics.Plates.Single(x => x.Id == _currentPlateId);
-                plate.Velocity = Vector3.Lerp(plate.Velocity, velocity, VelocityLerp);
 
-                _lastCoord.LocalPlanet += plate.Velocity.ToFloat3();
+                var currentCoord = new Coordinate(hit.point, Planet.LocalToWorld);
+                currentCoord.LocalPlanet = _lastCoord.LocalPlanet + Vector3.ClampMagnitude(currentCoord.LocalPlanet - _lastCoord.LocalPlanet, MaxVelocity).ToFloat3();
+
+                var lastRotation = Quaternion.LookRotation(_lastCoord.LocalPlanet);
+                var targetRotation = Quaternion.LookRotation(currentCoord.LocalPlanet);
+                plate.Velocity = Quaternion.Inverse(plate.Rotation) * Quaternion.LookRotation(_lastCoord.LocalPlanet) * Quaternion.Inverse(targetRotation);
+
+                _lastCoord.LocalPlanet += (currentCoord.LocalPlanet - _lastCoord.LocalPlanet);
                 _lastCoord.Altitude = Coordinate.PlanetRadius;
+
+                //RotationScaling?
+                /*
+                                 var coord = new Coordinate(hit.point, Planet.LocalToWorld);
+                var lastPoint = _lastCoord.LocalPlanet;
+                var motionVector = Vector3.ClampMagnitude(lastPoint - coord.LocalPlanet, MaxVelocity);
+
+                var forward = motionVector.normalized;
+                var up = Planet.LocalToWorld.Rotation.ToQuaternion() * Camera.main.transform.position;
+                var right = Quaternion.AngleAxis(-90, forward) * up;
+                var distanceToAngle = (2 * math.PI * Coordinate.PlanetRadius) / 360f;
+                var angle = motionVector.magnitude / distanceToAngle;
+
+                plate.Velocity = Quaternion.AngleAxis(angle, right);
+                _lastCoord.LocalPlanet += motionVector.ToFloat3(); 
+                _lastCoord.Altitude = Coordinate.PlanetRadius;
+                 
+                 */
+
             }
         }
         if (Input.GetMouseButtonUp(0))
