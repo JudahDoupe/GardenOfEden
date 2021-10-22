@@ -27,6 +27,7 @@ public class PlateTectonics : MonoBehaviour
     public float PlateCohesion = 1.5f;
     [Range(0, 1)]
     public float PlateInertia = 0.3f;
+    public float PlateSpeed = 500;
 
     public ComputeShader TectonicsShader;
     public List<Plate> Plates = new List<Plate>();
@@ -70,6 +71,7 @@ public class PlateTectonics : MonoBehaviour
                 Id = p,
                 Rotation = Random.rotation,
                 Velocity = Quaternion.identity,
+                TargetVelocity = Quaternion.identity,
             };
             Plates.Add(plate);
         }
@@ -97,8 +99,10 @@ public class PlateTectonics : MonoBehaviour
     {
         foreach (var plate in Plates)
         {
+            //this integration needs to be frame rate independednt as well
+            var velocity = Quaternion.Slerp(plate.Velocity, plate.TargetVelocity, (1 - PlateInertia));
+            plate.Velocity = Quaternion.Slerp(Quaternion.identity, velocity, PlateSpeed * Time.deltaTime);
             plate.Rotation *= plate.Velocity;
-            plate.Velocity = Quaternion.Slerp(plate.Velocity, Quaternion.identity, 1 - PlateInertia);
         }
     }
     public void UpdateContinentalIdMap()
@@ -153,6 +157,7 @@ public class PlateTectonics : MonoBehaviour
         public int Id;
         public Quaternion Rotation;
         public Quaternion Velocity;
+        public Quaternion TargetVelocity;
         public Vector3 Center => Rotation * Vector3.forward * (Singleton.Water.SeaLevel + 100);
         public bool IsStopped => Quaternion.Angle(Velocity, Quaternion.identity) < 0.001f;
         public bool IsAligned => Quaternion.Angle(Rotation, Quaternion.identity) < 0.001f;

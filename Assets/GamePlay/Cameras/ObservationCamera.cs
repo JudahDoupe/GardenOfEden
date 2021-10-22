@@ -99,6 +99,8 @@ public class ObservationCamera : CameraController
             FocusLocalRotation = localFocusRotation,
             FieldOfView = Fov,
             Cursor = CursorLockMode.Locked,
+            NearClip = 0.1f,
+            FarClip = MaxHeight + Coordinate.PlanetRadius,
         };
     }
 
@@ -131,6 +133,8 @@ public class ObservationCamera : CameraController
             FocusLocalRotation = localFocusRotation,
             FieldOfView = Fov,
             Cursor = CursorLockMode.Locked,
+            NearClip = 0.1f,
+            FarClip = MaxHeight + Coordinate.PlanetRadius,
         };
     }
 }

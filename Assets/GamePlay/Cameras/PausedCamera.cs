@@ -28,6 +28,8 @@ public class PausedCamera : CameraController
             FocusLocalPosition = Vector3.zero,
             FocusLocalRotation = rotation,
             FieldOfView = Fov,
+            NearClip = 10,
+            FarClip = 10000
         };
     }
 }

@@ -91,6 +91,8 @@ public class CameraUtils : MonoBehaviour
         end.Focus.localPosition = end.FocusLocalPosition;
         end.Focus.localRotation = end.FocusLocalRotation;
         camera.fieldOfView = end.FieldOfView;
+        camera.nearClipPlane = end.NearClip;
+        camera.farClipPlane = end.FarClip;
         Cursor.lockState = end.Cursor;
     }
     public static void TransitionState(CameraState end, Action callback = null, float transitionSpeed = 1, Ease ease = Ease.InOut)
@@ -146,11 +148,11 @@ public class CameraUtils : MonoBehaviour
     public static float GetTransitionTime(Quaternion start, Quaternion end, float transitionSpeed = 1) => math.sqrt(Quaternion.Angle(start, end)) * 0.05f / transitionSpeed;
     public static float GetTransitionTime(float start, float end, float transitionSpeed = 1) => math.sqrt(math.abs(start - end)) * 0.05f / transitionSpeed;
 
-    public static float GetScreenDepthAtCursor(float maxDepth = 10000)
-    {
-        return math.max(DepthTexture.Sample(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height).r, maxDepth);
-    }
-    public static Vector3 GetCursorWorldPosition(float maxDepth = 10000) => Camera.main.transform.position + Camera.main.transform.forward * GetScreenDepthAtCursor(maxDepth);
+    public static float GetScreenDepthAtCursor(float maxDepth = 10000) => math.min(DepthTexture.Sample(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height).r, maxDepth);
+    public static Vector3 GetCursorWorldPosition(float maxDepth = 10000) => 
+        Camera.main.transform.position 
+        + Camera.main.ScreenPointToRay(Input.mousePosition).direction 
+        * GetScreenDepthAtCursor(maxDepth);
 
     public static void SetOutline(GameObject gameObject, bool active)
     {

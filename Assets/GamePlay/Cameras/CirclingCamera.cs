@@ -77,6 +77,8 @@ public class CirclingCamera : CameraController
             FocusLocalRotation = focusRot,
             FocusParent = Planet.Transform,
             FieldOfView = Fov,
+            NearClip = 0.01f,
+            FarClip = Coordinate.PlanetRadius * 1.5f,
         };
 
         if(x.CameraLocalPosition.x == float.NaN)

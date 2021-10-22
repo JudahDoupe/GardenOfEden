@@ -63,6 +63,8 @@ public class SatelliteCamera : CameraController
             FocusLocalPosition = Singleton.Land.SampleHeight(_coord) * cameraPosition.normalized,
             FocusLocalRotation = Quaternion.LookRotation(-cameraPosition.normalized, Vector3.up),
             FieldOfView = Fov,
+            NearClip = 10,
+            FarClip = MaxAltitude + Coordinate.PlanetRadius,
         };
     }
 }

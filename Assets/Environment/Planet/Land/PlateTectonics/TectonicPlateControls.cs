@@ -5,8 +5,6 @@ using UnityEngine;
 public class TectonicPlateControls : MonoBehaviour
 {
     public float MaxVelocity = 10;
-    [Range(0,1)]
-    public float VelocityLerp = 0.5f;
 
     private bool _isActive;
     private int _currentPlateId;
@@ -50,12 +48,11 @@ public class TectonicPlateControls : MonoBehaviour
         }
         if (Input.GetMouseButton(0) && _currentPlateId > 0)
         {
-            // Raycasting seems to jitter for some reason
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hit, 10000, LayerMask.GetMask("Planet")))
             {
-                _ball.transform.position = hit.point;
                 var plate = Singleton.PlateTectonics.Plates.Single(x => x.Id == _currentPlateId);
+                _lastCoord.LocalPlanet = plate.Velocity * _lastCoord.LocalPlanet.ToVector3();
 
                 var hitCoord = new Coordinate(hit.transform.InverseTransformPoint(hit.point));
                 var motionVector = Vector3.ClampMagnitude(hitCoord.LocalPlanet - _lastCoord.LocalPlanet, MaxVelocity).ToFloat3();
@@ -63,15 +60,17 @@ public class TectonicPlateControls : MonoBehaviour
 
                 var lastRotation = Quaternion.LookRotation(_lastCoord.LocalPlanet);
                 var targetRotation = Quaternion.LookRotation(currentCoord.LocalPlanet);
-                plate.Velocity = targetRotation * Quaternion.Inverse(lastRotation);
-
-                _lastCoord.LocalPlanet = currentCoord.LocalPlanet;
-                _lastCoord.Altitude = Coordinate.PlanetRadius;
+                plate.TargetVelocity = targetRotation * Quaternion.Inverse(lastRotation);
 
             }
         }
         if (Input.GetMouseButtonUp(0))
         {
+            var plate = Singleton.PlateTectonics.Plates.FirstOrDefault(x => x.Id == _currentPlateId);
+            if(plate != null)
+            {
+                plate.TargetVelocity = Quaternion.identity;
+            }
             _currentPlateId = 0;
         }
     }

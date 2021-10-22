@@ -14,6 +14,8 @@ public struct CameraState
         FocusLocalRotation = focus.localRotation;
         FieldOfView = camera.GetComponent<Camera>().fieldOfView;
         Cursor = CursorLockMode.None;
+        NearClip = camera.GetComponent<Camera>().nearClipPlane;
+        FarClip = camera.GetComponent<Camera>().farClipPlane;
     }
 
     public Transform Camera;
@@ -26,4 +28,6 @@ public struct CameraState
     public Quaternion FocusLocalRotation;
     public float FieldOfView;
     public CursorLockMode Cursor;
+    public float NearClip;
+    public float FarClip;
 }
