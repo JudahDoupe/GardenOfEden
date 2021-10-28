@@ -8,19 +8,14 @@ public class TectonicPlateControls : MonoBehaviour
 
     private bool _isActive;
     private int _currentPlateId;
-    private Coordinate _lastCoord;
-    private GameObject _ball;
+    private Coordinate _currentCoord;
 
     public void Enable()
     {
-        _ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        _ball.transform.localScale = new Vector3(25, 25, 25);
-        _ball.GetComponent<SphereCollider>().enabled = false;
         _isActive = true;
     }
     public void Disable()
     {
-        Destroy(_ball);
         _isActive = false;
     }
 
@@ -33,14 +28,15 @@ public class TectonicPlateControls : MonoBehaviour
 
     private void UpdateContols()
     {
+        var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
         if (Input.GetMouseButtonDown(0))
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out var hit, 10000, LayerMask.GetMask("Planet")))
+            if (Physics.Raycast(ray, out var hit, distance))
             {
-                _lastCoord = new Coordinate(hit.transform.InverseTransformPoint(hit.point));
-                _lastCoord.Altitude = Coordinate.PlanetRadius;
-                _currentPlateId = (int) math.round(EnvironmentDataStore.ContinentalIdMap.Sample(_lastCoord).r);
+                _currentCoord = new Coordinate(hit.point, Planet.LocalToWorld);
+                _currentCoord.Altitude = Coordinate.PlanetRadius;
+                _currentPlateId = (int) math.round(EnvironmentDataStore.ContinentalIdMap.Sample(_currentCoord).r);
             }
             else {
                 _currentPlateId = 0;
@@ -49,20 +45,19 @@ public class TectonicPlateControls : MonoBehaviour
         if (Input.GetMouseButton(0) && _currentPlateId > 0)
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out var hit, 10000, LayerMask.GetMask("Planet")))
-            {
-                var plate = Singleton.PlateTectonics.Plates.Single(x => x.Id == _currentPlateId);
-                _lastCoord.LocalPlanet = plate.Velocity * _lastCoord.LocalPlanet.ToVector3();
+            var targetPos = Physics.Raycast(ray, out var hit, distance) ? hit.point : Camera.main.transform.position + ray.direction * distance;
+            var plate = Singleton.PlateTectonics.Plates.Single(x => x.Id == _currentPlateId);
 
-                var hitCoord = new Coordinate(hit.transform.InverseTransformPoint(hit.point));
-                var motionVector = Vector3.ClampMagnitude(hitCoord.LocalPlanet - _lastCoord.LocalPlanet, MaxVelocity).ToFloat3();
-                var currentCoord = new Coordinate(_lastCoord.LocalPlanet + motionVector);
+            var targetCoord = new Coordinate(targetPos, Planet.LocalToWorld);
+            var motionVector = Vector3.ClampMagnitude(targetCoord.LocalPlanet - _currentCoord.LocalPlanet, MaxVelocity).ToFloat3();
+            targetCoord.LocalPlanet = _currentCoord.LocalPlanet + motionVector;
 
-                var lastRotation = Quaternion.LookRotation(_lastCoord.LocalPlanet);
-                var targetRotation = Quaternion.LookRotation(currentCoord.LocalPlanet);
-                plate.TargetVelocity = targetRotation * Quaternion.Inverse(lastRotation);
+            var lastRotation = Quaternion.LookRotation(_currentCoord.LocalPlanet, Camera.main.transform.up);
+            var targetRotation = Quaternion.LookRotation(targetCoord.LocalPlanet, Camera.main.transform.up);
+            var targetVelocity = targetRotation * Quaternion.Inverse(lastRotation);
 
-            }
+            plate.TargetVelocity = targetVelocity;
+            _currentCoord.LocalPlanet = plate.Velocity * _currentCoord.LocalPlanet.ToVector3();
         }
         if (Input.GetMouseButtonUp(0))
         {
