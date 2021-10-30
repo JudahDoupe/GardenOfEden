@@ -11,7 +11,11 @@ public class MainMenuUi : MonoBehaviour
 
     public void Enable() => _stateMachine.Fire(UiTrigger.Enable);
     public void Disable() => _stateMachine.Fire(UiTrigger.Disable);
-    public void Continue() => Singleton.PerspectiveController.Unpause();
+    public void Continue()
+    {
+        FindObjectOfType<SystemsMenuUi>().Enable();
+        Singleton.PerspectiveController.Unpause();
+    }
 
     public void Quit()
     {
@@ -36,6 +40,7 @@ public class MainMenuUi : MonoBehaviour
             {
                 _home.gameObject.SetActive(true);
                 _home.AnimatePosition(0.3f, new Vector3(350, 0, 0));
+                FindObjectOfType<SystemsMenuUi>().Disable();
             })
             .Ignore(UiTrigger.Enable)
             .Permit(UiTrigger.Disable, UiState.Closed)
