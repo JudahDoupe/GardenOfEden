@@ -6,8 +6,8 @@ public class Singleton : MonoBehaviour
     public static Singleton Instance;
 
     public static ILandService Land;
-    public static PlateTectonics PlateTectonics;
-    public static WaterService Water;
+    public static PlateTectonicsSimulation PlateTectonics;
+    public static WaterSimulation Water;
 
     public static TimeService TimeService;
     public static ILoadBalancer LoadBalancer;
@@ -22,8 +22,8 @@ public class Singleton : MonoBehaviour
     {
         Instance = this;
         Land = FindObjectOfType<LandService>();
-        PlateTectonics = FindObjectOfType<PlateTectonics>();
-        Water = FindObjectOfType<WaterService>();
+        PlateTectonics = FindObjectOfType<PlateTectonicsSimulation>();
+        Water = FindObjectOfType<WaterSimulation>();
 
         TimeService = FindObjectOfType<TimeService>();
         LoadBalancer = FindObjectOfType<ProximityLoadBalancer>();

@@ -122,7 +122,7 @@ public class PerspectiveController : MonoBehaviour
                         },
                         transitionSpeed: transition.Speed,
                         ease: transition.EaseIn);
-                    FindObjectOfType<TectonicPlateControls>().Enable();
+                    FindObjectOfType<MovePlateTool>().Enable();
                     FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
                     Singleton.PlateTectonics.ShowFaultLines(true);
                 })
@@ -130,7 +130,7 @@ public class PerspectiveController : MonoBehaviour
                 {
                     camera.Disable();
                     FindObjectOfType<HoverAndClickControl>().Disable();
-                    FindObjectOfType<TectonicPlateControls>().Disable();
+                    FindObjectOfType<MovePlateTool>().Disable();
                     FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Close());
                     Singleton.PlateTectonics.ShowFaultLines(false);
                 })

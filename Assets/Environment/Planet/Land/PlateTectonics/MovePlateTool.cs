@@ -2,7 +2,7 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class TectonicPlateControls : MonoBehaviour
+public class MovePlateTool : MonoBehaviour
 {
     public float MaxVelocity = 10;
 

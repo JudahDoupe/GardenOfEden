@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -53,6 +53,9 @@
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Assets\GamePlay\Cameras\CirclingCamera.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusObject.cs" />
     <Compile Include="Assets\Utils\StateMachine\StateMachine.cs" />
@@ -79,7 +82,6 @@
     <Compile Include="Assets\GamePlay\Cameras\CameraState.cs" />
     <Compile Include="Assets\Utils\MessageBus.cs" />
     <Compile Include="Assets\GamePlay\LoadBalancer\ProximityLoadBalancer.cs" />
-    <Compile Include="Assets\Environment\Planet\Water\WaterService.cs" />
     <Compile Include="Assets\Utils\Ui\MatchButtonText.cs" />
     <Compile Include="Assets\Plants\Dna\DnaService.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\AssignMeshSystem.cs" />
@@ -91,7 +93,6 @@
     <Compile Include="Assets\GamePlay\Cameras\CameraUtils.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\DeadNodeSystem.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\PhotosynthesisSystem.cs" />
-    <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\TectonicPlateControls.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMeshes.cs" />
     <Compile Include="Assets\Utils\Interfaces\IDataBaseObject.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthHormoneSystem.cs" />
@@ -133,10 +134,14 @@
     <Compile Include="Assets\Plants\Systems\Environment\LightSystem.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMaterial.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusType.cs" />
-    <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\PlateTectonics.cs" />
+    <Compile Include="Assets\GamePlay\Ui\SystemsMenuUi.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Rendering\Features\BlitMaterialFeature.cs" />
-    <Compile Include="Assets\GamePlay\Ui\SystemsMenuUi.cs" />
+    <Compile Include="Assets\GamePlay\SimulationController.cs" />
+    <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\MovePlateTool.cs" />
+    <Compile Include="Assets\Environment\Planet\Water\WaterSimulation.cs" />
+    <Compile Include="Assets\Utils\Interfaces\ISimulation.cs" />
+    <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\PlateTectonicsSimulation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />

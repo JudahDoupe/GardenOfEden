@@ -4,6 +4,11 @@ using UnityEngine.UI;
 
 public class SystemsMenuUi : MonoBehaviour
 {
+    private void Start()
+    {
+        Globe();
+    }
+
     public void Enable()
     {
         var bar = transform.Find("Bar").GetComponent<RectTransform>();
@@ -20,13 +25,13 @@ public class SystemsMenuUi : MonoBehaviour
     public void Globe()
     {
         SetButtonActive("Globe");
+        SimulationController.SetActiveSimulations(SimulationType.Water);
     }
-
     public void Land()
     {
         SetButtonActive("Land");
+        SimulationController.SetActiveSimulations(SimulationType.PlateTectonics, SimulationType.Water);
     }
-
 
     private void SetButtonActive(string buttonName)
     {
@@ -37,9 +42,6 @@ public class SystemsMenuUi : MonoBehaviour
                 : DeactivateButtonColor(button);
         }
     }
-
-
-
     private ColorBlock DeactivateButtonColor(Button button)
     {
         var colors = button.colors;
@@ -51,7 +53,6 @@ public class SystemsMenuUi : MonoBehaviour
         colors.pressedColor = new Color(1, 1, 1, 0.25f);
         return colors;
     }
-
     private ColorBlock ActivateButtonColor(Button button)
     {
         var colors = button.colors;

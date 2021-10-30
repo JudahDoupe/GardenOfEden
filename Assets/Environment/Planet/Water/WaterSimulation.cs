@@ -1,31 +1,9 @@
-﻿using Unity.Mathematics;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class WaterService : MonoBehaviour
+public class WaterSimulation : MonoBehaviour, ISimulation
 {
-    [Range(0, 10f)]
-    public float MaxAmplitude = 2;
-    [Range(0, 10f)]
-    public float MaxVelocity = 2;
-    [Range(0, 0.2f)]
-    public float OceanAmplitudeDampening = 0.1f;
-    [Range(0, 0.2f)]
-    public float OceanVelocityDampening = 0.1f;
-
+    [Header("Generation")]
     public float SeaLevel = 999.8f;
-
-    /* Publicly Accessible Methods */
-
-    public float SampleDepth(Coordinate coord)
-    {
-        return EnvironmentDataStore.WaterMap.Sample(coord).b;
-    }
-
-    public float SampleHeight(Coordinate coord)
-    {
-        return EnvironmentDataStore.WaterMap.Sample(coord).a + SeaLevel;
-    }
-
     public void Regenerate()
     {
         int updateKernel = WaterShader.FindKernel("Reset");
@@ -35,15 +13,32 @@ public class WaterService : MonoBehaviour
         WaterShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
-    /* Inner Mechanations */
+
+    [Header("Simulation")]
+    [Range(0, 10f)]
+    public float MaxAmplitude = 2;
+    [Range(0, 10f)]
+    public float MaxVelocity = 2;
+    [Range(0, 0.2f)]
+    public float OceanAmplitudeDampening = 0.1f;
+    [Range(0, 0.2f)]
+    public float OceanVelocityDampening = 0.1f;
+    public bool IsActive { get; set; }
+
+    public float SampleDepth(Coordinate coord)
+    {
+        return EnvironmentDataStore.WaterMap.Sample(coord).b;
+    }
+    public float SampleHeight(Coordinate coord)
+    {
+        return EnvironmentDataStore.WaterMap.Sample(coord).a + SeaLevel;
+    }
 
     private ComputeShader WaterShader;
     private Renderer WaterRenderer;
 
     void Start()
     {
-        Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
-
         WaterShader = Resources.Load<ComputeShader>("Shaders/Water");
         WaterRenderer = GetComponent<Renderer>();
         WaterRenderer.material.SetTexture("HeightMap", EnvironmentDataStore.WaterMap);
@@ -52,11 +47,14 @@ public class WaterService : MonoBehaviour
 
     void FixedUpdate()
     {
-        SetComputeShaderVariables();
-        UpdateWaterTable();
+        if (IsActive)
+        {
+            SetComputeShaderVariables();
+            UpdateWaterTable();
 
-
-        WaterRenderer.material.SetFloat("SeaLevel", SeaLevel);
+            EnvironmentDataStore.WaterMap.UpdateTextureCache();
+            WaterRenderer.material.SetFloat("SeaLevel", SeaLevel);
+        }
     }
 
     private void SetComputeShaderVariables()
@@ -73,10 +71,5 @@ public class WaterService : MonoBehaviour
         WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentDataStore.WaterMap);
         WaterShader.SetTexture(updateKernel, "WaterSourceMap", EnvironmentDataStore.WaterSourceMap);
         WaterShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
-    }
-
-    public void ProcessDay()
-    {
-        EnvironmentDataStore.WaterMap.UpdateTextureCache();
     }
 }

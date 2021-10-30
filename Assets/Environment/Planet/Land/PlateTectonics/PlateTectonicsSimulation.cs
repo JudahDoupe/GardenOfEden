@@ -6,7 +6,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class PlateTectonics : MonoBehaviour
+public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 {
     [Header("Generation")]
     [Range(1, 30)]
@@ -14,47 +14,6 @@ public class PlateTectonics : MonoBehaviour
     public float MantleHeight = 900;
     [Range(0,100)]
     public float FaultLineNoise = 0.25f;
-
-    [Header("Simulation")]
-    public float OceanicCrustThickness = 25;
-    [Range(0, 0.1f)]
-    public float SubductionRate = 0.001f;
-    [Range(0, 0.1f)]
-    public float InflationRate = 0.001f;
-    [Range(0.00001f, 10f)]
-    public float Gravity = 1f;
-    [Range(1, 2)]
-    public float PlateCohesion = 1.5f;
-    [Range(0, 1)]
-    public float PlateInertia = 0.3f;
-    public float PlateSpeed = 500;
-
-    public ComputeShader TectonicsShader;
-    public List<Plate> Plates = new List<Plate>();
-
-    [Header("Visualization")]
-    public Material OutlineReplacementMaterial;
-    public Material FaultLineMaterial;
-    [Range(0, 10)]
-    public int ShowIndividualPlate = 0;
-    public void ShowFaultLines(bool show) 
-    {
-        StartCoroutine(AnimationUtils.AnimateFloat(1, show ? 0 : 0.3f, show ? 0.3f : 0, x => FaultLineMaterial.SetFloat("Transparency", x))); 
-    }
-
-    private void Start()
-    {
-        ShowFaultLines(false);
-        Singleton.LoadBalancer.RegisterEndSimulationAction(ProcessDay);
-    }
-    private void Update()
-    {
-        if (Plates.Count != NumPlates)
-        {
-            Regenerate(NumPlates);
-        }
-    }
-
     public void Regenerate() => Regenerate(Plates.Count);
     public void Regenerate(int numPlates)
     {
@@ -83,7 +42,37 @@ public class PlateTectonics : MonoBehaviour
         Singleton.Water.Regenerate();
     }
 
-    public void ProcessDay()
+
+    [Header("Visualization")]
+    public Material OutlineReplacementMaterial;
+    public Material FaultLineMaterial;
+    [Range(0, 10)]
+    public int ShowIndividualPlate = 0;
+    public void ShowFaultLines(bool show) 
+    {
+        StartCoroutine(AnimationUtils.AnimateFloat(1, show ? 0 : 0.3f, show ? 0.3f : 0, x => FaultLineMaterial.SetFloat("Transparency", x))); 
+    }
+
+
+    [Header("Simulation")]
+    public float OceanicCrustThickness = 25;
+    [Range(0, 0.1f)]
+    public float SubductionRate = 0.001f;
+    [Range(0, 0.1f)]
+    public float InflationRate = 0.001f;
+    [Range(0.00001f, 10f)]
+    public float Gravity = 1f;
+    [Range(1, 2)]
+    public float PlateCohesion = 1.5f;
+    [Range(0, 1)]
+    public float PlateInertia = 0.3f;
+    public float PlateSpeed = 500;
+    public bool IsActive { get; set; }
+
+    public ComputeShader TectonicsShader;
+    public List<Plate> Plates = new List<Plate>();
+
+    public void UpdateSystem()
     {
         UpdateVelocity();
         UpdateContinentalIdMap();
@@ -130,6 +119,7 @@ public class PlateTectonics : MonoBehaviour
         }
         RunTectonicKernel("FinishAligningPlateThicknessMaps");
     }
+    
     private void RunTectonicKernel(string kernelName)
     {
         int kernel = TectonicsShader.FindKernel(kernelName);
@@ -150,6 +140,22 @@ public class PlateTectonics : MonoBehaviour
         TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise);
         TectonicsShader.SetInt("RenderPlate", ShowIndividualPlate);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
+    }
+
+    private void Start()
+    {
+        ShowFaultLines(false);
+    }
+    private void Update()
+    {
+        if (Plates.Count != NumPlates)
+        {
+            Regenerate(NumPlates);
+        }
+        if (IsActive)
+        {
+            UpdateSystem();
+        }
     }
 
     public class Plate
