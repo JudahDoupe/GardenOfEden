@@ -124,7 +124,6 @@ public class PerspectiveController : MonoBehaviour
                         ease: transition.EaseIn);
                     FindObjectOfType<MovePlateTool>().Enable();
                     FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
-                    Singleton.PlateTectonics.ShowFaultLines(true);
                 })
                 .OnExit(() =>
                 {
@@ -132,7 +131,6 @@ public class PerspectiveController : MonoBehaviour
                     FindObjectOfType<HoverAndClickControl>().Disable();
                     FindObjectOfType<MovePlateTool>().Disable();
                     FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Close());
-                    Singleton.PlateTectonics.ShowFaultLines(false);
                 })
                 .Ignore(Trigger.ZoomOut)
                 .PermitIf(Trigger.ZoomIn, State.Observation, () => _isBotanyUnlocked)

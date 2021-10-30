@@ -47,6 +47,7 @@ public class MovePlateTool : MonoBehaviour
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             var targetPos = Physics.Raycast(ray, out var hit, distance) ? hit.point : Camera.main.transform.position + ray.direction * distance;
             var plate = Singleton.PlateTectonics.Plates.Single(x => x.Id == _currentPlateId);
+            _currentCoord.LocalPlanet = plate.Velocity * _currentCoord.LocalPlanet.ToVector3();
 
             var targetCoord = new Coordinate(targetPos, Planet.LocalToWorld);
             var motionVector = Vector3.ClampMagnitude(targetCoord.LocalPlanet - _currentCoord.LocalPlanet, MaxVelocity).ToFloat3();
@@ -57,7 +58,6 @@ public class MovePlateTool : MonoBehaviour
             var targetVelocity = targetRotation * Quaternion.Inverse(lastRotation);
 
             plate.TargetVelocity = targetVelocity;
-            _currentCoord.LocalPlanet = plate.Velocity * _currentCoord.LocalPlanet.ToVector3();
         }
         if (Input.GetMouseButtonUp(0))
         {

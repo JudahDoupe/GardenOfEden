@@ -50,7 +50,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public int ShowIndividualPlate = 0;
     public void ShowFaultLines(bool show) 
     {
-        StartCoroutine(AnimationUtils.AnimateFloat(1, show ? 0 : 0.3f, show ? 0.3f : 0, x => FaultLineMaterial.SetFloat("Transparency", x))); 
+        StartCoroutine(AnimationUtils.AnimateFloat(1, FaultLineMaterial.GetFloat("Transparency"), show ? 0.3f : 0, x => FaultLineMaterial.SetFloat("Transparency", x))); 
     }
 
 
@@ -67,7 +67,16 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     [Range(0, 1)]
     public float PlateInertia = 0.3f;
     public float PlateSpeed = 500;
-    public bool IsActive { get; set; }
+
+    private bool _isActive;
+    public bool IsActive { 
+        get => _isActive; 
+        set
+        {
+            ShowFaultLines(value);
+            _isActive = value;
+        }
+    }
 
     public ComputeShader TectonicsShader;
     public List<Plate> Plates = new List<Plate>();
@@ -144,7 +153,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 
     private void Start()
     {
-        ShowFaultLines(false);
+        IsActive = false;
     }
     private void Update()
     {
