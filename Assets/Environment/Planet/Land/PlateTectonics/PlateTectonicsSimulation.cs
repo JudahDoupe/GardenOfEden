@@ -46,11 +46,30 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     [Header("Visualization")]
     public Material OutlineReplacementMaterial;
     public Material FaultLineMaterial;
+    [Range(0, 1)]
+    public float AudioLerpSpeed = 1;
+    [Range(0,2)]
+    public float RumbleThreshhold = 0.5f;
+    public AudioSource RumbleSound;
+    [Range(0,2)]
+    public float BoulderThreshhold = 1;
+    public AudioSource BoulderSound;
     [Range(0, 10)]
     public int ShowIndividualPlate = 0;
     public void ShowFaultLines(bool show) 
     {
-        StartCoroutine(AnimationUtils.AnimateFloat(1, FaultLineMaterial.GetFloat("Transparency"), show ? 0.3f : 0, x => FaultLineMaterial.SetFloat("Transparency", x))); 
+        StartCoroutine(AnimationUtils.AnimateFloat(1, FaultLineMaterial.GetFloat("Transparency"), show ? 0.3f : 0, x => FaultLineMaterial.SetFloat("Transparency", x)));
+    }
+    public void UpdateAudio()
+    {
+        var velocity = Plates.Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
+        RumbleSound.volume = GetVolume(RumbleSound.volume, velocity, RumbleThreshhold);
+        BoulderSound.volume = GetVolume(BoulderSound.volume, velocity, BoulderThreshhold);
+    }
+    private float GetVolume(float volume, float velocity, float threshold)
+    {
+        var target = math.saturate(velocity / threshold);
+        return math.lerp(math.max(volume, target), target, Time.deltaTime * AudioLerpSpeed);
     }
 
 
@@ -73,8 +92,18 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         get => _isActive; 
         set
         {
-            ShowFaultLines(value);
             _isActive = value;
+            ShowFaultLines(value); 
+            if (_isActive)
+            {
+                RumbleSound.Play();
+                BoulderSound.Play();
+            }
+            else
+            {
+                RumbleSound.Stop();
+                BoulderSound.Stop();
+            }
         }
     }
 
@@ -87,6 +116,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         UpdateContinentalIdMap();
         UpdatePlateThicknessMaps();
         UpdateHeightMap();
+        UpdateAudio();
 
         if (Plates.Any(x => !x.IsAligned) && Plates.All(x => x.IsStopped))
         {
