@@ -122,14 +122,12 @@ public class PerspectiveController : MonoBehaviour
                         },
                         transitionSpeed: transition.Speed,
                         ease: transition.EaseIn);
-                    FindObjectOfType<MovePlateTool>().Enable();
                     FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Open());
                 })
                 .OnExit(() =>
                 {
                     camera.Disable();
                     FindObjectOfType<HoverAndClickControl>().Disable();
-                    FindObjectOfType<MovePlateTool>().Disable();
                     FindObjectsOfType<SpawnPlantButton>().ToList().ForEach(x => x.Close());
                 })
                 .Ignore(Trigger.ZoomOut)

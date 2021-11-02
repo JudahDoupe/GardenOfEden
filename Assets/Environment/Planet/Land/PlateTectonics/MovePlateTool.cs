@@ -7,12 +7,24 @@ public class MovePlateTool : MonoBehaviour
     public float MaxVelocity = 10;
 
     private bool _isActive;
+    public bool IsActive
+    {
+        get => _isActive;
+        set
+        {
+            _isActive = value;
+            FindObjectOfType<PlateTectonicsVisualization>().ShowFaultLines(value);
+        }
+    }
+
     private int _currentPlateId;
     private Coordinate _currentCoord;
 
     public void Enable()
     {
         _isActive = true;
+
+        FindObjectOfType<PlateTectonicsVisualization>().Initialize();
     }
     public void Disable()
     {

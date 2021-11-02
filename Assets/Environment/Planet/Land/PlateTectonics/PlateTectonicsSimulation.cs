@@ -20,8 +20,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         Plates.Clear();
         EnvironmentDataStore.PlateThicknessMaps.ResetTexture(numPlates * 6);
         EnvironmentDataStore.TmpPlateThicknessMaps.ResetTexture(numPlates * 6);
-        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
-        OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentDataStore.LandHeightMap);
+        FindObjectOfType<PlateTectonicsVisualization>().Initialize();
 
         for (int p = 1; p <= numPlates; p++)
         {
@@ -42,38 +41,9 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         Singleton.Water.Regenerate();
     }
 
-
-    [Header("Visualization")]
-    public Material OutlineReplacementMaterial;
-    public Material FaultLineMaterial;
-    [Range(0, 1)]
-    public float AudioLerpSpeed = 1;
-    [Range(0,2)]
-    public float RumbleThreshhold = 0.5f;
-    public AudioSource RumbleSound;
-    [Range(0,2)]
-    public float BoulderThreshhold = 1;
-    public AudioSource BoulderSound;
-    [Range(0, 10)]
-    public int ShowIndividualPlate = 0;
-    public void ShowFaultLines(bool show) 
-    {
-        StartCoroutine(AnimationUtils.AnimateFloat(1, FaultLineMaterial.GetFloat("Transparency"), show ? 0.3f : 0, x => FaultLineMaterial.SetFloat("Transparency", x)));
-    }
-    public void UpdateAudio()
-    {
-        var velocity = Plates.Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
-        RumbleSound.volume = GetVolume(RumbleSound.volume, velocity, RumbleThreshhold);
-        BoulderSound.volume = GetVolume(BoulderSound.volume, velocity, BoulderThreshhold);
-    }
-    private float GetVolume(float volume, float velocity, float threshold)
-    {
-        var target = math.saturate(velocity / threshold);
-        return math.lerp(math.max(volume, target), target, Time.deltaTime * AudioLerpSpeed);
-    }
-
-
     [Header("Simulation")]
+    public ComputeShader TectonicsShader;
+    public List<Plate> Plates = new List<Plate>();
     public float OceanicCrustThickness = 25;
     [Range(0, 0.1f)]
     public float SubductionRate = 0.001f;
@@ -87,28 +57,19 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float PlateInertia = 0.3f;
     public float PlateSpeed = 500;
 
+
     private bool _isActive;
     public bool IsActive { 
         get => _isActive; 
         set
         {
             _isActive = value;
-            ShowFaultLines(value); 
-            if (_isActive)
-            {
-                RumbleSound.Play();
-                BoulderSound.Play();
-            }
-            else
-            {
-                RumbleSound.Stop();
-                BoulderSound.Stop();
-            }
+            FindObjectOfType<PlateTectonicsAudio>().IsActive = value;
+            FindObjectOfType<PlateTectonicsVisualization>().IsActive = value;
+            FindObjectOfType<MovePlateTool>().IsActive = value;
         }
     }
 
-    public ComputeShader TectonicsShader;
-    public List<Plate> Plates = new List<Plate>();
 
     public void UpdateSystem()
     {
@@ -116,7 +77,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         UpdateContinentalIdMap();
         UpdatePlateThicknessMaps();
         UpdateHeightMap();
-        UpdateAudio();
 
         if (Plates.Any(x => !x.IsAligned) && Plates.All(x => x.IsStopped))
         {
@@ -127,7 +87,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     {
         foreach (var plate in Plates)
         {
-            //this integration needs to be frame rate independednt as well
             var velocity = Quaternion.Slerp(plate.Velocity, plate.TargetVelocity, (1 - PlateInertia));
             plate.Velocity = Quaternion.Slerp(Quaternion.identity, velocity, PlateSpeed * Time.deltaTime);
             plate.Rotation *= plate.Velocity;
@@ -177,7 +136,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         TectonicsShader.SetFloat("Gravity", Gravity);
         TectonicsShader.SetFloat("PlateCohesion", PlateCohesion);
         TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise);
-        TectonicsShader.SetInt("RenderPlate", ShowIndividualPlate);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
