@@ -21,6 +21,11 @@ public class PlateTectonicsVisualization : MonoBehaviour
     [Range(0, 20)]
     public float PatchFalloffSharpness = 10;
 
+    [Header("Normal Noise")]
+    [Range(0, 1)]
+    public float NoiseStrength = 0.3f;
+    [Range(0, 0.1f)]
+    public float NoiseScale = 0.5f;
 
     public bool IsActive { get; set; }
 
@@ -57,5 +62,7 @@ public class PlateTectonicsVisualization : MonoBehaviour
         landMaterial.SetFloat("FacetPatchSize", PatchSize);
         landMaterial.SetFloat("FacetPatchDencity", PatchDencity);
         landMaterial.SetFloat("FacetPatchFalloffSharpness", PatchFalloffSharpness);
+        landMaterial.SetFloat("NormalNoiseScale", NoiseScale);
+        landMaterial.SetFloat("NormalNoiseStrength", NoiseStrength);
     }
 }
