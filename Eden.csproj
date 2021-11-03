@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -52,6 +52,9 @@
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\GamePlay\Cameras\CirclingCamera.cs" />
     <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\Audio\PlateTectonicsAudio.cs" />
@@ -109,6 +112,7 @@
     <Compile Include="Assets\Utils\Interfaces\IEventBus.cs" />
     <Compile Include="Assets\GamePlay\LoadBalancer\ILoadBalancer.cs" />
     <Compile Include="Assets\Utils\ReplacementShaderEffect.cs" />
+    <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\Visualization\PlateTectonicsVisualization.cs" />
     <Compile Include="Assets\Utils\RenderMeshLibrary.cs" />
     <Compile Include="Assets\GamePlay\Ui\DnaUi.cs" />
     <Compile Include="Assets\Utils\DBUtils\TransformDto.cs" />
@@ -140,7 +144,6 @@
     <Compile Include="Assets\GamePlay\Ui\SystemsMenuUi.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Rendering\Features\BlitMaterialFeature.cs" />
-    <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\Visualization\PlateTectonicsVisualization.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise2D.hlsl" />
