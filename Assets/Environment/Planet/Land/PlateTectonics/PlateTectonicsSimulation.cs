@@ -36,7 +36,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 
         RunTectonicKernel("ResetPlateThicknessMaps");
         RunTectonicKernel("ResetContinentalIdMap");
-        AlignPlateThicknessMaps();
+        BakeMaps();
         UpdateHeightMap();
         Singleton.Water.Regenerate();
     }
@@ -80,7 +80,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 
         if (Plates.Any(x => !x.IsAligned) && Plates.All(x => x.IsStopped))
         {
-            AlignPlateThicknessMaps();
+            BakeMaps();
         }
     }
     public void UpdateVelocity()
@@ -107,7 +107,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         RunTectonicKernel("UpdateHeightMap");
         EnvironmentDataStore.LandHeightMap.UpdateTextureCache();
     }
-    public void AlignPlateThicknessMaps()
+    public void BakeMaps()
     {
         RunTectonicKernel("StartAligningPlateThicknessMaps");
         foreach(var plate in Plates)
