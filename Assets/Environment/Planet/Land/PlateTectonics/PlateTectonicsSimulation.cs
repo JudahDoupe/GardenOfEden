@@ -66,7 +66,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
             _isActive = value;
             FindObjectOfType<PlateTectonicsAudio>().IsActive = value;
             FindObjectOfType<PlateTectonicsVisualization>().IsActive = value;
-            FindObjectOfType<MovePlateTool>().IsActive = value;
         }
     }
 

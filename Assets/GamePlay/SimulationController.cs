@@ -33,6 +33,7 @@ public class SimulationController : MonoBehaviour
             sim.Value.IsActive = sims.Contains(sim.Key);
         }
     }
+    public static bool IsSimulationRunning(SimulationType simulation) => _simulations[simulation].IsActive;
 }
 
 public enum SimulationType

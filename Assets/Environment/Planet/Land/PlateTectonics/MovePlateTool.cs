@@ -2,7 +2,7 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class MovePlateTool : MonoBehaviour
+public class MovePlateTool : MonoBehaviour, ITool
 {
     public float MaxVelocity = 10;
 
@@ -20,26 +20,10 @@ public class MovePlateTool : MonoBehaviour
     private int _currentPlateId;
     private Coordinate _currentCoord;
 
-    public void Enable()
-    {
-        _isActive = true;
-
-        FindObjectOfType<PlateTectonicsVisualization>().Initialize();
-    }
-    public void Disable()
-    {
-        _isActive = false;
-    }
-
     void Update()
     {
         if (!_isActive) return;
 
-        UpdateContols();
-    }
-
-    private void UpdateContols()
-    {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
         if (Input.GetMouseButtonDown(0))
         {
