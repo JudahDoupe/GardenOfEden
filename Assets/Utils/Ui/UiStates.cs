@@ -1,13 +1,16 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Assets.Scripts.Utils
 {
-    public class MenuUi : MonoBehaviour
+    public class MenuUi : MonoBehaviour, IState
     {
 
         public bool IsActive = false;
+        public virtual void Enable() => IsActive = true;
+        public virtual void Disable() => IsActive = false;
 
         public void SlideToPosition(float xPosition)
         {
@@ -55,55 +58,46 @@ namespace Assets.Scripts.Utils
             colors.pressedColor = color;
             return colors;
         }
-
     }
 
-    public class PauseButton : IState
+    public class ButtonState : IState
     {
-        public PlateTectonicsToolbar Bar;
-        public string ButtonName;
-        public SimulationType Simulation;
-
-        public PauseButton(PlateTectonicsToolbar bar, SimulationType simulation, string buttonName)
-        {
-            Bar = bar;
-            ButtonName = buttonName;
-            Simulation = simulation;
-        }
-        public void Enable()
-        {
-            Bar.SetButtonActive(ButtonName, true);
-            SimulationController.StopSimulations(Simulation);
-        }
-        public void Disable()
-        {
-            Bar.SetButtonActive(ButtonName, false);
-            SimulationController.StartSimulations(Simulation);
-        }
-    }
-
-    public class ToolButton : IState
-    {
-        private readonly PlateTectonicsToolbar Bar;
-        private readonly ITool Tool;
+        private readonly MenuUi Bar;
         private readonly string ButtonName;
+        private readonly Action<bool> OnSetEnable;
 
-        public ToolButton(PlateTectonicsToolbar bar, ITool tool, string buttonName)
+        public ButtonState(MenuUi bar, string buttonName)
         {
             Bar = bar;
-            Tool = tool;
             ButtonName = buttonName;
+            OnSetEnable = enabled => { };
+        }
+        public ButtonState(MenuUi bar, string buttonName, Action<bool> onSetEnable)
+        {
+            Bar = bar;
+            ButtonName = buttonName;
+            OnSetEnable = onSetEnable;
+        }
+        public ButtonState(MenuUi bar, string buttonName, Action onEnable, Action onDisable)
+        {
+            Bar = bar;
+            ButtonName = buttonName;
+            OnSetEnable = enabled =>
+            {
+                if (enabled) onEnable();
+                else onDisable();
+            };
         }
 
-        public void Disable()
-        {
-            Bar.SetButtonActive(ButtonName, false);
-            Tool.IsActive = false;
-        }
         public void Enable()
         {
             Bar.SetButtonActive(ButtonName, true);
-            Tool.IsActive = true;
+            OnSetEnable(true);
+        }
+        public void Disable()
+        {
+            Bar.SetButtonActive(ButtonName, false);
+            OnSetEnable(false);
         }
     }
 }

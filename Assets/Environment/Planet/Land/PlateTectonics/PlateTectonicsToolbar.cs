@@ -4,23 +4,25 @@ using Assets.Scripts.Utils;
 public class PlateTectonicsToolbar : MenuUi
 {
     private StateMachine<IState> _stateMachine = new StateMachine<IState>();
-    public void Enable()
+    public override void Enable()
     {
+        SimulationController.StartSimulations(SimulationType.PlateTectonics, SimulationType.Water);
         SetAllButtonsActive(false);
         SlideToPosition(0);
         MovePlates();
         IsActive = true;
     }
-    public void Disable()
+    public override void Disable()
     {
+        SimulationController.StopSimulations(SimulationType.PlateTectonics, SimulationType.Water);
         SlideToPosition(70);
         _stateMachine.State = null;
         IsActive = false;
     }
-    public void Pause() => _stateMachine.SetState(new PauseButton(this, SimulationType.PlateTectonics, "Pause"));
-    public void MovePlates() => _stateMachine.SetState(new ToolButton(this, FindObjectOfType<MovePlateTool>(), "Move"));
-    public void BreakPlates() => _stateMachine.SetState(new ToolButton(this, FindObjectOfType<BreakPlateTool>(), "Break"));
-    public void CombinePlates() => _stateMachine.SetState(new ToolButton(this, FindObjectOfType<CombinePlateTool>(), "Combine"));
+    public void Pause() => _stateMachine.SetState(new ButtonState(this, "Pause", enabled => SimulationController.SetEnabledSimulations(false, SimulationType.PlateTectonics)));
+    public void MovePlates() => _stateMachine.SetState(new ButtonState(this, "Move", enabled => FindObjectOfType<MovePlateTool>().IsActive = enabled));
+    public void BreakPlates() => _stateMachine.SetState(new ButtonState(this, "Break", enabled => FindObjectOfType<BreakPlateTool>().IsActive = enabled));
+    public void CombinePlates() => _stateMachine.SetState(new ButtonState(this, "Combine", enabled => FindObjectOfType<CombinePlateTool>().IsActive = enabled));
 
     private void Update()
     {

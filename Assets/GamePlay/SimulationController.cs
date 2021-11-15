@@ -26,11 +26,11 @@ public class SimulationController : MonoBehaviour
             _simulations[sim].IsActive = false;
         }
     }
-    public static void SetActiveSimulations(params SimulationType[] sims)
+    public static void SetEnabledSimulations(bool isEnabled, params SimulationType[] sims)
     {
-        foreach (var sim in _simulations)
+        foreach (var sim in _simulations.Where(x => sims.Contains(x.Key)))
         {
-            sim.Value.IsActive = sims.Contains(sim.Key);
+            sim.Value.IsActive = isEnabled;
         }
     }
     public static bool IsSimulationRunning(SimulationType simulation) => _simulations[simulation].IsActive;
