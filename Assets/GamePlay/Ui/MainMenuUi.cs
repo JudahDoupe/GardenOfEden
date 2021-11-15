@@ -2,21 +2,26 @@ using Assets.Scripts.Utils;
 using Stateless;
 using UnityEngine;
 
-public class MainMenuUi : MonoBehaviour
+public class MainMenuUi : MenuUi
 {
-    private StateMachine<UiState, UiTrigger> _stateMachine;
-    private UiState _state = UiState.Closed;
-
+    private StateMachine<IState> _stateMachine = new StateMachine<IState>();
     private Transform _home;
 
-    public void Enable() => _stateMachine.Fire(UiTrigger.Enable);
-    public void Disable() => _stateMachine.Fire(UiTrigger.Disable);
-    public void Continue()
+    public override void Enable()
     {
-        FindObjectOfType<SystemsMenu>().Enable();
+        _home.gameObject.SetActive(true);
+        _home.AnimatePosition(0.3f, new Vector3(350, 0, 0));
+        Singleton.PerspectiveController.Pause();
+    }
+    public override void Disable()
+    {
+        _home.AnimatePosition(0.3f, new Vector3(-350, 0, 0), () => _home.gameObject.SetActive(false));
         Singleton.PerspectiveController.Unpause();
     }
-
+    public void Continue()
+    {
+        _stateMachine.SetState(FindObjectOfType<SystemsMenu>());
+    }
     public void Quit()
     {
         Application.Quit();
@@ -25,40 +30,10 @@ public class MainMenuUi : MonoBehaviour
     void Start()
     {
         _home = transform.Find("Home");
-        _stateMachine = new StateMachine<UiState, UiTrigger>(() => _state, s => _state = s);
-        
-        _stateMachine.Configure(UiState.Closed)
-            .OnEntry(() =>
-            {
-                _home.AnimatePosition(0.3f, new Vector3(-350, 0, 0), () => _home.gameObject.SetActive(false));
-            })
-            .Ignore(UiTrigger.Disable)
-            .Permit(UiTrigger.Enable, UiState.Open);
-
-        _stateMachine.Configure(UiState.Open)
-            .OnEntry(() =>
-            {
-                _home.gameObject.SetActive(true);
-                _home.AnimatePosition(0.3f, new Vector3(350, 0, 0));
-                FindObjectOfType<SystemsMenu>().Disable();
-            })
-            .Ignore(UiTrigger.Enable)
-            .Permit(UiTrigger.Disable, UiState.Closed)
-            .Permit(UiTrigger.Continue, UiState.Closed);
-
-
-        Enable();
+        _stateMachine.SetState(this);
     }
-
-    public enum UiState
+    void Update()
     {
-        Closed,
-        Open,
-    }
-    public enum UiTrigger
-    {
-        Enable,
-        Disable,
-        Continue,
+        if (Input.GetKeyDown(KeyCode.Escape)) _stateMachine.SetState(this);
     }
 }

@@ -73,10 +73,6 @@ public class PerspectiveController : MonoBehaviour
         ConfigureCircle();
         ConfigureEditDna();
     }
-    private void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Escape))Pause();
-    }
 
     private void ConfigureMainMenu()
     {
@@ -84,7 +80,6 @@ public class PerspectiveController : MonoBehaviour
             var state = State.MainMenu;
             var transition = GetTransition(state);
             var camera = FindObjectOfType<PausedCamera>();
-            var ui = FindObjectOfType<MainMenuUi>();
             _stateMachine.Configure(state)
                 .OnEntry(() =>
                 {
@@ -92,12 +87,10 @@ public class PerspectiveController : MonoBehaviour
                         transitionSpeed: transition.Speed, 
                         ease: transition.EaseIn);
                     camera.Enable();
-                    ui.Enable();
                 })
                 .OnExit(() =>
                 {
                     camera.Disable();
-                    ui.Disable();
                 })
                 .Permit(Trigger.Unpause, State.Satellite);
         }

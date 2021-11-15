@@ -6,7 +6,6 @@ public class PlateTectonicsToolbar : MenuUi
     private StateMachine<IState> _stateMachine = new StateMachine<IState>();
     public override void Enable()
     {
-        SimulationController.StartSimulations(SimulationType.PlateTectonics, SimulationType.Water);
         SetAllButtonsActive(false);
         SlideToPosition(0);
         MovePlates();
@@ -14,9 +13,8 @@ public class PlateTectonicsToolbar : MenuUi
     }
     public override void Disable()
     {
-        SimulationController.StopSimulations(SimulationType.PlateTectonics, SimulationType.Water);
         SlideToPosition(70);
-        _stateMachine.State = null;
+        _stateMachine.State.Disable();
         IsActive = false;
     }
     public void Pause() => _stateMachine.SetState(new ButtonState(this, "Pause", enabled => SimulationController.SetEnabledSimulations(false, SimulationType.PlateTectonics)));
