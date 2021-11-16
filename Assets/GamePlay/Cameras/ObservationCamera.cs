@@ -2,7 +2,7 @@ using Assets.GamePlay.Cameras;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class ObservationCamera : CameraController
+public class ObservationCamera : CameraPerspective
 {
     [Header("Altitude")]
     public float LerpSpeed = 2f;

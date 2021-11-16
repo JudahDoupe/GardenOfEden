@@ -8,7 +8,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <ProjectGuid>{F49B5B11-5475-D98A-BF58-F6C878F5BC27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -105,7 +106,7 @@
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusMeshes.cs" />
     <Compile Include="Assets\Utils\Interfaces\IDataBaseObject.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\GrowthHormoneSystem.cs" />
-    <Compile Include="Assets\GamePlay\Cameras\CameraController.cs" />
+    <Compile Include="Assets\GamePlay\Cameras\CameraPerspective.cs" />
     <Compile Include="Assets\GamePlay\Cameras\SatelliteCamera.cs" />
     <Compile Include="Assets\GamePlay\PerspectiveController.cs" />
     <Compile Include="Assets\Environment\Planet\Land\LandService.cs" />
@@ -131,7 +132,7 @@
     <Compile Include="Assets\Utils\Extensions\Bool3Extensions.cs" />
     <Compile Include="Assets\Imports\PrimitivePlus\Scripts\PrimitivePlusConstants.cs" />
     <Compile Include="Assets\Plants\Systems\Cleanup\CleanupSystemGroup.cs" />
-    <Compile Include="Assets\GamePlay\Cameras\PausedCamera.cs" />
+    <Compile Include="Assets\GamePlay\Cameras\MainMenuCamera.cs" />
     <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\MovePlateTool.cs" />
     <Compile Include="Assets\Utils\Ui\GrowOnHover.cs" />
     <Compile Include="Assets\Utils\Extensions\MaterialExtensions.cs" />
@@ -140,7 +141,7 @@
     <Compile Include="Assets\Utils\Ui\Rotate.cs" />
     <Compile Include="Assets\Utils\Extensions\EnumExtensions.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\EmbryoDispersalSystem.cs" />
-    <Compile Include="Assets\GamePlay\Ui\MainMenuUi.cs" />
+    <Compile Include="Assets\GamePlay\Ui\MainMenu.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\MetabolismSystem.cs" />
     <Compile Include="Assets\Utils\DBUtils\MeathodDto.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\LightSystem.cs" />

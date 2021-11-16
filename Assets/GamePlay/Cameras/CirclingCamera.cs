@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class CirclingCamera : CameraController
+public class CirclingCamera : CameraPerspective
 {
     public float LerpSpeed = 5f;
     public float RotationSpeed = 10f;

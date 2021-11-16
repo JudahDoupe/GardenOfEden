@@ -1,7 +1,7 @@
 using Assets.GamePlay.Cameras;
 using UnityEngine;
 
-public class PausedCamera : CameraController
+public class MainMenuCamera : CameraPerspective
 {
     public float Fov = 30f;
 

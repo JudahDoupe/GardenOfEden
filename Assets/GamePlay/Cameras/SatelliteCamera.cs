@@ -2,7 +2,7 @@ using Assets.GamePlay.Cameras;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class SatelliteCamera : CameraController
+public class SatelliteCamera : CameraPerspective
 {
     public float LerpSpeed = 5f;
     public float MovementSpeed = 30f;

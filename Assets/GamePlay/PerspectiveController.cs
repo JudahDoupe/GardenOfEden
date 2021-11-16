@@ -1,3 +1,4 @@
+using Assets.GamePlay.Cameras;
 using Stateless;
 using System;
 using System.Collections.Generic;
@@ -22,20 +23,17 @@ public class PerspectiveController : MonoBehaviour
         Circle,
         EditDna,
     }
-    public enum Trigger
-    {
-        ZoomIn,
-        ZoomOut,
-        Pause,
-        Unpause,
-        Circle,
-        SelectPlant,
-    }
 
     public Transform Camera;
     public Transform Focus;
     public List<Transition> Transitions;
     public CameraState CurrentState => new CameraState(Camera, Focus);
+    public float Altitude => Camera.position.magnitude;
+
+    public void SetPerspectives(params CameraPerspective[] perspectives)
+    {
+
+    }
 
     public void ZoomIn() => _stateMachine.Fire(Trigger.ZoomIn);
     public void ZoomOut() => _stateMachine.Fire(Trigger.ZoomOut);
@@ -56,22 +54,12 @@ public class PerspectiveController : MonoBehaviour
         _stateMachine.Fire(Trigger.SelectPlant);
     }
 
-    private StateMachine<State,Trigger> _stateMachine;
-    private State _state;
+    private StateMachine<CameraPerspective> _stateMachine;
     private Entity _focusedEntity;
-
-    //TODO: Move to a perminant datastructure tied to the planet
-    private bool _isBotanyUnlocked;
 
     private void Start()
     {
-        _state = State.MainMenu;
-        _stateMachine = new StateMachine<State, Trigger>(() => _state, s => _state = s);
-        ConfigureMainMenu();
-        ConfigureSatellite();
-        ConfigureObservation();
-        ConfigureCircle();
-        ConfigureEditDna();
+        SetPerspectives(FindObjectOfType<MainMenuCamera>());
     }
 
     private void ConfigureMainMenu()
@@ -79,7 +67,7 @@ public class PerspectiveController : MonoBehaviour
         try{
             var state = State.MainMenu;
             var transition = GetTransition(state);
-            var camera = FindObjectOfType<PausedCamera>();
+            var camera = FindObjectOfType<MainMenuCamera>();
             _stateMachine.Configure(state)
                 .OnEntry(() =>
                 {

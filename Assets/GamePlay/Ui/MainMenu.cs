@@ -2,7 +2,7 @@ using Assets.Scripts.Utils;
 using Stateless;
 using UnityEngine;
 
-public class MainMenuUi : MenuUi
+public class MainMenu : MenuUi
 {
     private StateMachine<IState> _stateMachine = new StateMachine<IState>();
     private Transform _home;
@@ -11,12 +11,11 @@ public class MainMenuUi : MenuUi
     {
         _home.gameObject.SetActive(true);
         _home.AnimatePosition(0.3f, new Vector3(350, 0, 0));
-        Singleton.PerspectiveController.Pause();
+        Singleton.PerspectiveController.SetPerspectives(FindObjectOfType<MainMenuCamera>());
     }
     public override void Disable()
     {
         _home.AnimatePosition(0.3f, new Vector3(-350, 0, 0), () => _home.gameObject.SetActive(false));
-        Singleton.PerspectiveController.Unpause();
     }
     public void Continue()
     {
