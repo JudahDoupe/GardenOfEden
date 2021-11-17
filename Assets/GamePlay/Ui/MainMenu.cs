@@ -1,3 +1,4 @@
+using Assets.GamePlay.Cameras;
 using Assets.Scripts.Utils;
 using Stateless;
 using UnityEngine;
@@ -11,11 +12,13 @@ public class MainMenu : MenuUi
     {
         _home.gameObject.SetActive(true);
         _home.AnimatePosition(0.3f, new Vector3(350, 0, 0));
-        Singleton.PerspectiveController.SetPerspectives(FindObjectOfType<MainMenuCamera>());
+        Singleton.PerspectiveController.SetPerspective(FindObjectOfType<MainMenuCamera>(), CameraTransition.Smooth);
+        SimulationController.StartSimulations(SimulationType.Water);
     }
     public override void Disable()
     {
         _home.AnimatePosition(0.3f, new Vector3(-350, 0, 0), () => _home.gameObject.SetActive(false));
+        SimulationController.StopSimulations(SimulationType.Water);
     }
     public void Continue()
     {

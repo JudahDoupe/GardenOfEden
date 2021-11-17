@@ -9,6 +9,7 @@ using Assets.Utils;
 using Unity.Mathematics;
 using UnityEngine.UI;
 using System.Collections;
+using Assets.GamePlay.Cameras;
 
 public class DnaUi : MonoBehaviour
 {
@@ -38,7 +39,7 @@ public class DnaUi : MonoBehaviour
     public void Done()
     {
         _stateMachine.Fire(UiTrigger.Close);
-        StartCoroutine(Circle(_focusedPlant));
+        StartCoroutine(Exit());
     }
     public void Evolve(Gene evolution)
     {
@@ -49,10 +50,12 @@ public class DnaUi : MonoBehaviour
         _focusedPlant = dna.Spawn(coordinate);
         Done();
     }
-    private IEnumerator Circle(Entity plant)
+    private IEnumerator Exit()
     {
         yield return new WaitForEndOfFrame();
-        Singleton.PerspectiveController.Circle(plant);
+
+        var perspective = FindObjectOfType<ObservationCamera>();
+        Singleton.PerspectiveController.SetPerspective(perspective, CameraTransition.Instant);
     }
 
     private void Start()

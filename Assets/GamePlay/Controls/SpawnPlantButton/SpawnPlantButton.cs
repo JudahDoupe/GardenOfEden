@@ -1,4 +1,5 @@
 using System.Collections;
+using Assets.GamePlay.Cameras;
 using Assets.Scripts.Plants.Dna;
 using Assets.Scripts.Utils;
 using Unity.Entities;
@@ -28,7 +29,9 @@ public class SpawnPlantButton : MonoBehaviour
     private IEnumerator PositionCamera(Entity plant)
     {
         yield return new WaitForEndOfFrame();
-        Singleton.PerspectiveController.Circle(plant);
+        var perspective = FindObjectOfType<CirclingCamera>();
+        perspective.FocusedEntity = plant;
+        Singleton.PerspectiveController.SetPerspective(perspective, new CameraTransition(2, Ease.Out));
     }
 
     public void Hover()

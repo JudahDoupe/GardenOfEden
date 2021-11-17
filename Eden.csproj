@@ -1,15 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <ProjectGuid>{F49B5B11-5475-D98A-BF58-F6C878F5BC27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -54,9 +53,6 @@
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Assets\GamePlay\Cameras\CirclingCamera.cs" />
     <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\Audio\PlateTectonicsAudio.cs" />
     <Compile Include="Assets\Utils\Interfaces\ISimulation.cs" />
@@ -87,7 +83,6 @@
     <Compile Include="Assets\Rendering\Features\DepthTextureFeature.cs" />
     <Compile Include="Assets\Utils\Ui\UiStates.cs" />
     <Compile Include="Assets\Utils\Mathj.cs" />
-    <Compile Include="Assets\GamePlay\Cameras\CameraState.cs" />
     <Compile Include="Assets\Utils\MessageBus.cs" />
     <Compile Include="Assets\GamePlay\LoadBalancer\ProximityLoadBalancer.cs" />
     <Compile Include="Assets\Utils\Ui\MatchButtonText.cs" />

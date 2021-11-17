@@ -8,14 +8,12 @@ public class SystemsMenu : MenuUi
     private void Start()
     {
         SetAllButtonsActive(false);
-        Globe();
     }
     public override void Enable()
     {
         SlideToPosition(0);
         IsActive = true;
-        _stateMachine.State.Enable();
-        Singleton.PerspectiveController.SetPerspectives(FindObjectOfType<SatelliteCamera>());
+        Globe();
     }
     public override void Disable()
     {
@@ -24,19 +22,27 @@ public class SystemsMenu : MenuUi
         _stateMachine.State.Disable();
     }
 
-    public void Globe() => _stateMachine.SetState(new ButtonState(this, "Globe", x => SetSystemsEnabled(x, new[] { SimulationType.Water }, new[] { FindObjectOfType<MainMenuCamera>() })));
-    public void Land() => _stateMachine.SetState(new ButtonState(this, "Land", x => SetSystemsEnabled(x, new[] { SimulationType.Water, SimulationType.PlateTectonics }, new[] { FindObjectOfType<SatelliteCamera>() }, FindObjectOfType<PlateTectonicsToolbar>())));
-
-    private void SetSystemsEnabled(bool enabled, SimulationType[] sims, CameraPerspective[] perspectives, MenuUi toolbar = null)
+    public void Globe()
+    {
+        var systems = new[] { SimulationType.Water };
+        var perspective = FindObjectOfType<SatelliteCamera>();
+        var transition = new CameraTransition { Speed = 1, Ease = Ease.InOut };
+        _stateMachine.SetState(new ButtonState(this, "Globe", e => SetSystemsEnabled(e, systems, perspective, transition)));
+    }
+    public void Land() 
+    {
+        var systems = new[] { SimulationType.Water, SimulationType.PlateTectonics };
+        var perspective = FindObjectOfType<SatelliteCamera>();
+        var toolbar = FindObjectOfType<PlateTectonicsToolbar>();
+        var transition = new CameraTransition { Speed = 1, Ease = Ease.InOut };
+        _stateMachine.SetState(new ButtonState(this, "Land", e => SetSystemsEnabled(e, systems, perspective, transition, toolbar)));
+    }
+    private void SetSystemsEnabled(bool enabled, SimulationType[] sims, CameraPerspective perspective, CameraTransition transition, MenuUi toolbar = null)
     {
         SimulationController.SetEnabledSimulations(enabled, sims);
-        if (enabled) Singleton.PerspectiveController.SetPerspectives(perspectives);
-            
+        if (enabled) Singleton.PerspectiveController.SetPerspective(perspective, transition);
         if (toolbar == null) return;
-        
-        if (enabled)
-            toolbar.Enable();
-        else
-            toolbar.Disable();
+        if (enabled) toolbar.Enable();
+        else toolbar.Disable();
     }
 }

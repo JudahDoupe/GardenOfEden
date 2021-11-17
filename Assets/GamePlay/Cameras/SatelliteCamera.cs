@@ -7,44 +7,23 @@ public class SatelliteCamera : CameraPerspective
     public float LerpSpeed = 5f;
     public float MovementSpeed = 30f;
     public float ZoomSpeed = 60f;
-    public float MaxAltitude = 4000;
-    public float MinAltitude = 3000;
     public float Fov = 30;
 
     private Coordinate _coord;
 
-    public void Enable(CameraState currentState)
-    {
-        CurrentState = currentState;
-        IsActive = true;
-    }
-
-    public void Disable()
-    {
-        IsActive = false;
-    }
+    public override CameraState TransitionToState() => GetTargetState(false);
 
     private void LateUpdate()
     {
         if (!IsActive) return;
 
-        CurrentState = GetTargetState(CurrentState, true);
-        CameraUtils.SetState(CurrentState);
-
-        if (CurrentState.Camera.localPosition.magnitude < MinAltitude)
-        {
-            Singleton.PerspectiveController.ZoomIn();
-        }
-        if (CurrentState.Camera.localPosition.magnitude > MaxAltitude)
-        {
-            Singleton.PerspectiveController.ZoomOut();
-        }
+        CameraUtils.SetState(GetTargetState(true));
     }
 
-    public CameraState GetTargetState(CameraState currentState, bool lerp)
+    public CameraState GetTargetState(bool lerp)
     {
-        _coord = IsActive ? _coord : new Coordinate(currentState.Camera.position, Planet.LocalToWorld);
-        var cameraPosition = currentState.Camera.localPosition;
+        _coord = IsActive ? _coord : new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
+        var cameraPosition = CurrentState.Camera.localPosition;
         var translation = IsActive 
             ? new Vector3(Input.GetAxis("Horizontal") * MovementSpeed * Time.deltaTime, Input.GetAxis("Vertical") * -MovementSpeed * Time.deltaTime, -Input.mouseScrollDelta.y * ZoomSpeed)
             : Vector3.zero;
@@ -54,7 +33,7 @@ public class SatelliteCamera : CameraPerspective
         _coord.Lon += translation.x;
 
         cameraPosition = lerp ? Vector3.Lerp(cameraPosition, _coord.LocalPlanet, Time.deltaTime * LerpSpeed) : (Vector3) _coord.LocalPlanet;
-        return new CameraState(currentState.Camera, currentState.Focus)
+        return new CameraState(CurrentState.Camera, CurrentState.Focus)
         {
             CameraParent = Planet.Transform,
             CameraLocalPosition = cameraPosition,

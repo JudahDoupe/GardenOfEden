@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
+using Assets.GamePlay.Cameras;
 using Assets.Scripts.Plants.Setup;
 using Unity.Collections;
 using Unity.Entities;
@@ -95,7 +96,7 @@ public class CameraUtils : MonoBehaviour
         camera.farClipPlane = end.FarClip;
         Cursor.lockState = end.Cursor;
     }
-    public static void TransitionState(CameraState end, Action callback = null, float transitionSpeed = 1, Ease ease = Ease.InOut)
+    public static void TransitionState(CameraState end, CameraTransition transition, Action callback = null)
     {
         end.Camera.parent = end.CameraParent;
         end.Focus.parent = end.FocusParent;
@@ -103,14 +104,14 @@ public class CameraUtils : MonoBehaviour
         var start = new CameraState(end.Camera, end.Focus);
         var speed = new []
         {
-            GetTransitionTime(start.CameraLocalPosition, end.CameraLocalPosition, transitionSpeed), 
-            GetTransitionTime(start.CameraLocalRotation, end.CameraLocalRotation, transitionSpeed),
-            GetTransitionTime(start.FocusLocalPosition, end.FocusLocalPosition, transitionSpeed),
-            GetTransitionTime(start.FocusLocalRotation, end.FocusLocalRotation, transitionSpeed),
-            GetTransitionTime(start.FieldOfView, end.FieldOfView, transitionSpeed),
+            GetTransitionTime(start.CameraLocalPosition, end.CameraLocalPosition, transition.Speed), 
+            GetTransitionTime(start.CameraLocalRotation, end.CameraLocalRotation, transition.Speed),
+            GetTransitionTime(start.FocusLocalPosition, end.FocusLocalPosition, transition.Speed),
+            GetTransitionTime(start.FocusLocalRotation, end.FocusLocalRotation, transition.Speed),
+            GetTransitionTime(start.FieldOfView, end.FieldOfView, transition.Speed),
         }.Max();
 
-        Singleton.Instance.StartCoroutine(AnimateTransition(speed, start, end, callback, ease));
+        Singleton.Instance.StartCoroutine(AnimateTransition(speed, start, end, callback, transition.Ease));
     }
     private static IEnumerator AnimateTransition(float seconds, CameraState start, CameraState end, Action callback, Ease ease)
     {

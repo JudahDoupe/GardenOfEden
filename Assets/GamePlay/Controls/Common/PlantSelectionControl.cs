@@ -1,3 +1,4 @@
+using Assets.GamePlay.Cameras;
 using Assets.Scripts.Plants.Growth;
 using Unity.Entities;
 using UnityEngine;
@@ -27,7 +28,10 @@ public class PlantSelectionControl : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Mouse0) && _selectedPlant != Entity.Null)
         {
-            Singleton.PerspectiveController.SelectPlant(_selectedPlant);
+            var perspective = FindObjectOfType<CirclingCamera>();
+            perspective.FocusedEntity = _selectedPlant;
+            Singleton.PerspectiveController.SetPerspective(perspective, new CameraTransition(1, Ease.Out));
+            // TODO: Open DNA UI
         }
     }
 

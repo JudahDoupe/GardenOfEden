@@ -5,21 +5,13 @@ public class MainMenuCamera : CameraPerspective
 {
     public float Fov = 30f;
 
-    public void Enable()
-    {
-        IsActive = true;
-    }
+    public override CameraState TransitionToState() => GetTargetState();
 
-    public void Disable()
+    public CameraState GetTargetState()
     {
-        IsActive = false;
-    }
-
-    public CameraState GetTargetState(CameraState curentState)
-    {
-        var rotation = Quaternion.LookRotation(curentState.Camera.forward, Vector3.up);
+        var rotation = Quaternion.LookRotation(CurrentState.Camera.forward, Vector3.up);
         var pos = rotation * new Vector3(Coordinate.PlanetRadius * -0.66f, 0, Coordinate.PlanetRadius * -5f);
-        return new CameraState(curentState.Camera, curentState.Focus)
+        return new CameraState(CurrentState.Camera, CurrentState.Focus)
         {
             CameraParent = null,
             CameraLocalPosition = pos,

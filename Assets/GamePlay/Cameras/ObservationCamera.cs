@@ -21,39 +21,28 @@ public class ObservationCamera : CameraPerspective
     private Coordinate _cameraCoord;
     private float _height;
 
-    public void Enable(CameraState currentState)
+    public override void Enable()
     {
-        CurrentState = currentState;
         IsActive = true;
-
-        _cameraCoord = new Coordinate(currentState.Camera.position, Planet.LocalToWorld);
+        _cameraCoord = new Coordinate(Camera.position, Planet.LocalToWorld);
         _height = math.min(_cameraCoord.Altitude - Singleton.Land.SampleHeight(_cameraCoord), MaxHeight -1);
     }
 
-    public void Disable()
-    {
-        IsActive = false;
-    }
+    public override CameraState TransitionToState() => GetTargetState(false);
 
     private void LateUpdate()
     {
         if (!IsActive) return;
 
-        CurrentState = GetTargetState(CurrentState, true);
-        CameraUtils.SetState(CurrentState);
-
-        if (_height > MaxHeight)
-        {
-            Singleton.PerspectiveController.ZoomOut();
-        }
+        CameraUtils.SetState(GetTargetState(true));
     }
 
-    public CameraState GetTargetState(CameraState currentState, bool lerp)
+    public CameraState GetTargetState(bool lerp)
     {
-        return IsActive ? GetActiveTargetState(currentState, lerp) : GetInactiveTargetState(currentState, lerp);
+        return IsActive ? GetActiveTargetState(lerp) : GetInactiveTargetState();
     }
 
-    private CameraState GetActiveTargetState(CameraState currentState, bool lerp)
+    private CameraState GetActiveTargetState(bool lerp)
     {
         // Calculate movement
         var t = (MaxHeight - _height) / (MaxHeight - MinHeight);
@@ -62,14 +51,14 @@ public class ObservationCamera : CameraPerspective
         var zoom = -Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t);
 
         // Calculate orientation
-        var right = currentState.Camera.right;
-        var up = currentState.Camera.position.normalized;
+        var right = CurrentState.Camera.right;
+        var up = CurrentState.Camera.position.normalized;
         var forward = Quaternion.AngleAxis(90, right) * up;
 
         // Calculate rotation
-        var cameraRotation = Quaternion.LookRotation(currentState.Camera.forward, up);
+        var cameraRotation = Quaternion.LookRotation(CurrentState.Camera.forward, up);
         cameraRotation = Quaternion.AngleAxis(rotation.x, up) * cameraRotation;
-        right = currentState.Camera.right;
+        right = CurrentState.Camera.right;
         var desiredVerticalRotation = Quaternion.AngleAxis(rotation.y, right) * cameraRotation;
         var desiredAngle = Quaternion.Angle(quaternion.LookRotation(forward, up), desiredVerticalRotation);
         var currentAngle = Quaternion.Angle(quaternion.LookRotation(forward, up), cameraRotation);
@@ -89,7 +78,7 @@ public class ObservationCamera : CameraPerspective
         _cameraCoord.LocalPlanet += (localFocusRotation * translation).ToFloat3();
         _cameraCoord.Altitude = math.max(landHeight + MinHeight, targetAltitude);
 
-        return new CameraState(currentState.Camera, currentState.Focus)
+        return new CameraState(CurrentState.Camera, CurrentState.Focus)
         {
             CameraParent = Planet.Transform,
             CameraLocalPosition = _cameraCoord.LocalPlanet,
@@ -104,26 +93,26 @@ public class ObservationCamera : CameraPerspective
         };
     }
 
-    private CameraState GetInactiveTargetState(CameraState currentState, bool lerp)
+    private CameraState GetInactiveTargetState()
     {
-        _cameraCoord = new Coordinate(currentState.Camera.position, Planet.LocalToWorld);
+        _cameraCoord = new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
         _height = math.clamp(_cameraCoord.Altitude - Singleton.Land.SampleHeight(_cameraCoord), MinHeight, MaxHeight);
 
         // Calculate orientation
-        var right = currentState.Camera.right;
-        var up = currentState.Camera.position.normalized;
+        var right = CurrentState.Camera.right;
+        var up = CurrentState.Camera.position.normalized;
         var forward = Quaternion.AngleAxis(90, right) * up;
 
         // Calculate position
-        var cameraPosition = currentState.Focus.position - forward * _height + up * (_height * 2f / 3f);
-        _cameraCoord = new Coordinate(currentState.Focus.position - forward * _height + up * _height, Planet.LocalToWorld);
+        var cameraPosition = CurrentState.Focus.position - forward * _height + up * (_height * 2f / 3f);
+        _cameraCoord = new Coordinate(CurrentState.Focus.position - forward * _height + up * _height, Planet.LocalToWorld);
 
         // Calculate rotation
-        var cameraRotation = Quaternion.LookRotation((currentState.Focus.position - cameraPosition).normalized, up);
+        var cameraRotation = Quaternion.LookRotation((CurrentState.Focus.position - cameraPosition).normalized, up);
         var localCameraRotation = Quaternion.Inverse(Planet.Transform.rotation) * cameraRotation;
         var localFocusRotation = Quaternion.Inverse(Planet.Transform.rotation) * quaternion.LookRotation(forward, up);
 
-        return new CameraState(currentState.Camera, currentState.Focus)
+        return new CameraState(CurrentState.Camera, CurrentState.Focus)
         {
             CameraParent = Planet.Transform,
             CameraLocalPosition = _cameraCoord.LocalPlanet,
