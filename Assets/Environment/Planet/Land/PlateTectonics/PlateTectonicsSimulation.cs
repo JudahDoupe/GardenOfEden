@@ -24,14 +24,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 
         for (int p = 1; p <= numPlates; p++)
         {
-            var plate = new Plate
-            {
-                Id = p + 0.0001f,
-                Rotation = Random.rotation,
-                Velocity = Quaternion.identity,
-                TargetVelocity = Quaternion.identity,
-            };
-            Plates.Add(plate);
+            AddPlate(p + 0.0001f);
         }
 
         RunTectonicKernel("ResetPlateThicknessMaps");
@@ -43,7 +36,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 
     [Header("Simulation")]
     public ComputeShader TectonicsShader;
-    public List<Plate> Plates = new List<Plate>();
     public float OceanicCrustThickness = 25;
     [Range(0, 0.1f)]
     public float SubductionRate = 0.001f;
@@ -69,6 +61,22 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         }
     }
 
+
+    private List<Plate> Plates = new List<Plate>();
+    public List<Plate> GetAllPlates() => Plates;
+    public Plate GetPlate(float id) => Plates.First(x => x.Id == id);
+    public Plate AddPlate(float id)
+    {
+        var plate = new Plate
+        {
+            Id = id,
+            Rotation = Random.rotation,
+            Velocity = Quaternion.identity,
+            TargetVelocity = Quaternion.identity,
+        };
+        Plates.Add(plate);
+        return plate;
+    }
 
     public void UpdateSystem()
     {
@@ -116,12 +124,12 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         }
         RunTectonicKernel("FinishAligningPlateThicknessMaps");
     }
-    
+  
     private void RunTectonicKernel(string kernelName)
     {
         int kernel = TectonicsShader.FindKernel(kernelName);
-        using var buffer = new ComputeBuffer(NumPlates, Marshal.SizeOf(typeof(Plate.Data)));
-        buffer.SetData(Plates.Select(x => x.ToData()).ToArray());
+        using var buffer = new ComputeBuffer(NumPlates, Marshal.SizeOf(typeof(Plate.GpuData)));
+        buffer.SetData(Plates.Select(x => x.ToGpuData()).ToArray());
         TectonicsShader.SetBuffer(kernel, "Plates", buffer);
         TectonicsShader.SetTexture(kernel, "LandHeightMap", EnvironmentDataStore.LandHeightMap);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentDataStore.PlateThicknessMaps);
@@ -163,9 +171,9 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         public Vector3 Center => Rotation * Vector3.forward * (Singleton.Water.SeaLevel + 100);
         public bool IsStopped => Quaternion.Angle(Velocity, Quaternion.identity) < 0.001f;
         public bool IsAligned => Quaternion.Angle(Rotation, Quaternion.identity) < 0.001f;
-        public Data ToData() => new Data { Id = Id, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]) };
+        public GpuData ToGpuData() => new GpuData { Id = Id, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]) };
 
-        public struct Data
+        public struct GpuData
         {
             public float Id;
             public float4 Rotation;

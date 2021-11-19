@@ -36,7 +36,7 @@ public class PlateTectonicsAudio : MonoBehaviour
     public void Update()
     {
         if (!IsActive) return;
-        var velocity = Singleton.PlateTectonics.Plates.Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
+        var velocity = Singleton.PlateTectonics.GetAllPlates().Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
         RumbleSound.volume = GetVolume(RumbleSound.volume, velocity, RumbleThreshhold);
         BoulderSound.volume = GetVolume(BoulderSound.volume, velocity, BoulderThreshhold);
     }

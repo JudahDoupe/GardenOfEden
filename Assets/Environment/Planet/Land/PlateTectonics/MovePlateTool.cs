@@ -42,7 +42,7 @@ public class MovePlateTool : MonoBehaviour, ITool
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             var targetPos = Physics.Raycast(ray, out var hit, distance) ? hit.point : Camera.main.transform.position + ray.direction * distance;
-            var plate = Singleton.PlateTectonics.Plates.Single(x => x.Id == _currentPlateId);
+            var plate = Singleton.PlateTectonics.GetPlate(_currentPlateId);
             _currentCoord.LocalPlanet = plate.Velocity * _currentCoord.LocalPlanet.ToVector3();
 
             var targetCoord = new Coordinate(targetPos, Planet.LocalToWorld);
@@ -57,8 +57,8 @@ public class MovePlateTool : MonoBehaviour, ITool
         }
         if (Input.GetMouseButtonUp(0))
         {
-            var plate = Singleton.PlateTectonics.Plates.FirstOrDefault(x => x.Id == _currentPlateId);
-            if(plate != null)
+            var plate = Singleton.PlateTectonics.GetPlate(_currentPlateId);
+            if (plate != null)
             {
                 plate.TargetVelocity = Quaternion.identity;
             }

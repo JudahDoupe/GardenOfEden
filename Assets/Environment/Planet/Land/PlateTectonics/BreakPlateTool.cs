@@ -1,9 +1,12 @@
 using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
+using static PlateTectonicsSimulation;
 
 public class BreakPlateTool : MonoBehaviour, ITool
 {
+    public ComputeShader BreakPlateShader;
+
     public bool IsActive
     {
         get => _isActive;
@@ -20,8 +23,10 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
     private bool _isActive;
     private PlateTectonicsVisualization _visualization;
+    private Coordinate _startBreakPoint;
     private float _currentPlateId;
-    private RenderTexture _currentPlate;
+    private float _nextPlateId;
+    private bool _isbreakingplate => _currentPlateId > 0;
 
     void Start()
     {
@@ -32,18 +37,18 @@ public class BreakPlateTool : MonoBehaviour, ITool
     {
         if (!IsActive) return;
 
-        if (_currentPlateId > 0)
+        if (_isbreakingplate)
         {
             _visualization.HighlightPlate(_currentPlateId);
 
             if (GetMouseCoord() is { } breakpoint)
             {
-                //TODO: Visualize break line
+                UpdatePlateBoundries(breakpoint);
 
                 if (Input.GetMouseButtonDown(0))
                 {
-                    //TODO: Break plate
-                    _currentPlateId = 0;
+                    BakePlates();
+                    Clear();
                 }
             }
 
@@ -56,12 +61,14 @@ public class BreakPlateTool : MonoBehaviour, ITool
             if (Input.GetMouseButtonDown(0))
             {
                 _currentPlateId = plateId;
+                _nextPlateId = _currentPlateId + 0.5f;
+                _startBreakPoint = breakpoint;
             }
         }
 
         if (Input.GetMouseButtonDown(1))
         {
-            _currentPlateId = 0;
+            Clear();
         }
     }
 
@@ -74,5 +81,34 @@ public class BreakPlateTool : MonoBehaviour, ITool
             return new Coordinate(hit.point, Planet.LocalToWorld);
         }
         return null;
+    }
+
+    private void UpdatePlateBoundries(Coordinate currentbreakpoint)
+    {
+        var forward = Vector3.Normalize(currentbreakpoint.LocalPlanet - _startBreakPoint.LocalPlanet);
+        var up = new Coordinate(Camera.main.transform.position, Planet.LocalToWorld).LocalPlanet;
+        var right = Quaternion.AngleAxis(90, forward) * up;
+
+        //TODO: update plate Ids
+    }
+    private void BakePlates()
+    {
+        var oldId = _nextPlateId;
+        var newId = Singleton.PlateTectonics.GetAllPlates().Max(x => x.Id) + 1f;
+
+        int kernel = BreakPlateShader.FindKernel("UpdatePlateId");
+        BreakPlateShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
+        BreakPlateShader.SetFloat("OldPlateId", oldId);
+        BreakPlateShader.SetFloat("NewPlateId", newId);
+        BreakPlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
+
+        Singleton.PlateTectonics.AddPlate(newId);
+     
+        //TODO: transfer thickness
+    }
+    private void Clear()
+    {
+        _currentPlateId = 0;
+        _nextPlateId = 0;
     }
 }
