@@ -26,7 +26,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         {
             var plate = new Plate
             {
-                Id = p,
+                Id = p + 0.0001f,
                 Rotation = Random.rotation,
                 Velocity = Quaternion.identity,
                 TargetVelocity = Quaternion.identity,
@@ -156,7 +156,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 
     public class Plate
     {
-        public int Id;
+        public float Id;
         public Quaternion Rotation;
         public Quaternion Velocity;
         public Quaternion TargetVelocity;
@@ -167,7 +167,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 
         public struct Data
         {
-            public int Id;
+            public float Id;
             public float4 Rotation;
         }
     }

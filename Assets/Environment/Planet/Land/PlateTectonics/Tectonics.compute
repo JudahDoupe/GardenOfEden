@@ -18,7 +18,7 @@ RWTexture2DArray<float> LandHeightMap;
 
 struct Plate
 {
-    int Id;
+    float Id;
     float4 Rotation;
 }; 
 RWStructuredBuffer<Plate> Plates;
@@ -41,14 +41,27 @@ float3 xyp_to_xyz(uint3 xyp, float4 rotation) {
     uint3 xyw = uint3(xyp.xy, xyp.z % 6);
     return rotate_vector(xyw_to_xyz(xyw, MantleHeight), rotation);
 }
+uint GetPId(float id) 
+{
+    uint pId = 0;
+    for (uint x = 0; x < NumPlates; x++)
+    {
+        if (Plates[x].Id == id)
+        {
+            pId = x;
+        }
+    }
+    return pId;
+}
 
 [numthreads(8, 8, 6)]
 void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 {
-	uint plateId = ContinentalIdMap[id];
+	float plateId = ContinentalIdMap[id];
+    uint pId = GetPId(plateId);
     float3 xyz = xyw_to_xyz(id, MantleHeight);
-    float currentThickness = PlateThicknessMaps[xyz_to_xyp(xyz, Plates[plateId].Rotation, plateId)];
-	int neighbors[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    float currentThickness = PlateThicknessMaps[xyz_to_xyp(xyz, Plates[pId].Rotation, pId)];
+	float neighbors[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     
 	for (int x = -1; x <= 1; x++)
 	{
@@ -155,7 +168,7 @@ void SmoothPlates(uint3 id : SV_DispatchThreadID)
 void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
 {
     float height = MantleHeight;
-    int plateId = ContinentalIdMap[id] * (RenderPlate == 0) + RenderPlate * (RenderPlate != 0);
+    float plateId = ContinentalIdMap[id] * (RenderPlate == 0) + RenderPlate * (RenderPlate != 0);
 
     for (uint p = 0; p < NumPlates; p++)
     {
@@ -201,7 +214,7 @@ void ResetPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 		float3 xyz = rotate_vector(xyw_to_xyz(id, MantleHeight), myPlate.Rotation);
 	    xyz = xyz + noise3d(xyz, FaultLineNoise);
 		float minDist = 1000000;
-		int closestPlateId = 0;
+		float closestPlateId = 0;
 
 		for (uint p2 = 0; p2 < NumPlates; p2++)
 		{
@@ -224,7 +237,7 @@ void ResetPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 void ResetContinentalIdMap(uint3 id : SV_DispatchThreadID)
 {
 	float maxThickness = 0;
-	uint plateId = ContinentalIdMap[id];
+	float plateId = ContinentalIdMap[id];
 	float3 xyz = xyw_to_xyz(id, MantleHeight);
     
 	for (uint p = 0; p < NumPlates; p++)

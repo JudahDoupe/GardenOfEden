@@ -32,9 +32,9 @@ public class PlateTectonicsVisualization : MonoBehaviour
     public void ShowFaultLines(bool show)
     {
         OutlineReplacementMaterial.SetFloat("PlateId", 0);
-        AnimateOutlineTransparency(0.6f, show ? 0.3f : 0);
+        FaultLineMaterial.SetFloat("Transparency", show ? 0.3f : 0);
     }
-    public void HighlightPlate(int plateId)
+    public void HighlightPlate(float plateId)
     {
         OutlineReplacementMaterial.SetFloat("PlateId", plateId);
         FaultLineMaterial.SetFloat("Transparency", 0.6f);
@@ -55,7 +55,7 @@ public class PlateTectonicsVisualization : MonoBehaviour
         if (IsActive)
         {
             Singleton.PlateTectonics.TectonicsShader.SetInt("RenderPlate", ShowIndividualPlate);
-            SetLandMaterialValues();
+            //SetLandMaterialValues();
         }
     }
 
@@ -71,10 +71,5 @@ public class PlateTectonicsVisualization : MonoBehaviour
         landMaterial.SetFloat("FacetPatchFalloffSharpness", PatchFalloffSharpness);
         landMaterial.SetFloat("NormalNoiseScale", NoiseScale);
         landMaterial.SetFloat("NormalNoiseStrength", NoiseStrength);
-    }
-    private void AnimateOutlineTransparency(float time, float value)
-    {
-        StopAllCoroutines();
-        StartCoroutine(AnimationUtils.AnimateFloat(time, FaultLineMaterial.GetFloat("Transparency"), value, x => FaultLineMaterial.SetFloat("Transparency", x)));
     }
 }

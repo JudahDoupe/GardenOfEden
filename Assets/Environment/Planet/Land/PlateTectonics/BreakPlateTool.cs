@@ -20,7 +20,8 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
     private bool _isActive;
     private PlateTectonicsVisualization _visualization;
-    private int _currentPlateId;
+    private float _currentPlateId;
+    private RenderTexture _currentPlate;
 
     void Start()
     {
@@ -49,7 +50,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
         }
         else if (GetMouseCoord() is { } breakpoint)
         {
-            var plateId = GetPlateId(breakpoint);
+            var plateId = EnvironmentDataStore.ContinentalIdMap.SamplePoint(breakpoint).r;
             _visualization.HighlightPlate(plateId);
 
             if (Input.GetMouseButtonDown(0))
@@ -74,6 +75,4 @@ public class BreakPlateTool : MonoBehaviour, ITool
         }
         return null;
     }
-
-    private int GetPlateId(Coordinate coord) => (int)math.round(EnvironmentDataStore.ContinentalIdMap.Sample(coord).r);
 }

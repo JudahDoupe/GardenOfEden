@@ -17,7 +17,7 @@ public class MovePlateTool : MonoBehaviour, ITool
         }
     }
 
-    private int _currentPlateId;
+    private float _currentPlateId;
     private Coordinate _currentCoord;
 
     void Update()
@@ -32,7 +32,7 @@ public class MovePlateTool : MonoBehaviour, ITool
             {
                 _currentCoord = new Coordinate(hit.point, Planet.LocalToWorld);
                 _currentCoord.Altitude = Coordinate.PlanetRadius;
-                _currentPlateId = (int) math.round(EnvironmentDataStore.ContinentalIdMap.Sample(_currentCoord).r);
+                _currentPlateId = EnvironmentDataStore.ContinentalIdMap.SamplePoint(_currentCoord).r;
             }
             else {
                 _currentPlateId = 0;
