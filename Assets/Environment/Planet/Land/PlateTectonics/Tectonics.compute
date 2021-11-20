@@ -19,6 +19,7 @@ RWTexture2DArray<float> LandHeightMap;
 struct Plate
 {
     float Id;
+    int Idx;
     float4 Rotation;
 }; 
 RWStructuredBuffer<Plate> Plates;
@@ -41,14 +42,14 @@ float3 xyp_to_xyz(uint3 xyp, float4 rotation) {
     uint3 xyw = uint3(xyp.xy, xyp.z % 6);
     return rotate_vector(xyw_to_xyz(xyw, MantleHeight), rotation);
 }
-uint GetPId(float id) 
+uint GetPlateIdx(float id) 
 {
     uint pId = 0;
     for (uint x = 0; x < NumPlates; x++)
     {
         if (Plates[x].Id == id)
         {
-            pId = x;
+            pId = Plates[x].Idx;
         }
     }
     return pId;
@@ -58,9 +59,9 @@ uint GetPId(float id)
 void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 {
 	float plateId = ContinentalIdMap[id];
-    uint pId = GetPId(plateId);
+    uint pIdx = GetPlateIdx(plateId);
     float3 xyz = xyw_to_xyz(id, MantleHeight);
-    float currentThickness = PlateThicknessMaps[xyz_to_xyp(xyz, Plates[pId].Rotation, pId)];
+    float currentThickness = PlateThicknessMaps[xyz_to_xyp(xyz, Plates[pIdx].Rotation, pIdx)];
 	float neighbors[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     
 	for (int x = -1; x <= 1; x++)
@@ -212,7 +213,9 @@ void ResetPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 		Plate myPlate = Plates[p];
 		uint3 xyp = uint3(id.xy, id.z + p * 6);
 		float3 xyz = rotate_vector(xyw_to_xyz(id, MantleHeight), myPlate.Rotation);
-	    xyz = xyz + noise3d(xyz, FaultLineNoise);
+        xyz = xyz + noise3d(xyz, FaultLineNoise);
+        xyz = xyz + noise3d(xyz, FaultLineNoise / 6.35);
+        xyz = xyz + noise3d(xyz, FaultLineNoise / 11.7);
 		float minDist = 1000000;
 		float closestPlateId = 0;
 

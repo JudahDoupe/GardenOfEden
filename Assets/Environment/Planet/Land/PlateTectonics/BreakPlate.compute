@@ -1,5 +1,5 @@
-#pragma kernel ResetPlateThicknessMaps
 #pragma kernel UpdatePlateId
+#pragma kernel UpdateBreakLine
 
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
@@ -7,8 +7,12 @@
 
 RWTexture2DArray<float> ContinentalIdMap; 
 
+float MantleHeight;
+float FaultLineNoise;
 float OldPlateId; 
 float NewPlateId; 
+float3 OldPlateCenter;
+float3 NewPlateCenter;
 
 [numthreads(8, 8, 6)]
 void UpdatePlateId(uint3 id : SV_DispatchThreadID)
@@ -16,4 +20,21 @@ void UpdatePlateId(uint3 id : SV_DispatchThreadID)
     float oldId = ContinentalIdMap[id] * (ContinentalIdMap[id] != OldPlateId);
     float newId = NewPlateId * (ContinentalIdMap[id] == OldPlateId);
     ContinentalIdMap[id] = oldId + newId;
+}
+
+[numthreads(8, 8, 6)]
+void UpdateBreakLine(uint3 id : SV_DispatchThreadID)
+{
+    float3 xyz = xyw_to_xyz(id, MantleHeight);
+    xyz = xyz + noise3d(xyz, FaultLineNoise);
+    xyz = xyz + noise3d(xyz, FaultLineNoise / 6.35);
+    xyz = xyz + noise3d(xyz, FaultLineNoise / 11.7);
+    
+    float oldDist = distance(xyz, OldPlateCenter);
+    float newDist = distance(xyz, NewPlateCenter);
+
+    bool shouldUpdate = ContinentalIdMap[id] == OldPlateId || ContinentalIdMap[id] == NewPlateId;
+    ContinentalIdMap[id] = ContinentalIdMap[id] * !shouldUpdate
+    + OldPlateId * (shouldUpdate && oldDist < newDist)
+    + NewPlateId * (shouldUpdate && oldDist >= newDist);
 }

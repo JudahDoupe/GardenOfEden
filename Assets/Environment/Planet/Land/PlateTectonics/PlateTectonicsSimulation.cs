@@ -18,13 +18,12 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public void Regenerate(int numPlates)
     {
         Plates.Clear();
-        EnvironmentDataStore.PlateThicknessMaps.ResetTexture(numPlates * 6);
-        EnvironmentDataStore.TmpPlateThicknessMaps.ResetTexture(numPlates * 6);
         FindObjectOfType<PlateTectonicsVisualization>().Initialize();
 
         for (int p = 1; p <= numPlates; p++)
         {
-            AddPlate(p + 0.0001f);
+            var plate = AddPlate(p + 0.0001f);
+            plate.Rotation = Random.rotation;
         }
 
         RunTectonicKernel("ResetPlateThicknessMaps");
@@ -70,11 +69,32 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         var plate = new Plate
         {
             Id = id,
-            Rotation = Random.rotation,
+            Idx = Plates.Count,
+            Rotation = Quaternion.identity,
             Velocity = Quaternion.identity,
             TargetVelocity = Quaternion.identity,
         };
+        var currentLayerCount = Plates.Count * 6;
+        var newLayerCount = (Plates.Count + 1) * 6;
+
+        if (Plates.Count == 0)
+        {
+            EnvironmentDataStore.PlateThicknessMaps.ResetTexture(newLayerCount);
+            EnvironmentDataStore.TmpPlateThicknessMaps.ResetTexture(newLayerCount);
+        }
+        else
+        {
+            Graphics.CopyTexture(EnvironmentDataStore.PlateThicknessMaps, EnvironmentDataStore.TmpPlateThicknessMaps);
+            EnvironmentDataStore.PlateThicknessMaps.ResetTexture(newLayerCount);
+            for (var i = 0; i < currentLayerCount; i++)
+            {
+                Graphics.CopyTexture(EnvironmentDataStore.TmpPlateThicknessMaps, i, EnvironmentDataStore.PlateThicknessMaps, i);
+            }
+            EnvironmentDataStore.TmpPlateThicknessMaps.ResetTexture(newLayerCount);
+        }
+
         Plates.Add(plate);
+        NumPlates = Plates.Count;
         return plate;
     }
 
@@ -165,17 +185,19 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public class Plate
     {
         public float Id;
+        public int Idx;
         public Quaternion Rotation;
         public Quaternion Velocity;
         public Quaternion TargetVelocity;
         public Vector3 Center => Rotation * Vector3.forward * (Singleton.Water.SeaLevel + 100);
         public bool IsStopped => Quaternion.Angle(Velocity, Quaternion.identity) < 0.001f;
         public bool IsAligned => Quaternion.Angle(Rotation, Quaternion.identity) < 0.001f;
-        public GpuData ToGpuData() => new GpuData { Id = Id, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]) };
+        public GpuData ToGpuData() => new GpuData { Id = Id, Idx = Idx, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]) };
 
         public struct GpuData
         {
             public float Id;
+            public int Idx;
             public float4 Rotation;
         }
     }
