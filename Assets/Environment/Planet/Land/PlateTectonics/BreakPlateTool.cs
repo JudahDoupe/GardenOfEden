@@ -8,6 +8,10 @@ public class BreakPlateTool : MonoBehaviour, ITool
     public ComputeShader BreakPlateShader;
     [Range(1, 50)]
     public float FaultLineNoise = 1;
+    [Range(1, 50)]
+    public float MinBreakPointDistance = 1;
+    [Range(0, 5)]
+    public float LerpSpeed = 3;
 
     public bool IsActive
     {
@@ -15,8 +19,8 @@ public class BreakPlateTool : MonoBehaviour, ITool
         set
         {
             _isActive = value;
-            _currentPlateId = 0;
             SimulationController.StopSimulations(SimulationType.PlateTectonics);
+            _break = ResetTool(null);
             if (!value)
             {
                 FindObjectOfType<PlateTectonicsVisualization>().HighlightPlate(0);
@@ -26,10 +30,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
     private bool _isActive;
     private PlateTectonicsVisualization _visualization;
-    private Coordinate _startBreakPoint;
-    private float _currentPlateId;
-    private float _nextPlateId;
-    private bool _isbreakingplate => _currentPlateId > 0;
+    private Break? _break;
 
     void Start()
     {
@@ -40,50 +41,91 @@ public class BreakPlateTool : MonoBehaviour, ITool
     {
         if (!IsActive) return;
 
-        if (Input.mouseScrollDelta.y != 0)
+        if (_break.HasValue)
         {
-            FaultLineNoise += Input.mouseScrollDelta.y;
+            _visualization.HighlightPlate(_break.Value.OriginalPlateId.Value);
+
+            var breakpoint = GetMouseCoord();
+            _break = PreviewNewPlate(_break.Value, breakpoint);
+            
+            if (Input.GetMouseButtonDown(0) && breakpoint != null)
+            {
+                _break = BreakPlate(_break.Value);
+                FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
+            }
         }
 
-        if (_isbreakingplate)
-        {
-            _visualization.HighlightPlate(_currentPlateId);
-
-            if (GetMouseCoord() is { } breakpoint)
-            {
-                UpdatePlateBoundries(breakpoint);
-
-                if (Input.GetMouseButtonDown(0))
-                {
-                    BakePlates();
-                    ClearTool();
-                }
-            }
-            else
-            {
-                ClearBreakLine();
-            }
-
-        }
         else if (GetMouseCoord() is { } breakpoint)
         {
-            var plateId = EnvironmentDataStore.ContinentalIdMap.SamplePoint(breakpoint).r;
-            _visualization.HighlightPlate(plateId);
+            var plate = Singleton.PlateTectonics.GetPlate(EnvironmentDataStore.ContinentalIdMap.SamplePoint(breakpoint).r);
+            _visualization.HighlightPlate(plate.Id);
 
             if (Input.GetMouseButtonDown(0))
             {
-                _currentPlateId = plateId;
-                _nextPlateId = _currentPlateId + 0.5f;
-                _startBreakPoint = breakpoint;
+                _break = StartBreak(breakpoint, plate);
             }
         }
-
+        
         if (Input.GetMouseButtonDown(1))
         {
-            ClearTool();
+            _break = ResetTool(_break);
         }
     }
 
+    private Break StartBreak(Coordinate start, Plate originalPlate)
+    {
+        return new Break
+        {
+            StartCoord = start,
+            OriginalPlateId = originalPlate.Id,
+            OriginalPlateIdx = originalPlate.Idx,
+            NewTmpPlateId = originalPlate.Id + 0.5f,
+        };
+    }
+    private Break PreviewNewPlate(Break b, Coordinate? end)
+    {
+        if (end.HasValue)
+        {
+            var distance = Vector3.Distance(end.Value.LocalPlanet, b.StartCoord.Value.LocalPlanet);
+            if (distance < MinBreakPointDistance)
+            {
+                end = new Coordinate(b.StartCoord.Value.LocalPlanet + new float3(0,1,0));
+            }
+            b.EndCoord = new Coordinate(Vector3.Lerp(b.EndCoord?.LocalPlanet ?? end.Value.LocalPlanet, end.Value.LocalPlanet, Time.deltaTime * LerpSpeed));
+            RunKernel("UpdateBreakLine", b);
+        }
+        else
+        {
+            RunKernel("UpdatePlateId", new Break { OriginalPlateId = b.NewTmpPlateId, NewPlateId = b.OriginalPlateId });
+        }
+        return b;
+    }
+    private Break? BreakPlate(Break b)
+    {
+        var oldPlate = Singleton.PlateTectonics.GetPlate(b.OriginalPlateId.Value);
+        b.NewPlateId = Singleton.PlateTectonics.GetAllPlates().Max(x => x.Id) + 1f;
+        var plate = Singleton.PlateTectonics.AddPlate(b.NewPlateId.Value);
+        plate.Rotation = oldPlate.Rotation;
+        plate.Velocity = oldPlate.Velocity;
+        plate.TargetVelocity = oldPlate.TargetVelocity;
+        b.NewPlateIdx = plate.Idx;
+
+        RunKernel("UpdatePlateId", new Break { OriginalPlateId = b.NewTmpPlateId, NewPlateId = b.NewPlateId});
+        RunKernel("BreakPlate", b);
+
+        EnvironmentDataStore.ContinentalIdMap.UpdateTextureCache();
+        return null;
+    }
+    private Break? ResetTool(Break? b)
+    {
+        if (b.HasValue)
+        {
+            RunKernel("UpdatePlateId", new Break { OriginalPlateId = b.Value.NewTmpPlateId, NewPlateId = b.Value.OriginalPlateId });
+        }
+        _visualization.ShowFaultLines(false);
+
+        return null;
+    }
     private Coordinate? GetMouseCoord()
     {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
@@ -94,55 +136,42 @@ public class BreakPlateTool : MonoBehaviour, ITool
         }
         return null;
     }
-
-    private void UpdatePlateBoundries(Coordinate currentbreakpoint)
+    private void RunKernel(string kernelName, Break b)
     {
-        var forward = Vector3.Normalize(currentbreakpoint.LocalPlanet - _startBreakPoint.LocalPlanet);
-        var up = Vector3.Normalize(Vector3.Lerp(currentbreakpoint.LocalPlanet, _startBreakPoint.LocalPlanet, 0.5f));
-        var right = Quaternion.AngleAxis(90, forward) * up;
-
-        var oldCenter = currentbreakpoint.LocalPlanet.ToVector3() + right * 10;
-        var newCenter = currentbreakpoint.LocalPlanet.ToVector3() - right * 10;
-
-        int kernel = BreakPlateShader.FindKernel("UpdateBreakLine");
+        int kernel = BreakPlateShader.FindKernel(kernelName);
         BreakPlateShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
+        BreakPlateShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentDataStore.PlateThicknessMaps);
         BreakPlateShader.SetFloat("FaultLineNoise", FaultLineNoise);
         BreakPlateShader.SetFloat("MantleHeight", Singleton.PlateTectonics.MantleHeight);
-        BreakPlateShader.SetFloat("OldPlateId", _currentPlateId);
-        BreakPlateShader.SetFloat("NewPlateId", _nextPlateId);
-        BreakPlateShader.SetFloats("OldPlateCenter", oldCenter.ToFloatArray());
-        BreakPlateShader.SetFloats("NewPlateCenter", newCenter.ToFloatArray());
+        BreakPlateShader.SetFloat("OldPlateId", b.OriginalPlateId ?? 0);
+        BreakPlateShader.SetFloat("NewPlateId", b.NewPlateId ?? b.NewTmpPlateId ?? 0);
+        BreakPlateShader.SetFloat("OldPlateIdx", b.OriginalPlateIdx ?? 0);
+        BreakPlateShader.SetFloat("NewPlateIdx", b.NewPlateIdx ?? 0);
+
+        if (b.StartCoord.HasValue && b.EndCoord.HasValue)
+        {
+            var center = Vector3.Lerp(b.EndCoord.Value.LocalPlanet, b.StartCoord.Value.LocalPlanet, 0.5f);
+            var forward = Vector3.Normalize(b.EndCoord.Value.LocalPlanet - b.StartCoord.Value.LocalPlanet);
+            var up = Vector3.Normalize(center);
+            var right = Quaternion.AngleAxis(90, forward) * up;
+
+            var oldCenter = center + right * 10;
+            var newCenter = center - right * 10;
+            BreakPlateShader.SetFloats("OldPlateCenter", oldCenter.ToFloatArray());
+            BreakPlateShader.SetFloats("NewPlateCenter", newCenter.ToFloatArray());
+        }
+        
         BreakPlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
-    private void BakePlates()
-    {
-        var oldId = _nextPlateId;
-        var newId = Singleton.PlateTectonics.GetAllPlates().Max(x => x.Id) + 1f;
 
-        int kernel = BreakPlateShader.FindKernel("UpdatePlateId");
-        BreakPlateShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
-        BreakPlateShader.SetFloat("OldPlateId", oldId);
-        BreakPlateShader.SetFloat("NewPlateId", newId);
-        BreakPlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
-
-        Singleton.PlateTectonics.AddPlate(newId);
-     
-        //TODO: transfer thickness
-
-        Singleton.PlateTectonics.BakeMaps();
-    }
-    private void ClearTool()
+    public struct Break
     {
-        ClearBreakLine();
-        _currentPlateId = 0;
-        _nextPlateId = 0;
-    }
-    private void ClearBreakLine()
-    {
-        int kernel = BreakPlateShader.FindKernel("UpdatePlateId");
-        BreakPlateShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
-        BreakPlateShader.SetFloat("OldPlateId", _nextPlateId);
-        BreakPlateShader.SetFloat("NewPlateId", _currentPlateId);
-        BreakPlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
+        public Coordinate? StartCoord;
+        public Coordinate? EndCoord;
+        public float? OriginalPlateId;
+        public float? OriginalPlateIdx;
+        public float? NewPlateId;
+        public float? NewPlateIdx;
+        public float? NewTmpPlateId;
     }
 }

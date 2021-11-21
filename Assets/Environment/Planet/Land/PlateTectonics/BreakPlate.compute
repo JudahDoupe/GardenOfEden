@@ -1,16 +1,20 @@
 #pragma kernel UpdatePlateId
 #pragma kernel UpdateBreakLine
+#pragma kernel BreakPlate
 
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
 #include "../../../../Resources/Shaders/Noise.hlsl"
 
 RWTexture2DArray<float> ContinentalIdMap; 
+RWTexture2DArray<float> PlateThicknessMaps;
 
 float MantleHeight;
 float FaultLineNoise;
 float OldPlateId; 
 float NewPlateId; 
+float OldPlateIdx;
+float NewPlateIdx;
 float3 OldPlateCenter;
 float3 NewPlateCenter;
 
@@ -37,4 +41,25 @@ void UpdateBreakLine(uint3 id : SV_DispatchThreadID)
     ContinentalIdMap[id] = ContinentalIdMap[id] * !shouldUpdate
     + OldPlateId * (shouldUpdate && oldDist < newDist)
     + NewPlateId * (shouldUpdate && oldDist >= newDist);
+}
+
+[numthreads(8, 8, 6)]
+void BreakPlate(uint3 id : SV_DispatchThreadID)
+{
+    float3 xyz = xyw_to_xyz(id, MantleHeight);
+    xyz = xyz + noise3d(xyz, FaultLineNoise);
+    xyz = xyz + noise3d(xyz, FaultLineNoise / 6.35);
+    xyz = xyz + noise3d(xyz, FaultLineNoise / 11.7);
+    
+    float oldDist = distance(xyz, OldPlateCenter);
+    float newDist = distance(xyz, NewPlateCenter);
+    
+    if (oldDist >= newDist)
+    {
+        uint3 oldXyp = uint3(id.x, id.y, OldPlateIdx * 6 + id.z);
+        uint3 newXyp = uint3(id.x, id.y, NewPlateIdx * 6 + id.z);
+        
+        PlateThicknessMaps[newXyp] = PlateThicknessMaps[oldXyp];
+        PlateThicknessMaps[oldXyp] = 0;
+    }
 }
