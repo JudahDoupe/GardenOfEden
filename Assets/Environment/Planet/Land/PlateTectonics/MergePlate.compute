@@ -1,0 +1,18 @@
+#pragma kernel UpdatePlateId
+
+#include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
+#include "../../../../Resources/Shaders/Quaternion.hlsl"
+
+RWTexture2DArray<float> ContinentalIdMap; 
+RWTexture2DArray<float> PlateThicknessMaps;
+
+float OldPlateId; 
+float NewPlateId;
+
+[numthreads(8, 8, 6)]
+void UpdatePlateId(uint3 id : SV_DispatchThreadID)
+{
+    float oldId = ContinentalIdMap[id] * (ContinentalIdMap[id] != OldPlateId);
+    float newId = NewPlateId * (ContinentalIdMap[id] == OldPlateId);
+    ContinentalIdMap[id] = oldId + newId;
+}

@@ -8,7 +8,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <ProjectGuid>{F49B5B11-5475-D98A-BF58-F6C878F5BC27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -71,7 +72,7 @@
     <Compile Include="Assets\Utils\Extensions\Vector3Extensions.cs" />
     <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\PlateTectonicsToolbar.cs" />
     <Compile Include="Assets\GamePlay\SimulationController.cs" />
-    <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\CombinePlateTool.cs" />
+    <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\MergePlateTool.cs" />
     <Compile Include="Assets\Plants\Systems\Growth\NodeDivisionSystem.cs" />
     <Compile Include="Assets\Utils\Extensions\FloatExtensions.cs" />
     <Compile Include="Assets\Utils\Coordinate.cs" />
@@ -150,6 +151,7 @@
     <Compile Include="Assets\Rendering\Features\BlitMaterialFeature.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Environment\Planet\Land\PlateTectonics\MergePlate.compute" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise2D.hlsl" />
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
     <None Include="Assets\Packages\LiteDB.5.0.10\lib\net45\LiteDB.xml" />

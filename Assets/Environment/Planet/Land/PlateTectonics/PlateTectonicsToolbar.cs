@@ -20,7 +20,7 @@ public class PlateTectonicsToolbar : MenuUi
     public void Pause() => _stateMachine.SetState(new ButtonState(this, "Pause", enabled => SimulationController.SetEnabledSimulations(false, SimulationType.PlateTectonics)));
     public void MovePlates() => _stateMachine.SetState(new ButtonState(this, "Move", enabled => FindObjectOfType<MovePlateTool>().IsActive = enabled));
     public void BreakPlates() => _stateMachine.SetState(new ButtonState(this, "Break", enabled => FindObjectOfType<BreakPlateTool>().IsActive = enabled));
-    public void CombinePlates() => _stateMachine.SetState(new ButtonState(this, "Combine", enabled => FindObjectOfType<CombinePlateTool>().IsActive = enabled));
+    public void CombinePlates() => _stateMachine.SetState(new ButtonState(this, "Combine", enabled => FindObjectOfType<MergePlateTool>().IsActive = enabled));
 
     private void Update()
     {

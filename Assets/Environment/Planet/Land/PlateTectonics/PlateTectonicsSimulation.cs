@@ -97,6 +97,27 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         NumPlates = Plates.Count;
         return plate;
     }
+    public void RemovePlate(float id)
+    {
+        if (!Plates.Any(x => x.Id == id)) return;
+
+        var plate = Plates.First(x => x.Id == id);
+        var currentLayerCount = Plates.Count * 6;
+        var newLayerCount = (Plates.Count - 1) * 6;
+
+        Graphics.CopyTexture(EnvironmentDataStore.PlateThicknessMaps, EnvironmentDataStore.TmpPlateThicknessMaps);
+        EnvironmentDataStore.PlateThicknessMaps.ResetTexture(newLayerCount);
+        for (var i = 0; i < currentLayerCount; i++)
+        {
+            if (i == plate.Idx) continue;
+            var j = i < plate.Idx ? i : i - 1;
+            Graphics.CopyTexture(EnvironmentDataStore.TmpPlateThicknessMaps, i, EnvironmentDataStore.PlateThicknessMaps, j);
+        }
+        EnvironmentDataStore.TmpPlateThicknessMaps.ResetTexture(newLayerCount);
+
+        Plates.Remove(plate);
+        NumPlates = Plates.Count;
+    }
 
     public void UpdateSystem()
     {
