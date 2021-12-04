@@ -33,8 +33,10 @@ void MergePlates(uint3 id : SV_DispatchThreadID)
 {
     float3 xyz = rotate_vector(xyw_to_xyz(id, 1000), NewPlateRotation);
     float plateId = ContinentalIdMap[xyz_to_xyw(xyz)];
-    float oldThickness = PlateThicknessMaps[xyz_to_xyp(xyz, OldPlateRotation, OldPlateIdx)];
-    float newThickness = PlateThicknessMaps[xyz_to_xyp(xyz, NewPlateRotation, NewPlateIdx)];
+    uint3 oldIdx = xyz_to_xyp(xyz, OldPlateRotation, OldPlateIdx);
+    uint3 newIdx = uint3(id.x, id.y, id.z + NewPlateIdx * 6);
+    float oldThickness = PlateThicknessMaps[oldIdx];
+    float newThickness = PlateThicknessMaps[newIdx];
     
     bool isOld = plateId == OldPlateId;
     bool isNew = plateId == NewPlateId;
@@ -42,5 +44,5 @@ void MergePlates(uint3 id : SV_DispatchThreadID)
         + (oldThickness * isOld)
         + (newThickness * isNew);
     
-    PlateThicknessMaps[id] = thickness;
+    PlateThicknessMaps[xyz_to_xyp(xyz, NewPlateRotation, NewPlateIdx)] = thickness;
 }

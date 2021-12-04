@@ -56,7 +56,7 @@ public class MergePlateTool : MonoBehaviour, ITool
                     if (Input.GetMouseButtonDown(0))
                     {
                         var newPlate = Singleton.PlateTectonics.GetPlate(newPlateId);
-                        //MergePlates(oldPlateId.Value, newPlateId, oldPlate, newPlate);
+                        MergePlates(oldPlateId.Value, newPlateId, oldPlate, newPlate);
                         UpdatePlateId(oldPlateId.Value, newPlateId);
                         Singleton.PlateTectonics.RemovePlate(oldPlate.Id);
                         ResetTool();
