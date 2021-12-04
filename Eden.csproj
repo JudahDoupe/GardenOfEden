@@ -8,8 +8,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <ProjectGuid>{F49B5B11-5475-D98A-BF58-F6C878F5BC27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -151,7 +150,6 @@
     <Compile Include="Assets\Rendering\Features\BlitMaterialFeature.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Environment\Planet\Land\PlateTectonics\MergePlate.compute" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise2D.hlsl" />
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
     <None Include="Assets\Packages\LiteDB.5.0.10\lib\net45\LiteDB.xml" />
@@ -174,6 +172,7 @@
     <None Include="Assets\Packages\QuikGraph.2.3.0\lib\net45\QuikGraph.dll" />
     <None Include="Assets\Packages\FsCheck.2.14.4\lib\net452\FsCheck.dll" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\Voronoi4D.hlsl" />
+    <None Include="Assets\Environment\Planet\Land\PlateTectonics\MergePlate.compute" />
     <None Include="Assets\Resources\Shaders\Colors.hlsl" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\Voronoi2D.hlsl" />
     <None Include="Assets\Eden.asmdef" />

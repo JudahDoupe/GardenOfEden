@@ -99,23 +99,24 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     }
     public void RemovePlate(float id)
     {
-        if (!Plates.Any(x => x.Id == id)) return;
-
-        var plate = Plates.First(x => x.Id == id);
-        var currentLayerCount = Plates.Count * 6;
-        var newLayerCount = (Plates.Count - 1) * 6;
+        var plate = Plates.FirstOrDefault(x => x.Id == id);
+        if (plate == null) return;
+        
+        Plates.Remove(plate);
+        var newLayerCount = Plates.Count * 6;
 
         Graphics.CopyTexture(EnvironmentDataStore.PlateThicknessMaps, EnvironmentDataStore.TmpPlateThicknessMaps);
         EnvironmentDataStore.PlateThicknessMaps.ResetTexture(newLayerCount);
-        for (var i = 0; i < currentLayerCount; i++)
+        foreach (var p in Plates)
         {
-            if (i == plate.Idx) continue;
-            var j = i < plate.Idx ? i : i - 1;
-            Graphics.CopyTexture(EnvironmentDataStore.TmpPlateThicknessMaps, i, EnvironmentDataStore.PlateThicknessMaps, j);
+            var newIdx = Plates.IndexOf(p);
+            for (var i = 0; i < 6; i++)
+            {
+                Graphics.CopyTexture(EnvironmentDataStore.TmpPlateThicknessMaps, (p.Idx * 6) + i, EnvironmentDataStore.PlateThicknessMaps, (newIdx * 6) + i);
+            }
+            p.Idx = newIdx;
         }
         EnvironmentDataStore.TmpPlateThicknessMaps.ResetTexture(newLayerCount);
-
-        Plates.Remove(plate);
         NumPlates = Plates.Count;
     }
 

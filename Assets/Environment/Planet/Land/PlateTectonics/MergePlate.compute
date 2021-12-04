@@ -1,4 +1,5 @@
 #pragma kernel UpdatePlateId
+#pragma kernel MergePlates
 
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
@@ -8,6 +9,10 @@ RWTexture2DArray<float> PlateThicknessMaps;
 
 float OldPlateId; 
 float NewPlateId;
+float OldPlateIdx; 
+float NewPlateIdx;
+float4 OldPlateRotation;
+float4 NewPlateRotation;
 
 [numthreads(8, 8, 6)]
 void UpdatePlateId(uint3 id : SV_DispatchThreadID)
@@ -15,4 +20,27 @@ void UpdatePlateId(uint3 id : SV_DispatchThreadID)
     float oldId = ContinentalIdMap[id] * (ContinentalIdMap[id] != OldPlateId);
     float newId = NewPlateId * (ContinentalIdMap[id] == OldPlateId);
     ContinentalIdMap[id] = oldId + newId;
+}
+
+uint3 xyz_to_xyp(float3 xyz, float4 rotation, int p)
+{
+    uint3 xyw = xyz_to_xyw(rotate_vector(xyz, q_inverse(rotation)));
+    return uint3(xyw.xy, xyw.z + (p * 6));
+}
+
+[numthreads(8, 8, 6)]
+void MergePlates(uint3 id : SV_DispatchThreadID)
+{
+    float3 xyz = rotate_vector(xyw_to_xyz(id, 1000), NewPlateRotation);
+    float plateId = ContinentalIdMap[xyz_to_xyw(xyz)];
+    float oldThickness = PlateThicknessMaps[xyz_to_xyp(xyz, OldPlateRotation, OldPlateIdx)];
+    float newThickness = PlateThicknessMaps[xyz_to_xyp(xyz, NewPlateRotation, NewPlateIdx)];
+    
+    bool isOld = plateId == OldPlateId;
+    bool isNew = plateId == NewPlateId;
+    float thickness = (max(oldThickness, newThickness) * (!isOld && !isNew))
+        + (oldThickness * isOld)
+        + (newThickness * isNew);
+    
+    PlateThicknessMaps[id] = thickness;
 }
