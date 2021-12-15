@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using FsCheck;
 using NUnit.Framework;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -63,7 +64,7 @@ namespace Tests
         {
             var input = new SamplerData[1];
             var output = new SamplerData[1];
-            var coord = new Coordinate(Vector3.zero, Planet.LocalToWorld) { TextureUvw = uvw };
+            var coord = new Coordinate(Vector3.zero, new LocalToWorld()) { TextureUvw = uvw };
             input[0] = new SamplerData { uvw = uvw };
 
             using var buffer = new ComputeBuffer(1, Marshal.SizeOf(typeof(SamplerData)));

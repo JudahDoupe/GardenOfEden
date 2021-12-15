@@ -44,7 +44,7 @@ float3 xyw_to_uvw(int3 xyw)
     float2 uv = xyw.xy / (TextureWidthInPixels - 1.0);
     return float3(uv, xyw.z);
 }
-int3 xyw_to_xyz(int3 xyw, float altitude)
+float3 xyw_to_xyz(int3 xyw, float altitude)
 {
     float3 uvw = xyw_to_uvw(xyw);
     return uvw_to_xyz(uvw, altitude);

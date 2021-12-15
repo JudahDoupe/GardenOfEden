@@ -1,6 +1,7 @@
 ﻿#pragma kernel Test_xyz
 #pragma kernel Test_uvw
 #pragma kernel Test_xyw
+#pragma kernel Test_Boundries
 
 #include "CoordinateTransforms.hlsl"
 
@@ -10,6 +11,7 @@ struct CoordData
     float3 uvw;
     float3 xyz;
     int3 xyw;
+    int isBoundry;
 };
 
 RWStructuredBuffer<CoordData> coords;
@@ -32,5 +34,13 @@ void Test_uvw(uint3 id : SV_DispatchThreadID)
 void Test_xyw(uint3 id : SV_DispatchThreadID)
 {
     coords[id.x].uvw = xyw_to_uvw(coords[id.x].xyw);
+    coords[id.x].xyz = xyw_to_xyz(coords[id.x].xyw, coords[id.x].altitude);
+}
+
+[numthreads(1, 1, 1)]
+void Test_Boundries(uint3 id : SV_DispatchThreadID)
+{
+    coords[id.x].isBoundry = is_boundry_pixel(coords[id.x].xyw.xy);
+    coords[id.x].xyw = get_source_xyw(coords[id.x].xyw);
     coords[id.x].xyz = xyw_to_xyz(coords[id.x].xyw, coords[id.x].altitude);
 }

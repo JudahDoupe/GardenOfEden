@@ -149,11 +149,11 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public void UpdatePlateThicknessMaps()
     {
         RunTectonicKernel("UpdatePlateThicknessMaps");
-        RunTectonicKernel("SmoothPlates");
     }
     public void UpdateHeightMap()
     {
         RunTectonicKernel("UpdateHeightMap");
+        RunTectonicKernel("SmoothPlates");
         EnvironmentDataStore.LandHeightMap.UpdateTextureCache();
     }
     public void BakeMaps()
