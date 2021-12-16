@@ -162,8 +162,8 @@ int get_src_w(int3 xyw)
     
     bool up = xyw.y >= (TextureWidthInPixels - 1);
     bool right = xyw.x >= (TextureWidthInPixels - 1) && !up;
-    bool down = xyw.y < 1 && !right;
-    bool left = xyw.x < 1 && !down;
+    bool down = xyw.y < 1 && !up && !right;
+    bool left = xyw.x < 1 && !up && !right && !down;
     
     int Xp = dst_w == 0;
     int Xn = dst_w == 1;

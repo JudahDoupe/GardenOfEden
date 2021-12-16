@@ -139,22 +139,22 @@ void SmoothPlates(uint3 id : SV_DispatchThreadID)
     
     float sumThickness = 0;
     float sumWeights = 0;
-    for (int x = -1; x <= 1; x++)
-    {
-        for (int y = -1; y <= 1; y++)
-        {
-            int3 xyw = int3(id.xy + int2(x, y), id.z);
-            if (is_boundry_pixel(xyw.xy))
-            {
-                xyw = get_source_xyw(xyw);
-            }
-            float dist = length(float2(x, y));
-            float weight = pow(2.71828, -((dist * dist) / (Gravity * Gravity)));
-            sumThickness += (LandHeightMap[xyw] - MantleHeight) * weight;
-            sumWeights += weight;
 
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int y = -1; y <= 1; y++)
+            {
+                int3 xyw = int3(id.xy + int2(x, y), id.z);
+                if (is_boundry_pixel(xyw.xy))
+                {
+                    xyw = get_source_xyw(xyw);
+                }
+                float dist = length(float2(x, y));
+                float weight = pow(2.71828, -((dist * dist) / (Gravity * Gravity)));
+                sumThickness += (LandHeightMap[xyw] - MantleHeight) * weight;
+                sumWeights += weight;
+            }
         }
-    }
     int3 xyp = xyz_to_xyp(xyw_to_xyz(id, MantleHeight), myPlate.Rotation, myPlate.Idx);
     PlateThicknessMaps[xyp] = sumThickness / sumWeights;
 }
