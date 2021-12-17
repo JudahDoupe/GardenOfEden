@@ -124,7 +124,7 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         else
         {
 			float preasure = (myThickness - (totalThickness - myThickness)) / (totalThickness + 0.00000001f);
-			float subduction = myThickness * max(-preasure, 0) * SubductionRate;
+            float subduction = myThickness * max(-preasure, 0) * SubductionRate * pow(1 + (totalThickness / MantleHeight), 3);
 			myThickness = max(myThickness - subduction, 0);
         }
 		
