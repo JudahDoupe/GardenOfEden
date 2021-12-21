@@ -4,8 +4,6 @@
 #pragma kernel UpdatePlateThicknessMaps
 #pragma kernel SmoothPlates
 #pragma kernel UpdateHeightMap
-#pragma kernel StartAligningPlateThicknessMaps
-#pragma kernel FinishAligningPlateThicknessMaps
 
 #include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
 #include "../../../../Resources/Shaders/Quaternion.hlsl"
@@ -173,30 +171,6 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
     }
 
     LandHeightMap[id] = height;
-}
-
-[numthreads(8, 8, 6)]
-void StartAligningPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
-{
-    float3 xyz = xyw_to_xyz(id, MantleHeight);
-	
-    for (uint p = 0; p < NumPlates; p++)
-    {
-        Plate plate = Plates[p];
-        uint3 xyp = xyz_to_xyp(xyz, plate.Rotation, p);
-        uint3 xypTmp = uint3(id.xy, id.z + p * 6);
-        TmpPlateThicknessMaps[xypTmp] = PlateThicknessMaps[xyp];
-    }
-}
-
-[numthreads(8, 8, 6)]
-void FinishAligningPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
-{
-    for (uint p = 0; p < NumPlates; p++)
-    {
-        uint3 xyp = uint3(id.xy, id.z + p * 6);
-        PlateThicknessMaps[xyp] = TmpPlateThicknessMaps[xyp];
-    }
 }
 
 [numthreads(8, 8, 6)]

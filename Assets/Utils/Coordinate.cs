@@ -130,31 +130,8 @@ public struct Coordinate : IComponentData, IEquatable<Coordinate>
     }
     private void SetTextureCoordinates(float u, float v, int w, float altitude)
     {
-        var uvw = new float3(u,v,w);
-        //Account for buffer pixels
-        uvw.xy = (uvw.xy - (1f / TextureWidthInPixels)) / ((TextureWidthInPixels - 2f) / TextureWidthInPixels);
-
-        // Use side to decompose primary dimension and negativity
-        bool xMost = w < 2;
-        bool yMost = w >= 2 && w < 4;
-        bool zMost = w >= 4;
-        bool wasNegative = w % 2 == 1;
-
-        // Insert a constant plane value for the dominant dimension in here
-        uvw.z = 1;
-
-        // Depending on the side we swizzle components back (NOTE: uvw.z is 1)
-        float3 useComponents = new float3(0, 0, 0);
-        if (xMost) useComponents = uvw.zxy;
-        if (yMost) useComponents = uvw.xzy;
-        if (zMost) useComponents = uvw.xyz;
-
-        // Transform components from [0,1] to [-1,1]
-        useComponents = useComponents * 2 - new float3(1, 1, 1);
-        useComponents *= wasNegative ? -1 : 1;
-
-        _localPlanetCoord = Vector3.Normalize(useComponents) * altitude;
         _textureCoord = new float3(u, v, w);
+        _localPlanetCoord = CoordinateTransforms.UvwToXyz(_textureCoord, altitude);
         _sphericalCoord = new float3(
             altitude,
             math.atan2(_localPlanetCoord.y, _localPlanetCoord.x),

@@ -92,7 +92,7 @@ public static class CoordinateTransforms
         float2 uv = useComponents.xy / useComponents.z;
 
         //Account for buffer pixels
-        uv *= (TextureWidthInPixels - 2) / TextureWidthInPixels;
+        uv *= (TextureWidthInPixels - 2.0f) / TextureWidthInPixels;
 
         // Transform uv from [-1,1] to [0,1]
         uv = uv * 0.5f + new float2(0.5f, 0.5f);

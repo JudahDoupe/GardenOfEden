@@ -1,7 +1,6 @@
 using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
-using static PlateTectonicsSimulation;
 
 public class BreakPlateTool : MonoBehaviour, ITool
 {
@@ -103,8 +102,8 @@ public class BreakPlateTool : MonoBehaviour, ITool
     private Break? BreakPlate(Break b)
     {
         var oldPlate = Singleton.PlateTectonics.GetPlate(b.OriginalPlateId.Value);
-        b.NewPlateId = Singleton.PlateTectonics.GetAllPlates().Max(x => x.Id) + 1f;
-        var plate = Singleton.PlateTectonics.AddPlate(b.NewPlateId.Value);
+        var plate = Singleton.PlateTectonics.AddPlate();
+        b.NewPlateId = plate.Id;
         plate.Rotation = oldPlate.Rotation;
         plate.Velocity = oldPlate.Velocity;
         plate.TargetVelocity = oldPlate.TargetVelocity;

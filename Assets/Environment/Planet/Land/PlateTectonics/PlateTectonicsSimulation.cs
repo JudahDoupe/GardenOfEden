@@ -1,10 +1,7 @@
-using Assets.Scripts.Utils;
-using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -16,10 +13,10 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float MantleHeight = 900;
     [Range(0,100)]
     public float FaultLineNoise = 0.25f;
-    public void Regenerate() => Regenerate(Plates.Count);
+    public void Regenerate() => Regenerate(_plates.Count);
     public void Regenerate(int numPlates)
     {
-        Plates.Clear();
+        _plates.Clear();
         FindObjectOfType<PlateTectonicsVisualization>().Initialize();
 
         for (int p = 1; p <= numPlates; p++)
@@ -30,7 +27,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 
         RunTectonicKernel("ResetPlateThicknessMaps");
         RunTectonicKernel("ResetContinentalIdMap");
-        BakeMaps();
         UpdateHeightMap();
         Singleton.Water.Regenerate();
     }
@@ -62,24 +58,25 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         }
     }
 
+    private List<Plate> _plates = new List<Plate>();
 
-    private List<Plate> Plates = new List<Plate>();
-    public List<Plate> GetAllPlates() => Plates;
-    public Plate GetPlate(float id) => Plates.First(x => x.Id == id);
+    public List<Plate> GetAllPlates() => _plates;
+    public Plate GetPlate(float id) => _plates.First(x => x.Id == id);
+    public Plate AddPlate() => AddPlate(_plates.Max(x => x.Id) + 1f);
     public Plate AddPlate(float id)
     {
         var plate = new Plate
         {
             Id = id,
-            Idx = Plates.Count,
+            Idx = _plates.Count,
             Rotation = Quaternion.identity,
             Velocity = Quaternion.identity,
             TargetVelocity = Quaternion.identity,
         };
-        var currentLayerCount = Plates.Count * 6;
-        var newLayerCount = (Plates.Count + 1) * 6;
+        var currentLayerCount = _plates.Count * 6;
+        var newLayerCount = (_plates.Count + 1) * 6;
 
-        if (Plates.Count == 0)
+        if (_plates.Count == 0)
         {
             EnvironmentDataStore.PlateThicknessMaps.ResetTexture(newLayerCount);
             EnvironmentDataStore.TmpPlateThicknessMaps.ResetTexture(newLayerCount);
@@ -95,23 +92,23 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
             EnvironmentDataStore.TmpPlateThicknessMaps.ResetTexture(newLayerCount);
         }
 
-        Plates.Add(plate);
-        NumPlates = Plates.Count;
+        _plates.Add(plate);
+        NumPlates = _plates.Count;
         return plate;
     }
     public void RemovePlate(float id)
     {
-        var plate = Plates.FirstOrDefault(x => x.Id == id);
+        var plate = _plates.FirstOrDefault(x => x.Id == id);
         if (plate == null) return;
         
-        Plates.Remove(plate);
-        var newLayerCount = Plates.Count * 6;
+        _plates.Remove(plate);
+        var newLayerCount = _plates.Count * 6;
 
         Graphics.CopyTexture(EnvironmentDataStore.PlateThicknessMaps, EnvironmentDataStore.TmpPlateThicknessMaps);
         EnvironmentDataStore.PlateThicknessMaps.ResetTexture(newLayerCount);
-        foreach (var p in Plates)
+        foreach (var p in _plates)
         {
-            var newIdx = Plates.IndexOf(p);
+            var newIdx = _plates.IndexOf(p);
             for (var i = 0; i < 6; i++)
             {
                 Graphics.CopyTexture(EnvironmentDataStore.TmpPlateThicknessMaps, (p.Idx * 6) + i, EnvironmentDataStore.PlateThicknessMaps, (newIdx * 6) + i);
@@ -119,7 +116,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
             p.Idx = newIdx;
         }
         EnvironmentDataStore.TmpPlateThicknessMaps.ResetTexture(newLayerCount);
-        NumPlates = Plates.Count;
+        NumPlates = _plates.Count;
     }
 
     public void UpdateSystem()
@@ -128,15 +125,10 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         UpdateContinentalIdMap();
         UpdatePlateThicknessMaps();
         UpdateHeightMap();
-
-        if (Plates.Any(x => !x.IsAligned) && Plates.All(x => x.IsStopped))
-        {
-            BakeMaps();
-        }
     }
     public void UpdateVelocity()
     {
-        foreach (var plate in Plates)
+        foreach (var plate in _plates)
         {
             var velocity = Quaternion.Slerp(plate.Velocity, plate.TargetVelocity, (1 - PlateInertia));
             plate.Velocity = Quaternion.Slerp(Quaternion.identity, velocity, PlateSpeed * Time.deltaTime);
@@ -158,27 +150,12 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         RunTectonicKernel("SmoothPlates");
         EnvironmentDataStore.LandHeightMap.UpdateTextureCache();
     }
-    public void BakeMaps()
-    {
-        RunTectonicKernel("StartAligningPlateThicknessMaps");
-        foreach(var plate in Plates)
-        {
-            plate.Rotation = Quaternion.identity;
-            plate.Velocity = Quaternion.identity;
-        }
-        RunTectonicKernel("FinishAligningPlateThicknessMaps");
-        var timer = new Stopwatch();
-        timer.Start();
-        //DetectContinents();
-        UnityEngine.Debug.Log(timer.ElapsedMilliseconds);
-        timer.Stop();
-    }
   
     private void RunTectonicKernel(string kernelName)
     {
         int kernel = TectonicsShader.FindKernel(kernelName);
         using var buffer = new ComputeBuffer(NumPlates, Marshal.SizeOf(typeof(Plate.GpuData)));
-        buffer.SetData(Plates.Select(x => x.ToGpuData()).ToArray());
+        buffer.SetData(_plates.Select(x => x.ToGpuData()).ToArray());
         TectonicsShader.SetBuffer(kernel, "Plates", buffer);
         TectonicsShader.SetTexture(kernel, "LandHeightMap", EnvironmentDataStore.LandHeightMap);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentDataStore.PlateThicknessMaps);
@@ -201,124 +178,13 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     }
     private void Update()
     {
-        if (Plates.Count != NumPlates)
+        if (_plates.Count != NumPlates)
         {
             Regenerate(NumPlates);
         }
         if (IsActive)
         {
             UpdateSystem();
-        }
-    }
-
-    private class Continent
-    {
-        public float CurrentId = 0;
-        public int Size = 0;
-        public Dictionary<float, int> Neighbors = new Dictionary<float, int>();
-        public List<int3> TexCoords = new List<int3>();
-    }
-    private class TexCoord : IEquatable<TexCoord>
-    {
-        public readonly List<int3> Neighbors;
-        public readonly int3 Xyw;
-
-        public TexCoord(int3 coord)
-        {
-            Xyw = coord;
-            Neighbors = new List<int3>
-            {
-                CoordinateTransforms.GetSourceXyw(new int3(coord.x-1, coord.y, coord.z)),
-                CoordinateTransforms.GetSourceXyw(new int3(coord.x+1, coord.y, coord.z)),
-                CoordinateTransforms.GetSourceXyw(new int3(coord.x, coord.y+1, coord.z)),
-                CoordinateTransforms.GetSourceXyw(new int3(coord.x, coord.y-1, coord.z)),
-            };
-        }
-        public bool Equals(TexCoord other) => Xyw.Equals(other.Xyw);
-        public int ArrayW => Xyw.z;
-        public int ArrayXY => Xyw.y * Coordinate.TextureWidthInPixels + Xyw.x;
-    }
-    private List<Continent> DetectContinents()
-    {
-        var continents = new List<Continent>();
-        var searched = new Dictionary<int3, bool>();
-        var neighbors = new Queue<TexCoord>();
-        var textureArray = EnvironmentDataStore.ContinentalIdMap.CachedTextures().Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
-
-        for (var w = 0; w < 6; w++)
-        {
-            for (var x = 0; x < Coordinate.TextureWidthInPixels; x++)
-            {
-                for (var y = 0; y < Coordinate.TextureWidthInPixels; y++)
-                {
-                    var xyw = new int3(x, y, w);
-                    if (!CoordinateTransforms.IsBoundryPixel(xyw))
-                    {
-                        searched[xyw] = false;
-                    }
-                }
-            }
-        }
-
-        while (searched.Any(x => x.Value == false))
-        {
-            var current = new TexCoord(searched.First(x => x.Value == false).Key);
-            var continent = new Continent
-            {
-                CurrentId = textureArray[current.ArrayW][current.ArrayXY],
-            };
-            continents.Add(continent);
-            neighbors.Enqueue(current);
-            searched[current.Xyw] = true;
-
-            while (neighbors.Any())
-            {
-                current = neighbors.Dequeue();
-                foreach (var n in current.Neighbors.Where(x => !searched[x]))
-                {
-                    var nId = textureArray[current.ArrayW][current.ArrayXY];
-                    if (nId == continent.CurrentId)
-                    {
-                        neighbors.Enqueue(new TexCoord(n));
-                        searched[n] = true;
-                        continent.TexCoords.Add(n);
-                        continent.Size++;
-                    }
-                    else
-                    {
-                        if (continent.Neighbors.ContainsKey(nId))
-                        {
-                            continent.Neighbors[nId]++;
-                        }
-                        else
-                        {
-                            continent.Neighbors[nId] = 1;
-                        }
-                    }
-                }
-            }
-        }
-
-        return continents;
-    }
-
-    public class Plate
-    {
-        public float Id;
-        public int Idx;
-        public Quaternion Rotation;
-        public Quaternion Velocity;
-        public Quaternion TargetVelocity;
-        public Vector3 Center => Rotation * Vector3.forward * (Singleton.Water.SeaLevel + 100);
-        public bool IsStopped => Quaternion.Angle(Velocity, Quaternion.identity) < 0.001f;
-        public bool IsAligned => Quaternion.Angle(Rotation, Quaternion.identity) < 0.001f;
-        public GpuData ToGpuData() => new GpuData { Id = Id, Idx = Idx, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]) };
-
-        public struct GpuData
-        {
-            public float Id;
-            public int Idx;
-            public float4 Rotation;
         }
     }
 }

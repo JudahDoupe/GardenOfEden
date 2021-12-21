@@ -1,6 +1,4 @@
-using Unity.Mathematics;
 using UnityEngine;
-using static PlateTectonicsSimulation;
 
 public class MergePlateTool : MonoBehaviour, ITool
 {

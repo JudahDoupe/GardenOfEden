@@ -78,6 +78,22 @@ public static class RenderTextureExtensions
         }
 
     }
+    public static void UpdateTextureFromCache(this RenderTexture rt)
+    {
+        var textures = CachedTextures(rt);
+        var texture = new Texture2DArray(textures[0].width, textures[0].height, textures.Length, rt.graphicsFormat, TextureCreationFlags.None);
+        for (var i = 0; i < rt.volumeDepth; i++)
+        {
+            if (RTCache[rt][i] != null)
+            {
+                texture.SetPixels(RTCache[rt][i].GetPixels(0), 0, i);
+                RTCache[rt][i].Apply();
+            }
+        }
+        texture.Apply();
+        Graphics.Blit(texture, rt);
+    }
+
     public static void ClearCache(this RenderTexture rt)
     {
         if (RTCache.ContainsKey(rt))
