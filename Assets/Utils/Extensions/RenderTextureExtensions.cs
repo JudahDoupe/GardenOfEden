@@ -176,6 +176,12 @@ public static class RenderTextureExtensions
         var color = texArray[xyw.z].GetPixel(xyw.x, xyw.y);
         return color;
     }
+    public static Color Sample(this RenderTexture rt, int3 xyw)
+    {
+        var texArray = rt.CachedTextures();
+        var color = texArray[xyw.z].GetPixel(xyw.x, xyw.y);
+        return color;
+    }
     public static Color Sample(this RenderTexture rt, int x, int y)
     {
         var tex = rt.CachedTexture();

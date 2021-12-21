@@ -27,7 +27,6 @@ namespace Assets.Scripts.Plants.Growth
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             var genericSeed = new System.Random().Next();
             var planet = Planet.Entity;
-            var seaLevel = LandService.SeaLevel;
             var landMaps = EnvironmentDataStore.LandHeightMap.CachedTextures().Select(x => x.GetRawTextureData<float>()).ToArray();
             var landMaps0 = landMaps[0];
             var landMaps1 = landMaps[1];

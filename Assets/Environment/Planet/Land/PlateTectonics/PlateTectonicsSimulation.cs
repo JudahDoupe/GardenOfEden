@@ -1,5 +1,7 @@
 using Assets.Scripts.Utils;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.Mathematics;
@@ -165,6 +167,11 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
             plate.Velocity = Quaternion.identity;
         }
         RunTectonicKernel("FinishAligningPlateThicknessMaps");
+        var timer = new Stopwatch();
+        timer.Start();
+        //DetectContinents();
+        UnityEngine.Debug.Log(timer.ElapsedMilliseconds);
+        timer.Stop();
     }
   
     private void RunTectonicKernel(string kernelName)
@@ -202,6 +209,97 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         {
             UpdateSystem();
         }
+    }
+
+    private class Continent
+    {
+        public float CurrentId = 0;
+        public int Size = 0;
+        public Dictionary<float, int> Neighbors = new Dictionary<float, int>();
+        public List<int3> TexCoords = new List<int3>();
+    }
+    private class TexCoord : IEquatable<TexCoord>
+    {
+        public readonly List<int3> Neighbors;
+        public readonly int3 Xyw;
+
+        public TexCoord(int3 coord)
+        {
+            Xyw = coord;
+            Neighbors = new List<int3>
+            {
+                CoordinateTransforms.GetSourceXyw(new int3(coord.x-1, coord.y, coord.z)),
+                CoordinateTransforms.GetSourceXyw(new int3(coord.x+1, coord.y, coord.z)),
+                CoordinateTransforms.GetSourceXyw(new int3(coord.x, coord.y+1, coord.z)),
+                CoordinateTransforms.GetSourceXyw(new int3(coord.x, coord.y-1, coord.z)),
+            };
+        }
+        public bool Equals(TexCoord other) => Xyw.Equals(other.Xyw);
+        public int ArrayW => Xyw.z;
+        public int ArrayXY => Xyw.y * Coordinate.TextureWidthInPixels + Xyw.x;
+    }
+    private List<Continent> DetectContinents()
+    {
+        var continents = new List<Continent>();
+        var searched = new Dictionary<int3, bool>();
+        var neighbors = new Queue<TexCoord>();
+        var textureArray = EnvironmentDataStore.ContinentalIdMap.CachedTextures().Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
+
+        for (var w = 0; w < 6; w++)
+        {
+            for (var x = 0; x < Coordinate.TextureWidthInPixels; x++)
+            {
+                for (var y = 0; y < Coordinate.TextureWidthInPixels; y++)
+                {
+                    var xyw = new int3(x, y, w);
+                    if (!CoordinateTransforms.IsBoundryPixel(xyw))
+                    {
+                        searched[xyw] = false;
+                    }
+                }
+            }
+        }
+
+        while (searched.Any(x => x.Value == false))
+        {
+            var current = new TexCoord(searched.First(x => x.Value == false).Key);
+            var continent = new Continent
+            {
+                CurrentId = textureArray[current.ArrayW][current.ArrayXY],
+            };
+            continents.Add(continent);
+            neighbors.Enqueue(current);
+            searched[current.Xyw] = true;
+
+            while (neighbors.Any())
+            {
+                current = neighbors.Dequeue();
+                foreach (var n in current.Neighbors.Where(x => !searched[x]))
+                {
+                    var nId = textureArray[current.ArrayW][current.ArrayXY];
+                    if (nId == continent.CurrentId)
+                    {
+                        neighbors.Enqueue(new TexCoord(n));
+                        searched[n] = true;
+                        continent.TexCoords.Add(n);
+                        continent.Size++;
+                    }
+                    else
+                    {
+                        if (continent.Neighbors.ContainsKey(nId))
+                        {
+                            continent.Neighbors[nId]++;
+                        }
+                        else
+                        {
+                            continent.Neighbors[nId] = 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        return continents;
     }
 
     public class Plate

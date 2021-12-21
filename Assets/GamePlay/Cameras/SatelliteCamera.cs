@@ -39,7 +39,7 @@ public class SatelliteCamera : CameraPerspective
             CameraLocalPosition = cameraPosition,
             CameraLocalRotation = Quaternion.LookRotation(-cameraPosition.normalized, Vector3.up),
             FocusParent = Planet.Transform,
-            FocusLocalPosition = Singleton.Land.SampleHeight(_coord) * cameraPosition.normalized,
+            FocusLocalPosition = EnvironmentDataStore.LandHeightMap.Sample(_coord).r * cameraPosition.normalized,
             FocusLocalRotation = Quaternion.LookRotation(-cameraPosition.normalized, Vector3.up),
             FieldOfView = Fov,
             NearClip = 10,

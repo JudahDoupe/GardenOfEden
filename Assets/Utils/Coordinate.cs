@@ -1,9 +1,10 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public struct Coordinate : IComponentData
+public struct Coordinate : IComponentData, IEquatable<Coordinate>
 {
     public static readonly int TextureWidthInPixels = 512;
     public static readonly int PlanetRadius = 1000;
@@ -78,6 +79,11 @@ public struct Coordinate : IComponentData
         return uv;
     }
 
+    public bool Equals(Coordinate other) => other.LocalPlanet.Equals(LocalPlanet);
+    public override bool Equals(object other) => other is Coordinate coord && coord.LocalPlanet.Equals(LocalPlanet);
+    public override int GetHashCode() => _localPlanetCoord.GetHashCode();
+    public static bool operator == (Coordinate lhs, Coordinate rhs) => lhs.Equals(rhs);
+    public static bool operator != (Coordinate lhs, Coordinate rhs) => !(lhs.Equals(rhs));
 
     public Coordinate(float3 localPlanetPosition)
     {
@@ -102,7 +108,7 @@ public struct Coordinate : IComponentData
     private void SetLocalPlanetCoordinates(float x, float y, float z)
     {
         _localPlanetCoord = new float3(x, y, z);
-        _textureCoord = GetUvw(_localPlanetCoord);
+        _textureCoord = CoordinateTransforms.XyzToUvw(_localPlanetCoord);
         var altitude = math.sqrt(math.pow(x, 2) + math.pow(y, 2) + math.pow(z, 2));
         _sphericalCoord = new float3(
             altitude,
@@ -120,7 +126,7 @@ public struct Coordinate : IComponentData
             altitude * math.cos(phi) * math.sin(theta),
             altitude * math.cos(theta),
             altitude * math.sin(phi) * math.sin(theta));
-        _textureCoord = GetUvw(_localPlanetCoord);
+        _textureCoord = CoordinateTransforms.XyzToUvw(_localPlanetCoord);
     }
     private void SetTextureCoordinates(float u, float v, int w, float altitude)
     {
@@ -153,38 +159,5 @@ public struct Coordinate : IComponentData
             altitude,
             math.atan2(_localPlanetCoord.y, _localPlanetCoord.x),
             math.acos((_localPlanetCoord.z + math.EPSILON) / altitude));
-    }
-    private float3 GetUvw(float3 xyz)
-    {
-        // Find which dimension we're pointing at the most
-        Vector3 v = xyz.ToVector3().normalized;
-        Vector3 abs = math.abs(v);
-        bool xMoreY = abs.x > abs.y;
-        bool yMoreZ = abs.y > abs.z;
-        bool zMoreX = abs.z > abs.x;
-        bool xMost = (xMoreY) && (!zMoreX);
-        bool yMost = (!xMoreY) && (yMoreZ);
-        bool zMost = (zMoreX) && (!yMoreZ);
-
-        // Determine which index belongs to each +- dimension
-        // 0: +X; 1: -X; 2: +Y; 3: -Y; 4: +Z; 5: -Z;
-        int xSideIdx = v.x < 0 ? 1 : 0;
-        int ySideIdx = v.y < 0 ? 3 : 2;
-        int zSideIdx = v.z < 0 ? 5 : 4;
-
-        // Composite it all together to get our side
-        var side = (xMost ? xSideIdx : 0) + (yMost ? ySideIdx : 0) + (zMost ? zSideIdx : 0);
-
-        // Depending on side, we use different components for UV and project to square
-        float2 uv = new float2(side < 2 ? v.y : v.x, side >= 4 ? v.y : v.z);
-        uv /= v[side / 2];
-
-        //Account for buffer pixels
-        uv *= (TextureWidthInPixels - 2.0f) / TextureWidthInPixels;
-
-        // Transform uv from [-1,1] to [0,1]
-        uv = uv * 0.5f + new float2(0.5f, 0.5f);
-
-        return new float3(uv.x, uv.y, side);
     }
 }

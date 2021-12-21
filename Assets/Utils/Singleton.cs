@@ -5,7 +5,6 @@ public class Singleton : MonoBehaviour
 {
     public static Singleton Instance;
 
-    public static ILandService Land;
     public static PlateTectonicsSimulation PlateTectonics;
     public static WaterSimulation Water;
 
@@ -21,7 +20,6 @@ public class Singleton : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        Land = FindObjectOfType<LandService>();
         PlateTectonics = FindObjectOfType<PlateTectonicsSimulation>();
         Water = FindObjectOfType<WaterSimulation>();
 

@@ -226,7 +226,7 @@ void ResetPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 			}
 		}
 
-		PlateThicknessMaps[xyp] = myPlate.Id * (closestPlateId == myPlate.Id);
+		PlateThicknessMaps[xyp] = myPlate.Id * (closestPlateId == myPlate.Id) * 0.01f;
 	}
 }
 
