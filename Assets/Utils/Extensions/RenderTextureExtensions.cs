@@ -78,9 +78,8 @@ public static class RenderTextureExtensions
         }
 
     }
-    public static void UpdateTextureFromCache(this RenderTexture rt)
+    public static void UpdateTexture(this RenderTexture rt, Texture2D[] textures)
     {
-        var textures = CachedTextures(rt);
         var texture = new Texture2DArray(textures[0].width, textures[0].height, textures.Length, rt.graphicsFormat, TextureCreationFlags.None);
         for (var i = 0; i < rt.volumeDepth; i++)
         {
@@ -92,6 +91,10 @@ public static class RenderTextureExtensions
         }
         texture.Apply();
         Graphics.Blit(texture, rt);
+    }
+    public static void UpdateTexture(this RenderTexture rt, Texture2DArray newTexture)
+    {
+        Graphics.Blit(newTexture, rt);
     }
 
     public static void ClearCache(this RenderTexture rt)

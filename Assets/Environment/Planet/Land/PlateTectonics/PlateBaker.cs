@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using Debug = UnityEngine.Debug;
 
 public class PlateBaker : MonoBehaviour
@@ -82,37 +84,11 @@ public class PlateBaker : MonoBehaviour
         BakePlatesShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
-
-    private class Continent
-    {
-        public float CurrentId = 0;
-        public int Size = 0;
-        public Dictionary<float, int> Neighbors = new Dictionary<float, int>();
-        public List<int3> TexCoords = new List<int3>();
-    }
-    private class TexCoord : IEquatable<TexCoord>
-    {
-        public readonly List<int3> Neighbors;
-        public readonly int3 Xyw;
-
-        public TexCoord(int3 coord)
-        {
-            Xyw = coord;
-            Neighbors = new List<int3>
-        {
-            CoordinateTransforms.GetSourceXyw(new int3(coord.x-1, coord.y, coord.z)),
-            CoordinateTransforms.GetSourceXyw(new int3(coord.x+1, coord.y, coord.z)),
-            CoordinateTransforms.GetSourceXyw(new int3(coord.x, coord.y+1, coord.z)),
-            CoordinateTransforms.GetSourceXyw(new int3(coord.x, coord.y-1, coord.z)),
-        };
-        }
-        public bool Equals(TexCoord other) => Xyw.Equals(other.Xyw);
-        public int ArrayW => Xyw.z;
-        public int ArrayXY => Xyw.y * Coordinate.TextureWidthInPixels + Xyw.x;
-    }
-
     private IEnumerator PopulateContinents(List<Continent> continents)
     {
+
+        //TODO: Neioghbors can be 0;
+
         var stopwatch = new Stopwatch();
         var open = new HashSet<int3>();
         var neighbors = new Queue<TexCoord>();
@@ -194,58 +170,79 @@ public class PlateBaker : MonoBehaviour
     private IEnumerator UpdateContinentIds(List<Continent> continents)
     {
         var stopwatch = new Stopwatch();
-        var textureArray = EnvironmentDataStore.ContinentalIdMap.CachedTextures().Select(x => x.GetRawTextureData<float>()).ToArray();
+        var c = Coordinate.TextureWidthInPixels * Coordinate.TextureWidthInPixels;
+        var textureArrays = new float[][]{
+            new float[c],
+            new float[c],
+            new float[c],
+            new float[c],
+            new float[c],
+            new float[c],
+        };
 
         stopwatch.Start();
         foreach (var continent in continents)
         {
-            var targetId = continent.CurrentId;
+            var tmp = continent;
             var continentsWithId = continents.Where(x => x.CurrentId == continent.CurrentId);
             var isLargest = continentsWithId.Aggregate((x, y) => x.Size > y.Size ? x : y) == continent;
 
             if (continent.Size < MinContinentSize)
             {
-                targetId = continent.Neighbors.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+                continent.CurrentId = continent.Neighbors.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
             }
             if (continent.Size >= MinContinentSize && continentsWithId.Count() > 1 && !isLargest)
             {
                 var plate = Singleton.PlateTectonics.AddPlate();
-                targetId = plate.Id;
+                continent.CurrentId = plate.Id;
             }
 
-            if (continent.CurrentId != targetId)
+            foreach (var texCoord in continent.TexCoords)
             {
-                continent.CurrentId = targetId;
-
-                foreach (var texCoord in continent.TexCoords)
-                {
-                    textureArray[texCoord.z][texCoord.y * Coordinate.TextureWidthInPixels + texCoord.x] = targetId;
+                textureArrays[texCoord.z][texCoord.y * Coordinate.TextureWidthInPixels + texCoord.x] = continent.CurrentId;
                     
-                    if (stopwatch.ElapsedMilliseconds > MiliseconsPerFrame)
-                    {
-                        yield return new WaitForEndOfFrame();
-                        stopwatch.Restart();
-                    }
+                if (stopwatch.ElapsedMilliseconds > MiliseconsPerFrame)
+                {
+                    yield return new WaitForEndOfFrame();
+                    stopwatch.Restart();
                 }
             }
         }
 
-        for (int i = 0; i < 6; i++)
+        var texture2dArray = new Texture2DArray(EnvironmentDataStore.ContinentalIdMap.width, EnvironmentDataStore.ContinentalIdMap.height, 6, EnvironmentDataStore.ContinentalIdMap.graphicsFormat, TextureCreationFlags.None);
+        for (int i = 0; i < textureArrays.Length; i++)
         {
-            EnvironmentDataStore.ContinentalIdMap.CachedTextures()[i].LoadRawTextureData(textureArray[i]);
-            EnvironmentDataStore.ContinentalIdMap.CachedTextures()[i].Apply();
-            if (stopwatch.ElapsedMilliseconds > MiliseconsPerFrame)
-            {
-                yield return new WaitForEndOfFrame();
-                stopwatch.Restart();
-            }
+            texture2dArray.SetPixelData(textureArrays[i], 0, i);
         }
-        EnvironmentDataStore.ContinentalIdMap.UpdateTextureFromCache();
+        texture2dArray.Apply();
+        EnvironmentDataStore.ContinentalIdMap.UpdateTexture(texture2dArray);
+    }
 
+    private class Continent
+    {
+        public float CurrentId = 0;
+        public int Size = 0;
+        public Dictionary<float, int> Neighbors = new Dictionary<float, int>();
+        public List<int3> TexCoords = new List<int3>();
+    }
+    private class TexCoord : IEquatable<TexCoord>
+    {
+        public readonly List<int3> Neighbors;
+        public readonly int3 Xyw;
 
-        foreach (var array in textureArray)
+        public TexCoord(int3 coord)
         {
-            array.Dispose();
+            Xyw = coord;
+            Neighbors = new List<int3>
+        {
+            CoordinateTransforms.GetSourceXyw(new int3(coord.x-1, coord.y, coord.z)),
+            CoordinateTransforms.GetSourceXyw(new int3(coord.x+1, coord.y, coord.z)),
+            CoordinateTransforms.GetSourceXyw(new int3(coord.x, coord.y+1, coord.z)),
+            CoordinateTransforms.GetSourceXyw(new int3(coord.x, coord.y-1, coord.z)),
+        };
         }
+        public bool Equals(TexCoord other) => Xyw.Equals(other.Xyw);
+        public int ArrayW => Xyw.z;
+        public int ArrayXY => Xyw.y * Coordinate.TextureWidthInPixels + Xyw.x;
     }
 }
