@@ -49,6 +49,7 @@ public class PlateBaker : MonoBehaviour
         
         var continents = new List<Continent>();
         yield return PopulateContinents(continents);
+        yield return CondenseContinents(continents);
         yield return UpdateContinentIds(continents);
         RunTectonicKernel("BakePlates");
 
@@ -130,10 +131,10 @@ public class PlateBaker : MonoBehaviour
             while (neighbors.Any())
             {
                 current = neighbors.Dequeue();
-                continent.TexCoords.Add(current);
+                continent.TexCoords.Add(current.Xyw);
                 continent.Size++;
 
-                foreach (var neighbor in current.Neighbors.Select(x => new TexCoord(x)))
+                foreach (var neighbor in current.Neighbors)
                 {
                     var neighborId = textureArray[neighbor.ArrayW][neighbor.ArrayXY];
                     if (neighborId == continent.CurrentId && open.Contains(neighbor.Xyw))
@@ -141,16 +142,9 @@ public class PlateBaker : MonoBehaviour
                         neighbors.Enqueue(neighbor);
                         open.Remove(neighbor.Xyw);
                     }
-                    else if(neighborId != continent.CurrentId && neighborId != 0)
+                    else if (neighborId != continent.CurrentId && neighborId != 0)
                     {
-                        if (continent.Neighbors.ContainsKey(neighborId))
-                        {
-                            continent.Neighbors[neighborId]++;
-                        }
-                        else
-                        {
-                            continent.Neighbors[neighborId] = 1;
-                        }
+                        continent.Neighbors.Add(neighbor.Xyw);
                     }
                 }
 
@@ -167,9 +161,57 @@ public class PlateBaker : MonoBehaviour
             array.Dispose();
         }
     }
+    private IEnumerator CondenseContinents(List<Continent> continents)
+    {
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        var lastCount = 0;
+        var smallContinents = continents.Where(x => x.Size < MinContinentSize).OrderBy(x => x.Size).ToList();
+        var largeContinents = continents.Where(x => x.Size >= MinContinentSize).OrderBy(x => x.Size).ToList();
+
+        while (smallContinents.Count() > 0 && smallContinents.Count() != lastCount)
+        {
+            foreach (var continent in smallContinents.ToArray())
+            {
+                var potentialParents = new Dictionary<Continent, float>();
+                foreach(var c in largeContinents)
+                {
+                    potentialParents[c] = 0;
+                }
+
+                foreach (var n in continent.Neighbors)
+                {
+                    var c = largeContinents.FirstOrDefault(x => x.TexCoords.Contains(n));
+                    if (c != null)
+                    {
+                        potentialParents[c]++;
+                    }
+                }
+
+                if (potentialParents.Values.Sum() > 0)
+                {
+                    var parentContinent = potentialParents.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+                    foreach(var t in continent.TexCoords)
+                    {
+                        parentContinent.TexCoords.Add(t);
+                    }
+                    smallContinents.Remove(continent);
+                    continents.Remove(continent);
+                }
+
+                if (stopwatch.ElapsedMilliseconds > MiliseconsPerFrame)
+                {
+                    yield return new WaitForEndOfFrame();
+                    stopwatch.Restart();
+                }
+            }
+        }
+    }
     private IEnumerator UpdateContinentIds(List<Continent> continents)
     {
         var stopwatch = new Stopwatch();
+        stopwatch.Start();
         var c = Coordinate.TextureWidthInPixels * Coordinate.TextureWidthInPixels;
         var textureArrays = new float[][]{
             new float[c],
@@ -180,27 +222,12 @@ public class PlateBaker : MonoBehaviour
             new float[c],
         };
 
-        stopwatch.Start();
         foreach (var continent in continents)
         {
-            var tmp = continent;
-            var continentsWithId = continents.Where(x => x.CurrentId == continent.CurrentId);
-            var isLargest = continentsWithId.Aggregate((x, y) => x.Size > y.Size ? x : y) == continent;
-
-            if (continent.Size < MinContinentSize)
-            {
-                continent.CurrentId = continent.Neighbors.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
-            }
-            if (continent.Size >= MinContinentSize && continentsWithId.Count() > 1 && !isLargest)
-            {
-                var plate = Singleton.PlateTectonics.AddPlate();
-                continent.CurrentId = plate.Id;
-            }
-
-            foreach (var texCoord in continent.TexCoords)
+            foreach (var texCoord in continent.TexCoords.Select(x => new TexCoord(x)))
             {
                 textureArrays[texCoord.ArrayW][texCoord.ArrayXY] = continent.CurrentId;
-                    
+
                 if (stopwatch.ElapsedMilliseconds > MiliseconsPerFrame)
                 {
                     yield return new WaitForEndOfFrame();
@@ -222,24 +249,23 @@ public class PlateBaker : MonoBehaviour
     {
         public float CurrentId = 0;
         public int Size = 0;
-        public Dictionary<float, int> Neighbors = new Dictionary<float, int>();
-        public List<TexCoord> TexCoords = new List<TexCoord>();
+        public HashSet<int3> Neighbors = new HashSet<int3>();
+        public HashSet<int3> TexCoords = new HashSet<int3>();
     }
     private class TexCoord : IEquatable<TexCoord>
     {
-        public readonly List<int3> Neighbors;
+        public List<TexCoord> Neighbors => new List<TexCoord>
+        {
+            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x-1, Xyw.y, Xyw.z))),
+            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x+1, Xyw.y, Xyw.z))),
+            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x, Xyw.y+1, Xyw.z))),
+            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x, Xyw.y-1, Xyw.z))),
+        };
         public readonly int3 Xyw;
 
         public TexCoord(int3 coord)
         {
             Xyw = coord;
-            Neighbors = new List<int3>
-            {
-                CoordinateTransforms.GetSourceXyw(new int3(coord.x-1, coord.y, coord.z)),
-                CoordinateTransforms.GetSourceXyw(new int3(coord.x+1, coord.y, coord.z)),
-                CoordinateTransforms.GetSourceXyw(new int3(coord.x, coord.y+1, coord.z)),
-                CoordinateTransforms.GetSourceXyw(new int3(coord.x, coord.y-1, coord.z)),
-            };
         }
         public bool Equals(TexCoord other) => Xyw.Equals(other.Xyw);
         public int ArrayW => Xyw.z;
