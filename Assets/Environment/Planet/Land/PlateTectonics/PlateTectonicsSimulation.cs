@@ -25,8 +25,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
             plate.Rotation = Random.rotation;
         }
 
-        RunTectonicKernel("ResetPlateThicknessMaps");
-        RunTectonicKernel("ResetContinentalIdMap");
+        RunTectonicKernel("ResetMaps");
         UpdateHeightMap();
         Singleton.Water.Regenerate();
     }

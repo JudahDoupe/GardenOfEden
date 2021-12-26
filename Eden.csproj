@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -52,9 +52,6 @@
     <UnityBuildTarget>StandaloneOSX:2</UnityBuildTarget>
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\GamePlay\Cameras\CirclingCamera.cs" />
     <Compile Include="Assets\Environment\Planet\Land\PlateTectonics\Audio\PlateTectonicsAudio.cs" />
@@ -168,6 +165,7 @@
     <None Include="Assets\Packages\FSharp.Core.4.2.3\lib\net45\FSharp.Core.xml" />
     <None Include="Assets\Resources\Shaders\Noise.hlsl" />
     <None Include="Assets\Packages\stateless.5.10.1\lib\net45\stateless.dll" />
+    <None Include="Assets\Environment\Planet\Land\PlateTectonics\TectonicsInclude.hlsl" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\ClassicNoise2D.hlsl" />
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.xml" />
     <None Include="Assets\Resources\Shaders\TerrainManipulation.compute" />

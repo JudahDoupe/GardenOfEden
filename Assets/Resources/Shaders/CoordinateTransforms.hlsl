@@ -202,6 +202,9 @@ int get_src_rotations(int src_w, int dst_w)
 }
 int3 get_source_xyw(int3 xyw)
 {
+    if (!is_boundry_pixel(xyw.xy))
+        return xyw;
+    
     int dst_w = xyw.z;
     int src_w = get_src_w(xyw);
     

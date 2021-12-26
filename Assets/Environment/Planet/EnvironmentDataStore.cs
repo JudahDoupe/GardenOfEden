@@ -8,6 +8,7 @@ public class EnvironmentDataStore : MonoBehaviour
     public static RenderTexture PlateThicknessMaps { get; set; }
     public static RenderTexture TmpPlateThicknessMaps { get; set; }
     public static RenderTexture ContinentalIdMap { get; set; }
+    public static RenderTexture TmpContinentalIdMap { get; set; }
     void Awake()
     {
         WaterMap = NewTexture(4, 6);
@@ -16,6 +17,7 @@ public class EnvironmentDataStore : MonoBehaviour
         PlateThicknessMaps = NewTexture(1, 1);
         TmpPlateThicknessMaps = NewTexture(1, 1);
         ContinentalIdMap = NewTexture(1, 6);
+        TmpContinentalIdMap = NewTexture(1, 6);
     }
 
     private RenderTexture NewTexture(int channels, int layers)

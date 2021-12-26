@@ -1,57 +1,23 @@
-#pragma kernel ResetPlateThicknessMaps
-#pragma kernel ResetContinentalIdMap
+#pragma kernel ResetMaps
 #pragma kernel UpdateContinentalIdMap
 #pragma kernel UpdatePlateThicknessMaps
 #pragma kernel SmoothPlates
 #pragma kernel UpdateHeightMap
 
-#include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
-#include "../../../../Resources/Shaders/Quaternion.hlsl"
-#include "../../../../Resources/Shaders/Noise.hlsl"
+#include "TEctonicsInclude.hlsl"
 
 RWTexture2DArray<float> ContinentalIdMap; 
 RWTexture2DArray<float> PlateThicknessMaps;
 RWTexture2DArray<float> TmpPlateThicknessMaps;
 RWTexture2DArray<float> LandHeightMap;
 
-struct Plate
-{
-    float Id;
-    int Idx;
-    float4 Rotation;
-}; 
-RWStructuredBuffer<Plate> Plates;
-uint NumPlates;
 float FaultLineNoise; 
 float SubductionRate;
 float InflationRate;
 float OceanicCrustThickness;
-float MantleHeight;
 float Gravity;
 float PlateCohesion;
 int RenderPlate;
-
-uint3 xyz_to_xyp(float3 xyz, float4 rotation, int p) {
-	uint3 xyw = xyz_to_xyw(rotate_vector(xyz, q_inverse(rotation)));
-    return uint3(xyw.xy, xyw.z + (p * 6));
-}
-float3 xyp_to_xyz(uint3 xyp, float4 rotation) {
-
-    uint3 xyw = uint3(xyp.xy, xyp.z % 6);
-    return rotate_vector(xyw_to_xyz(xyw, MantleHeight), rotation);
-}
-uint GetPlateIdx(float id) 
-{
-    uint pId = 0;
-    for (uint x = 0; x < NumPlates; x++)
-    {
-        if (Plates[x].Id == id)
-        {
-            pId = Plates[x].Idx;
-        }
-    }
-    return pId;
-}
 
 [numthreads(8, 8, 6)]
 void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
@@ -59,7 +25,7 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 	float plateId = ContinentalIdMap[id];
     uint pIdx = GetPlateIdx(plateId);
     float3 xyz = xyw_to_xyz(id, MantleHeight);
-    float currentThickness = PlateThicknessMaps[xyz_to_xyp(xyz, Plates[pIdx].Rotation, pIdx)];
+    float currentThickness = PlateThicknessMaps[xyz_to_xyp(xyz, pIdx)];
 	float neighbors[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     
 	for (int x = -1; x <= 1; x++)
@@ -75,7 +41,7 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
     for (uint p = 0; p < NumPlates; p++)
 	{
 		Plate plate = Plates[p];
-		uint3 xyp = xyz_to_xyp(xyz, plate.Rotation, p);
+		uint3 xyp = xyz_to_xyp(xyz, p);
 		float thickness = PlateThicknessMaps[xyp];
         if (thickness > currentThickness * PlateCohesion)
 		{
@@ -101,14 +67,14 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         Plate myPlate = Plates[p];
         
 		uint3 xyp = uint3(id.xy, id.z + p * 6);
-        float3 xyz = xyp_to_xyz(xyp, myPlate.Rotation);
+        float3 xyz = xyp_to_xyz(xyp, p);
 		uint3 xyw = xyz_to_xyw(xyz);
         
         float totalThickness = 0;
         for (uint p2 = 0; p2 < NumPlates; p2++)
         {
             Plate otherPlate = Plates[p2];
-            uint3 otherXyp = xyz_to_xyp(xyz, otherPlate.Rotation, p2);
+            uint3 otherXyp = xyz_to_xyp(xyz, p2);
             totalThickness += PlateThicknessMaps[otherXyp];
         }
 		
@@ -138,22 +104,22 @@ void SmoothPlates(uint3 id : SV_DispatchThreadID)
     float sumThickness = 0;
     float sumWeights = 0;
 
-        for (int x = -1; x <= 1; x++)
+    for (int x = -1; x <= 1; x++)
+    {
+        for (int y = -1; y <= 1; y++)
         {
-            for (int y = -1; y <= 1; y++)
+            int3 xyw = int3(id.xy + int2(x, y), id.z);
+            if (is_boundry_pixel(xyw.xy))
             {
-                int3 xyw = int3(id.xy + int2(x, y), id.z);
-                if (is_boundry_pixel(xyw.xy))
-                {
-                    xyw = get_source_xyw(xyw);
-                }
-                float dist = length(float2(x, y));
-                float weight = pow(2.71828, -((dist * dist) / (Gravity * Gravity)));
-                sumThickness += (LandHeightMap[xyw] - MantleHeight) * weight;
-                sumWeights += weight;
+                xyw = get_source_xyw(xyw);
             }
+            float dist = length(float2(x, y));
+            float weight = pow(2.71828, -((dist * dist) / (Gravity * Gravity)));
+            sumThickness += (LandHeightMap[xyw] - MantleHeight) * weight;
+            sumWeights += weight;
         }
-    int3 xyp = xyz_to_xyp(xyw_to_xyz(id, MantleHeight), myPlate.Rotation, myPlate.Idx);
+    }
+    int3 xyp = xyw_to_xyp(id, myPlate.Idx);
     PlateThicknessMaps[xyp] = sumThickness / sumWeights;
 }
 
@@ -166,7 +132,7 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
     for (uint p = 0; p < NumPlates; p++)
     {
         Plate plate = Plates[p];
-        float3 xyp = xyz_to_xyp(xyw_to_xyz(id, MantleHeight), plate.Rotation, p);
+        float3 xyp = xyw_to_xyp(id, p);
         height += PlateThicknessMaps[xyp] * (plate.Id == plateId);
     }
 
@@ -174,54 +140,38 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(8, 8, 6)]
-void ResetPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
+void ResetMaps(uint3 id : SV_DispatchThreadID)
 {
+    float closestPlateId = 0;
+    uint3 closestXyp = uint3(0,0,0);
+    
     for (uint p = 0; p < NumPlates; p++)
 	{
-		Plate myPlate = Plates[p];
-		uint3 xyp = uint3(id.xy, id.z + p * 6);
+        Plate myPlate = Plates[p];
+        uint3 xyp = uint3(id.xy, id.z + p * 6);
 		float3 xyz = rotate_vector(xyw_to_xyz(id, MantleHeight), myPlate.Rotation);
         xyz = xyz + noise3d(xyz, FaultLineNoise);
         xyz = xyz + noise3d(xyz, FaultLineNoise / 6.35);
         xyz = xyz + noise3d(xyz, FaultLineNoise / 11.7);
 		float minDist = 1000000;
-		float closestPlateId = 0;
 
 		for (uint p2 = 0; p2 < NumPlates; p2++)
 		{
-			Plate plate = Plates[p2];
-			float3 centerXyz = rotate_vector(float3(0, 0, MantleHeight), plate.Rotation);
+			Plate otherPlate = Plates[p2];
+            float3 centerXyz = rotate_vector(float3(0, 0, MantleHeight), otherPlate.Rotation);
 
 			float dist = distance(xyz, centerXyz);
 			if (dist < minDist)
 			{
 				minDist = dist;
-				closestPlateId = plate.Id;
-			}
+                closestPlateId = otherPlate.Id;
+                closestXyp = xyp;
+            }
 		}
-
-		PlateThicknessMaps[xyp] = myPlate.Id * (closestPlateId == myPlate.Id) * 0.01f;
+        
+        PlateThicknessMaps[xyp] = 0;
 	}
-}
-
-[numthreads(8, 8, 6)]
-void ResetContinentalIdMap(uint3 id : SV_DispatchThreadID)
-{
-	float maxThickness = 0;
-	float plateId = ContinentalIdMap[id];
-	float3 xyz = xyw_to_xyz(id, MantleHeight);
     
-	for (uint p = 0; p < NumPlates; p++)
-	{
-		Plate plate = Plates[p];
-		uint3 xyp = xyz_to_xyp(xyz, plate.Rotation, p);
-		float thickness = PlateThicknessMaps[xyp];
-		if (thickness > maxThickness)
-		{
-			maxThickness = thickness;
-			plateId = plate.Id;
-		}
-	}
-
-	ContinentalIdMap[id] = plateId;
+    PlateThicknessMaps[closestXyp] = 0.01f;
+    ContinentalIdMap[id] = closestPlateId;
 }

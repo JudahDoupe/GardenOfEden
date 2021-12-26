@@ -1,27 +1,13 @@
 #pragma kernel StartAligningPlateThicknessMaps
 #pragma kernel FinishAligningPlateThicknessMaps
+#pragma kernel BakePlates
 
-#include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
-#include "../../../../Resources/Shaders/Quaternion.hlsl"
-#include "../../../../Resources/Shaders/Noise.hlsl"
+#include "TectonicsInclude.hlsl"
 
 RWTexture2DArray<float> PlateThicknessMaps;
 RWTexture2DArray<float> TmpPlateThicknessMaps;
-
-struct Plate
-{
-    float Id;
-    int Idx;
-    float4 Rotation;
-}; 
-RWStructuredBuffer<Plate> Plates;
-uint NumPlates;
-float MantleHeight;
-
-uint3 xyz_to_xyp(float3 xyz, float4 rotation, int p) {
-	uint3 xyw = xyz_to_xyw(rotate_vector(xyz, q_inverse(rotation)));
-    return uint3(xyw.xy, xyw.z + (p * 6));
-}
+RWTexture2DArray<float> ContinentalIdMap;
+RWTexture2DArray<float> TmpContinentalIdMap;
 
 [numthreads(8, 8, 6)]
 void StartAligningPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
@@ -31,7 +17,7 @@ void StartAligningPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
     for (uint p = 0; p < NumPlates; p++)
     {
         Plate plate = Plates[p];
-        uint3 xyp = xyz_to_xyp(xyz, plate.Rotation, p);
+        uint3 xyp = xyz_to_xyp(xyz, p);
         uint3 xypTmp = uint3(id.xy, id.z + p * 6);
         TmpPlateThicknessMaps[xypTmp] = PlateThicknessMaps[xyp];
     }
@@ -45,4 +31,21 @@ void FinishAligningPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         uint3 xyp = uint3(id.xy, id.z + p * 6);
         PlateThicknessMaps[xyp] = TmpPlateThicknessMaps[xyp];
     }
+}
+
+[numthreads(8, 8, 6)]
+void BakePlates(uint3 id : SV_DispatchThreadID)
+{
+    float oldId = ContinentalIdMap[id];
+    float newId = TmpContinentalIdMap[get_source_xyw(id)];
+    
+    uint3 oldXyp = xyw_to_xyp(id, GetPlateIdx(oldId));
+    uint3 newXyp = xyw_to_xyp(id, GetPlateIdx(newId));
+    
+    float oldThickness = PlateThicknessMaps[oldXyp];
+    float newThickness = PlateThicknessMaps[newXyp];
+    
+    PlateThicknessMaps[oldXyp] = newThickness;
+    PlateThicknessMaps[newXyp] = oldThickness;
+    ContinentalIdMap[id] = newId;
 }
