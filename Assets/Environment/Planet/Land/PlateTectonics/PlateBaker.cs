@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
@@ -13,12 +15,13 @@ using Debug = UnityEngine.Debug;
 public class PlateBaker : MonoBehaviour
 {
     public ComputeShader BakePlatesShader;
-    public float MiliseconsPerFrame = 10;
-    public int MinContinentSize = 200;
+    public int MinContinentSize = 2500;
+    public bool debug = false;
 
-    private IEnumerator _handle = null;
+    private CancellationTokenSource _cancelation;
     private bool _needsBaking = false;
     private bool _isBaking = false;
+    private int _lastPlateCount = 0;
 
     private void Update()
     {
@@ -29,36 +32,53 @@ public class PlateBaker : MonoBehaviour
         }
         if (_needsBaking && !_isBaking && plates.All(x => x.IsStopped))
         {
-            _handle = BakePlates();
-            StartCoroutine(_handle);
+            _cancelation = new CancellationTokenSource();
+            BakePlates();
         }
-        if (_isBaking && !plates.All(x => x.IsStopped))
+        if (_isBaking && (!plates.All(x => x.IsStopped) || plates.Count() != _lastPlateCount))
         {
-            StopCoroutine(_handle);
-            _isBaking = false;
-            Debug.Log("Canceled Bake");
+            _cancelation.Cancel();
         }
+        _lastPlateCount = plates.Count();
     }
 
-    private IEnumerator BakePlates()
+    private async void BakePlates()
     {
-        Debug.Log("Starting Bake");
+        if (debug) Debug.Log("Starting Bake");
+        var timer = new Stopwatch();
+        timer.Start();
         _isBaking = true;
         
         AlignPlates();
-        
-        var continents = new List<Continent>();
-        yield return PopulateContinents(continents);
-        yield return CondenseContinents(continents);
-        yield return UpdateContinentIds(continents);
-        RunTectonicKernel("BakePlates");
 
+        if (_cancelation.IsCancellationRequested)
+        {
+            _isBaking = false;
+            if (debug) Debug.Log("Canceled Bake");
+            return;
+        }
+
+        var continentIdMaps = EnvironmentDataStore.ContinentalIdMap.CachedTextures().Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
+        var continents = await Task.Run(() =>
+        {
+            return CoalesceContinents(DetectContinents(continentIdMaps));
+        }, _cancelation.Token);
+
+        if (_cancelation.IsCancellationRequested)
+        {
+            _isBaking = false;
+            if (debug) Debug.Log("Canceled Bake");
+            return;
+        }
+
+        UpdateContinentIds(continents);
+        
         foreach (var plateId in Singleton.PlateTectonics.GetAllPlates().Where(x=> !continents.Select(x => x.CurrentId).Contains(x.Id)).Select(x => x.Id))
         {
             Singleton.PlateTectonics.RemovePlate(plateId);
         }
 
-        Debug.Log("Finished Bake");
+        if (debug) Debug.Log($"Finished Bake in {timer.ElapsedMilliseconds} ms");
         _isBaking = false;
         _needsBaking = false;
     }
@@ -88,14 +108,12 @@ public class PlateBaker : MonoBehaviour
         BakePlatesShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
-    private IEnumerator PopulateContinents(List<Continent> continents)
+    private List<Continent> DetectContinents(float[][] continentIdMap)
     {
-        var stopwatch = new Stopwatch();
+        var continents = new List<Continent>();
         var open = new HashSet<int3>();
         var neighbors = new Queue<TexCoord>();
-        var textureArray = EnvironmentDataStore.ContinentalIdMap.CachedTextures().Select(x => x.GetRawTextureData<float>()).ToArray();
 
-        stopwatch.Start();
         for (var w = 0; w < 6; w++)
         {
             for (var x = 0; x < Coordinate.TextureWidthInPixels; x++)
@@ -107,12 +125,6 @@ public class PlateBaker : MonoBehaviour
                     {
                         open.Add(xyw);
                     }
-
-                    if (stopwatch.ElapsedMilliseconds > MiliseconsPerFrame)
-                    {
-                        yield return new WaitForEndOfFrame();
-                        stopwatch.Restart();
-                    }
                 }
             }
         }
@@ -122,7 +134,7 @@ public class PlateBaker : MonoBehaviour
             var current = new TexCoord(open.First());
             var continent = new Continent
             {
-                CurrentId = textureArray[current.ArrayW][current.ArrayXY],
+                CurrentId = continentIdMap[current.ArrayW][current.ArrayXY],
             };
             continents.Add(continent);
             neighbors.Enqueue(current);
@@ -136,7 +148,7 @@ public class PlateBaker : MonoBehaviour
 
                 foreach (var neighbor in current.Neighbors)
                 {
-                    var neighborId = textureArray[neighbor.ArrayW][neighbor.ArrayXY];
+                    var neighborId = continentIdMap[neighbor.ArrayW][neighbor.ArrayXY];
                     if (neighborId == continent.CurrentId && open.Contains(neighbor.Xyw))
                     {
                         neighbors.Enqueue(neighbor);
@@ -147,25 +159,13 @@ public class PlateBaker : MonoBehaviour
                         continent.Neighbors.Add(neighbor.Xyw);
                     }
                 }
-
-                if (stopwatch.ElapsedMilliseconds > MiliseconsPerFrame)
-                {
-                    yield return new WaitForEndOfFrame();
-                    stopwatch.Restart();
-                }
             }
         }
 
-        foreach(var array in textureArray)
-        {
-            array.Dispose();
-        }
+        return continents;
     }
-    private IEnumerator CondenseContinents(List<Continent> continents)
+    private List<Continent> CoalesceContinents(List<Continent> continents)
     {
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
-
         var lastCount = 0;
         var smallContinents = continents.Where(x => x.Size < MinContinentSize).OrderBy(x => x.Size).ToList();
         var largeContinents = continents.Where(x => x.Size >= MinContinentSize).OrderBy(x => x.Size).ToList();
@@ -197,21 +197,15 @@ public class PlateBaker : MonoBehaviour
                         parentContinent.TexCoords.Add(t);
                     }
                     smallContinents.Remove(continent);
-                    continents.Remove(continent);
-                }
-
-                if (stopwatch.ElapsedMilliseconds > MiliseconsPerFrame)
-                {
-                    yield return new WaitForEndOfFrame();
-                    stopwatch.Restart();
                 }
             }
+            lastCount = smallContinents.Count();
         }
+
+        return largeContinents.Concat(smallContinents).ToList();
     }
-    private IEnumerator UpdateContinentIds(List<Continent> continents)
+    private void UpdateContinentIds(List<Continent> continents)
     {
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
         var c = Coordinate.TextureWidthInPixels * Coordinate.TextureWidthInPixels;
         var textureArrays = new float[][]{
             new float[c],
@@ -227,12 +221,6 @@ public class PlateBaker : MonoBehaviour
             foreach (var texCoord in continent.TexCoords.Select(x => new TexCoord(x)))
             {
                 textureArrays[texCoord.ArrayW][texCoord.ArrayXY] = continent.CurrentId;
-
-                if (stopwatch.ElapsedMilliseconds > MiliseconsPerFrame)
-                {
-                    yield return new WaitForEndOfFrame();
-                    stopwatch.Restart();
-                }
             }
         }
 
@@ -243,6 +231,8 @@ public class PlateBaker : MonoBehaviour
         }
         texture2dArray.Apply();
         EnvironmentDataStore.TmpContinentalIdMap.UpdateTexture(texture2dArray);
+
+        RunTectonicKernel("BakePlates");
     }
 
     private class Continent
