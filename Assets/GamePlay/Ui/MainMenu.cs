@@ -7,9 +7,12 @@ public class MainMenu : MenuUi
 {
     private StateMachine<IState> _stateMachine = new StateMachine<IState>();
     private Transform _home;
+    private Controls _controls;
 
     public override void Enable()
     {
+        _controls = new Controls();
+        _controls.UI.Enable();
         _home.gameObject.SetActive(true);
         _home.AnimatePosition(0.3f, new Vector3(350, 0, 0));
         Singleton.PerspectiveController.SetPerspective(FindObjectOfType<MainMenuCamera>(), CameraTransition.Smooth);
@@ -17,6 +20,8 @@ public class MainMenu : MenuUi
     }
     public override void Disable()
     {
+        _controls.UI.Disable();
+        _controls.Dispose();
         _home.AnimatePosition(0.3f, new Vector3(-350, 0, 0), () => _home.gameObject.SetActive(false));
         SimulationController.StopSimulations(SimulationType.Water);
     }
@@ -36,6 +41,6 @@ public class MainMenu : MenuUi
     }
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape)) _stateMachine.SetState(this);
+        _controls.UI.Cancel.performed += _stateMachine.SetState(this);
     }
 }

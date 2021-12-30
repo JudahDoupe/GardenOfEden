@@ -1,7 +1,9 @@
 using Assets.GamePlay.Cameras;
 using System;
+using System.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class SatelliteCamera : CameraPerspective
 {
@@ -20,8 +22,21 @@ public class SatelliteCamera : CameraPerspective
     private Settings Far; 
 
     private Coordinate _coord;
+    private Controls _controls;
 
     public override CameraState TransitionToState() => GetTargetState(false);
+
+    public override void Enable()
+    {
+        _controls = new Controls();
+        _controls.SateliteCamera.Enable();
+    }
+    public override void Disable()
+    {
+        _controls.SateliteCamera.Disable();
+        _controls.Dispose();
+    }
+
 
     private void LateUpdate()
     {
@@ -30,16 +45,22 @@ public class SatelliteCamera : CameraPerspective
         CameraUtils.SetState(GetTargetState(true));
     }
 
+    private IEnumerator DragCamera()
+    {
+        yield return new WaitForEndOfFrame();
+    }
+
     public CameraState GetTargetState(bool lerp)
     {
-
         _coord = IsActive ? _coord : new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
         var cameraPosition = CurrentState.Camera.localPosition;
         var t = Ease.Out((MinAltitude - _coord.Altitude) / (MinAltitude - MaxAltitude));
         var z =  math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * Coordinate.PlanetRadius;
         var m = math.lerp(Near.MovementSpeed, Far.MovementSpeed, t) * Time.deltaTime;
+        var movement = _controls.SateliteCamera.Rotate.ReadValue<Vector2>();
+        var zoom = _controls.SateliteCamera.Zoom.ReadValue<float>();
         var translation = IsActive 
-            ? new Vector3(Input.GetAxis("Horizontal") * m, Input.GetAxis("Vertical") * -m, -Input.mouseScrollDelta.y * z)
+            ? new Vector3(movement.x * m, movement.y * -m, -zoom * z)
             : Vector3.zero;
 
         _coord.Altitude = math.clamp(_coord.Altitude + translation.z, MinAltitude + (IsActive ? -10 : 10), MaxAltitude - (IsActive ? -10 : 10));
