@@ -18,16 +18,16 @@ namespace Assets.GamePlay.Cameras
 
     public struct CameraTransition
     {
-        public CameraTransition(float speed, Ease ease)
+        public CameraTransition(float speed, EaseType ease)
         {
             Speed = speed;
             Ease = ease;
         }
 
         public float Speed;
-        public Ease Ease;
-        public static CameraTransition Instant => new CameraTransition(0, Ease.Linear);
-        public static CameraTransition Smooth => new CameraTransition(1, Ease.InOut);
+        public EaseType Ease;
+        public static CameraTransition Instant => new CameraTransition(0, EaseType.Linear);
+        public static CameraTransition Smooth => new CameraTransition(1, EaseType.InOut);
     }
 
     public struct CameraState

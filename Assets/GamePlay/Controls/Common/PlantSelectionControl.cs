@@ -30,7 +30,7 @@ public class PlantSelectionControl : MonoBehaviour
         {
             var perspective = FindObjectOfType<CirclingCamera>();
             perspective.FocusedEntity = _selectedPlant;
-            Singleton.PerspectiveController.SetPerspective(perspective, new CameraTransition(1, Ease.Out));
+            Singleton.PerspectiveController.SetPerspective(perspective, new CameraTransition(1, EaseType.Out));
             // TODO: Open DNA UI
         }
     }

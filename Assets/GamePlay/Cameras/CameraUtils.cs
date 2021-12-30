@@ -113,7 +113,7 @@ public class CameraUtils : MonoBehaviour
 
         Singleton.Instance.StartCoroutine(AnimateTransition(speed, start, end, callback, transition.Ease));
     }
-    private static IEnumerator AnimateTransition(float seconds, CameraState start, CameraState end, Action callback, Ease ease)
+    private static IEnumerator AnimateTransition(float seconds, CameraState start, CameraState end, Action callback, EaseType ease)
     {
         var remainingSeconds = seconds;
         var t = 0f;
@@ -123,13 +123,7 @@ public class CameraUtils : MonoBehaviour
         {
             yield return new WaitForEndOfFrame();
 
-            var lerp = ease switch
-            {
-                Ease.In => 1f - math.cos((t * math.PI) / 2),
-                Ease.Out => math.sin((t * math.PI) / 2f),
-                Ease.InOut => -(math.cos(math.PI * t) - 1f) / 2f,
-                _ => t,
-            };
+            var lerp = ease.LerpValue(t);
             end.Camera.localPosition = Vector3.Lerp(start.CameraLocalPosition, end.CameraLocalPosition, lerp);
             end.Camera.position = ClampAboveTerrain(new Coordinate(end.Camera.position, Planet.LocalToWorld)).Global(Planet.LocalToWorld);
             end.Camera.localRotation = Quaternion.Lerp(start.CameraLocalRotation, end.CameraLocalRotation, lerp);
@@ -188,10 +182,3 @@ public class CameraUtils : MonoBehaviour
 
 }
 
-public enum Ease
-{
-    Linear,
-    In,
-    Out,
-    InOut,
-}

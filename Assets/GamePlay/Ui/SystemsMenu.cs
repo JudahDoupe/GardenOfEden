@@ -26,7 +26,7 @@ public class SystemsMenu : MenuUi
     {
         var systems = new[] { SimulationType.Water };
         var perspective = FindObjectOfType<SatelliteCamera>();
-        var transition = new CameraTransition { Speed = 1, Ease = Ease.InOut };
+        var transition = new CameraTransition { Speed = 1, Ease = EaseType.InOut };
         _stateMachine.SetState(new ButtonState(this, "Globe", e => SetSystemsEnabled(e, systems, perspective, transition)));
     }
     public void Land() 
@@ -34,7 +34,7 @@ public class SystemsMenu : MenuUi
         var systems = new[] { SimulationType.Water, SimulationType.PlateTectonics };
         var perspective = FindObjectOfType<SatelliteCamera>();
         var toolbar = FindObjectOfType<PlateTectonicsToolbar>();
-        var transition = new CameraTransition { Speed = 1, Ease = Ease.InOut };
+        var transition = new CameraTransition { Speed = 1, Ease = EaseType.InOut };
         _stateMachine.SetState(new ButtonState(this, "Land", e => SetSystemsEnabled(e, systems, perspective, transition, toolbar)));
     }
     private void SetSystemsEnabled(bool enabled, SimulationType[] sims, CameraPerspective perspective, CameraTransition transition, MenuUi toolbar = null)

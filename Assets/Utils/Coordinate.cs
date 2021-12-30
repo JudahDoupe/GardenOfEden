@@ -27,13 +27,13 @@ public struct Coordinate : IComponentData, IEquatable<Coordinate>
     }
     public float Lat
     {
-        get => _sphericalCoord.y * (PlanetRadius / 2);
-        set => SetSphericalCoordinates(_sphericalCoord.x, value / (PlanetRadius / 2), _sphericalCoord.z);
+        get => math.degrees(_sphericalCoord.y);
+        set => SetSphericalCoordinates(_sphericalCoord.x, math.radians(value), _sphericalCoord.z);
     }
     public float Lon
     {
-        get => _sphericalCoord.z * PlanetRadius;
-        set => SetSphericalCoordinates(_sphericalCoord.x, _sphericalCoord.y, value / PlanetRadius);
+        get => math.degrees(_sphericalCoord.z);
+        set => SetSphericalCoordinates(_sphericalCoord.x, _sphericalCoord.y, math.radians(value));
     }
 
     public int3 TextureXyw

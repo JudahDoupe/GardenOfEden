@@ -31,7 +31,7 @@ public class SpawnPlantButton : MonoBehaviour
         yield return new WaitForEndOfFrame();
         var perspective = FindObjectOfType<CirclingCamera>();
         perspective.FocusedEntity = plant;
-        Singleton.PerspectiveController.SetPerspective(perspective, new CameraTransition(2, Ease.Out));
+        Singleton.PerspectiveController.SetPerspective(perspective, new CameraTransition(2, EaseType.Out));
     }
 
     public void Hover()
