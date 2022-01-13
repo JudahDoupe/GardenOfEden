@@ -14,8 +14,10 @@ public class SatelliteCamera : CameraPerspective
         public float ZoomSpeed;
         public float Fov;
     }
+    public float DragSpeed = 0.25f;
     public float LerpSpeed = 5f;
     public float PoleBuffer = 30;
+    public bool IsDragEnabled = true;
     [SerializeField]
     private Settings Near; 
     [SerializeField]
@@ -23,6 +25,7 @@ public class SatelliteCamera : CameraPerspective
 
     private Coordinate _coord;
     private Controls _controls;
+    private bool _isDragging;
 
     public override CameraState TransitionToState() => GetTargetState(false);
 
@@ -30,13 +33,16 @@ public class SatelliteCamera : CameraPerspective
     {
         _controls = new Controls();
         _controls.SateliteCamera.Enable();
+        _controls.SateliteCamera.Click.started += context => _isDragging = true;
+        _controls.SateliteCamera.Click.canceled += context => _isDragging = false;
+        IsActive = true;
     }
     public override void Disable()
     {
         _controls.SateliteCamera.Disable();
         _controls.Dispose();
+        IsActive = false;
     }
-
 
     private void LateUpdate()
     {
@@ -45,23 +51,22 @@ public class SatelliteCamera : CameraPerspective
         CameraUtils.SetState(GetTargetState(true));
     }
 
-    private IEnumerator DragCamera()
-    {
-        yield return new WaitForEndOfFrame();
-    }
-
-    public CameraState GetTargetState(bool lerp)
+    private CameraState GetTargetState(bool lerp)
     {
         _coord = IsActive ? _coord : new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
         var cameraPosition = CurrentState.Camera.localPosition;
         var t = Ease.Out((MinAltitude - _coord.Altitude) / (MinAltitude - MaxAltitude));
-        var z =  math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * Coordinate.PlanetRadius;
-        var m = math.lerp(Near.MovementSpeed, Far.MovementSpeed, t) * Time.deltaTime;
-        var movement = _controls.SateliteCamera.Rotate.ReadValue<Vector2>();
-        var zoom = _controls.SateliteCamera.Zoom.ReadValue<float>();
-        var translation = IsActive 
-            ? new Vector3(movement.x * m, movement.y * -m, -zoom * z)
-            : Vector3.zero;
+        var translation = Vector3.zero;
+        if (IsActive)
+        {
+            var z =  math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * Coordinate.PlanetRadius;
+            var m = math.lerp(Near.MovementSpeed, Far.MovementSpeed, t) * Time.deltaTime;
+            var movement = _isDragging && IsDragEnabled 
+                ? Mouse.current.delta.ReadValue() * -DragSpeed
+                : _controls.SateliteCamera.Rotate.ReadValue<Vector2>();
+            var zoom = _controls.SateliteCamera.Zoom.ReadValue<float>();
+            translation = new Vector3(movement.x * m, movement.y * -m, -zoom * z);
+        }
 
         _coord.Altitude = math.clamp(_coord.Altitude + translation.z, MinAltitude + (IsActive ? -10 : 10), MaxAltitude - (IsActive ? -10 : 10));
         _coord.Lat = math.clamp(_coord.Lat + translation.y, PoleBuffer, 180 - PoleBuffer);

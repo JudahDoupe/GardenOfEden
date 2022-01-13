@@ -9,12 +9,14 @@ public class PlateTectonicsToolbar : MenuUi
         SetAllButtonsActive(false);
         SlideToPosition(0);
         MovePlates();
+        FindObjectOfType<SatelliteCamera>().IsDragEnabled = false;
         IsActive = true;
     }
     public override void Disable()
     {
         SlideToPosition(70);
         _stateMachine.State.Disable();
+        FindObjectOfType<SatelliteCamera>().IsDragEnabled = true;
         IsActive = false;
     }
     public void Pause() => _stateMachine.SetState(new ButtonState(this, "Pause", enabled => SimulationController.SetEnabledSimulations(false, SimulationType.PlateTectonics)));

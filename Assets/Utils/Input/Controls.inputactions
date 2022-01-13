@@ -6,14 +6,6 @@
             "id": "5915be24-a1fc-4c93-9339-b601a8e434f0",
             "actions": [
                 {
-                    "name": "StartDrag",
-                    "type": "Button",
-                    "id": "f23e7723-5b55-4a83-95a0-b799dfe7d6c0",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "Press"
-                },
-                {
                     "name": "Rotate",
                     "type": "Value",
                     "id": "696672a2-189d-4ffb-aaf3-497f25e0ccee",
@@ -28,20 +20,17 @@
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "Press"
+                },
+                {
+                    "name": "Click",
+                    "type": "Button",
+                    "id": "99052eed-8408-496b-973a-fd4ec4f001e8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
                 }
             ],
             "bindings": [
-                {
-                    "name": "",
-                    "id": "1b3f0d31-e727-4e72-867b-328d4aa6bdee",
-                    "path": "<Mouse>/leftButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard/Mouse",
-                    "action": "StartDrag",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
                 {
                     "name": "2D Vector",
                     "id": "0c37fb4a-c20b-40c6-9957-176043f9e478",
@@ -149,6 +138,17 @@
                     "processors": "",
                     "groups": "Keyboard/Mouse",
                     "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "46113999-0d44-4446-bbe2-13df26fe6c9c",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Click",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

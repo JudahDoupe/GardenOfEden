@@ -19,14 +19,6 @@ public class @Controls : IInputActionCollection, IDisposable
             ""id"": ""5915be24-a1fc-4c93-9339-b601a8e434f0"",
             ""actions"": [
                 {
-                    ""name"": ""StartDrag"",
-                    ""type"": ""Button"",
-                    ""id"": ""f23e7723-5b55-4a83-95a0-b799dfe7d6c0"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": ""Press""
-                },
-                {
                     ""name"": ""Rotate"",
                     ""type"": ""Value"",
                     ""id"": ""696672a2-189d-4ffb-aaf3-497f25e0ccee"",
@@ -41,20 +33,17 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Click"",
+                    ""type"": ""Button"",
+                    ""id"": ""99052eed-8408-496b-973a-fd4ec4f001e8"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press(behavior=2)""
                 }
             ],
             ""bindings"": [
-                {
-                    ""name"": """",
-                    ""id"": ""1b3f0d31-e727-4e72-867b-328d4aa6bdee"",
-                    ""path"": ""<Mouse>/leftButton"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""StartDrag"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
                 {
                     ""name"": ""2D Vector"",
                     ""id"": ""0c37fb4a-c20b-40c6-9957-176043f9e478"",
@@ -164,6 +153,17 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""action"": ""Zoom"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""46113999-0d44-4446-bbe2-13df26fe6c9c"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Click"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -224,9 +224,9 @@ public class @Controls : IInputActionCollection, IDisposable
 }");
         // SateliteCamera
         m_SateliteCamera = asset.FindActionMap("SateliteCamera", throwIfNotFound: true);
-        m_SateliteCamera_StartDrag = m_SateliteCamera.FindAction("StartDrag", throwIfNotFound: true);
         m_SateliteCamera_Rotate = m_SateliteCamera.FindAction("Rotate", throwIfNotFound: true);
         m_SateliteCamera_Zoom = m_SateliteCamera.FindAction("Zoom", throwIfNotFound: true);
+        m_SateliteCamera_Click = m_SateliteCamera.FindAction("Click", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Click = m_UI.FindAction("Click", throwIfNotFound: true);
@@ -280,16 +280,16 @@ public class @Controls : IInputActionCollection, IDisposable
     // SateliteCamera
     private readonly InputActionMap m_SateliteCamera;
     private ISateliteCameraActions m_SateliteCameraActionsCallbackInterface;
-    private readonly InputAction m_SateliteCamera_StartDrag;
     private readonly InputAction m_SateliteCamera_Rotate;
     private readonly InputAction m_SateliteCamera_Zoom;
+    private readonly InputAction m_SateliteCamera_Click;
     public struct SateliteCameraActions
     {
         private @Controls m_Wrapper;
         public SateliteCameraActions(@Controls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @StartDrag => m_Wrapper.m_SateliteCamera_StartDrag;
         public InputAction @Rotate => m_Wrapper.m_SateliteCamera_Rotate;
         public InputAction @Zoom => m_Wrapper.m_SateliteCamera_Zoom;
+        public InputAction @Click => m_Wrapper.m_SateliteCamera_Click;
         public InputActionMap Get() { return m_Wrapper.m_SateliteCamera; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -299,28 +299,28 @@ public class @Controls : IInputActionCollection, IDisposable
         {
             if (m_Wrapper.m_SateliteCameraActionsCallbackInterface != null)
             {
-                @StartDrag.started -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnStartDrag;
-                @StartDrag.performed -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnStartDrag;
-                @StartDrag.canceled -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnStartDrag;
                 @Rotate.started -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnRotate;
                 @Rotate.performed -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnRotate;
                 @Rotate.canceled -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnRotate;
                 @Zoom.started -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnZoom;
                 @Zoom.performed -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnZoom;
                 @Zoom.canceled -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnZoom;
+                @Click.started -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnClick;
+                @Click.performed -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnClick;
+                @Click.canceled -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnClick;
             }
             m_Wrapper.m_SateliteCameraActionsCallbackInterface = instance;
             if (instance != null)
             {
-                @StartDrag.started += instance.OnStartDrag;
-                @StartDrag.performed += instance.OnStartDrag;
-                @StartDrag.canceled += instance.OnStartDrag;
                 @Rotate.started += instance.OnRotate;
                 @Rotate.performed += instance.OnRotate;
                 @Rotate.canceled += instance.OnRotate;
                 @Zoom.started += instance.OnZoom;
                 @Zoom.performed += instance.OnZoom;
                 @Zoom.canceled += instance.OnZoom;
+                @Click.started += instance.OnClick;
+                @Click.performed += instance.OnClick;
+                @Click.canceled += instance.OnClick;
             }
         }
     }
@@ -377,9 +377,9 @@ public class @Controls : IInputActionCollection, IDisposable
     }
     public interface ISateliteCameraActions
     {
-        void OnStartDrag(InputAction.CallbackContext context);
         void OnRotate(InputAction.CallbackContext context);
         void OnZoom(InputAction.CallbackContext context);
+        void OnClick(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
