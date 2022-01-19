@@ -4,7 +4,7 @@
 #pragma kernel SmoothPlates
 #pragma kernel UpdateHeightMap
 
-#include "TEctonicsInclude.hlsl"
+#include "TectonicsInclude.hlsl"
 
 RWTexture2DArray<float> ContinentalIdMap; 
 RWTexture2DArray<float> PlateThicknessMaps;
@@ -62,24 +62,20 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 [numthreads(8, 8, 6)]
 void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 {
-    for (uint p = 0; p < NumPlates; p++)
+    float3 xyz = xyw_to_xyz(id, MantleHeight);
+    float totalThickness = 0;
+    for (uint p1 = 0; p1 < NumPlates; p1++)
     {
-        Plate myPlate = Plates[p];
-        
-		uint3 xyp = uint3(id.xy, id.z + p * 6);
-        float3 xyz = xyp_to_xyz(xyp, p);
-		uint3 xyw = xyz_to_xyw(xyz);
-        
-        float totalThickness = 0;
-        for (uint p2 = 0; p2 < NumPlates; p2++)
-        {
-            Plate otherPlate = Plates[p2];
-            uint3 otherXyp = xyz_to_xyp(xyz, p2);
-            totalThickness += PlateThicknessMaps[otherXyp];
-        }
-		
-		bool isTopPlate = ContinentalIdMap[xyw] == myPlate.Id;
+        uint3 xyp = xyz_to_xyp(xyz, p1);
+        totalThickness += PlateThicknessMaps[xyp];
+    }
+    
+    for (uint p2 = 0; p2 < NumPlates; p2++)
+    {
+        uint3 xyp = xyz_to_xyp(xyz, p2);
+        bool isTopPlate = ContinentalIdMap[id] == Plates[p2].Id;
 		float myThickness = PlateThicknessMaps[xyp];
+		
 		if (isTopPlate)
         {
 			float targetThickness = max(OceanicCrustThickness, totalThickness);
