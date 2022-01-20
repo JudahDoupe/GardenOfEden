@@ -8,6 +8,7 @@ namespace Assets.GamePlay.Cameras
         public float MinAltitude;
         public bool IsActive { get; protected set; } = false;
         public CameraState CurrentState => Singleton.PerspectiveController.CurrentState;
+        public float Altitude => Singleton.PerspectiveController.Altitude;
         public Transform Camera => CurrentState.Camera;
         public Transform Focus => CurrentState.Focus;
 

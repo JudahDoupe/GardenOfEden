@@ -49,6 +49,9 @@ public class SatelliteCamera : CameraPerspective
         if (!IsActive) return;
 
         CameraUtils.SetState(GetTargetState(true));
+
+        if (Altitude < MinAltitude) Singleton.PerspectiveController.ZoomIn();
+        if (MaxAltitude < Altitude) Singleton.PerspectiveController.ZoomOut();
     }
 
     private CameraState GetTargetState(bool lerp)
