@@ -16,7 +16,6 @@ public class LandscapeCamera : CameraPerspective
     }
     public float DragSpeed = 0.25f;
     public float LerpSpeed = 5f;
-    public float PoleBuffer = 30;
     public float Swing = 100;
     public bool IsDragEnabled = true;
     [SerializeField]
@@ -59,7 +58,12 @@ public class LandscapeCamera : CameraPerspective
     {
         _coord = IsActive ? _coord : new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
         var cameraPosition = CurrentState.Camera.localPosition;
-        var t = Ease.Out((MinAltitude - _coord.Altitude) / (MinAltitude - MaxAltitude));
+        var t = Ease.Out((MinAltitude - cameraPosition.magnitude) / (MinAltitude - MaxAltitude));
+
+        var right = Planet.Transform.InverseTransformDirection(CurrentState.Camera.right);
+        var up = Vector3.Normalize(_coord.LocalPlanet);
+        var forward = Quaternion.AngleAxis(90, right) * up;
+
         var translation = Vector3.zero;
         if (IsActive)
         {
@@ -69,16 +73,12 @@ public class LandscapeCamera : CameraPerspective
                 ? Mouse.current.delta.ReadValue() * -DragSpeed
                 : _controls.SateliteCamera.Rotate.ReadValue<Vector2>();
             var zoom = _controls.SateliteCamera.Zoom.ReadValue<float>();
-            translation = new Vector3(movement.x * m, movement.y * -m, -zoom * z);
+            translation = new Vector3(movement.x * m, movement.y * m, -zoom * z);
         }
 
-        _coord.Altitude = math.clamp(_coord.Altitude + translation.z, MinAltitude + (IsActive ? -10 : 10), MaxAltitude - (IsActive ? -10 : 10));
-        _coord.Lat = math.clamp(_coord.Lat + translation.y, PoleBuffer, 180 - PoleBuffer);
-        _coord.Lon += translation.x;
-
-        var right = CurrentState.Camera.right;
-        var up = Vector3.Normalize(_coord.LocalPlanet);
-        var forward = Quaternion.AngleAxis(90, right) * up;
+        var altitude = math.clamp(_coord.Altitude + translation.z, MinAltitude + (IsActive ? -10 : 10), MaxAltitude - (IsActive ? -10 : 10));
+        _coord.LocalPlanet += (translation.x * right + translation.y * forward).ToFloat3();
+        _coord.Altitude = altitude;
 
         var focusPos = EnvironmentDataStore.LandHeightMap.Sample(_coord).r * up;
         var targetCameraPos = _coord.LocalPlanet.ToVector3() - forward * ((1 - math.pow(t, 2)) * Swing);

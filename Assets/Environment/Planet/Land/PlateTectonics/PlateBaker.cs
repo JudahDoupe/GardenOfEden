@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -170,7 +168,7 @@ public class PlateBaker : MonoBehaviour
         var smallContinents = continents.Where(x => x.Size < MinContinentSize).OrderBy(x => x.Size).ToList();
         var largeContinents = continents.Where(x => x.Size >= MinContinentSize).OrderBy(x => x.Size).ToList();
 
-        while (smallContinents.Count() > 0 && smallContinents.Count() != lastCount)
+        while (smallContinents.Any() && smallContinents.Count() != lastCount)
         {
             foreach (var continent in smallContinents.ToArray())
             {
