@@ -23,7 +23,7 @@ public class LandscapeCamera : CameraPerspective
     [SerializeField]
     private Settings Far; 
 
-    private Coordinate _coord;
+    private Coordinate _centerCoord;
     private Controls _controls;
     private bool _isDragging;
 
@@ -56,13 +56,13 @@ public class LandscapeCamera : CameraPerspective
 
     private CameraState GetTargetState(bool lerp)
     {
-        _coord = IsActive ? _coord : new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
+        _centerCoord = IsActive ? _centerCoord : new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
         var cameraPos = CurrentState.Camera.localPosition;
         var focusPos = CurrentState.FocusLocalPosition;
         var t = Ease.Out((MinAltitude - cameraPos.magnitude) / (MinAltitude - MaxAltitude));
 
         var right = Planet.Transform.InverseTransformDirection(CurrentState.Camera.right);
-        var up = Vector3.Normalize(_coord.LocalPlanet);
+        var up = Vector3.Normalize(_centerCoord.LocalPlanet);
         var forward = Quaternion.AngleAxis(90, right) * up;
 
         var translation = Vector3.zero;
@@ -77,13 +77,13 @@ public class LandscapeCamera : CameraPerspective
             translation = new Vector3(movement.x * m, movement.y * m, -zoom * z);
         }
 
-        var altitude = math.clamp(_coord.Altitude + translation.z, MinAltitude + (IsActive ? -10 : 10), MaxAltitude - (IsActive ? -10 : 10));
-        _coord.LocalPlanet += (translation.x * right + translation.y * forward).ToFloat3();
-        _coord.Altitude = altitude;
+        var altitude = math.clamp(_centerCoord.Altitude + translation.z, MinAltitude + (IsActive ? -10 : 10), MaxAltitude - (IsActive ? -10 : 10));
+        _centerCoord.LocalPlanet += (translation.x * right + translation.y * forward).ToFloat3();
+        _centerCoord.Altitude = altitude;
 
-        var targetFocusPos = EnvironmentDataStore.LandHeightMap.Sample(_coord).r * _coord.LocalPlanet.ToVector3().normalized;
+        var targetFocusPos = EnvironmentDataStore.LandHeightMap.Sample(_centerCoord).r * _centerCoord.LocalPlanet.ToVector3().normalized;
         focusPos = lerp ? Vector3.Lerp(focusPos, targetFocusPos, Time.deltaTime * LerpSpeed) : targetFocusPos;
-        var targetCameraPos = _coord.LocalPlanet.ToVector3() - forward * ((1 - math.pow(t, 2)) * Swing);
+        var targetCameraPos = _centerCoord.LocalPlanet.ToVector3() - forward * ((1 - math.pow(t, 2)) * Swing);
         cameraPos = lerp ? Vector3.Lerp(cameraPos, targetCameraPos, Time.deltaTime * LerpSpeed) : targetCameraPos;
 
         t = Ease.Out((MinAltitude - cameraPos.magnitude) / (MinAltitude - MaxAltitude));
@@ -91,10 +91,10 @@ public class LandscapeCamera : CameraPerspective
         {
             CameraParent = Planet.Transform,
             CameraLocalPosition = cameraPos,
-            CameraLocalRotation = Quaternion.LookRotation((focusPos - cameraPos).normalized, cameraPos.normalized),
+            CameraLocalRotation = Quaternion.LookRotation((focusPos - cameraPos).normalized, focusPos.normalized),
             FocusParent = Planet.Transform,
             FocusLocalPosition = focusPos,
-            FocusLocalRotation = Quaternion.LookRotation(forward, up),
+            FocusLocalRotation = Quaternion.LookRotation(-cameraPos.normalized, Vector3.up),
             FieldOfView = math.lerp(Near.Fov, Far.Fov, t),
             NearClip = 10,
             FarClip = MaxAltitude + Coordinate.PlanetRadius,
