@@ -35,7 +35,7 @@ public class SystemsMenu : MenuUi
         _stateMachine.SetState(new ButtonState(this, "Land", e =>
         {
             SimulationController.SetEnabledSimulations(e, SimulationType.Water, SimulationType.PlateTectonics);
-            if (e) Singleton.PerspectiveController.SetPerspectives((FindObjectOfType<SatelliteCamera>(), CameraTransition.Instant), (FindObjectOfType<LandscapeCamera>(), CameraTransition.Instant));
+            if (e) Singleton.PerspectiveController.SetPerspectives((FindObjectOfType<SatelliteCamera>(), CameraTransition.Smooth), (FindObjectOfType<LandscapeCamera>(), CameraTransition.Smooth));
             if (e) FindObjectOfType<PlateTectonicsToolbar>().Enable();
             else FindObjectOfType<PlateTectonicsToolbar>().Disable();
         }));

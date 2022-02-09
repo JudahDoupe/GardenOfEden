@@ -57,8 +57,9 @@ public class LandscapeCamera : CameraPerspective
     private CameraState GetTargetState(bool lerp)
     {
         _coord = IsActive ? _coord : new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
-        var cameraPosition = CurrentState.Camera.localPosition;
-        var t = Ease.Out((MinAltitude - cameraPosition.magnitude) / (MinAltitude - MaxAltitude));
+        var cameraPos = CurrentState.Camera.localPosition;
+        var focusPos = CurrentState.FocusLocalPosition;
+        var t = Ease.Out((MinAltitude - cameraPos.magnitude) / (MinAltitude - MaxAltitude));
 
         var right = Planet.Transform.InverseTransformDirection(CurrentState.Camera.right);
         var up = Vector3.Normalize(_coord.LocalPlanet);
@@ -80,19 +81,20 @@ public class LandscapeCamera : CameraPerspective
         _coord.LocalPlanet += (translation.x * right + translation.y * forward).ToFloat3();
         _coord.Altitude = altitude;
 
-        var focusPos = EnvironmentDataStore.LandHeightMap.Sample(_coord).r * up;
+        var targetFocusPos = EnvironmentDataStore.LandHeightMap.Sample(_coord).r * _coord.LocalPlanet.ToVector3().normalized;
+        focusPos = lerp ? Vector3.Lerp(focusPos, targetFocusPos, Time.deltaTime * LerpSpeed) : targetFocusPos;
         var targetCameraPos = _coord.LocalPlanet.ToVector3() - forward * ((1 - math.pow(t, 2)) * Swing);
-        cameraPosition = lerp ? Vector3.Lerp(cameraPosition, targetCameraPos, Time.deltaTime * LerpSpeed) : targetCameraPos;
+        cameraPos = lerp ? Vector3.Lerp(cameraPos, targetCameraPos, Time.deltaTime * LerpSpeed) : targetCameraPos;
 
-        t = Ease.Out((MinAltitude - cameraPosition.magnitude) / (MinAltitude - MaxAltitude));
+        t = Ease.Out((MinAltitude - cameraPos.magnitude) / (MinAltitude - MaxAltitude));
         return new CameraState(CurrentState.Camera, CurrentState.Focus)
         {
             CameraParent = Planet.Transform,
-            CameraLocalPosition = cameraPosition,
-            CameraLocalRotation = Quaternion.LookRotation((focusPos - cameraPosition).normalized, focusPos.normalized),
+            CameraLocalPosition = cameraPos,
+            CameraLocalRotation = Quaternion.LookRotation((focusPos - cameraPos).normalized, cameraPos.normalized),
             FocusParent = Planet.Transform,
             FocusLocalPosition = focusPos,
-            FocusLocalRotation = Quaternion.LookRotation(-cameraPosition.normalized, Vector3.up),
+            FocusLocalRotation = Quaternion.LookRotation(forward, up),
             FieldOfView = math.lerp(Near.Fov, Far.Fov, t),
             NearClip = 10,
             FarClip = MaxAltitude + Coordinate.PlanetRadius,
