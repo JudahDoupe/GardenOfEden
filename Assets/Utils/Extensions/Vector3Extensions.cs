@@ -34,10 +34,25 @@ public static class Vector3Extensions
         return segmentStart + Vector3.Project(point - segmentStart, segmentEnd - segmentStart);
     }
 
+    private static Vector3 ClampProjection(this Vector3 point, Vector3 start, Vector3 end)
+    {
+        var toStart = (point - start).sqrMagnitude;
+        var toEnd = (point - end).sqrMagnitude;
+        var segment = (start - end).sqrMagnitude;
+        if (toStart > segment || toEnd > segment) return toStart > toEnd ? end : start;
+        return point;
+    }
+
+    public static Vector3 ClampPoint(this Vector3 point, Vector3 segmentStart, Vector3 segmentEnd)
+    {
+        return ClampProjection(ProjectPoint(point, segmentStart, segmentEnd), segmentStart, segmentEnd);
+    }
+
     public static Vector3 Abs(this Vector3 v)
     {
         return new Vector3(Mathf.Abs(v.x), Mathf.Abs(v.y), Mathf.Abs(v.z));
     }
+
 }
 
 public static class Vector2Extension

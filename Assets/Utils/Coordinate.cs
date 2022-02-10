@@ -85,6 +85,14 @@ public struct Coordinate : IComponentData, IEquatable<Coordinate>
     public static bool operator == (Coordinate lhs, Coordinate rhs) => lhs.Equals(rhs);
     public static bool operator != (Coordinate lhs, Coordinate rhs) => !(lhs.Equals(rhs));
 
+    public void TravelArc(float distance, float3 direction)
+    {
+        var theta = distance / ((math.PI / 180) * Altitude); 
+        var right = Quaternion.AngleAxis(90, Vector3.Normalize(LocalPlanet)) * direction;
+        LocalPlanet = Quaternion.AngleAxis(theta, right) * LocalPlanet;
+    }
+
+
     public Coordinate(float3 localPlanetPosition)
     {
         _localPlanetCoord = new float3(0, 0, 0);

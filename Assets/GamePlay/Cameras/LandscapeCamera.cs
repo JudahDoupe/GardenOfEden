@@ -77,13 +77,17 @@ public class LandscapeCamera : CameraPerspective
             translation = new Vector3(movement.x * m, movement.y * m, -zoom * z);
         }
 
-        var altitude = math.clamp(_centerCoord.Altitude + translation.z, MinAltitude + (IsActive ? -10 : 10), MaxAltitude - (IsActive ? -10 : 10));
-        _centerCoord.LocalPlanet += (translation.x * right + translation.y * forward).ToFloat3();
-        _centerCoord.Altitude = altitude;
+        _centerCoord.TravelArc(translation.x, right);
+        _centerCoord.TravelArc(translation.y, forward);
+        _centerCoord.Altitude = math.clamp(_centerCoord.Altitude + translation.z, MinAltitude + (IsActive ? -10 : 10), MaxAltitude - (IsActive ? -10 : 10));
 
-        var targetFocusPos = EnvironmentDataStore.LandHeightMap.Sample(_centerCoord).r * _centerCoord.LocalPlanet.ToVector3().normalized;
+        var center = _centerCoord.LocalPlanet.ToVector3();
+        var swing = math.clamp(1 - math.pow(t, 2), 0.001f, 1) * Swing;
+
+        var targetFocusPos = EnvironmentDataStore.LandHeightMap.Sample(_centerCoord).r * center.normalized;
         focusPos = lerp ? Vector3.Lerp(focusPos, targetFocusPos, Time.deltaTime * LerpSpeed) : targetFocusPos;
-        var targetCameraPos = _centerCoord.LocalPlanet.ToVector3() - forward * ((1 - math.pow(t, 2)) * Swing);
+
+        var targetCameraPos = center - forward * swing;
         cameraPos = lerp ? Vector3.Lerp(cameraPos, targetCameraPos, Time.deltaTime * LerpSpeed) : targetCameraPos;
 
         t = Ease.Out((MinAltitude - cameraPos.magnitude) / (MinAltitude - MaxAltitude));
