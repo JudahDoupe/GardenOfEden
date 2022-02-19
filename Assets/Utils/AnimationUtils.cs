@@ -31,6 +31,11 @@ namespace Assets.Scripts.Utils
         {
             Singleton.Instance.StartCoroutine(AnimateFloat(seconds, camera.fieldOfView, fov, f => camera.fieldOfView = f, callback));
         }
+        public static void AnimateOpacity(this Transform transform, float seconds, float alpha)
+        {
+            var material = transform.GetComponent<Renderer>().material;
+            Singleton.Instance.StartCoroutine(AnimateFloat(seconds, material.color.a, alpha, a => material.color = new Color(material.color.r, material.color.g, material.color.b, a)));
+        }
         public static void AnimateUiOpacity(this Transform transform, float seconds, float alpha)
         {
             foreach (var image in transform.GetComponentsInChildren<Image>())

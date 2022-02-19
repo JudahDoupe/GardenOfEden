@@ -212,6 +212,63 @@ public class @Controls : IInputActionCollection, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Exhibit"",
+            ""id"": ""6e55ae37-b0c3-49e7-947a-14d650e4cbde"",
+            ""actions"": [
+                {
+                    ""name"": ""Forward"",
+                    ""type"": ""Button"",
+                    ""id"": ""344b913c-fe8e-464a-bb1c-3baf13547dac"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                },
+                {
+                    ""name"": ""Back"",
+                    ""type"": ""Button"",
+                    ""id"": ""8800ee36-67e1-4fd6-90ec-1478c4b6cd8e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""4ae8c2f3-893b-4dcb-8b29-d1db1b9bd95d"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Forward"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3d83a0bd-2840-4478-ba63-0f9e2ffd831d"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Forward"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4e8f3a16-44f3-41a2-b11f-b6bf190308b3"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Back"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -231,6 +288,10 @@ public class @Controls : IInputActionCollection, IDisposable
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Click = m_UI.FindAction("Click", throwIfNotFound: true);
         m_UI_Cancel = m_UI.FindAction("Cancel", throwIfNotFound: true);
+        // Exhibit
+        m_Exhibit = asset.FindActionMap("Exhibit", throwIfNotFound: true);
+        m_Exhibit_Forward = m_Exhibit.FindAction("Forward", throwIfNotFound: true);
+        m_Exhibit_Back = m_Exhibit.FindAction("Back", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -366,6 +427,47 @@ public class @Controls : IInputActionCollection, IDisposable
         }
     }
     public UIActions @UI => new UIActions(this);
+
+    // Exhibit
+    private readonly InputActionMap m_Exhibit;
+    private IExhibitActions m_ExhibitActionsCallbackInterface;
+    private readonly InputAction m_Exhibit_Forward;
+    private readonly InputAction m_Exhibit_Back;
+    public struct ExhibitActions
+    {
+        private @Controls m_Wrapper;
+        public ExhibitActions(@Controls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Forward => m_Wrapper.m_Exhibit_Forward;
+        public InputAction @Back => m_Wrapper.m_Exhibit_Back;
+        public InputActionMap Get() { return m_Wrapper.m_Exhibit; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(ExhibitActions set) { return set.Get(); }
+        public void SetCallbacks(IExhibitActions instance)
+        {
+            if (m_Wrapper.m_ExhibitActionsCallbackInterface != null)
+            {
+                @Forward.started -= m_Wrapper.m_ExhibitActionsCallbackInterface.OnForward;
+                @Forward.performed -= m_Wrapper.m_ExhibitActionsCallbackInterface.OnForward;
+                @Forward.canceled -= m_Wrapper.m_ExhibitActionsCallbackInterface.OnForward;
+                @Back.started -= m_Wrapper.m_ExhibitActionsCallbackInterface.OnBack;
+                @Back.performed -= m_Wrapper.m_ExhibitActionsCallbackInterface.OnBack;
+                @Back.canceled -= m_Wrapper.m_ExhibitActionsCallbackInterface.OnBack;
+            }
+            m_Wrapper.m_ExhibitActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Forward.started += instance.OnForward;
+                @Forward.performed += instance.OnForward;
+                @Forward.canceled += instance.OnForward;
+                @Back.started += instance.OnBack;
+                @Back.performed += instance.OnBack;
+                @Back.canceled += instance.OnBack;
+            }
+        }
+    }
+    public ExhibitActions @Exhibit => new ExhibitActions(this);
     private int m_KeyboardMouseSchemeIndex = -1;
     public InputControlScheme KeyboardMouseScheme
     {
@@ -385,5 +487,10 @@ public class @Controls : IInputActionCollection, IDisposable
     {
         void OnClick(InputAction.CallbackContext context);
         void OnCancel(InputAction.CallbackContext context);
+    }
+    public interface IExhibitActions
+    {
+        void OnForward(InputAction.CallbackContext context);
+        void OnBack(InputAction.CallbackContext context);
     }
 }

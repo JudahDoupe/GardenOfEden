@@ -199,6 +199,63 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Exhibit",
+            "id": "6e55ae37-b0c3-49e7-947a-14d650e4cbde",
+            "actions": [
+                {
+                    "name": "Forward",
+                    "type": "Button",
+                    "id": "344b913c-fe8e-464a-bb1c-3baf13547dac",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "Back",
+                    "type": "Button",
+                    "id": "8800ee36-67e1-4fd6-90ec-1478c4b6cd8e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "4ae8c2f3-893b-4dcb-8b29-d1db1b9bd95d",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Forward",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3d83a0bd-2840-4478-ba63-0f9e2ffd831d",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Forward",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4e8f3a16-44f3-41a2-b11f-b6bf190308b3",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Back",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [

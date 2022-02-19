@@ -150,7 +150,7 @@
     <Compile Include="Assets\GamePlay\Ui\SystemsMenu.cs" />
     <Compile Include="Assets\Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Rendering\Features\BlitMaterialFeature.cs" />
-    <Compile Include="Assets\Exhibits\HeightMapVisualizer.cs" />
+    <Compile Include="Assets\Exhibits\HeightMap\HeightMapVisualizer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise2D.hlsl" />
@@ -431,6 +431,9 @@
     </Reference>
     <Reference Include="UnityEditor.Graphs">
       <HintPath>C:\_Projects\2021.1.16f1\Editor\Data\Managed\UnityEditor.Graphs.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor.OSXStandalone.Extensions">
+      <HintPath>C:\_Projects\2021.1.16f1\Editor\Data\PlaybackEngines\MacStandaloneSupport\UnityEditor.OSXStandalone.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.WindowsStandalone.Extensions">
       <HintPath>C:\_Projects\2021.1.16f1\Editor\Data\PlaybackEngines\WindowsStandaloneSupport\UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
