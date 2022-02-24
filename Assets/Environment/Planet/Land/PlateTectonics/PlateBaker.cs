@@ -76,6 +76,8 @@ public class PlateBaker : MonoBehaviour
             Singleton.PlateTectonics.RemovePlate(plateId);
         }
 
+        EnvironmentDataStore.Save();
+
         if (debug) Debug.Log($"Finished Bake in {timer.ElapsedMilliseconds} ms");
         _isBaking = false;
         _needsBaking = false;
