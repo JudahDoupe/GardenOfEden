@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 using LiteDB;
+using System.IO;
+using System;
 
 public class EnvironmentDataStore : MonoBehaviour
 {
@@ -30,41 +31,72 @@ public class EnvironmentDataStore : MonoBehaviour
     public static void Load()
     {
         using var db = new LiteDatabase($@"{Application.persistentDataPath}\Environment.db");
+        var fs = db.GetStorage<string>();
+        var maps = new Dictionary<string, RenderTexture>()
+        {
+            { "WaterMap", WaterMap },
+            { "WaterSourceMap", WaterSourceMap },
+            { "LandHeightMap", LandHeightMap },
+            { "PlateThicknessMaps", PlateThicknessMaps },
+            { "ContinentalIdMap", ContinentalIdMap },
+        };
 
-        PlateThicknessMaps.CachedTextures();
-        var col = db.GetCollection<EnvironementMapDto>("Maps");
-        col.EnsureIndex(x => x.Name);
 
-        col.FindById("WaterMap")?.LoadMap(WaterMap);
-        col.FindById("WaterSourceMap")?.LoadMap(WaterSourceMap);
-        col.FindById("LandHeightMap")?.LoadMap(LandHeightMap);
-        col.FindById("PlateThicknessMaps")?.LoadMap(PlateThicknessMaps);
-        col.FindById("ContinentalIdMap")?.LoadMap(ContinentalIdMap);
+        var groups = fs.FindAll().GroupBy(x => x.Metadata["TextureName"]);
 
+        foreach (var group in groups)
+        {
+            var rt = maps[group.Key];
+            var format = rt.format switch
+            {
+                RenderTextureFormat.RFloat => TextureFormat.RFloat,
+                RenderTextureFormat.RGFloat => TextureFormat.RGFloat,
+                _ => TextureFormat.RGBAFloat,
+            };
+            var textures = new Texture2D[group.Count()];
+
+            foreach (var file in group)
+            {
+                using var stream = new MemoryStream();
+                fs.Download(file.Id, stream);
+                textures[file.Metadata["TextureIndex"]] = new Texture2D(rt.width, rt.height, format, false);
+                textures[file.Metadata["TextureIndex"]].LoadRawTextureData(stream.GetBuffer());
+                textures[file.Metadata["TextureIndex"]].Apply();
+            }
+
+            rt.SetTexture(textures);
+        }
     }
 
     public static void Save()
     {
         using var db = new LiteDatabase($@"{Application.persistentDataPath}\Environment.db");
-
-        PlateThicknessMaps.CachedTextures();
-        var col = db.GetCollection<EnvironementMapDto>("Maps");
-        col.EnsureIndex(x => x.Name);
-
-        var maps = new List<EnvironementMapDto>()
+        var fs = db.GetStorage<string>();
+        var maps = new Dictionary<string, RenderTexture>()
         {
-            new EnvironementMapDto("WaterSourceMap", WaterSourceMap),
-            new EnvironementMapDto("WaterMap", WaterMap),
-            new EnvironementMapDto("LandHeightMap", LandHeightMap),
-            new EnvironementMapDto("PlateThicknessMaps", PlateThicknessMaps),
-            new EnvironementMapDto("ContinentalIdMap", ContinentalIdMap),
+            { "WaterMap", WaterMap },
+            { "WaterSourceMap", WaterSourceMap },
+            { "LandHeightMap", LandHeightMap },
+            { "PlateThicknessMaps", PlateThicknessMaps },
+            { "ContinentalIdMap", ContinentalIdMap },
         };
 
-        foreach (var environementMapDto in maps)
+        foreach (var map in maps)
         {
-            if (!col.Update(environementMapDto))
+            var name = map.Key;
+            var rt = map.Value;
+            var i = 0;
+
+            foreach (var tex in rt.CachedTextures())
             {
-                col.Insert(environementMapDto);
+                var stream = new MemoryStream(tex.GetRawTextureData());
+                fs.Upload($"$/{name}/{i}", $"{i}", stream);
+                fs.SetMetadata($"$/{name}/{i}", new BsonDocument(
+                    new Dictionary<string, BsonValue> {
+                        { "TextureName", new BsonValue(name) },
+                        { "TextureIndex", new BsonValue(i) }
+                    }));
+                i++;
             }
         }
     }
@@ -80,20 +112,9 @@ public class EnvironmentDataStore : MonoBehaviour
         return new RenderTexture(512, 512, 0, format, 0).ResetTexture(layers).Initialize();
     }
 
-    private class EnvironementMapDto
+    private class RenderTextureMetaData : BsonDocument
     {
-        public string Name { get; set; }
-        public Color[][] Data { get; set; }
-
-        public EnvironementMapDto(string name, RenderTexture rt)
-        {
-            Name = name;
-            Data = rt.CachedTextures().Select(x => x.GetPixels()).ToArray();
-        }
-
-        public void LoadMap(RenderTexture rt)
-        {
-            rt.Initialize(Data);
-        }
+        public int TextureIndex;
+        public string TextureName;
     }
 }

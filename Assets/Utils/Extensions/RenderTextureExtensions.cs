@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using LiteDB;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
@@ -78,21 +79,20 @@ public static class RenderTextureExtensions
         }
 
     }
-    public static void UpdateTexture(this RenderTexture rt, Texture2D[] textures)
+    public static void SetTexture(this RenderTexture rt, Texture2D[] textures)
     {
+        RTCache[rt] = textures;
+
         var texture = new Texture2DArray(textures[0].width, textures[0].height, textures.Length, rt.graphicsFormat, TextureCreationFlags.None);
         for (var i = 0; i < rt.volumeDepth; i++)
         {
-            if (RTCache[rt][i] != null)
-            {
-                texture.SetPixels(RTCache[rt][i].GetPixels(0), 0, i);
-                RTCache[rt][i].Apply();
-            }
+            texture.SetPixels(textures[i].GetPixels(0), i, 0);
         }
         texture.Apply();
-        Graphics.Blit(texture, rt);
+        
+        rt.SetTexture(texture);
     }
-    public static void UpdateTexture(this RenderTexture rt, Texture2DArray newTexture)
+    public static void SetTexture(this RenderTexture rt, Texture2DArray newTexture)
     {
         Graphics.Blit(newTexture, rt);
     }

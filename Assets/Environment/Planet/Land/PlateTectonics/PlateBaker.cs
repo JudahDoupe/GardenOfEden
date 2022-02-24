@@ -230,7 +230,7 @@ public class PlateBaker : MonoBehaviour
             texture2dArray.SetPixelData(textureArrays[i], 0, i);
         }
         texture2dArray.Apply();
-        EnvironmentDataStore.TmpContinentalIdMap.UpdateTexture(texture2dArray);
+        EnvironmentDataStore.TmpContinentalIdMap.SetTexture(texture2dArray);
 
         RunTectonicKernel("BakePlates");
     }
