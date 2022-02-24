@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 public class HeightMapVisualizer : MonoBehaviour
 {
     public GameObject[] Planes = new GameObject[6];
-    public GameObject Shpere;
+    public GameObject Cube;
 
     [Header("Expanded Layers")]
     public float LayerSetback = 100;
@@ -88,11 +88,26 @@ public class HeightMapVisualizer : MonoBehaviour
             ParentRotation = Quaternion.Euler(Rotation),
         };
 
+        var cubeMapFromSphere = new VisualizationState(cubeMap)
+        {
+            TextureAlphas = new float[] { 0,0,0,0,0,0 },
+            SphereAlpha = 1,
+            TransitionTime = 0
+        };
+
+        var sphereMap = new VisualizationState(cubeMapFromSphere)
+        {
+            TransitionTime = 1,
+            CubeToSphereLerp = 1,
+        };
+
         States = new[]
         {
             startPosition,
             expandedLayers,
             cubeMap,
+            cubeMapFromSphere,
+            sphereMap,
         };
 
         Forward(new InputAction.CallbackContext());
@@ -101,28 +116,35 @@ public class HeightMapVisualizer : MonoBehaviour
     private void Forward(InputAction.CallbackContext context)
     {
         StateIndex = Mathf.Clamp(StateIndex + 1, 0, States.Length - 1);
-        SetState();
+        SetState(States[StateIndex].TransitionTime);
     }
     private void Back(InputAction.CallbackContext context)
     {
         StateIndex = Mathf.Clamp(StateIndex - 1, 0, States.Length - 1);
-        SetState();
+        SetState(States[StateIndex + 1].TransitionTime);
     }
-    private void SetState()
+    private void SetState(float speed)
     {
         var state = States[StateIndex];
 
         for (var i = 0; i < Planes.Length; i++)
         {
             var plane = Planes[i].transform;
-            plane.AnimatePosition(state.TransitionTime, state.TexturePositions[i]);
-            plane.AnimateRotation(state.TransitionTime, state.TextureRotations[i] * Quaternion.AngleAxis(90, Vector3.right));
-            plane.AnimateOpacity(state.TransitionTime, state.TextureAlphas[i]);
+            plane.AnimatePosition(speed, state.TexturePositions[i], ease: EaseType.InOut);
+            plane.AnimateRotation(speed, state.TextureRotations[i] * Quaternion.AngleAxis(90, Vector3.right), ease: EaseType.InOut);
+            plane.AnimateOpacity(speed, state.TextureAlphas[i], ease: EaseType.InOut);
         }
 
-        transform.AnimatePosition(state.TransitionTime, state.ParentPosition);
-        transform.AnimateRotation(state.TransitionTime, state.ParentRotation);
-        Shpere.transform.AnimateOpacity(state.TransitionTime, state.SphereAlpha);
+        transform.AnimatePosition(speed, state.ParentPosition, ease: EaseType.InOut);
+        transform.AnimateRotation(speed, state.ParentRotation, ease: EaseType.InOut);
+        Cube.transform.AnimateOpacity(speed, state.SphereAlpha, ease: EaseType.InOut);
+        var material = Cube.transform.GetComponent<Renderer>().material;
+        Singleton.Instance.StartCoroutine(
+            AnimationUtils.AnimateFloat(speed, 
+                                        material.GetFloat("CubeToSphere"), 
+                                        state.CubeToSphereLerp, 
+                                        x => material.SetFloat("CubeToSphere", x),
+                                        ease: EaseType.InOut));
 
     }
 
@@ -137,6 +159,7 @@ public class HeightMapVisualizer : MonoBehaviour
             ParentRotation = Quaternion.identity;
             SphereAlpha = 0;
             TransitionTime = 1;
+            CubeToSphereLerp = 0;
         }
         public VisualizationState(VisualizationState state) 
         {
@@ -147,6 +170,7 @@ public class HeightMapVisualizer : MonoBehaviour
             ParentRotation = state.ParentRotation;
             SphereAlpha = state.SphereAlpha;
             TransitionTime = state.TransitionTime;
+            CubeToSphereLerp = state.CubeToSphereLerp;
         }
 
         public Vector3[] TexturePositions; 
@@ -156,6 +180,7 @@ public class HeightMapVisualizer : MonoBehaviour
         public Vector3 ParentPosition;
         public Quaternion ParentRotation;
         public float SphereAlpha;
+        public float CubeToSphereLerp;
 
         public float TransitionTime;
     }

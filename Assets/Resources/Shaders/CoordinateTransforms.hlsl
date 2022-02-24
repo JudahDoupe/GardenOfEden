@@ -234,3 +234,24 @@ void XyzToUvw_float(float3 xyz, out float2 uv, out float w)
 }
 
 #endif
+
+#ifndef WToVector_INCLUDED
+#define WToVector_INCLUDED
+
+int isNear(float x, float y)
+{
+    return -0.001 < (x - y) && (x - y) < 0.001f;
+}
+
+void WToVector_float(float w, out float3 v)
+{
+    v =
+    isNear(w, 0) * float3(1, 0, 0) +
+    isNear(w, 1) * float3(-1, 0, 0) +
+    isNear(w, 2) * float3(0, 1, 0)  +
+    isNear(w, 3) * float3(0, -1, 0) +
+    isNear(w, 4) * float3(0, 0, 1) +
+    isNear(w, 5) * float3(0, 0, -1);
+}
+
+#endif
