@@ -14,18 +14,30 @@ public class EnvironmentDataStore : MonoBehaviour
     public static RenderTexture TmpPlateThicknessMaps { get; set; }
     public static RenderTexture ContinentalIdMap { get; set; }
     public static RenderTexture TmpContinentalIdMap { get; set; }
-    
+
+    public bool Reload = false;
+
     void Awake()
     {
         WaterMap = NewTexture(4, 6);
         WaterSourceMap = NewTexture(4, 6);
         LandHeightMap = NewTexture(1, 6);
         PlateThicknessMaps = NewTexture(1, 1);
-        TmpPlateThicknessMaps = NewTexture(1, 1);
+        TmpPlateThicknessMaps = NewTexture(1, 1); 
         ContinentalIdMap = NewTexture(1, 6);
         TmpContinentalIdMap = NewTexture(1, 6);
-
+        
+        //TODO: Figure out why this doesn't work on the first frame
         Load();
+    }
+
+    void Update()
+    {
+        if (Reload)
+        {
+            Load();
+            Reload = false;
+        }
     }
 
     public static void Load()
@@ -68,6 +80,7 @@ public class EnvironmentDataStore : MonoBehaviour
         }
     }
 
+    //TODO: make this async
     public static void Save()
     {
         using var db = new LiteDatabase($@"{Application.persistentDataPath}\Environment.db");
@@ -87,7 +100,7 @@ public class EnvironmentDataStore : MonoBehaviour
             var rt = map.Value;
             var i = 0;
 
-            foreach (var tex in rt.CachedTextures())
+            foreach (var tex in rt.CachedTextures(updateCache: true))
             {
                 var stream = new MemoryStream(tex.GetRawTextureData());
                 fs.Upload($"$/{name}/{i}", $"{i}", stream);

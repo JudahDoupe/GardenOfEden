@@ -77,6 +77,7 @@ public class PlateBaker : MonoBehaviour
         }
 
         EnvironmentDataStore.Save();
+        EnvironmentDataStore.Load();
 
         if (debug) Debug.Log($"Finished Bake in {timer.ElapsedMilliseconds} ms");
         _isBaking = false;

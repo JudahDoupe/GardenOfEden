@@ -11,9 +11,9 @@ public static class RenderTextureExtensions
     public static Dictionary<RenderTexture, Texture2D[]> RTCache = new Dictionary<RenderTexture, Texture2D[]>();
     public static Dictionary<RenderTexture, AsyncGPUReadbackRequest> RTRequest = new Dictionary<RenderTexture, AsyncGPUReadbackRequest>();
 
-    public static Texture2D[] CachedTextures(this RenderTexture rt)
+    public static Texture2D[] CachedTextures(this RenderTexture rt, bool updateCache = false)
     {
-        if (!RTCache.TryGetValue(rt, out var tex))
+        if (updateCache || !RTCache.TryGetValue(rt, out var tex))
         {
             rt.UpdateTextureCache();
             RTRequest[rt].WaitForCompletion();
