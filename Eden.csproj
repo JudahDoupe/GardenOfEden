@@ -8,7 +8,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <ProjectGuid>{F49B5B11-5475-D98A-BF58-F6C878F5BC27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -53,6 +54,9 @@
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Assets\_DataAccess\EnvironmentMaps\EnvironmentMap.cs" />
+    <Compile Include="Assets\_DataAccess\EnvironmentMaps\EnvironmentMapMetaData.cs" />
+    <Compile Include="Assets\_DataAccess\EnvironmentMaps\EnvironmentMapType.cs" />
     <Compile Include="Assets\_Gameplay\Cameras\CirclingCamera.cs" />
     <Compile Include="Assets\_Environment\Land\PlateTectonics\Audio\PlateTectonicsAudio.cs" />
     <Compile Include="Assets\Common\Interfaces\ISimulation.cs" />
@@ -144,7 +148,7 @@
     <Compile Include="Assets\_Gameplay\UI\SystemsMenu.cs" />
     <Compile Include="Assets\_Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Common\Rendering\RenderFeatures\BlitMaterialFeature.cs" />
-    <Compile Include="Assets\_DataAccess\EnvironmentMapDataStore.cs" />
+    <Compile Include="Assets\_DataAccess\EnvironmentMaps\EnvironmentMapDataStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise2D.hlsl" />
@@ -880,8 +884,7 @@
       <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
