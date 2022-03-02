@@ -25,7 +25,7 @@ public class ObservationCamera : CameraPerspective
     {
         IsActive = true;
         _cameraCoord = new Coordinate(Camera.position, Planet.LocalToWorld);
-        _height = math.min(_cameraCoord.Altitude - EnvironmentDataStore.LandHeightMap.Sample(_cameraCoord).r, MaxHeight -1);
+        _height = math.min(_cameraCoord.Altitude - EnvironmentMapDataStore.LandHeightMap.Sample(_cameraCoord).r, MaxHeight -1);
     }
 
     public override CameraState TransitionToState() => GetTargetState(false);
@@ -71,7 +71,7 @@ public class ObservationCamera : CameraPerspective
 
         // Calculate position
         _height = math.max(MinHeight, _height + zoom);
-        var landHeight = EnvironmentDataStore.LandHeightMap.Sample(_cameraCoord).r;
+        var landHeight = EnvironmentMapDataStore.LandHeightMap.Sample(_cameraCoord).r;
         var targetAltitude = lerp ? math.lerp(_cameraCoord.Altitude, _height + landHeight, Time.deltaTime * LerpSpeed) : _height + landHeight;
         var changeInAltitude = _cameraCoord.Altitude - math.max(landHeight + MinHeight, targetAltitude);
         translation.z += changeInAltitude;
@@ -96,7 +96,7 @@ public class ObservationCamera : CameraPerspective
     private CameraState GetInactiveTargetState()
     {
         _cameraCoord = new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
-        _height = math.clamp(_cameraCoord.Altitude - EnvironmentDataStore.LandHeightMap.Sample(_cameraCoord).r, MinHeight, MaxHeight);
+        _height = math.clamp(_cameraCoord.Altitude - EnvironmentMapDataStore.LandHeightMap.Sample(_cameraCoord).r, MinHeight, MaxHeight);
 
         // Calculate orientation
         var right = CurrentState.Camera.right;

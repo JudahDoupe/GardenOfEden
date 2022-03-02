@@ -35,7 +35,7 @@ public class MovePlateTool : MonoBehaviour, ITool
         {
             _currentCoord = new Coordinate(hit.point, Planet.LocalToWorld);
             _currentCoord.Altitude = Coordinate.PlanetRadius;
-            _currentPlateId = EnvironmentDataStore.ContinentalIdMap.SamplePoint(_currentCoord).r;
+            _currentPlateId = EnvironmentMapDataStore.ContinentalIdMap.SamplePoint(_currentCoord).r;
         }
         else
         {

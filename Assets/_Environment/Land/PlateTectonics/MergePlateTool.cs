@@ -38,7 +38,7 @@ public class MergePlateTool : MonoBehaviour, ITool
 
             if (GetMouseCoord() is { } coord)
             {
-                var newPlateId = EnvironmentDataStore.ContinentalIdMap.SamplePoint(coord).r;
+                var newPlateId = EnvironmentMapDataStore.ContinentalIdMap.SamplePoint(coord).r;
                 _visualization.HighlightPlate(newPlateId);
 
                 if (newPlateId == oldPlateId.Value)
@@ -66,7 +66,7 @@ public class MergePlateTool : MonoBehaviour, ITool
         }
         else if (GetMouseCoord() is { } coord)
         {
-            var plate = Singleton.PlateTectonics.GetPlate(EnvironmentDataStore.ContinentalIdMap.SamplePoint(coord).r);
+            var plate = Singleton.PlateTectonics.GetPlate(EnvironmentMapDataStore.ContinentalIdMap.SamplePoint(coord).r);
             _visualization.HighlightPlate(plate.Id);
 
             if (Input.GetMouseButtonDown(0))
@@ -106,8 +106,8 @@ public class MergePlateTool : MonoBehaviour, ITool
     private void UpdatePlateId(float oldId, float newId)
     {
         int kernel = MergePlateShader.FindKernel("UpdatePlateId");
-        MergePlateShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
-        MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentDataStore.PlateThicknessMaps);
+        MergePlateShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap);
+        MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentMapDataStore.PlateThicknessMaps);
         MergePlateShader.SetFloat("OldPlateId", oldId);
         MergePlateShader.SetFloat("NewPlateId", newId);
         MergePlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
@@ -115,8 +115,8 @@ public class MergePlateTool : MonoBehaviour, ITool
     private void MergePlates(float oldId, float newId, Plate oldPlate, Plate newPlate)
     {
         int kernel = MergePlateShader.FindKernel("MergePlates");
-        MergePlateShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentDataStore.ContinentalIdMap);
-        MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentDataStore.PlateThicknessMaps);
+        MergePlateShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap);
+        MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentMapDataStore.PlateThicknessMaps);
         MergePlateShader.SetFloat("OldPlateId", oldId);
         MergePlateShader.SetFloat("NewPlateId", newId);
         MergePlateShader.SetFloat("OldPlateIdx", oldPlate.Idx);

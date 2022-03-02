@@ -8,8 +8,8 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     {
         int updateKernel = WaterShader.FindKernel("Reset");
         SetComputeShaderVariables();
-        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandHeightMap);
-        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentDataStore.WaterMap);
+        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentMapDataStore.LandHeightMap);
+        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentMapDataStore.WaterMap);
         WaterShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
@@ -27,11 +27,11 @@ public class WaterSimulation : MonoBehaviour, ISimulation
 
     public float SampleDepth(Coordinate coord)
     {
-        return EnvironmentDataStore.WaterMap.Sample(coord).b;
+        return EnvironmentMapDataStore.WaterMap.Sample(coord).b;
     }
     public float SampleHeight(Coordinate coord)
     {
-        return EnvironmentDataStore.WaterMap.Sample(coord).a + SeaLevel;
+        return EnvironmentMapDataStore.WaterMap.Sample(coord).a + SeaLevel;
     }
 
     private ComputeShader WaterShader;
@@ -41,7 +41,7 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     {
         WaterShader = Resources.Load<ComputeShader>("Shaders/Water");
         WaterRenderer = GetComponent<Renderer>();
-        WaterRenderer.material.SetTexture("HeightMap", EnvironmentDataStore.WaterMap);
+        WaterRenderer.material.SetTexture("HeightMap", EnvironmentMapDataStore.WaterMap);
         WaterRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000, 2000, 2000));
     }
 
@@ -52,7 +52,7 @@ public class WaterSimulation : MonoBehaviour, ISimulation
             SetComputeShaderVariables();
             UpdateWaterTable();
 
-            EnvironmentDataStore.WaterMap.UpdateTextureCache();
+            EnvironmentMapDataStore.WaterMap.UpdateTextureCache();
             WaterRenderer.material.SetFloat("SeaLevel", SeaLevel);
         }
     }
@@ -67,9 +67,9 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     private void UpdateWaterTable()
     {
         int updateKernel = WaterShader.FindKernel("Update");
-        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentDataStore.LandHeightMap);
-        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentDataStore.WaterMap);
-        WaterShader.SetTexture(updateKernel, "WaterSourceMap", EnvironmentDataStore.WaterSourceMap);
+        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentMapDataStore.LandHeightMap);
+        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentMapDataStore.WaterMap);
+        WaterShader.SetTexture(updateKernel, "WaterSourceMap", EnvironmentMapDataStore.WaterSourceMap);
         WaterShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 }
