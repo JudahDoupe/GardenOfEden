@@ -54,6 +54,7 @@
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Assets\Common\Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Assets\_DataAccess\EnvironmentMaps\EnvironmentMap.cs" />
     <Compile Include="Assets\_DataAccess\EnvironmentMaps\EnvironmentMapMetaData.cs" />
     <Compile Include="Assets\_DataAccess\EnvironmentMaps\EnvironmentMapType.cs" />

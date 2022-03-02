@@ -57,10 +57,7 @@ public class PlateBaker : MonoBehaviour
         }
 
         var continentIdMaps = EnvironmentMapDataStore.ContinentalIdMap.CachedTextures().Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
-        var continents = await Task.Run(() =>
-        {
-            return CoalesceContinents(DetectContinents(continentIdMaps));
-        }, _cancelation.Token);
+        var continents = await Task.Run(() => CoalesceContinents(DetectContinents(continentIdMaps)), _cancelation.Token);
 
         if (_cancelation.IsCancellationRequested)
         {
@@ -75,9 +72,6 @@ public class PlateBaker : MonoBehaviour
         {
             Singleton.PlateTectonics.RemovePlate(plateId);
         }
-
-        EnvironmentMapDataStore.Save();
-        EnvironmentMapDataStore.Load();
 
         if (debug) Debug.Log($"Finished Bake in {timer.ElapsedMilliseconds} ms");
         _isBaking = false;
@@ -96,7 +90,7 @@ public class PlateBaker : MonoBehaviour
     private void RunTectonicKernel(string name)
     {
         var plates = Singleton.PlateTectonics.GetAllPlates();
-        int kernel = BakePlatesShader.FindKernel(name);
+        var kernel = BakePlatesShader.FindKernel(name);
         using var buffer = new ComputeBuffer(plates.Count(), Marshal.SizeOf(typeof(Plate.GpuData)));
         buffer.SetData(plates.Select(x => x.ToGpuData()).ToArray());
         BakePlatesShader.SetBuffer(kernel, "Plates", buffer);
@@ -208,7 +202,8 @@ public class PlateBaker : MonoBehaviour
     private void UpdateContinentIds(List<Continent> continents)
     {
         var c = Coordinate.TextureWidthInPixels * Coordinate.TextureWidthInPixels;
-        var textureArrays = new float[][]{
+        var textureArrays = new[]
+        {
             new float[c],
             new float[c],
             new float[c],
@@ -226,7 +221,7 @@ public class PlateBaker : MonoBehaviour
         }
 
         var texture2dArray = new Texture2DArray(EnvironmentMapDataStore.TmpContinentalIdMap.width, EnvironmentMapDataStore.TmpContinentalIdMap.height, 6, EnvironmentMapDataStore.TmpContinentalIdMap.graphicsFormat, TextureCreationFlags.None);
-        for (int i = 0; i < textureArrays.Length; i++)
+        for (var i = 0; i < textureArrays.Length; i++)
         {
             texture2dArray.SetPixelData(textureArrays[i], 0, i);
         }

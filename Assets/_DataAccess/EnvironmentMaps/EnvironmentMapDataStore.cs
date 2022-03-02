@@ -14,8 +14,6 @@ public class EnvironmentMapDataStore : MonoBehaviour
     public static RenderTexture ContinentalIdMap { get; set; }
     public static RenderTexture TmpContinentalIdMap { get; set; }
 
-    public bool Reload = false;
-
     void Awake()
     {
         WaterMap = NewTexture(4, 6);
@@ -25,91 +23,6 @@ public class EnvironmentMapDataStore : MonoBehaviour
         TmpPlateThicknessMaps = NewTexture(1, 1); 
         ContinentalIdMap = NewTexture(1, 6);
         TmpContinentalIdMap = NewTexture(1, 6);
-        
-        Load();
-    }
-
-    void Update()
-    {
-        if (Reload)
-        {
-            Load();
-            Reload = false;
-        }
-    }
-
-    public static void Load()
-    {
-        using var db = new LiteDatabase($@"{Application.persistentDataPath}\Environment.db");
-        var fs = db.GetStorage<string>();
-        var maps = new Dictionary<string, RenderTexture>()
-        {
-            { "WaterMap", WaterMap },
-            { "WaterSourceMap", WaterSourceMap },
-            { "LandHeightMap", LandHeightMap },
-            { "PlateThicknessMaps", PlateThicknessMaps },
-            { "ContinentalIdMap", ContinentalIdMap },
-        };
-
-
-        var groups = fs.FindAll().GroupBy(x => x.Metadata["TextureName"]);
-
-        foreach (var group in groups)
-        {
-            var rt = maps[group.Key];
-            var format = rt.format switch
-            {
-                RenderTextureFormat.RFloat => TextureFormat.RFloat,
-                RenderTextureFormat.RGFloat => TextureFormat.RGFloat,
-                _ => TextureFormat.RGBAFloat,
-            };
-            var textures = new Texture2D[group.Count()];
-
-            foreach (var file in group)
-            {
-                using var stream = new MemoryStream();
-                fs.Download(file.Id, stream);
-                textures[file.Metadata["TextureIndex"]] = new Texture2D(rt.width, rt.height, format, false);
-                textures[file.Metadata["TextureIndex"]].LoadRawTextureData(stream.GetBuffer());
-                textures[file.Metadata["TextureIndex"]].Apply();
-            }
-
-            rt.SetTexture(textures);
-        }
-    }
-
-    //TODO: make this async
-    public static void Save()
-    {
-        using var db = new LiteDatabase($@"{Application.persistentDataPath}\Environment.db");
-        var fs = db.GetStorage<string>();
-        var maps = new Dictionary<string, RenderTexture>()
-        {
-            { "WaterMap", WaterMap },
-            { "WaterSourceMap", WaterSourceMap },
-            { "LandHeightMap", LandHeightMap },
-            { "PlateThicknessMaps", PlateThicknessMaps },
-            { "ContinentalIdMap", ContinentalIdMap },
-        };
-
-        foreach (var map in maps)
-        {
-            var name = map.Key;
-            var rt = map.Value;
-            var i = 0;
-
-            foreach (var tex in rt.CachedTextures(updateCache: true))
-            {
-                var stream = new MemoryStream(tex.GetRawTextureData());
-                fs.Upload($"$/{name}/{i}", $"{i}", stream);
-                fs.SetMetadata($"$/{name}/{i}", new BsonDocument(
-                    new Dictionary<string, BsonValue> {
-                        { "TextureName", new BsonValue(name) },
-                        { "TextureIndex", new BsonValue(i) }
-                    }));
-                i++;
-            }
-        }
     }
 
     private RenderTexture NewTexture(int channels, int layers)
@@ -123,50 +36,54 @@ public class EnvironmentMapDataStore : MonoBehaviour
         return new RenderTexture(512, 512, 0, format, 0).ResetTexture(layers).Initialize();
     }
 
-
-
-    // ---------------
+    protected static string ConnectionString => $@"{Application.persistentDataPath}\Environment.db";
 
     public EnvironmentMap Load(string planet, EnvironmentMapType mapType)
     {
-        using var db = new LiteDatabase($@"{Application.persistentDataPath}\Environment.db");
+        using var db = new LiteDatabase(ConnectionString);
         var fs = db.GetStorage<string>();
 
-        //this doesn't account for planet and can probably be made more direct
         var map = new EnvironmentMap(mapType);
-        var group = fs.FindAll().Where(x => x.Metadata["TextureName"] == map.Name);
-        var textures = new Texture2D[group.Count()];
+        var files = fs.FindAll().Where(x => x.Metadata["Map"] == map.Name && x.Metadata["Planet"] == planet).ToArray();
 
-        foreach (var file in group)
+        if (!files.Any()) return map;
+
+        var textures = new Texture2D[files.Length];
+            
+        foreach (var file in files)
         {
             using var stream = new MemoryStream();
-            fs.Download(file.Id, stream);
-            var tex = new Texture2D(map.RenderTexture.width, map.RenderTexture.height, map.MetaData.TextureFormat, false);
-            tex.LoadRawTextureData(stream.GetBuffer());
-            tex.Apply();
-            textures[file.Metadata["TextureIndex"]] = tex;
-        }
+            var i = file.Metadata["Index"];
 
+            fs.Download(file.Id, stream);
+            textures[i] = new Texture2D(map.RenderTexture.width, map.RenderTexture.height, map.MetaData.TextureFormat, false);
+            textures[i].LoadRawTextureData(stream.GetBuffer());
+            textures[i].Apply();
+        }
+            
         map.SetTextures(textures);
+
         return map;
     }
 
     public void Save(string planet, EnvironmentMap map)
     {
-        using var db = new LiteDatabase($@"{Application.persistentDataPath}\Environment.db");
+        using var db = new LiteDatabase(ConnectionString);
         var fs = db.GetStorage<string>();
 
-        var i = 0;
-        foreach (var tex in map.CachedTextures)
+        foreach (var (tex, i) in map.CachedTextures.WithIndex())
         {
+            var path = $"$/{planet}/{map.Name}/{i}";
             var stream = new MemoryStream(tex.GetRawTextureData());
-            fs.Upload($"$/{planet}/{map.Name}/{i}", $"{i}", stream);
-            fs.SetMetadata($"$/{map.Name}/{i}", new BsonDocument(
-                new Dictionary<string, BsonValue> {
-                    { "TextureName", new BsonValue(map.Name) },
-                    { "TextureIndex", new BsonValue(i) }
-                }));
-            i++;
+            var metaData = new Dictionary<string, BsonValue>
+            {
+                { "Planet", new BsonValue(planet) },
+                { "Map", new BsonValue(map.Name) },
+                { "Index", new BsonValue(i) },
+            };
+
+            fs.Upload(path, $"{map.Name}{i}", stream);
+            fs.SetMetadata(path, new BsonDocument(metaData));
         }
     }
 }

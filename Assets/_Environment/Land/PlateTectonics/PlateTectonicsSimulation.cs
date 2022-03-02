@@ -58,6 +58,10 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     }
 
     private List<Plate> _plates = new List<Plate>();
+    private EnvironmentMap LandHeightMap;
+    private EnvironmentMap ContinentalIdMap;
+    private EnvironmentMap PlateThicknessMaps;
+    private EnvironmentMap TmpPlateThicknessMaps;
 
     public List<Plate> GetAllPlates() => _plates;
     public Plate GetPlate(float id) => _plates.First(x => x.Id == id);
@@ -75,21 +79,17 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         var currentLayerCount = _plates.Count * 6;
         var newLayerCount = (_plates.Count + 1) * 6;
 
-        if (_plates.Count == 0)
+        if (_plates.Count > 0)
         {
-            EnvironmentMapDataStore.PlateThicknessMaps.ResetTexture(newLayerCount);
-            EnvironmentMapDataStore.TmpPlateThicknessMaps.ResetTexture(newLayerCount);
+            Graphics.CopyTexture(PlateThicknessMaps.RenderTexture, TmpPlateThicknessMaps.RenderTexture);
         }
-        else
+
+        PlateThicknessMaps.Layers = newLayerCount;
+        for (var i = 0; i < currentLayerCount; i++)
         {
-            Graphics.CopyTexture(EnvironmentMapDataStore.PlateThicknessMaps, EnvironmentMapDataStore.TmpPlateThicknessMaps);
-            EnvironmentMapDataStore.PlateThicknessMaps.ResetTexture(newLayerCount);
-            for (var i = 0; i < currentLayerCount; i++)
-            {
-                Graphics.CopyTexture(EnvironmentMapDataStore.TmpPlateThicknessMaps, i, EnvironmentMapDataStore.PlateThicknessMaps, i);
-            }
-            EnvironmentMapDataStore.TmpPlateThicknessMaps.ResetTexture(newLayerCount);
+            Graphics.CopyTexture(TmpPlateThicknessMaps.RenderTexture, i, PlateThicknessMaps.RenderTexture, i);
         }
+        TmpPlateThicknessMaps.Layers = newLayerCount;
 
         _plates.Add(plate);
         NumPlates = _plates.Count;
@@ -103,18 +103,18 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         _plates.Remove(plate);
         var newLayerCount = _plates.Count * 6;
 
-        Graphics.CopyTexture(EnvironmentMapDataStore.PlateThicknessMaps, EnvironmentMapDataStore.TmpPlateThicknessMaps);
-        EnvironmentMapDataStore.PlateThicknessMaps.ResetTexture(newLayerCount);
+        Graphics.CopyTexture(PlateThicknessMaps.RenderTexture, TmpPlateThicknessMaps.RenderTexture);
+        PlateThicknessMaps.Layers = newLayerCount;
         foreach (var p in _plates)
         {
             var newIdx = _plates.IndexOf(p);
             for (var i = 0; i < 6; i++)
             {
-                Graphics.CopyTexture(EnvironmentMapDataStore.TmpPlateThicknessMaps, (p.Idx * 6) + i, EnvironmentMapDataStore.PlateThicknessMaps, (newIdx * 6) + i);
+                Graphics.CopyTexture(TmpPlateThicknessMaps.RenderTexture, (p.Idx * 6) + i, PlateThicknessMaps.RenderTexture, (newIdx * 6) + i);
             }
             p.Idx = newIdx;
         }
-        EnvironmentMapDataStore.TmpPlateThicknessMaps.ResetTexture(newLayerCount);
+        TmpPlateThicknessMaps.Layers = newLayerCount;
         NumPlates = _plates.Count;
     }
 
@@ -137,7 +137,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public void UpdateContinentalIdMap()
     {
         RunTectonicKernel("UpdateContinentalIdMap");
-        EnvironmentMapDataStore.ContinentalIdMap.UpdateTextureCache();
+        ContinentalIdMap.RefreshCache();
     }
     public void UpdatePlateThicknessMaps()
     {
@@ -147,7 +147,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     {
         RunTectonicKernel("UpdateHeightMap");
         RunTectonicKernel("SmoothPlates");
-        EnvironmentMapDataStore.LandHeightMap.UpdateTextureCache();
+        LandHeightMap.RefreshCache();
     }
   
     private void RunTectonicKernel(string kernelName)
@@ -156,10 +156,10 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         using var buffer = new ComputeBuffer(NumPlates, Marshal.SizeOf(typeof(Plate.GpuData)));
         buffer.SetData(_plates.Select(x => x.ToGpuData()).ToArray());
         TectonicsShader.SetBuffer(kernel, "Plates", buffer);
-        TectonicsShader.SetTexture(kernel, "LandHeightMap", EnvironmentMapDataStore.LandHeightMap);
-        TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentMapDataStore.PlateThicknessMaps);
-        TectonicsShader.SetTexture(kernel, "TmpPlateThicknessMaps", EnvironmentMapDataStore.TmpPlateThicknessMaps);
-        TectonicsShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap);
+        TectonicsShader.SetTexture(kernel, "LandHeightMap", LandHeightMap.RenderTexture);
+        TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", PlateThicknessMaps.RenderTexture);
+        TectonicsShader.SetTexture(kernel, "TmpPlateThicknessMaps", TmpPlateThicknessMaps.RenderTexture);
+        TectonicsShader.SetTexture(kernel, "ContinentalIdMap", ContinentalIdMap.RenderTexture);
         TectonicsShader.SetInt("NumPlates", NumPlates);
         TectonicsShader.SetFloat("OceanicCrustThickness", OceanicCrustThickness);
         TectonicsShader.SetFloat("MantleHeight", MantleHeight);
@@ -174,6 +174,12 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     private void Start()
     {
         IsActive = false;
+        /*
+        LandHeightMap = new EnvironmentMap(EnvironmentMapType.LandHeightMap);
+        ContinentalIdMap = new EnvironmentMap(EnvironmentMapType.ContinentalIdMap);
+        PlateThicknessMaps = new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
+        TmpPlateThicknessMaps = new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
+        */
     }
     private void Update()
     {

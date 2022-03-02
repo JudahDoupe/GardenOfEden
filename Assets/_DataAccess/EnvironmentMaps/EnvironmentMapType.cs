@@ -10,12 +10,8 @@ public enum EnvironmentMapType
     LandHeightMap,
     [EnvironmentMapMetaData(name: "PlateThicknessMaps")]
     PlateThicknessMaps,
-    [EnvironmentMapMetaData(name: "TmpPlateThicknessMaps")]
-    TmpPlateThicknessMaps,
     [EnvironmentMapMetaData(name: "ContinentalIdMap")]
     ContinentalIdMap,
-    [EnvironmentMapMetaData(name: "TmpContinentalIdMap")]
-    TmpContinentalIdMap,
 }
 
 public static class EnvironmentMapTypeExtensions

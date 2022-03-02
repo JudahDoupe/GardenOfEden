@@ -8,7 +8,11 @@ public class EnvironmentMap
     public Texture2D[] CachedTextures => RenderTexture.CachedTextures();
     public string Name => MetaData.Name;
     public int Channels => MetaData.Channels;
-    public int Layers => MetaData.Layers;
+    public int Layers
+    {
+        get => RenderTexture.depth;
+        set => RenderTexture.ResetTexture(value);
+    }
 
     public EnvironmentMap(EnvironmentMapType type)
     {
@@ -25,5 +29,10 @@ public class EnvironmentMap
     public void SetTextures(Texture2D[] textures)
     {
         RenderTexture.SetTexture(textures);
+    }
+
+    public void CopyTo(EnvironmentMap dst)
+    {
+        Graphics.CopyTexture(RenderTexture, dst.RenderTexture);
     }
 }
