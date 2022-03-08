@@ -41,8 +41,8 @@ public class PlateTectonicsVisualization : MonoBehaviour
     }
     public void Initialize()
     {
-        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap);
-        OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap);
+        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
+        OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
     }
 
     private void Start()
@@ -63,7 +63,7 @@ public class PlateTectonicsVisualization : MonoBehaviour
     {
         GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(1,1,1) * Coordinate.PlanetRadius * 2);
         var landMaterial = GetComponent<Renderer>().material;
-        landMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap);
+        landMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
         landMaterial.SetFloat("MantleHeight", Singleton.PlateTectonics.MantleHeight);
         landMaterial.SetFloat("MaxHeight", Singleton.PlateTectonics.MantleHeight + (Singleton.PlateTectonics.MantleHeight / 3));
         landMaterial.SetFloat("FacetDencity", FacetsDencity);

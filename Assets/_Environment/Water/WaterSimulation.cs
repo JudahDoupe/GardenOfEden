@@ -8,8 +8,8 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     {
         int updateKernel = WaterShader.FindKernel("Reset");
         SetComputeShaderVariables();
-        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentMapDataStore.LandHeightMap);
-        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentMapDataStore.WaterMap);
+        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
+        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentMapDataStore.WaterMap.RenderTexture);
         WaterShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
@@ -41,7 +41,7 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     {
         WaterShader = Resources.Load<ComputeShader>("Shaders/Water");
         WaterRenderer = GetComponent<Renderer>();
-        WaterRenderer.material.SetTexture("HeightMap", EnvironmentMapDataStore.WaterMap);
+        WaterRenderer.material.SetTexture("HeightMap", EnvironmentMapDataStore.WaterMap.RenderTexture);
         WaterRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000, 2000, 2000));
     }
 
@@ -52,7 +52,7 @@ public class WaterSimulation : MonoBehaviour, ISimulation
             SetComputeShaderVariables();
             UpdateWaterTable();
 
-            EnvironmentMapDataStore.WaterMap.UpdateTextureCache();
+            EnvironmentMapDataStore.WaterMap.RefreshCache();
             WaterRenderer.material.SetFloat("SeaLevel", SeaLevel);
         }
     }
@@ -67,9 +67,9 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     private void UpdateWaterTable()
     {
         int updateKernel = WaterShader.FindKernel("Update");
-        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentMapDataStore.LandHeightMap);
-        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentMapDataStore.WaterMap);
-        WaterShader.SetTexture(updateKernel, "WaterSourceMap", EnvironmentMapDataStore.WaterSourceMap);
+        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
+        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentMapDataStore.WaterMap.RenderTexture);
+        WaterShader.SetTexture(updateKernel, "WaterSourceMap", EnvironmentMapDataStore.WaterSourceMap.RenderTexture);
         WaterShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 }

@@ -4,47 +4,31 @@ using UnityEngine;
 using LiteDB;
 using System.IO;
 
-public class EnvironmentMapDataStore : MonoBehaviour
+public static class EnvironmentMapDataStore
 {
-    public static RenderTexture WaterSourceMap { get; set; }
-    public static RenderTexture WaterMap { get; set; }
-    public static RenderTexture LandHeightMap { get; set; }
-    public static RenderTexture PlateThicknessMaps { get; set; }
-    public static RenderTexture TmpPlateThicknessMaps { get; set; }
-    public static RenderTexture ContinentalIdMap { get; set; }
-    public static RenderTexture TmpContinentalIdMap { get; set; }
+    public static EnvironmentMap WaterSourceMap { get; private set; }
+    public static EnvironmentMap WaterMap { get; private set; }
+    public static EnvironmentMap LandHeightMap { get; private set; }
+    public static EnvironmentMap PlateThicknessMaps { get; private set; }
+    public static EnvironmentMap ContinentalIdMap { get; private set; }
 
-    void Awake()
+    private static string ConnectionString => $@"{Application.persistentDataPath}\Environment.db";
+
+    public static void Load(string planetName)
     {
-        WaterMap = NewTexture(4, 6);
-        WaterSourceMap = NewTexture(4, 6);
-        LandHeightMap = NewTexture(1, 6);
-        PlateThicknessMaps = NewTexture(1, 1);
-        TmpPlateThicknessMaps = NewTexture(1, 1); 
-        ContinentalIdMap = NewTexture(1, 6);
-        TmpContinentalIdMap = NewTexture(1, 6);
+        WaterSourceMap = Load(planetName, EnvironmentMapType.WaterSourceMap);
+        WaterMap = Load(planetName, EnvironmentMapType.WaterMap);
+        LandHeightMap = Load(planetName, EnvironmentMapType.LandHeightMap);
+        PlateThicknessMaps = Load(planetName, EnvironmentMapType.PlateThicknessMaps);
+        ContinentalIdMap = Load(planetName, EnvironmentMapType.ContinentalIdMap);
     }
-
-    private RenderTexture NewTexture(int channels, int layers)
-    {
-        var format = channels switch
-        {
-            1 => RenderTextureFormat.RFloat,
-            2 => RenderTextureFormat.RGFloat,
-            _ => RenderTextureFormat.ARGBFloat
-        };
-        return new RenderTexture(512, 512, 0, format, 0).ResetTexture(layers).Initialize();
-    }
-
-    protected static string ConnectionString => $@"{Application.persistentDataPath}\Environment.db";
-
-    public EnvironmentMap Load(string planet, EnvironmentMapType mapType)
+    private static EnvironmentMap Load(string planetName, EnvironmentMapType mapType)
     {
         using var db = new LiteDatabase(ConnectionString);
         var fs = db.GetStorage<string>();
 
         var map = new EnvironmentMap(mapType);
-        var files = fs.FindAll().Where(x => x.Metadata["Map"] == map.Name && x.Metadata["Planet"] == planet).ToArray();
+        var files = fs.FindAll().Where(x => x.Metadata["Map"] == map.Name && x.Metadata["Planet"] == planetName).ToArray();
 
         if (!files.Any()) return map;
 
@@ -66,18 +50,26 @@ public class EnvironmentMapDataStore : MonoBehaviour
         return map;
     }
 
-    public void Save(string planet, EnvironmentMap map)
+    public static void Save(string planetName)
+    {
+        Save(planetName, WaterSourceMap);
+        Save(planetName, WaterMap);
+        Save(planetName, LandHeightMap);
+        Save(planetName, PlateThicknessMaps);
+        Save(planetName, ContinentalIdMap);
+    }
+    public static void Save(string planetName, EnvironmentMap map)
     {
         using var db = new LiteDatabase(ConnectionString);
         var fs = db.GetStorage<string>();
 
         foreach (var (tex, i) in map.CachedTextures.WithIndex())
         {
-            var path = $"$/{planet}/{map.Name}/{i}";
+            var path = $"$/{planetName}/{map.Name}/{i}";
             var stream = new MemoryStream(tex.GetRawTextureData());
             var metaData = new Dictionary<string, BsonValue>
             {
-                { "Planet", new BsonValue(planet) },
+                { "Planet", new BsonValue(planetName) },
                 { "Map", new BsonValue(map.Name) },
                 { "Index", new BsonValue(i) },
             };
