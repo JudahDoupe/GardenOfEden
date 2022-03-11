@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/_Gameplay/UI/styles.uss?fileID=7433441132597879392&amp;guid=c7b412e92dc47aa4382ab3b5869f7136&amp;type=3#styles" />
+    <ui:VisualElement name="Container" style="flex-direction: row; flex-grow: 1; flex-shrink: 0;">
+        <ui:VisualElement name="Left" style="flex-grow: 1; flex-shrink: 0; align-items: flex-end; justify-content: center;">
+            <ui:Button display-tooltip-when-elided="true" name="LeftButton" style="width: 50px; height: 75px; background-image: url(&apos;project://database/Assets/_Gameplay/UI/Sprites/Arrow_Button_Left.png?fileID=2800000&amp;guid=25a28efc95334c64eae89014cc4cb58d&amp;type=3#Arrow_Button_Left&apos;); background-color: rgba(0, 0, 0, 0); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Center" style="flex-shrink: 0; flex-grow: 1; align-items: center;">
+            <ui:VisualElement name="Up" style="flex-grow: 1; flex-shrink: 0; flex-direction: row-reverse; justify-content: center; align-items: center;">
+                <ui:Label text="Earth" display-tooltip-when-elided="true" name="PlanetName" class="eden-title" style="font-size: 45px; -unity-font: url(&apos;project://database/Assets/_Gameplay/UI/Fonts/Raleway/Raleway-Regular.ttf?fileID=12800000&amp;guid=23560bf3b1999c44cb43bf9aaadb6291&amp;type=3#Raleway-Regular&apos;); -unity-font-definition: none;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Middle" style="width: 500px; height: 500px; align-items: center; justify-content: center;" />
+            <ui:VisualElement name="Down" style="justify-content: center; align-items: center; background-image: none; flex-grow: 1; flex-shrink: 0; flex-direction: column;">
+                <ui:Button text="Continue" display-tooltip-when-elided="true" name="ContinueButton" class="eden-button" style="-unity-font: url(&apos;project://database/Assets/_Gameplay/UI/Fonts/Raleway/Raleway-SemiBold.ttf?fileID=12800000&amp;guid=f6ffa3079cd545f44926aa4081a26cf0&amp;type=3#Raleway-SemiBold&apos;); background-image: url(&apos;project://database/Assets/_Gameplay/UI/Sprites/Button_1.png?fileID=2800000&amp;guid=90170ee380789264a938d569e14d1a48&amp;type=3#Button_1&apos;); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; background-color: rgba(0, 0, 0, 0); width: 250px; height: 50px; font-size: 21px; -unity-font-style: normal; -unity-font-definition: none;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="Right" style="flex-shrink: 0; flex-grow: 1; justify-content: center; align-items: flex-start;">
+            <ui:Button display-tooltip-when-elided="true" name="RightButton" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Sprites/Arrow_Button.png?fileID=2800000&amp;guid=15d21839722c33a44bceb4ba3446b388&amp;type=3#Arrow_Button&apos;); height: 75px; width: 50px; background-color: rgba(0, 0, 0, 0); border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -8,8 +8,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <ProjectGuid>{F49B5B11-5475-D98A-BF58-F6C878F5BC27}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -155,7 +154,6 @@
     <Compile Include="Assets\Common\Rendering\RenderFeatures\BlitMaterialFeature.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".editorconfig" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise2D.hlsl" />
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll" />
     <None Include="Assets\Packages\LiteDB.5.0.10\lib\net45\LiteDB.xml" />
@@ -176,6 +174,7 @@
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\ClassicNoise2D.hlsl" />
     <None Include="Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.xml" />
     <None Include="Assets\Resources\Shaders\TerrainManipulation.compute" />
+    <None Include="Assets\_Gameplay\UI\styles.uss" />
     <None Include="Assets\Packages\FsCheck.2.14.4\lib\net452\FsCheck.xml" />
     <None Include="Assets\Packages\QuikGraph.2.3.0\lib\net45\QuikGraph.dll" />
     <None Include="Assets\Packages\FsCheck.2.14.4\lib\net452\FsCheck.dll" />
@@ -194,6 +193,7 @@
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise3D.hlsl" />
     <None Include="Assets\Resources\Shaders\DecodeDepthNormals.hlsl" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\WhiteNoise2D.hlsl" />
+    <None Include="Assets\_Gameplay\UI\MainMenu\MainMenu.uxml" />
     <None Include="Assets\Packages\stateless.5.10.1\lib\net45\stateless.xml" />
     <None Include="Assets\Resources\Shaders\Land.compute" />
     <None Include="Assets\_Environment\Land\PlateTectonics\Tectonics.compute" />
@@ -457,7 +457,7 @@
       <HintPath>C:\_Projects\2021.2.14f1\Editor\Data\PlaybackEngines\WindowsStandaloneSupport\UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Collections.LowLevel.ILSupport">
-      <HintPath>Library\PackageCache\com.unity.collections@0.15.0-preview.21\Unity.Collections.LowLevel.ILSupport\Unity.Collections.LowLevel.ILSupport.dll</HintPath>
+      <HintPath>Library\PackageCache\com.unity.collections@1.0.0-pre.5\Unity.Collections.LowLevel.ILSupport\Unity.Collections.LowLevel.ILSupport.dll</HintPath>
     </Reference>
     <Reference Include="FluentAssertions">
       <HintPath>Assets\Packages\FluentAssertions.5.10.3\lib\net47\FluentAssertions.dll</HintPath>
