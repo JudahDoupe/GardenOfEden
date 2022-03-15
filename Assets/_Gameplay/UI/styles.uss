@@ -1,5 +1,35 @@
-.eden-button {
+.eden-title {
+    -unity-font-definition: none;
+    -unity-font: url('project://database/Assets/_Gameplay/UI/Fonts/Raleway/Raleway-Regular.ttf?fileID=12800000&guid=23560bf3b1999c44cb43bf9aaadb6291&type=3#Raleway-Regular');
+    color: rgba(255, 255, 255, 255);
+    font-size: 45px;
 }
 
-.eden-title {
+.eden-button {
+    width: 250px;
+    height: 50px;
+    font-size: 21px;
+    -unity-font: url('project://database/Assets/_Gameplay/UI/Fonts/Raleway/Raleway-SemiBold.ttf?fileID=12800000&guid=f6ffa3079cd545f44926aa4081a26cf0&type=3#Raleway-SemiBold');
+    -unity-font-definition: none;
+    background-image: url('project://database/Assets/_Gameplay/UI/Sprites/Button_1.png?fileID=2800000&guid=90170ee380789264a938d569e14d1a48&type=3#Button_1');
+    background-color: rgba(0, 0, 0, 0);
+    -unity-background-image-tint-color: rgba(135, 135, 135, 255);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    color: rgba(188, 188, 188, 255);
+}
+
+.eden-button:disabled {
+    -unity-background-image-tint-color: rgba(135, 135, 135, 0.2);
+}
+
+.eden-button:hover {
+    -unity-background-image-tint-color: rgba(255, 255, 255, 255);
+    color: rgba(255, 255, 255, 255);
 }
