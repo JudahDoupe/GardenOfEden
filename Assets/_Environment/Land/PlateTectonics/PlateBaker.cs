@@ -22,10 +22,14 @@ public class PlateBaker : MonoBehaviour
     private int _lastPlateCount = 0;
 
     private EnvironmentMap PlateThicknessMaps => EnvironmentMapDataStore.PlateThicknessMaps;
-    private EnvironmentMap TmpPlateThicknessMaps = new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
+    private EnvironmentMap TmpPlateThicknessMaps;
     private EnvironmentMap ContinentalIdMap => EnvironmentMapDataStore.PlateThicknessMaps;
     private EnvironmentMap TmpContinentalIdMap => EnvironmentMapDataStore.PlateThicknessMaps;
 
+    private void Start()
+    {
+        TmpPlateThicknessMaps = new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
+    }
     private void Update()
     {
         var plates = Singleton.PlateTectonics.GetAllPlates();

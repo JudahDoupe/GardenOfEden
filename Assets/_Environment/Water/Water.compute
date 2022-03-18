@@ -1,0 +1,240 @@
+﻿#pragma kernel Update
+#pragma kernel Reset
+#include "../../Common/Shaders/Includes/CoordinateTransforms.hlsl"
+
+Texture2DArray<float> LandMap;
+Texture2DArray<float4> WaterSourceMap;
+RWTexture2DArray<float4> WaterMap;
+
+static float MaxHeight = 1000.0f;
+static float SeaLevel = 1000.0f;
+
+static float GridSpacing = TextureWidthInMeters / TextureWidthInPixels;
+static float SimulationSpeed = 1.0f / 50.0f; //speed in time steps per second. 1 = seconds | 50 = steps.  this is the speed of FixedUpdate
+static float Gravity = 9.8f;
+
+float MaxAmplitude = 2.0f;
+float MaxVelocity = 2.0f;
+
+float OceanAmplitudeDampening = 0.0;
+float OceanVelocityDampening = 0.0;
+
+static float Eps = 0.00001f;
+
+float GetTerrainHeight(int3 xyw)
+{
+    return LandMap[xyw].r - SeaLevel;
+}
+float GetWaterSouceDepth(int3 xyw)
+{
+    return WaterSourceMap[xyw].r;
+}
+float GetHeight(int3 xyw)
+{
+    return WaterMap[xyw].a;
+}
+float GetDepth(int3 xyw)
+{
+    return WaterMap[xyw].b;
+}
+float2 GetVelocity(int3 xyw)
+{
+    return WaterMap[xyw].rg;
+}
+float GetVelocityFace(int3 xyw, int3 offset)
+{
+    if (offset.x == 1)
+    {
+        return GetVelocity(xyw).x;
+    }
+    else if (offset.y == 1)
+    {
+        return GetVelocity(xyw).y;
+    }
+    else if (offset.x == -1)
+    {
+        return GetVelocity(xyw + offset).x;
+    }
+    else if (offset.y == -1)
+    {
+        return GetVelocity(xyw + offset).y;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+// Velocity
+
+int ShouldPerserveVelocity(int3 xyw, int3 offset)
+{
+    int isReflective = (GetDepth(xyw) <= Eps && GetTerrainHeight(xyw) > GetHeight(xyw + offset)) ||
+					   (GetDepth(xyw + offset) <= Eps && GetTerrainHeight(xyw + offset) > GetHeight(xyw));
+    return !isReflective;
+}
+float2 GetNewVelocity(int3 xyw)
+{
+    float2 externalForce = 0;
+
+    float2 neighborHeights = float2(GetHeight(xyw + int3(1, 0, 0)), GetHeight(xyw + int3(0, 1, 0)));
+    float2 heightDiffs = neighborHeights - GetHeight(xyw);
+
+    float relativeGravity = -Gravity / GridSpacing;
+    float2 changeInVelocity = (relativeGravity * heightDiffs + externalForce) * SimulationSpeed;
+	
+    int2 shouldPerserveVelocity = int2(ShouldPerserveVelocity(xyw, int3(1, 0, 0)), ShouldPerserveVelocity(xyw, int3(0, 1, 0)));
+    float2 newVelocity = (GetVelocity(xyw) + changeInVelocity) * shouldPerserveVelocity;
+
+    float maxVelocity = (GridSpacing / SimulationSpeed) * MaxVelocity;
+    return clamp(newVelocity, -maxVelocity, maxVelocity);
+}
+
+// Height
+
+float UpwindDepth(int3 xyw, int3 offset)
+{
+    int dir = dot(offset.xy, int2(1, 1));
+    if (GetVelocityFace(xyw, offset) * dir <= 0)
+        return GetDepth(xyw + offset);
+    else
+        return GetDepth(xyw);
+}
+float StabilizedUpwind(int3 xyw, int3 offset)
+{
+    float averageMaxDepth = (GridSpacing / (Gravity * SimulationSpeed)) * MaxAmplitude;
+    float averageUpwind = (UpwindDepth(xyw, int3(1, 0, 0)) +
+						   UpwindDepth(xyw, int3(0, 1, 0)) +
+						   UpwindDepth(xyw, int3(-1, 0, 0)) +
+						   UpwindDepth(xyw, int3(0, -1, 0))) / 4;
+    float adjacentDepth = max(0, (averageUpwind - averageMaxDepth));
+    return UpwindDepth(xyw, offset) - adjacentDepth;
+}
+float Runoff(int3 xyw, int3 offset)
+{
+    float runoff = StabilizedUpwind(xyw, offset) * GetVelocityFace(xyw, offset);
+    return runoff;
+}
+float GetChangeInDepth(int3 xyw)
+{
+    float xRunoff = (Runoff(xyw, int3(1, 0, 0)) - Runoff(xyw, int3(-1, 0, 0))) / GridSpacing;
+    float yRunoff = (Runoff(xyw, int3(0, 1, 0)) - Runoff(xyw, int3(0, -1, 0))) / GridSpacing;
+
+    return -(xRunoff + yRunoff) * SimulationSpeed;
+}
+float GetNewDepth(int3 xyw)
+{
+    float newDepth = GetDepth(xyw) + GetChangeInDepth(xyw);
+    return clamp(newDepth, GetWaterSouceDepth(xyw), MaxHeight);
+}
+
+// High Frequency Suppression
+
+float EdgeSuppression(int3 xyw, int3 offset)
+{
+    float maxEdge = 0.5f * GridSpacing;
+    float suppressionRation = 0.25f;
+
+    float myHeight = GetHeight(xyw);
+    float edgeHeight = GetHeight(xyw + offset);
+    float oppositeEdgeHeight = GetHeight(xyw + (offset * -1));
+
+    float myDepth = GetDepth(xyw);
+    float edgeDepth = GetDepth(xyw + offset);
+
+    if (myHeight - oppositeEdgeHeight > maxEdge && myHeight > edgeHeight)
+    {
+        float avgDepth = (myDepth + edgeDepth) / 2.0f;
+        return suppressionRation * (max(0, avgDepth) - myDepth);
+    }
+    else
+    {
+        return 0.0f;
+    }
+}
+float SuppressHighFrequencies(int3 xyw)
+{
+    //This does not conserve mass :(
+    float suppression = EdgeSuppression(xyw, int3(-1, 0, 0)) + EdgeSuppression(xyw, int3(1, 0, 0)) +
+		                EdgeSuppression(xyw, int3(0, -1, 0)) + EdgeSuppression(xyw, int3(0, 1, 0));
+    return GetDepth(xyw) + suppression;
+}
+
+// Ocean Dampening
+
+float DampenAmplitude(float depth, float terrainHeight)
+{
+    float seaLevelDepth = max(-terrainHeight, 0);
+    float dampening = lerp(0, OceanAmplitudeDampening, saturate(seaLevelDepth / 50));
+    return lerp(depth, seaLevelDepth, dampening);
+}
+float2 DampenVelocity(float2 velocity, float terrainHeight)
+{
+    float seaLevelDepth = max(-terrainHeight, 0);
+    float dampening = lerp(0, OceanVelocityDampening, saturate(seaLevelDepth / 50));
+    return lerp(velocity, float2(0,0), dampening);
+}
+
+// Kernels
+
+[numthreads(8, 8, 1)]
+void Update(uint3 id : SV_DispatchThreadID)
+{
+	[unroll]
+    for (int i = 0; i < 6; ++i)
+    {
+        int3 xyw = int3(id.xy, i);
+
+        float terrainHeight = GetTerrainHeight(xyw);
+        float2 velocity = DampenVelocity(GetNewVelocity(xyw), terrainHeight);
+        float depth = DampenAmplitude(GetNewDepth(xyw), terrainHeight);
+        float waterHeight = terrainHeight + depth;
+        WaterMap[xyw] = float4(velocity, depth, waterHeight);
+        AllMemoryBarrierWithGroupSync();
+        
+        depth = SuppressHighFrequencies(xyw); 
+        float heightFalloff = saturate(max(depth * depth, 0.8));
+        waterHeight = (terrainHeight + depth) * heightFalloff;
+        WaterMap[xyw] = float4(velocity, depth, waterHeight);
+    }
+
+        
+    [unroll]
+    for (int i = 0; i < 6; ++i)
+    {
+        if (is_boundry_pixel(id.xy))
+        {
+            int3 dst_xyw = int3(id.xy, i);
+            int3 src_xyw = get_source_xyw(dst_xyw);
+            float4 src_water = WaterMap[src_xyw];
+            
+            int rotations = get_src_rotations(src_xyw.z, dst_xyw.z);
+            int2 y_offset = rotate_clockwise(int2(0, 1), rotations);
+            int2 x_offset = rotate_clockwise(y_offset, 1); 
+            
+            int invert_x = !is_src_x_inverted(src_xyw.z, dst_xyw.z) * 2 - 1;
+            x_offset.x *= invert_x;
+            y_offset.x *= invert_x;
+            
+            src_water.x = GetVelocityFace(src_xyw, int3(x_offset,0));
+            src_water.y = GetVelocityFace(src_xyw, int3(y_offset, 0));
+            
+            src_water.xy = rotate_clockwise(src_water.xy, 2);
+            
+            WaterMap[dst_xyw] = src_water;
+            
+        }
+    }
+}
+
+[numthreads(8, 8, 1)]
+void Reset(uint3 id : SV_DispatchThreadID)
+{
+    [unroll]
+    for (int i = 0; i < 6; ++i)
+    {
+        float land = LandMap[int3(id.xy, i)];
+        float w = max(SeaLevel - land, 0);
+        WaterMap[int3(id.xy, i)] = float4(0, 0, w, land + w);
+    }
+}
