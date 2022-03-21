@@ -37,7 +37,7 @@ public class PlateBaker : MonoBehaviour
         {
             _needsBaking = true;
         }
-        if (_needsBaking && !_isBaking && plates.All(x => x.IsStopped))
+        if (_needsBaking && SimulationController.IsSimulationRunning(SimulationType.PlateTectonics) && !_isBaking && plates.All(x => x.IsStopped))
         {
             _cancelation = new CancellationTokenSource();
             BakePlates();

@@ -21,9 +21,9 @@ public class EnvironmentMap
         Type = type;
         MetaData = Type.MetaData();
         RenderTexture = new RenderTexture(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, 0, MetaData.RenderTextureFormat, 0);
-        ResetTexture(Layers);
-        CachedTextures = new Texture2D[Layers];
-        for (var i = 0; i < Layers; i++)
+        ResetTexture(MetaData.Layers);
+        CachedTextures = new Texture2D[MetaData.Layers];
+        for (var i = 0; i < MetaData.Layers; i++)
         {
             CachedTextures[i] = new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, MetaData.TextureFormat, false);
         }

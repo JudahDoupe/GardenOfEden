@@ -9,5 +9,6 @@ public class GameManger : MonoBehaviour
     void Awake()
     {
         EnvironmentMapDataStore.Load(CurrentPlanet);
+        //FindObjectOfType<MainMenu>().Enable();
     }
 }

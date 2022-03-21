@@ -72,12 +72,14 @@ public class CameraUtils : MonoBehaviour
 
     public static Coordinate ClampAboveTerrain(Coordinate coord, float minDistance = 1)
     {
+        if (EnvironmentMapDataStore.LandHeightMap == null) return coord;
         var minAltitude = math.max(EnvironmentMapDataStore.LandHeightMap.Sample(coord).r, Singleton.Water.SampleHeight(coord)) + minDistance;
         coord.Altitude = coord.Altitude < minAltitude ? minAltitude : coord.Altitude;
         return coord;
     }
     public static Coordinate ClampToTerrain(Coordinate coord)
     {
+        if (EnvironmentMapDataStore.LandHeightMap == null) return coord;
         coord.Altitude = math.max(EnvironmentMapDataStore.LandHeightMap.Sample(coord).r, Singleton.Water.SampleHeight(coord));
         return coord;
     }
