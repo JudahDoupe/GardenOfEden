@@ -8,7 +8,7 @@ public class EnvironmentMap
     public EnvironmentMapType Type { get; }
     public EnvironmentMapMetaData MetaData { get; }
     public RenderTexture RenderTexture { get; }
-    public Texture2D[] CachedTextures;
+    public Texture2D[] CachedTextures { get; private set; }
     public string Name => MetaData.Name;
     public int Channels => MetaData.Channels;
     public int Layers { get => RenderTexture.depth; set => ResetTexture(value); }
@@ -65,6 +65,7 @@ public class EnvironmentMap
     public void SetTextures(Texture2D[] textures)
     {
         RenderTexture.SetTexture(textures);
+        CachedTextures = textures;
     }
     public void SetTextures(Texture2DArray tex)
     {
