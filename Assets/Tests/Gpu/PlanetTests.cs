@@ -24,7 +24,8 @@ namespace Tests
         [Test]
         public void TestTextureSampling()
         {
-            var texture = new RenderTexture(512, 512, 0, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture(6).InitializeXyw();
+            var texture = new EnvironmentMap(EnvironmentMapType.LandHeightMap);
+            InitializeXyw(texture.RenderTexture);
             Prop.ForAll(GenCroppedUvw().ToArbitrary(), uvw =>
             {
                 TestHeightSample(uvw, 0.001f, texture);
@@ -52,7 +53,8 @@ namespace Tests
         [TestCase(0.00048828125f, 0.00048828125f)]
         public void TestTextureSamplingExpliciate(float u, float v)
         {
-            var texture = new RenderTexture(512, 512, 0, GraphicsFormat.R32G32B32A32_SFloat, 0).ResetTexture(6).InitializeXyw();
+            var texture = new EnvironmentMap(EnvironmentMapType.LandHeightMap);
+            InitializeXyw(texture.RenderTexture);
             for(var i = 0; i < 6; i++)
             {
                 var uvw = new float3(u, v, 3);
@@ -60,7 +62,7 @@ namespace Tests
             }
         }
 
-        private void TestHeightSample(float3 uvw, float percision, RenderTexture texture)
+        private void TestHeightSample(float3 uvw, float percision, EnvironmentMap texture)
         {
             var input = new SamplerData[1];
             var output = new SamplerData[1];
@@ -72,7 +74,7 @@ namespace Tests
             var shader = Resources.Load<ComputeShader>("Shaders/PlanetTests");
             var kernelId = shader.FindKernel("Test_sampleHeightMap");
             shader.SetBuffer(kernelId, "coords", buffer);
-            shader.SetTexture(kernelId, "_HeightMap", texture);
+            shader.SetTexture(kernelId, "_HeightMap", texture.RenderTexture);
             shader.Dispatch(kernelId, 1, 1, 1);
 
             buffer.GetData(output);
@@ -80,6 +82,14 @@ namespace Tests
             var color = texture.Sample(coord);
             var sampleValue = new float4(color.r, color.g, color.b, color.a);
             output[0].value.Should().BeApproximately(sampleValue, percision);
+        }
+
+        public void InitializeXyw(RenderTexture tex)
+        {
+            ComputeShader cs = (ComputeShader)Resources.Load("Shaders/Initialize");
+            var kernelId = cs.FindKernel("InitializeXyw");
+            cs.SetTexture(kernelId, "Map", tex);
+            cs.Dispatch(kernelId, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
         }
 
         private struct SamplerData

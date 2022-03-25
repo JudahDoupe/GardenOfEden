@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,10 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float MantleHeight = 900;
     [Range(0,100)]
     public float FaultLineNoise = 0.25f;
-    public void Regenerate() => Regenerate(_plates.Count);
+    public void Regenerate() => Regenerate(Plates.Count);
     public void Regenerate(int numPlates)
     {
-        _plates.Clear();
+        Plates.Clear();
         FindObjectOfType<PlateTectonicsVisualization>().Initialize();
 
         for (int p = 1; p <= numPlates; p++)
@@ -57,29 +58,29 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         }
     }
 
-    private List<Plate> _plates = new List<Plate>();
-    private EnvironmentMap LandHeightMap;
-    private EnvironmentMap ContinentalIdMap;
-    private EnvironmentMap PlateThicknessMaps;
+    private List<Plate> Plates = new List<Plate>();
     private EnvironmentMap TmpPlateThicknessMaps;
+    private EnvironmentMap LandHeightMap => EnvironmentMapDataStore.LandHeightMap;
+    private EnvironmentMap ContinentalIdMap => EnvironmentMapDataStore.LandHeightMap;
+    private EnvironmentMap PlateThicknessMaps => EnvironmentMapDataStore.LandHeightMap;
 
-    public List<Plate> GetAllPlates() => _plates;
-    public Plate GetPlate(float id) => _plates.First(x => x.Id == id);
-    public Plate AddPlate() => AddPlate(_plates.Max(x => x.Id) + 1f);
+    public List<Plate> GetAllPlates() => Plates;
+    public Plate GetPlate(float id) => Plates.First(x => Math.Abs(x.Id - id) < float.Epsilon);
+    public Plate AddPlate() => AddPlate(Plates.Max(x => x.Id) + 1f);
     public Plate AddPlate(float id)
     {
         var plate = new Plate
         {
             Id = id,
-            Idx = _plates.Count,
+            Idx = Plates.Count,
             Rotation = Quaternion.identity,
             Velocity = Quaternion.identity,
             TargetVelocity = Quaternion.identity,
         };
-        var currentLayerCount = _plates.Count * 6;
-        var newLayerCount = (_plates.Count + 1) * 6;
+        var currentLayerCount = Plates.Count * 6;
+        var newLayerCount = (Plates.Count + 1) * 6;
 
-        if (_plates.Count > 0)
+        if (Plates.Count > 0)
         {
             Graphics.CopyTexture(PlateThicknessMaps.RenderTexture, TmpPlateThicknessMaps.RenderTexture);
         }
@@ -91,23 +92,23 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         }
         TmpPlateThicknessMaps.Layers = newLayerCount;
 
-        _plates.Add(plate);
-        NumPlates = _plates.Count;
+        Plates.Add(plate);
+        NumPlates = Plates.Count;
         return plate;
     }
     public void RemovePlate(float id)
     {
-        var plate = _plates.FirstOrDefault(x => x.Id == id);
+        var plate = GetPlate(id);
         if (plate == null) return;
         
-        _plates.Remove(plate);
-        var newLayerCount = _plates.Count * 6;
+        Plates.Remove(plate);
+        var newLayerCount = Plates.Count * 6;
 
         Graphics.CopyTexture(PlateThicknessMaps.RenderTexture, TmpPlateThicknessMaps.RenderTexture);
         PlateThicknessMaps.Layers = newLayerCount;
-        foreach (var p in _plates)
+        foreach (var p in Plates)
         {
-            var newIdx = _plates.IndexOf(p);
+            var newIdx = Plates.IndexOf(p);
             for (var i = 0; i < 6; i++)
             {
                 Graphics.CopyTexture(TmpPlateThicknessMaps.RenderTexture, (p.Idx * 6) + i, PlateThicknessMaps.RenderTexture, (newIdx * 6) + i);
@@ -115,7 +116,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
             p.Idx = newIdx;
         }
         TmpPlateThicknessMaps.Layers = newLayerCount;
-        NumPlates = _plates.Count;
+        NumPlates = Plates.Count;
     }
 
     public void UpdateSystem()
@@ -127,7 +128,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     }
     public void UpdateVelocity()
     {
-        foreach (var plate in _plates)
+        foreach (var plate in Plates)
         {
             var velocity = Quaternion.Slerp(plate.Velocity, plate.TargetVelocity, (1 - PlateInertia));
             plate.Velocity = Quaternion.Slerp(Quaternion.identity, velocity, PlateSpeed * Time.deltaTime);
@@ -154,7 +155,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     {
         int kernel = TectonicsShader.FindKernel(kernelName);
         using var buffer = new ComputeBuffer(NumPlates, Marshal.SizeOf(typeof(Plate.GpuData)));
-        buffer.SetData(_plates.Select(x => x.ToGpuData()).ToArray());
+        buffer.SetData(Plates.Select(x => x.ToGpuData()).ToArray());
         TectonicsShader.SetBuffer(kernel, "Plates", buffer);
         TectonicsShader.SetTexture(kernel, "LandHeightMap", LandHeightMap.RenderTexture);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", PlateThicknessMaps.RenderTexture);
@@ -174,16 +175,11 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     private void Start()
     {
         IsActive = false;
-        /*
-        LandHeightMap = new EnvironmentMap(EnvironmentMapType.LandHeightMap);
-        ContinentalIdMap = new EnvironmentMap(EnvironmentMapType.ContinentalIdMap);
-        PlateThicknessMaps = new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
         TmpPlateThicknessMaps = new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
-        */
     }
     private void Update()
     {
-        if (_plates.Count != NumPlates)
+        if (Plates.Count != NumPlates)
         {
             Regenerate(NumPlates);
         }

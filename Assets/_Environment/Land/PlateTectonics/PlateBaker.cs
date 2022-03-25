@@ -21,6 +21,16 @@ public class PlateBaker : MonoBehaviour
     private bool _isBaking = false;
     private int _lastPlateCount = 0;
 
+    private EnvironmentMap PlateThicknessMaps => EnvironmentMapDataStore.PlateThicknessMaps;
+    private EnvironmentMap TmpPlateThicknessMaps;
+    private EnvironmentMap ContinentalIdMap => EnvironmentMapDataStore.PlateThicknessMaps;
+    private EnvironmentMap TmpContinentalIdMap => EnvironmentMapDataStore.PlateThicknessMaps;
+
+    private void Start()
+    {
+        TmpPlateThicknessMaps = new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
+    }
+
     private void Update()
     {
         var plates = Singleton.PlateTectonics.GetAllPlates();
@@ -56,7 +66,7 @@ public class PlateBaker : MonoBehaviour
             return;
         }
 
-        var continentIdMaps = EnvironmentMapDataStore.ContinentalIdMap.CachedTextures().Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
+        var continentIdMaps = EnvironmentMapDataStore.ContinentalIdMap.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
         var continents = await Task.Run(() => CoalesceContinents(DetectContinents(continentIdMaps)), _cancelation.Token);
 
         if (_cancelation.IsCancellationRequested)
@@ -96,10 +106,10 @@ public class PlateBaker : MonoBehaviour
         BakePlatesShader.SetBuffer(kernel, "Plates", buffer);
         BakePlatesShader.SetInt("NumPlates", plates.Count());
         BakePlatesShader.SetFloat("MantleHeight", Singleton.PlateTectonics.MantleHeight);
-        BakePlatesShader.SetTexture(kernel, "TmpPlateThicknessMaps", EnvironmentMapDataStore.TmpPlateThicknessMaps);
-        BakePlatesShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentMapDataStore.PlateThicknessMaps);
-        BakePlatesShader.SetTexture(kernel, "TmpContinentalIdMap", EnvironmentMapDataStore.TmpContinentalIdMap);
-        BakePlatesShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap);
+        BakePlatesShader.SetTexture(kernel, "TmpPlateThicknessMaps", TmpPlateThicknessMaps.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "PlateThicknessMaps", PlateThicknessMaps.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "TmpContinentalIdMap", TmpContinentalIdMap.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "ContinentalIdMap", ContinentalIdMap.RenderTexture);
         BakePlatesShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
@@ -220,13 +230,13 @@ public class PlateBaker : MonoBehaviour
             }
         }
 
-        var texture2dArray = new Texture2DArray(EnvironmentMapDataStore.TmpContinentalIdMap.width, EnvironmentMapDataStore.TmpContinentalIdMap.height, 6, EnvironmentMapDataStore.TmpContinentalIdMap.graphicsFormat, TextureCreationFlags.None);
+        var texture2dArray = new Texture2DArray(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, 6, TmpContinentalIdMap.MetaData.GraphicsFormat, TextureCreationFlags.None);
         for (var i = 0; i < textureArrays.Length; i++)
         {
             texture2dArray.SetPixelData(textureArrays[i], 0, i);
         }
         texture2dArray.Apply();
-        EnvironmentMapDataStore.TmpContinentalIdMap.SetTexture(texture2dArray);
+        TmpContinentalIdMap.SetTextures(texture2dArray);
 
         RunTectonicKernel("BakePlates");
     }

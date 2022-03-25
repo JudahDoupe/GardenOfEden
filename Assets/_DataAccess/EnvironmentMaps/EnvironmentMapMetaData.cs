@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 public class EnvironmentMapMetaData
 {
@@ -17,6 +18,12 @@ public class EnvironmentMapMetaData
         1 => TextureFormat.RFloat,
         2 => TextureFormat.RGFloat,
         _ => TextureFormat.RGBAFloat,
+    };
+    public GraphicsFormat GraphicsFormat => Channels switch
+    {
+        1 => GraphicsFormat.R32_SFloat,
+        2 => GraphicsFormat.R32G32_SFloat,
+        _ => GraphicsFormat.R32G32B32A32_SFloat,
     };
 
     public EnvironmentMapMetaData(string name, int channels = 1, int layers = 6)
