@@ -1,6 +1,6 @@
 ﻿#pragma kernel Update
 #pragma kernel Reset
-#include "CoordinateTransforms.hlsl"
+#include "../../Common/Shaders/Includes/CoordinateTransforms.hlsl"
 
 Texture2DArray<float> LandMap;
 Texture2DArray<float4> WaterSourceMap;

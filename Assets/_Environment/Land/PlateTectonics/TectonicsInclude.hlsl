@@ -1,6 +1,6 @@
-#include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
-#include "../../../../Resources/Shaders/Quaternion.hlsl"
-#include "../../../../Resources/Shaders/Noise.hlsl"
+#include "../../../Common/Shaders/Includes/CoordinateTransforms.hlsl"
+#include "../../../Common/Shaders/Includes/Quaternion.hlsl"
+#include "../../../Common/Shaders/Includes/Noise.hlsl"
 
 struct Plate
 {

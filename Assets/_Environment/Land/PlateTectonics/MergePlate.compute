@@ -1,8 +1,7 @@
 #pragma kernel UpdatePlateId
 #pragma kernel MergePlates
 
-#include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
-#include "../../../../Resources/Shaders/Quaternion.hlsl"
+#include "TectonicsInclude.hlsl"
 
 RWTexture2DArray<float> ContinentalIdMap; 
 RWTexture2DArray<float> PlateThicknessMaps;

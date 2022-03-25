@@ -2,14 +2,11 @@
 #pragma kernel UpdateBreakLine
 #pragma kernel BreakPlate
 
-#include "../../../../Resources/Shaders/CoordinateTransforms.hlsl"
-#include "../../../../Resources/Shaders/Quaternion.hlsl"
-#include "../../../../Resources/Shaders/Noise.hlsl"
+#include "TectonicsInclude.hlsl"
 
 RWTexture2DArray<float> ContinentalIdMap; 
 RWTexture2DArray<float> PlateThicknessMaps;
 
-float MantleHeight;
 float FaultLineNoise;
 float OldPlateId; 
 float NewPlateId; 

@@ -15,6 +15,7 @@ public class WaterSimulation : MonoBehaviour, ISimulation
 
 
     [Header("Simulation")]
+    public ComputeShader WaterShader;
     [Range(0, 10f)]
     public float MaxAmplitude = 2;
     [Range(0, 10f)]
@@ -34,12 +35,10 @@ public class WaterSimulation : MonoBehaviour, ISimulation
         return EnvironmentMapDataStore.WaterMap.Sample(coord).a + SeaLevel;
     }
 
-    private ComputeShader WaterShader;
     private Renderer WaterRenderer;
 
     void Start()
     {
-        WaterShader = Resources.Load<ComputeShader>("Shaders/Water");
         WaterRenderer = GetComponent<Renderer>();
         WaterRenderer.material.SetTexture("HeightMap", EnvironmentMapDataStore.WaterMap);
         WaterRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000, 2000, 2000));
