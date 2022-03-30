@@ -61,8 +61,8 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     private List<Plate> Plates = new List<Plate>();
     private EnvironmentMap TmpPlateThicknessMaps;
     private EnvironmentMap LandHeightMap => EnvironmentMapDataStore.LandHeightMap;
-    private EnvironmentMap ContinentalIdMap => EnvironmentMapDataStore.LandHeightMap;
-    private EnvironmentMap PlateThicknessMaps => EnvironmentMapDataStore.LandHeightMap;
+    private EnvironmentMap ContinentalIdMap => EnvironmentMapDataStore.ContinentalIdMap;
+    private EnvironmentMap PlateThicknessMaps => EnvironmentMapDataStore.PlateThicknessMaps;
 
     public List<Plate> GetAllPlates() => Plates;
     public Plate GetPlate(float id) => Plates.First(x => Math.Abs(x.Id - id) < float.Epsilon);

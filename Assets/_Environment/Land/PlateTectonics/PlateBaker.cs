@@ -24,11 +24,12 @@ public class PlateBaker : MonoBehaviour
     private EnvironmentMap PlateThicknessMaps => EnvironmentMapDataStore.PlateThicknessMaps;
     private EnvironmentMap TmpPlateThicknessMaps;
     private EnvironmentMap ContinentalIdMap => EnvironmentMapDataStore.PlateThicknessMaps;
-    private EnvironmentMap TmpContinentalIdMap => EnvironmentMapDataStore.PlateThicknessMaps;
+    private EnvironmentMap TmpContinentalIdMap;
 
     private void Start()
     {
         TmpPlateThicknessMaps = new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
+        TmpContinentalIdMap = new EnvironmentMap(EnvironmentMapType.ContinentalIdMap);
     }
 
     private void Update()
@@ -38,7 +39,7 @@ public class PlateBaker : MonoBehaviour
         {
             _needsBaking = true;
         }
-        if (_needsBaking && !_isBaking && plates.All(x => x.IsStopped))
+        if (_needsBaking && !_isBaking && plates.All(x => x.IsStopped) && Singleton.PlateTectonics.IsActive)
         {
             _cancelation = new CancellationTokenSource();
             BakePlates();
@@ -47,16 +48,17 @@ public class PlateBaker : MonoBehaviour
         {
             _cancelation.Cancel();
         }
-        _lastPlateCount = plates.Count();
+        _lastPlateCount = plates.Count;
     }
 
-    private async void BakePlates()
+    public async void BakePlates()
     {
         if (debug) Debug.Log("Starting Bake");
         var timer = new Stopwatch();
         timer.Start();
         _isBaking = true;
-        
+
+        TmpPlateThicknessMaps.Layers = PlateThicknessMaps.Layers;
         AlignPlates();
 
         if (_cancelation.IsCancellationRequested)

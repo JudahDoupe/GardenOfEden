@@ -4,15 +4,7 @@ public class WaterSimulation : MonoBehaviour, ISimulation
 {
     [Header("Generation")]
     public float SeaLevel = 999.8f;
-    public void Regenerate()
-    {
-        int updateKernel = WaterShader.FindKernel("Reset");
-        SetComputeShaderVariables();
-        WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
-        WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentMapDataStore.WaterMap.RenderTexture);
-        WaterShader.Dispatch(updateKernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
-    }
-
+    public void Regenerate() => RunKernel("Reset");
 
     [Header("Simulation")]
     public ComputeShader WaterShader;
@@ -40,32 +32,28 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     void Start()
     {
         WaterRenderer = GetComponent<Renderer>();
-        WaterRenderer.material.SetTexture("HeightMap", EnvironmentMapDataStore.WaterMap.RenderTexture);
         WaterRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000, 2000, 2000));
     }
 
     void FixedUpdate()
     {
+        WaterRenderer.material.SetTexture("HeightMap", EnvironmentMapDataStore.WaterMap.RenderTexture);
+        WaterRenderer.material.SetFloat("SeaLevel", SeaLevel);
         if (IsActive)
         {
-            SetComputeShaderVariables();
-            UpdateWaterTable();
+            RunKernel("Update");
 
             EnvironmentMapDataStore.WaterMap.RefreshCache();
-            WaterRenderer.material.SetFloat("SeaLevel", SeaLevel);
         }
     }
 
-    private void SetComputeShaderVariables()
+    private void RunKernel(string kernelName)
     {
+        int updateKernel = WaterShader.FindKernel(kernelName);
         WaterShader.SetFloat("MaxAmplitude", MaxAmplitude);
         WaterShader.SetFloat("MaxVelocity", MaxVelocity);
         WaterShader.SetFloat("OceanAmplitudeDampening", OceanAmplitudeDampening);
         WaterShader.SetFloat("OceanVelocityDampening", OceanVelocityDampening);
-    }
-    private void UpdateWaterTable()
-    {
-        int updateKernel = WaterShader.FindKernel("Update");
         WaterShader.SetTexture(updateKernel, "LandMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
         WaterShader.SetTexture(updateKernel, "WaterMap", EnvironmentMapDataStore.WaterMap.RenderTexture);
         WaterShader.SetTexture(updateKernel, "WaterSourceMap", EnvironmentMapDataStore.WaterSourceMap.RenderTexture);

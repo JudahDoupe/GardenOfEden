@@ -11,7 +11,7 @@ public class EnvironmentMap
     public Texture2D[] CachedTextures { get; private set; }
     public string Name => MetaData.Name;
     public int Channels => MetaData.Channels;
-    public int Layers { get => RenderTexture.depth; set => ResetTexture(value); }
+    public int Layers { get => RenderTexture.volumeDepth; set => ResetTexture(value); }
     public bool IsCacheBeingUpdated => !_request.done;
 
     private AsyncGPUReadbackRequest _request;
@@ -21,12 +21,7 @@ public class EnvironmentMap
         Type = type;
         MetaData = Type.MetaData();
         RenderTexture = new RenderTexture(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, 0, MetaData.RenderTextureFormat, 0);
-        ResetTexture(Layers);
-        CachedTextures = new Texture2D[Layers];
-        for (var i = 0; i < Layers; i++)
-        {
-            CachedTextures[i] = new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, MetaData.TextureFormat, false);
-        }
+        ResetTexture(MetaData.Layers);
     }
 
     public void RefreshCache()
@@ -84,9 +79,15 @@ public class EnvironmentMap
         RenderTexture.dimension = TextureDimension.Tex2DArray;
         RenderTexture.volumeDepth = layers;
         RenderTexture.wrapMode = TextureWrapMode.Clamp;
-        RenderTexture.filterMode = FilterMode.Trilinear;
+        RenderTexture.filterMode = FilterMode.Bilinear;
         RenderTexture.enableRandomWrite = true;
         RenderTexture.isPowerOfTwo = true;
         RenderTexture.Create();
+
+        CachedTextures = new Texture2D[layers];
+        for (var i = 0; i < layers; i++)
+        {
+            CachedTextures[i] = new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, MetaData.TextureFormat, false);
+        }
     }
 }
