@@ -1,17 +1,18 @@
 ﻿#pragma kernel Update
 #pragma kernel Reset
+
 #include "../../Common/Shaders/Includes/CoordinateTransforms.hlsl"
 
-Texture2DArray<float> LandMap;
+Texture2DArray<float> LandHeightMap;
 Texture2DArray<float4> WaterSourceMap;
 RWTexture2DArray<float4> WaterMap;
 
-static float MaxHeight = 1000.0f;
-static float SeaLevel = 1000.0f;
-
 static float GridSpacing = TextureWidthInMeters / TextureWidthInPixels;
 static float SimulationSpeed = 1.0f / 50.0f; //speed in time steps per second. 1 = seconds | 50 = steps.  this is the speed of FixedUpdate
-static float Gravity = 9.8f;
+
+float Gravity = 9.8f;
+float SeaLevel = 1000.0f;
+float MaxDepth = 1000.0f;
 
 float MaxAmplitude = 2.0f;
 float MaxVelocity = 2.0f;
@@ -23,7 +24,7 @@ static float Eps = 0.00001f;
 
 float GetTerrainHeight(int3 xyw)
 {
-    return LandMap[xyw].r - SeaLevel;
+    return LandHeightMap[xyw].r;
 }
 float GetWaterSouceDepth(int3 xyw)
 {
@@ -125,7 +126,7 @@ float GetChangeInDepth(int3 xyw)
 float GetNewDepth(int3 xyw)
 {
     float newDepth = GetDepth(xyw) + GetChangeInDepth(xyw);
-    return clamp(newDepth, GetWaterSouceDepth(xyw), MaxHeight);
+    return clamp(newDepth, GetWaterSouceDepth(xyw), MaxDepth);
 }
 
 // High Frequency Suppression
@@ -200,11 +201,11 @@ void Update(uint3 id : SV_DispatchThreadID)
 
         
     [unroll]
-    for (int i = 0; i < 6; ++i)
+    for (int i2 = 0; i2 < 6; ++i2)
     {
         if (is_boundry_pixel(id.xy))
         {
-            int3 dst_xyw = int3(id.xy, i);
+            int3 dst_xyw = int3(id.xy, i2);
             int3 src_xyw = get_source_xyw(dst_xyw);
             float4 src_water = WaterMap[src_xyw];
             
@@ -233,7 +234,7 @@ void Reset(uint3 id : SV_DispatchThreadID)
     [unroll]
     for (int i = 0; i < 6; ++i)
     {
-        float land = LandMap[int3(id.xy, i)];
+        float land = LandHeightMap[int3(id.xy, i)];
         float w = max(SeaLevel - land, 0);
         WaterMap[int3(id.xy, i)] = float4(0, 0, w, land + w);
     }

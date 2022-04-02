@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -52,9 +52,6 @@
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2021.1.16f1</UnityVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <Analyzer Include="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\_Gameplay\Cameras\CirclingCamera.cs" />
     <Compile Include="Assets\_Environment\Land\PlateTectonics\Audio\PlateTectonicsAudio.cs" />
@@ -185,7 +182,7 @@
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\WhiteNoise3D.hlsl" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\BCCNoise4.hlsl" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\ClassicNoise3D.hlsl" />
-    <None Include="Assets\Imports\NuGet\Editor\NugetForUnity.dll" />
+    <None Include="Assets\Imports\NuGet\Editor\NuGetForUnity.dll" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise3D.hlsl" />
     <None Include="Assets\Common\Shaders\Includes\DecodeDepthNormals.hlsl" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\WhiteNoise2D.hlsl" />
@@ -429,14 +426,17 @@
     <Reference Include="UnityEditor.Graphs">
       <HintPath>C:\_Projects\2021.1.16f1\Editor\Data\Managed\UnityEditor.Graphs.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEditor.OSXStandalone.Extensions">
+      <HintPath>C:\_Projects\2021.1.16f1\Editor\Data\PlaybackEngines\MacStandaloneSupport\UnityEditor.OSXStandalone.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEditor.WindowsStandalone.Extensions">
       <HintPath>C:\_Projects\2021.1.16f1\Editor\Data\PlaybackEngines\WindowsStandaloneSupport\UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Collections.LowLevel.ILSupport">
       <HintPath>Library\PackageCache\com.unity.collections@0.15.0-preview.21\Unity.Collections.LowLevel.ILSupport\Unity.Collections.LowLevel.ILSupport.dll</HintPath>
     </Reference>
-    <Reference Include="NugetForUnity">
-      <HintPath>Assets\Imports\NuGet\Editor\NugetForUnity.dll</HintPath>
+    <Reference Include="NuGetForUnity">
+      <HintPath>Assets\Imports\NuGet\Editor\NuGetForUnity.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Analytics.StandardEvents">
       <HintPath>Library\PackageCache\com.unity.analytics@3.5.3\AnalyticsStandardEvents\Unity.Analytics.StandardEvents.dll</HintPath>
