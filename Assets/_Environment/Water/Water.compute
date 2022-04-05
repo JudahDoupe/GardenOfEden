@@ -165,13 +165,13 @@ float SuppressHighFrequencies(int3 xyw)
 
 float DampenAmplitude(float depth, float terrainHeight)
 {
-    float seaLevelDepth = -min(terrainHeight - SeaLevel, 0);
+    float seaLevelDepth = max(SeaLevel-terrainHeight, 0);
     float dampening = lerp(0, OceanAmplitudeDampening, saturate(seaLevelDepth / 50));
     return lerp(depth, seaLevelDepth, dampening);
 }
 float2 DampenVelocity(float2 velocity, float terrainHeight)
 {
-    float seaLevelDepth = -min(terrainHeight - SeaLevel, 0);
+    float seaLevelDepth = max(SeaLevel-terrainHeight, 0);
     float dampening = lerp(0, OceanVelocityDampening, saturate(seaLevelDepth / 50));
     return lerp(velocity, float2(0,0), dampening);
 }
@@ -189,14 +189,12 @@ void Update(uint3 id : SV_DispatchThreadID)
         float terrainHeight = GetTerrainHeight(xyw);
         float2 velocity = DampenVelocity(GetNewVelocity(xyw), terrainHeight);
         float depth = DampenAmplitude(GetNewDepth(xyw), terrainHeight);
-        float waterHeight = terrainHeight + depth;
-        WaterMap[xyw] = float4(velocity, depth, waterHeight);
+        WaterMap[xyw] = float4(velocity, depth, terrainHeight + depth - Eps);
+
         AllMemoryBarrierWithGroupSync();
-        
-        depth = SuppressHighFrequencies(xyw); 
-        float heightFalloff = saturate(max(depth * depth, 0.8));
-        waterHeight = (terrainHeight + depth) * heightFalloff;
-        WaterMap[xyw] = float4(velocity, depth, waterHeight);
+
+        depth = SuppressHighFrequencies(xyw);
+        WaterMap[xyw] = float4(velocity, depth, terrainHeight + depth - Eps);
     }
 
         
@@ -223,7 +221,6 @@ void Update(uint3 id : SV_DispatchThreadID)
             src_water.xy = rotate_clockwise(src_water.xy, 2);
             
             WaterMap[dst_xyw] = src_water;
-            
         }
     }
 }

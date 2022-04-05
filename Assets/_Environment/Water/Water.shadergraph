@@ -7,9 +7,6 @@
             "m_Id": "23a1d0bde5134b8eb21c5a1a380eafba"
         },
         {
-            "m_Id": "2c6840f895614afc961fa37363f7d147"
-        },
-        {
             "m_Id": "2414b638ba57443d9fa603b831a9094b"
         },
         {
@@ -798,31 +795,6 @@
     "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
-    }
-}
-
-{
-    "m_SGVersion": 1,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
-    "m_ObjectId": "2c6840f895614afc961fa37363f7d147",
-    "m_Guid": {
-        "m_GuidSerialized": "0d9ac294-26bd-4bf8-ba75-334e5006d45b"
-    },
-    "m_Name": "SeaLevel",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "SeaLevel",
-    "m_DefaultReferenceName": "SeaLevel",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": false,
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_Value": 1000.0,
-    "m_FloatType": 0,
-    "m_RangeValues": {
-        "x": 0.0,
-        "y": 1.0
     }
 }
 
