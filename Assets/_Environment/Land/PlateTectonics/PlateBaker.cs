@@ -23,7 +23,7 @@ public class PlateBaker : MonoBehaviour
 
     private EnvironmentMap PlateThicknessMaps => EnvironmentMapDataStore.PlateThicknessMaps;
     private EnvironmentMap TmpPlateThicknessMaps;
-    private EnvironmentMap ContinentalIdMap => EnvironmentMapDataStore.PlateThicknessMaps;
+    private EnvironmentMap ContinentalIdMap => EnvironmentMapDataStore.ContinentalIdMap;
     private EnvironmentMap TmpContinentalIdMap;
 
     private void Start()
@@ -39,10 +39,10 @@ public class PlateBaker : MonoBehaviour
         {
             _needsBaking = true;
         }
-        if (_needsBaking && !_isBaking && plates.All(x => x.IsStopped) && Singleton.PlateTectonics.IsActive)
+        if (_needsBaking && !_isBaking && plates.All(x => x.IsStopped) && Singleton.PlateTectonics.IsActive && EnvironmentMapDataStore.IsLoaded)
         {
             _cancelation = new CancellationTokenSource();
-            BakePlates();
+            ContinentalIdMap.RefreshCache(BakePlates);
         }
         if (_isBaking && (!plates.All(x => x.IsStopped) || plates.Count() != _lastPlateCount))
         {
@@ -68,7 +68,7 @@ public class PlateBaker : MonoBehaviour
             return;
         }
 
-        var continentIdMaps = EnvironmentMapDataStore.ContinentalIdMap.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
+        var continentIdMaps = ContinentalIdMap.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
         var continents = await Task.Run(() => CoalesceContinents(DetectContinents(continentIdMaps)), _cancelation.Token);
 
         if (_cancelation.IsCancellationRequested)
@@ -80,7 +80,9 @@ public class PlateBaker : MonoBehaviour
 
         UpdateContinentIds(continents);
         
-        foreach (var plateId in Singleton.PlateTectonics.GetAllPlates().Where(x=> !continents.Select(x => x.CurrentId).Contains(x.Id)).Select(x => x.Id))
+        foreach (var plateId in Singleton.PlateTectonics.GetAllPlates()
+                     .Where(x=> !continents.Select(c => c.CurrentId).Contains(x.Id))
+                     .Select(x => x.Id))
         {
             Singleton.PlateTectonics.RemovePlate(plateId);
         }

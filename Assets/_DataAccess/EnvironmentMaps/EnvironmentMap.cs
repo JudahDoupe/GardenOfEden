@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -24,7 +25,7 @@ public class EnvironmentMap
         ResetTexture(MetaData.Layers);
     }
 
-    public void RefreshCache()
+    public void RefreshCache(Action callback = null)
     {
         if (!IsCacheBeingUpdated && RenderTexture.IsCreated())
         {
@@ -52,6 +53,11 @@ public class EnvironmentMap
 
                         }
                         CachedTextures[i].Apply();
+                    }
+
+                    if (callback != null)
+                    {
+                        callback.Invoke();
                     }
                 }
             });

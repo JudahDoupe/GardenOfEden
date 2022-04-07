@@ -63,7 +63,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     private EnvironmentMap ContinentalIdMap => EnvironmentMapDataStore.ContinentalIdMap;
     private EnvironmentMap PlateThicknessMaps => EnvironmentMapDataStore.PlateThicknessMaps;
 
-    public List<Plate> GetAllPlates() => Plates;
+    public List<Plate> GetAllPlates() => Plates.ToList();
     public Plate GetPlate(float id) => Plates.First(x => Math.Abs(x.Id - id) < float.Epsilon);
     public Plate AddPlate() => AddPlate(Plates.Max(x => x.Id) + 1f);
     public Plate AddPlate(float id)

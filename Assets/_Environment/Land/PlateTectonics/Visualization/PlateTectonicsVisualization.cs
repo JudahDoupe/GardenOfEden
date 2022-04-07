@@ -43,27 +43,22 @@ public class PlateTectonicsVisualization : MonoBehaviour
     {
         OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
         OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
-    }
-
-    private void Start()
-    {
         SetLandMaterialValues();
         ShowFaultLines(false);
     }
-    private void Update()
+    
+    private void OnValidate()
     {
-        if (IsActive)
-        {
-            Singleton.PlateTectonics.TectonicsShader.SetInt("RenderPlate", ShowIndividualPlate);
-            //SetLandMaterialValues();
-        }
+        if (EnvironmentMapDataStore.IsLoaded)
+            SetLandMaterialValues();
     }
 
     private void SetLandMaterialValues()
     {
-        GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(1,1,1) * Coordinate.PlanetRadius * 2);
+        GetComponent<MeshFilter>().sharedMesh.bounds = new Bounds(Vector3.zero, new Vector3(1,1,1) * Coordinate.PlanetRadius * 2);
         var landMaterial = GetComponent<Renderer>().material;
         landMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
+        landMaterial.SetTexture("ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
         landMaterial.SetFloat("MantleHeight", Singleton.PlateTectonics.MantleHeight);
         landMaterial.SetFloat("MaxHeight", Singleton.PlateTectonics.MantleHeight + (Singleton.PlateTectonics.MantleHeight / 3));
         landMaterial.SetFloat("FacetDencity", FacetsDencity);
@@ -73,5 +68,6 @@ public class PlateTectonicsVisualization : MonoBehaviour
         landMaterial.SetFloat("FacetPatchFalloffSharpness", PatchFalloffSharpness);
         landMaterial.SetFloat("NormalNoiseScale", NoiseScale);
         landMaterial.SetFloat("NormalNoiseStrength", NoiseStrength);
+        landMaterial.SetInt("RenderPlate", ShowIndividualPlate);
     }
 }

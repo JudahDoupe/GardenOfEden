@@ -17,7 +17,6 @@ float InflationRate;
 float OceanicCrustThickness;
 float Gravity;
 float PlateCohesion;
-int RenderPlate;
 
 [numthreads(8, 8, 6)]
 void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
@@ -123,13 +122,13 @@ void SmoothPlates(uint3 id : SV_DispatchThreadID)
 void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
 {
     float height = MantleHeight;
-    float plateId = ContinentalIdMap[id] * (RenderPlate == 0) + RenderPlate * (RenderPlate != 0);
+    float plateId = ContinentalIdMap[id];
 
     for (uint p = 0; p < NumPlates; p++)
     {
         Plate plate = Plates[p];
         float3 xyp = xyw_to_xyp(id, p);
-        height += PlateThicknessMaps[xyp] * (plate.Id == plateId);
+        height += PlateThicknessMaps[xyp] * (plate.Id == ContinentalIdMap[id]);
     }
 
     LandHeightMap[id] = height;

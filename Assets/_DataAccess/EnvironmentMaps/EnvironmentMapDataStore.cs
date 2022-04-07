@@ -6,6 +6,8 @@ using System.IO;
 
 public static class EnvironmentMapDataStore
 {
+    public static bool IsLoaded { get; private set; } = false;
+    
     public static EnvironmentMap WaterSourceMap { get; private set; }
     public static EnvironmentMap WaterMap { get; private set; }
     public static EnvironmentMap LandHeightMap { get; private set; }
@@ -21,6 +23,8 @@ public static class EnvironmentMapDataStore
         LandHeightMap = Load(planetName, EnvironmentMapType.LandHeightMap);
         PlateThicknessMaps = Load(planetName, EnvironmentMapType.PlateThicknessMaps);
         ContinentalIdMap = Load(planetName, EnvironmentMapType.ContinentalIdMap);
+
+        IsLoaded = true;
     }
     private static EnvironmentMap Load(string planetName, EnvironmentMapType mapType)
     {
