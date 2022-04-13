@@ -56,7 +56,7 @@ public class PlateTectonicsVisualization : MonoBehaviour
     private void SetLandMaterialValues()
     {
         GetComponent<MeshFilter>().sharedMesh.bounds = new Bounds(Vector3.zero, new Vector3(1,1,1) * Coordinate.PlanetRadius * 2);
-        var landMaterial = GetComponent<Renderer>().material;
+        var landMaterial = GetComponent<Renderer>().sharedMaterial;
         landMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
         landMaterial.SetTexture("ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
         landMaterial.SetFloat("MantleHeight", Singleton.PlateTectonics.MantleHeight);

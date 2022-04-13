@@ -7,3 +7,6 @@ git log --oneline | ForEach-Object {
     }
 } 
 $sum | Measure-Object -average -sum -minimum -maximum
+
+Write-Host -NoNewLine 'Press any key to continue...';
+$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');

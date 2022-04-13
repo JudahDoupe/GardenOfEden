@@ -3,7 +3,7 @@
 #pragma kernel Test_xyw
 #pragma kernel Test_Boundries
 
-#include "CoordinateTransforms.hlsl"
+#include "../../Common/Shaders/Includes/CoordinateTransforms.hlsl"
 
 struct CoordData
 {
