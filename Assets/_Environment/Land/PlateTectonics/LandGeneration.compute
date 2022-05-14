@@ -1,0 +1,45 @@
+#pragma kernel ResetMaps
+
+#include "TectonicsInclude.hlsl"
+
+RWTexture2DArray<float> ContinentalIdMap; 
+RWTexture2DArray<float> PlateThicknessMaps;
+
+float FaultLineNoise;
+
+[numthreads(8, 8, 6)]
+void ResetMaps(uint3 id : SV_DispatchThreadID)
+{
+    float closestPlateId = 0;
+    uint3 closestXyp = uint3(0,0,0);
+    
+    for (uint p = 0; p < NumPlates; p++)
+	{
+        Plate myPlate = Plates[p];
+        uint3 xyp = uint3(id.xy, id.z + p * 6);
+		float3 xyz = rotate_vector(xyw_to_xyz(id, MantleHeight), myPlate.Rotation);
+        xyz = xyz + noise3d(xyz, FaultLineNoise);
+        xyz = xyz + noise3d(xyz, FaultLineNoise / 6.35);
+        xyz = xyz + noise3d(xyz, FaultLineNoise / 11.7);
+		float minDist = 1000000;
+
+		for (uint p2 = 0; p2 < NumPlates; p2++)
+		{
+			Plate otherPlate = Plates[p2];
+            float3 centerXyz = rotate_vector(float3(0, 0, MantleHeight), otherPlate.Rotation);
+
+			float dist = distance(xyz, centerXyz);
+			if (dist < minDist)
+			{
+				minDist = dist;
+                closestPlateId = otherPlate.Id;
+                closestXyp = xyp;
+            }
+		}
+        
+        PlateThicknessMaps[xyp] = 0;
+	}
+    
+    PlateThicknessMaps[closestXyp] = 0.01f;
+    ContinentalIdMap[id] = closestPlateId;
+}

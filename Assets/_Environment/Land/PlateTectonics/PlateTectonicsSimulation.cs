@@ -1,39 +1,17 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
+[RequireComponent(typeof(PlateTectonicsAudio))]
+[RequireComponent(typeof(PlateTectonicsVisualization))]
 public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 {
-    [Header("Generation")]
-    [Range(1, 30)]
-    public int NumPlates = 16;
-    public float MantleHeight = 900;
-    [Range(0,100)]
-    public float FaultLineNoise = 0.25f;
-    
-    //TODO: only regenerate from UI
-    public void Regenerate(int numPlates)
-    {
-        Plates.Clear();
-        FindObjectOfType<PlateTectonicsVisualization>().Initialize();
+    //TODO: save and load the plate data
 
-        for (int p = 1; p <= numPlates; p++)
-        {
-            var plate = AddPlate(p + 0.0001f);
-            plate.Rotation = Random.rotation;
-        }
-
-        RunTectonicKernel("ResetMaps");
-        UpdateHeightMap();
-        Singleton.Water.Regenerate();
-    }
-
-    [Header("Simulation")]
     public ComputeShader TectonicsShader;
+    public float MantleHeight = 900;
     public float OceanicCrustThickness = 25;
     [Range(0, 0.1f)]
     public float SubductionRate = 0.001f;
@@ -46,7 +24,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     [Range(0, 1)]
     public float PlateInertia = 0.3f;
     public float PlateSpeed = 500;
-
 
     private bool _isActive;
     public bool IsActive { 
@@ -94,7 +71,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         TmpPlateThicknessMaps.Layers = newLayerCount;
 
         Plates.Add(plate);
-        NumPlates = Plates.Count;
         return plate;
     }
     public void RemovePlate(float id)
@@ -117,7 +93,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
             p.Idx = newIdx;
         }
         TmpPlateThicknessMaps.Layers = newLayerCount;
-        NumPlates = Plates.Count;
     }
 
     public void UpdateSystem()
@@ -155,21 +130,20 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     private void RunTectonicKernel(string kernelName)
     {
         int kernel = TectonicsShader.FindKernel(kernelName);
-        using var buffer = new ComputeBuffer(NumPlates, Marshal.SizeOf(typeof(Plate.GpuData)));
+        using var buffer = new ComputeBuffer(Plates.Count, Marshal.SizeOf(typeof(Plate.GpuData)));
         buffer.SetData(Plates.Select(x => x.ToGpuData()).ToArray());
         TectonicsShader.SetBuffer(kernel, "Plates", buffer);
         TectonicsShader.SetTexture(kernel, "LandHeightMap", LandHeightMap.RenderTexture);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", PlateThicknessMaps.RenderTexture);
         TectonicsShader.SetTexture(kernel, "TmpPlateThicknessMaps", TmpPlateThicknessMaps.RenderTexture);
         TectonicsShader.SetTexture(kernel, "ContinentalIdMap", ContinentalIdMap.RenderTexture);
-        TectonicsShader.SetInt("NumPlates", NumPlates);
+        TectonicsShader.SetInt("NumPlates", Plates.Count);
         TectonicsShader.SetFloat("OceanicCrustThickness", OceanicCrustThickness);
         TectonicsShader.SetFloat("MantleHeight", MantleHeight);
         TectonicsShader.SetFloat("SubductionRate", SubductionRate);
         TectonicsShader.SetFloat("InflationRate", InflationRate);
         TectonicsShader.SetFloat("Gravity", Gravity);
         TectonicsShader.SetFloat("PlateCohesion", PlateCohesion);
-        TectonicsShader.SetFloat("FaultLineNoise", FaultLineNoise);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
@@ -180,10 +154,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     }
     private void Update()
     {
-        if (Plates.Count != NumPlates)
-        {
-            Regenerate(NumPlates);
-        }
         if (IsActive)
         {
             UpdateSystem();

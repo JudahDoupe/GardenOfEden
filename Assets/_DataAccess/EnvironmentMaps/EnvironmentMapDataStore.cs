@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using LiteDB;
 using System.IO;
+using System.Threading.Tasks;
 
 public static class EnvironmentMapDataStore
 {
@@ -13,10 +14,7 @@ public static class EnvironmentMapDataStore
     public static EnvironmentMap WaterSourceMap { get; } = new EnvironmentMap(EnvironmentMapType.WaterSourceMap);
     public static EnvironmentMap WaterMap { get; } = new EnvironmentMap(EnvironmentMapType.WaterMap);
     public static EnvironmentMap LandHeightMap { get; } = new EnvironmentMap(EnvironmentMapType.LandHeightMap);
-
-    public static EnvironmentMap PlateThicknessMaps { get; } =
-        new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
-
+    public static EnvironmentMap PlateThicknessMaps { get; } = new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
     public static EnvironmentMap ContinentalIdMap { get; } = new EnvironmentMap(EnvironmentMapType.ContinentalIdMap);
 
     public static void Load(string planetName)
@@ -77,12 +75,10 @@ public static class EnvironmentMapDataStore
             Directory.CreateDirectory(folderPath);
             foreach (var (tex, i) in map.CachedTextures.WithIndex())
             {
-                var filePath = $"{folderPath}/{i}.tex";
                 byte[] data = tex.GetRawTextureData();
+                var filePath = $"{folderPath}/{i}.tex";
                 File.WriteAllBytes(filePath, data);
             }
-
-            Load(map);
         });
 
     }
