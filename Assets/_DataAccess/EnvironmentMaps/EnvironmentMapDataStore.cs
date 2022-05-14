@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using LiteDB;
@@ -7,79 +8,82 @@ using System.IO;
 public static class EnvironmentMapDataStore
 {
     public static bool IsLoaded { get; private set; } = false;
-    
-    public static EnvironmentMap WaterSourceMap { get; private set; }
-    public static EnvironmentMap WaterMap { get; private set; }
-    public static EnvironmentMap LandHeightMap { get; private set; }
-    public static EnvironmentMap PlateThicknessMaps { get; private set; }
-    public static EnvironmentMap ContinentalIdMap { get; private set; }
+    public static string PlanetName { get; private set; } = "";
 
-    private static string ConnectionString => $@"{Application.persistentDataPath}\Environment.db";
+    public static EnvironmentMap WaterSourceMap { get; } = new EnvironmentMap(EnvironmentMapType.WaterSourceMap);
+    public static EnvironmentMap WaterMap { get; } = new EnvironmentMap(EnvironmentMapType.WaterMap);
+    public static EnvironmentMap LandHeightMap { get; } = new EnvironmentMap(EnvironmentMapType.LandHeightMap);
+
+    public static EnvironmentMap PlateThicknessMaps { get; } =
+        new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
+
+    public static EnvironmentMap ContinentalIdMap { get; } = new EnvironmentMap(EnvironmentMapType.ContinentalIdMap);
 
     public static void Load(string planetName)
     {
-        WaterSourceMap = Load(planetName, EnvironmentMapType.WaterSourceMap);
-        WaterMap = Load(planetName, EnvironmentMapType.WaterMap);
-        LandHeightMap = Load(planetName, EnvironmentMapType.LandHeightMap);
-        PlateThicknessMaps = Load(planetName, EnvironmentMapType.PlateThicknessMaps);
-        ContinentalIdMap = Load(planetName, EnvironmentMapType.ContinentalIdMap);
+        PlanetName = planetName;
 
+        Load(WaterSourceMap);
+        Load(WaterMap);
+        Load(LandHeightMap);
+        Load(PlateThicknessMaps);
+        Load(ContinentalIdMap);
+
+        Debug.Log($"Planet {PlanetName} Loaded");
         IsLoaded = true;
     }
-    private static EnvironmentMap Load(string planetName, EnvironmentMapType mapType)
+
+    private static void Load(EnvironmentMap map)
     {
-        using var db = new LiteDatabase(ConnectionString);
-        var fs = db.GetStorage<string>();
+        var folderPath = $"{Application.persistentDataPath}/{PlanetName}/{map.Name}";
+        Directory.CreateDirectory(folderPath);
+        var files = Directory.GetFiles(folderPath);
 
-        var map = new EnvironmentMap(mapType);
-        var files = fs.FindAll().Where(x => x.Metadata["Map"] == map.Name && x.Metadata["Planet"] == planetName).ToArray();
-
-        if (!files.Any()) return map;
+        if (!files.Any())
+        {
+            map.ResetTexture();
+            return;
+        }
 
         var textures = new Texture2D[files.Length];
-            
-        foreach (var file in files)
+        foreach (var filePath in files)
         {
-            using var stream = new MemoryStream();
-            var i = file.Metadata["Index"];
-
-            fs.Download(file.Id, stream);
-            textures[i] = new Texture2D(map.RenderTexture.width, map.RenderTexture.height, map.MetaData.TextureFormat, false);
-            textures[i].LoadRawTextureData(stream.GetBuffer());
-            textures[i].Apply();
+            var data = File.ReadAllBytes(filePath);
+            var index = Int32.Parse(Path.GetFileNameWithoutExtension(filePath));
+            textures[index] = new Texture2D(map.RenderTexture.width, map.RenderTexture.height, map.MetaData.TextureFormat, false);
+            textures[index].LoadRawTextureData(data);
+            textures[index].Apply();
         }
-            
+
         map.SetTextures(textures);
-
-        return map;
     }
 
-    public static void Save(string planetName)
+    public static void Save()
     {
-        Save(planetName, WaterSourceMap);
-        Save(planetName, WaterMap);
-        Save(planetName, LandHeightMap);
-        Save(planetName, PlateThicknessMaps);
-        Save(planetName, ContinentalIdMap);
-    }
-    public static void Save(string planetName, EnvironmentMap map)
-    {
-        using var db = new LiteDatabase(ConnectionString);
-        var fs = db.GetStorage<string>();
+        Save(WaterSourceMap);
+        Save(WaterMap);
+        Save(LandHeightMap);
+        Save(PlateThicknessMaps);
+        Save(ContinentalIdMap);
 
-        foreach (var (tex, i) in map.CachedTextures.WithIndex())
+        Debug.Log($"Planet {PlanetName} Saved");
+    }
+
+    private static void Save(EnvironmentMap map)
+    {
+        map.RefreshCache(() =>
         {
-            var path = $"$/{planetName}/{map.Name}/{i}";
-            var stream = new MemoryStream(tex.GetRawTextureData());
-            var metaData = new Dictionary<string, BsonValue>
+            var folderPath = $"{Application.persistentDataPath}/{PlanetName}/{map.Name}";
+            Directory.CreateDirectory(folderPath);
+            foreach (var (tex, i) in map.CachedTextures.WithIndex())
             {
-                { "Planet", new BsonValue(planetName) },
-                { "Map", new BsonValue(map.Name) },
-                { "Index", new BsonValue(i) },
-            };
+                var filePath = $"{folderPath}/{i}.tex";
+                byte[] data = tex.GetRawTextureData();
+                File.WriteAllBytes(filePath, data);
+            }
 
-            fs.Upload(path, $"{map.Name}{i}", stream);
-            fs.SetMetadata(path, new BsonDocument(metaData));
-        }
+            Load(map);
+        });
+
     }
 }

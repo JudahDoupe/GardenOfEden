@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 public class EnvironmentMap
@@ -16,6 +18,7 @@ public class EnvironmentMap
     public bool IsCacheBeingUpdated => !_request.done;
 
     private AsyncGPUReadbackRequest _request;
+    private List<Action> _cacheCallbacks = new List<Action>();
 
     public EnvironmentMap(EnvironmentMapType type)
     {
@@ -27,6 +30,11 @@ public class EnvironmentMap
 
     public void RefreshCache(Action callback = null)
     {
+        if (callback != null && !_cacheCallbacks.Contains(callback))
+        {
+            _cacheCallbacks.Add(callback);
+        }
+
         if (!IsCacheBeingUpdated && RenderTexture.IsCreated())
         {
             _request = AsyncGPUReadback.Request(RenderTexture, 0, request =>
@@ -55,22 +63,34 @@ public class EnvironmentMap
                         CachedTextures[i].Apply();
                     }
 
-                    if (callback != null)
+                    foreach (var action in _cacheCallbacks)
                     {
-                        callback.Invoke();
+                        action.Invoke();
                     }
+                    _cacheCallbacks.Clear();
                 }
             });
         }
     }
     public void SetTextures(Texture2D[] textures)
     {
-        RenderTexture.SetTexture(textures);
         CachedTextures = textures;
+        Layers = textures.Length;
+
+        var texture = new Texture2DArray(textures[0].width, textures[0].height, Layers, MetaData.GraphicsFormat, TextureCreationFlags.None);
+        for (var i = 0; i < Layers; i++)
+        {
+            texture.SetPixels(textures[i].GetPixels(0), i, 0);
+        }
+        texture.Apply();
+
+        Graphics.Blit(texture, RenderTexture);
     }
     public void SetTextures(Texture2DArray tex)
     {
+        Layers = tex.depth;
         Graphics.Blit(tex, RenderTexture);
+        RefreshCache();
     }
 
     public Color Sample(Coordinate coord) => Sample(coord.TextureUvw);
@@ -79,6 +99,7 @@ public class EnvironmentMap
     public Color SamplePoint(Coordinate coord) => SamplePoint(coord.TextureXyw);
     public Color SamplePoint(int3 xyw) => CachedTextures[xyw.z].GetPixel(xyw.x, xyw.y);
 
+    public void ResetTexture() => ResetTexture(Layers);
     private void ResetTexture(int layers)
     {
         RenderTexture.Release();

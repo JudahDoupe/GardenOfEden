@@ -14,6 +14,8 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float MantleHeight = 900;
     [Range(0,100)]
     public float FaultLineNoise = 0.25f;
+    
+    //TODO: only regenerate from UI
     public void Regenerate(int numPlates)
     {
         Plates.Clear();

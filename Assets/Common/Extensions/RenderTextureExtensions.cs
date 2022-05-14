@@ -79,23 +79,6 @@ public static class RenderTextureExtensions
         }
 
     }
-    public static void SetTexture(this RenderTexture rt, Texture2D[] textures)
-    {
-        RTCache[rt] = textures;
-
-        var texture = new Texture2DArray(textures[0].width, textures[0].height, textures.Length, rt.graphicsFormat, TextureCreationFlags.None);
-        for (var i = 0; i < rt.volumeDepth; i++)
-        {
-            texture.SetPixels(textures[i].GetPixels(0), i, 0);
-        }
-        texture.Apply();
-        
-        rt.SetTexture(texture);
-    }
-    public static void SetTexture(this RenderTexture rt, Texture2DArray newTexture)
-    {
-        Graphics.Blit(newTexture, rt);
-    }
 
     public static void ClearCache(this RenderTexture rt)
     {
