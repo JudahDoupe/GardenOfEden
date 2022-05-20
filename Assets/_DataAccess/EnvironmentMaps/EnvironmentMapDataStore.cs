@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using LiteDB;
 using System.IO;
-using System.Threading.Tasks;
 
 public static class EnvironmentMapDataStore
 {

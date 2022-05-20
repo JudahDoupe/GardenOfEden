@@ -8,6 +8,12 @@ public class GameManger : MonoBehaviour
 
     void Awake()
     {
-        EnvironmentMapDataStore.Load(CurrentPlanet);
+        LoadPlanet(CurrentPlanet);
+    }
+
+    void LoadPlanet(string planetName)
+    {
+        EnvironmentMapDataStore.Load(planetName);
+        FindObjectOfType<PlateTectonicsSimulation>().Initialize(SimulationDataStore.LoadPlateTectonicsSimulation(planetName));
     }
 }

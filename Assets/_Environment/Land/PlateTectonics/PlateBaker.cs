@@ -107,8 +107,8 @@ public class PlateBaker : MonoBehaviour
     {
         var plates = Singleton.PlateTectonics.GetAllPlates();
         var kernel = BakePlatesShader.FindKernel(name);
-        using var buffer = new ComputeBuffer(plates.Count(), Marshal.SizeOf(typeof(Plate.GpuData)));
-        buffer.SetData(plates.Select(x => x.ToGpuData()).ToArray());
+        using var buffer = new ComputeBuffer(plates.Count(), Marshal.SizeOf(typeof(PlateData)));
+        buffer.SetData(plates.Select(x => x.Serialize()).ToArray());
         BakePlatesShader.SetBuffer(kernel, "Plates", buffer);
         BakePlatesShader.SetInt("NumPlates", plates.Count());
         BakePlatesShader.SetFloat("MantleHeight", Singleton.PlateTectonics.MantleHeight);

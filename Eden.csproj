@@ -87,6 +87,7 @@
     <Compile Include="Assets\Common\Utils\AnimationUtils.cs" />
     <Compile Include="Assets\Common\Rendering\RenderFeatures\BlitOutlineFeature.cs" />
     <Compile Include="Assets\_Plants\Systems\Cleanup\UpdateMeshSystem.cs" />
+    <Compile Include="Assets\_Environment\Land\PlateTectonics\LandGenerator.cs" />
     <Compile Include="Assets\_Gameplay\UI\Utils\FaceCamera.cs" />
     <Compile Include="Assets\_Plants\Systems\Growth\GrowthSystemGroup.cs" />
     <Compile Include="Assets\Common\Rendering\RenderFeatures\DepthTextureFeature.cs" />
@@ -153,7 +154,7 @@
     <Compile Include="Assets\_Gameplay\UI\SystemsMenu.cs" />
     <Compile Include="Assets\_Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Common\Rendering\RenderFeatures\BlitMaterialFeature.cs" />
-    <Compile Include="Assets\_Environment\Land\PlateTectonics\LandGenerator.cs" />
+    <Compile Include="Assets\_DataAccess\Simulations\SimulationDataStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise2D.hlsl" />

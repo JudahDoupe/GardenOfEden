@@ -29,6 +29,16 @@ public class PlateTectonicsVisualization : MonoBehaviour
 
     public bool IsActive { get; set; }
 
+    private float _mantleHeight;
+
+    public void Initialize(float mantleHeight)
+    {
+        _mantleHeight = mantleHeight;
+        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
+        OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
+        SetLandMaterialValues();
+        ShowFaultLines(false);
+    }
     public void ShowFaultLines(bool show)
     {
         OutlineReplacementMaterial.SetFloat("PlateId", 0);
@@ -38,13 +48,6 @@ public class PlateTectonicsVisualization : MonoBehaviour
     {
         OutlineReplacementMaterial.SetFloat("PlateId", plateId);
         FaultLineMaterial.SetFloat("Transparency", 0.6f);
-    }
-    public void Initialize()
-    {
-        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
-        OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
-        SetLandMaterialValues();
-        ShowFaultLines(false);
     }
     
     private void OnValidate()
@@ -59,8 +62,8 @@ public class PlateTectonicsVisualization : MonoBehaviour
         var landMaterial = GetComponent<Renderer>().sharedMaterial;
         landMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
         landMaterial.SetTexture("ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
-        landMaterial.SetFloat("MantleHeight", Singleton.PlateTectonics.MantleHeight);
-        landMaterial.SetFloat("MaxHeight", Singleton.PlateTectonics.MantleHeight + (Singleton.PlateTectonics.MantleHeight / 3));
+        landMaterial.SetFloat("MantleHeight", _mantleHeight);
+        landMaterial.SetFloat("MaxHeight", _mantleHeight + (_mantleHeight / 3));
         landMaterial.SetFloat("FacetDencity", FacetsDencity);
         landMaterial.SetFloat("FacetStrength", FacetStrength);
         landMaterial.SetFloat("FacetPatchSize", PatchSize);

@@ -24,8 +24,7 @@ public class LandGenerator : MonoBehaviour
     public void Regenerate() => Regenerate(NumPlates);
     public void Regenerate(int numPlates)
     {
-        simulation.GetAllPlates().ForEach(p => simulation.RemovePlate(p.Id));
-        FindObjectOfType<PlateTectonicsVisualization>().Initialize();
+        simulation.Initialize(new PlateTectonicsSimulationData());
 
         for (int p = 1; p <= numPlates; p++)
         {
@@ -41,8 +40,8 @@ public class LandGenerator : MonoBehaviour
     private void RunTectonicKernel(string kernelName)
     {
         int kernel = LandGenerationShader.FindKernel(kernelName);
-        using var buffer = new ComputeBuffer(NumPlates, Marshal.SizeOf(typeof(Plate.GpuData)));
-        buffer.SetData(simulation.GetAllPlates().Select(x => x.ToGpuData()).ToArray());
+        using var buffer = new ComputeBuffer(NumPlates, Marshal.SizeOf(typeof(PlateData)));
+        buffer.SetData(simulation.GetAllPlates().Select(x => x.Serialize()).ToArray());
         LandGenerationShader.SetBuffer(kernel, "Plates", buffer);
         LandGenerationShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentMapDataStore.PlateThicknessMaps.RenderTexture);
         LandGenerationShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
