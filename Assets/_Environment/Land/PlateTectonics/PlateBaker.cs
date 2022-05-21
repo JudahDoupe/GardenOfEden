@@ -89,6 +89,7 @@ public class PlateBaker : MonoBehaviour
 
         if (debug) Debug.Log($"Finished Bake in {timer.ElapsedMilliseconds} ms");
         EnvironmentMapDataStore.Save();
+        SimulationDataStore.SavePlateTectonicsSimulation(Singleton.PlateTectonics.Serialize());
 
         _isBaking = false;
         _needsBaking = false;

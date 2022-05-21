@@ -37,22 +37,28 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         }
     }
 
+    private PlateTectonicsSimulationDto _startingData;
     private List<Plate> _plates = new List<Plate>();
     private EnvironmentMap _tmpPlateThicknessMaps;
     private EnvironmentMap LandHeightMap => EnvironmentMapDataStore.LandHeightMap;
     private EnvironmentMap ContinentalIdMap => EnvironmentMapDataStore.ContinentalIdMap;
     private EnvironmentMap PlateThicknessMaps => EnvironmentMapDataStore.PlateThicknessMaps;
 
-    public void Initialize(PlateTectonicsSimulationData data)
+    public void Initialize(PlateTectonicsSimulationDto data)
     {
+        _startingData = data;
         _tmpPlateThicknessMaps = new EnvironmentMap(EnvironmentMapType.PlateThicknessMaps);
         _plates = data.Plates.Select(d => new Plate(d)).ToList();
 
         FindObjectOfType<PlateTectonicsVisualization>().Initialize(MantleHeight);
     }
-    public PlateTectonicsSimulationData Serialize()
+    public PlateTectonicsSimulationDto Serialize()
     {
-        return new PlateTectonicsSimulationData(_plates.Select(x => x.Serialize()).ToArray());
+        return new PlateTectonicsSimulationDto
+        {
+            PlanetName = _startingData.PlanetName,
+            Plates = _plates.Select(x => x.Serialize()).ToArray()
+        };
     }
 
     public List<Plate> GetAllPlates() => _plates.ToList();
@@ -169,14 +175,11 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     }
 }
 
-public struct PlateTectonicsSimulationData
+public class PlateTectonicsSimulationDto
 {
-    public PlateTectonicsSimulationData(PlateData[] plates = null)
-    {
-        Plates = plates ?? Array.Empty<PlateData>();
-    }
+    public string PlanetName { get; set; }
 
-    public PlateData[] Plates;
-    
+    //TODO:  Plates are being saved with empty values
+    public PlateData[] Plates { get; set; } = Array.Empty<PlateData>();
 }
 

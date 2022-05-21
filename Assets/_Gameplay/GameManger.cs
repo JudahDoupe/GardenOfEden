@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GameManger : MonoBehaviour
@@ -14,6 +15,11 @@ public class GameManger : MonoBehaviour
     void LoadPlanet(string planetName)
     {
         EnvironmentMapDataStore.Load(planetName);
-        FindObjectOfType<PlateTectonicsSimulation>().Initialize(SimulationDataStore.LoadPlateTectonicsSimulation(planetName));
+
+        var plateTectonicsData = SimulationDataStore.LoadPlateTectonicsSimulation(planetName);
+        if (plateTectonicsData.Plates.Any())
+            FindObjectOfType<PlateTectonicsSimulation>().Initialize(plateTectonicsData);
+        else
+            FindObjectOfType<LandGenerator>().Regenerate();
     }
 }
