@@ -11,10 +11,10 @@ public class MergePlateTool : MonoBehaviour, ITool
         set
         {
             _isActive = value;
-            SimulationController.StopSimulations(SimulationType.PlateTectonics);
             ResetTool();
             _visualization = FindObjectOfType<PlateTectonicsVisualization>();
             _simulation = FindObjectOfType<PlateTectonicsSimulation>();
+            _simulation.IsActive = false;
             if (!value)
             {
                _visualization.HighlightPlate(0);

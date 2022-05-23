@@ -26,6 +26,7 @@ public class SystemsMenu : MenuUi
     {
         _stateMachine.SetState(new ButtonState(this, "Globe", e =>
         {
+            FindObjectOfType<SatelliteCamera>().IsDragEnabled = true;
             SimulationController.SetEnabledSimulations(e, SimulationType.Water);
             if (e) Singleton.PerspectiveController.SetPerspective(FindObjectOfType<SatelliteCamera>(), new CameraTransition { Speed = 1, Ease = EaseType.InOut });
         }));
@@ -34,6 +35,7 @@ public class SystemsMenu : MenuUi
     {
         _stateMachine.SetState(new ButtonState(this, "Land", e =>
         {
+            FindObjectOfType<SatelliteCamera>().IsDragEnabled = false;
             SimulationController.SetEnabledSimulations(e, SimulationType.Water, SimulationType.PlateTectonics);
             if (e) Singleton.PerspectiveController.SetPerspectives((FindObjectOfType<SatelliteCamera>(), CameraTransition.Smooth), (FindObjectOfType<LandscapeCamera>(), CameraTransition.Smooth));
             if (e) FindObjectOfType<PlateTectonicsToolbar>().Enable();

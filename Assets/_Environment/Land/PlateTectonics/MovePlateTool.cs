@@ -12,8 +12,10 @@ public class MovePlateTool : MonoBehaviour, ITool
         {
             _isActive = value;
             _simulation = FindObjectOfType<PlateTectonicsSimulation>();
+            _simulation.IsActive = value;
             _visualization = FindObjectOfType<PlateTectonicsVisualization>();
             _visualization.ShowFaultLines(value);
+            Clear();
         }
     }
 
@@ -67,10 +69,13 @@ public class MovePlateTool : MonoBehaviour, ITool
 
     private void Clear()
     {
-        var plate = _simulation.GetPlate(_currentPlateId);
-        if (plate != null)
+        if (_currentPlateId > 0)
         {
-            plate.TargetVelocity = Quaternion.identity;
+            var plate = _simulation.GetPlate(_currentPlateId);
+            if (plate != null)
+            {
+                plate.TargetVelocity = Quaternion.identity;
+            }
         }
         _currentPlateId = 0;
     }

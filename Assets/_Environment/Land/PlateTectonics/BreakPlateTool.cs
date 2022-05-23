@@ -20,8 +20,8 @@ public class BreakPlateTool : MonoBehaviour, ITool
             _isActive = value;
             _visualization = FindObjectOfType<PlateTectonicsVisualization>();
             _simulation = FindObjectOfType<PlateTectonicsSimulation>();
+            _simulation.IsActive = false;
             _break = ResetTool(null);
-            SimulationController.StopSimulations(SimulationType.PlateTectonics);
             if (!value)
             {
                 _visualization.HighlightPlate(0);
