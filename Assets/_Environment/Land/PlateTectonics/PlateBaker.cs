@@ -86,11 +86,11 @@ public class PlateBaker : MonoBehaviour
 
         UpdateContinentIds(continents);
         
-        foreach (var plateId in Singleton.PlateTectonics.GetAllPlates()
+        foreach (var plateId in _simulation.GetAllPlates()
                      .Where(x=> !continents.Select(c => c.CurrentId).Contains(x.Id))
                      .Select(x => x.Id))
         {
-            Singleton.PlateTectonics.RemovePlate(plateId);
+            _simulation.RemovePlate(plateId);
         }
 
         if (debug) Debug.Log($"Finished Bake in {timer.ElapsedMilliseconds} ms");
@@ -104,7 +104,7 @@ public class PlateBaker : MonoBehaviour
     private void AlignPlates()
     {
         RunTectonicKernel("StartAligningPlateThicknessMaps");
-        foreach (var plate in Singleton.PlateTectonics.GetAllPlates())
+        foreach (var plate in _simulation.GetAllPlates())
         {
             plate.Rotation = Quaternion.identity;
             plate.Velocity = Quaternion.identity;
@@ -113,13 +113,13 @@ public class PlateBaker : MonoBehaviour
     }
     private void RunTectonicKernel(string name)
     {
-        var plates = Singleton.PlateTectonics.GetAllPlates();
+        var plates = _simulation.GetAllPlates();
         var kernel = BakePlatesShader.FindKernel(name);
         using var buffer = new ComputeBuffer(plates.Count(), Marshal.SizeOf(typeof(PlateGpuData)));
         buffer.SetData(plates.Select(x => x.ToGpuData()).ToArray());
         BakePlatesShader.SetBuffer(kernel, "Plates", buffer);
         BakePlatesShader.SetInt("NumPlates", plates.Count());
-        BakePlatesShader.SetFloat("MantleHeight", Singleton.PlateTectonics.MantleHeight);
+        BakePlatesShader.SetFloat("MantleHeight", _simulation.MantleHeight);
         BakePlatesShader.SetTexture(kernel, "TmpPlateThicknessMaps", TmpPlateThicknessMaps.RenderTexture);
         BakePlatesShader.SetTexture(kernel, "PlateThicknessMaps", _simulation.Data.PlateThicknessMaps.RenderTexture);
         BakePlatesShader.SetTexture(kernel, "TmpContinentalIdMap", TmpContinentalIdMap.RenderTexture);

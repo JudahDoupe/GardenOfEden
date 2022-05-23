@@ -107,16 +107,14 @@ public class EnvironmentMap
     public void SetTextures(Texture2D[] textures)
     {
         CachedTextures = textures;
-        Layers = textures.Length;
 
-        var texture = new Texture2DArray(textures[0].width, textures[0].height, Layers, GraphicsFormat, TextureCreationFlags.None);
-        for (var i = 0; i < Layers; i++)
+        var texture = new Texture2DArray(textures[0].width, textures[0].height, textures.Length, GraphicsFormat, TextureCreationFlags.None);
+        for (var i = 0; i < textures.Length; i++)
         {
             texture.SetPixels(textures[i].GetPixels(0), i, 0);
         }
         texture.Apply();
-
-        Graphics.Blit(texture, RenderTexture);
+        SetTextures(texture);
     }
     public void SetTextures(Texture2DArray tex)
     {

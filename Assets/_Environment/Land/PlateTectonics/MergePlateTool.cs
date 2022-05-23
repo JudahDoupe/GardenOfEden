@@ -56,10 +56,10 @@ public class MergePlateTool : MonoBehaviour, ITool
 
                     if (Input.GetMouseButtonDown(0))
                     {
-                        var newPlate = Singleton.PlateTectonics.GetPlate(newPlateId);
+                        var newPlate = _simulation.GetPlate(newPlateId);
                         MergePlates(oldPlateId.Value, newPlateId, oldPlate, newPlate);
                         UpdatePlateId(oldPlateId.Value, newPlateId);
-                        Singleton.PlateTectonics.RemovePlate(oldPlate.Id);
+                        _simulation.RemovePlate(oldPlate.Id);
                         ResetTool();
                         FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
                     }
@@ -69,7 +69,7 @@ public class MergePlateTool : MonoBehaviour, ITool
         }
         else if (GetMouseCoord() is { } coord)
         {
-            var plate = Singleton.PlateTectonics.GetPlate(_simulation.Data.ContinentalIdMap.SamplePoint(coord).r);
+            var plate = _simulation.GetPlate(_simulation.Data.ContinentalIdMap.SamplePoint(coord).r);
             _visualization.HighlightPlate(plate.Id);
 
             if (Input.GetMouseButtonDown(0))

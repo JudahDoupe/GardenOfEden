@@ -67,7 +67,7 @@ public class MovePlateTool : MonoBehaviour, ITool
 
     private void Clear()
     {
-        var plate = Singleton.PlateTectonics.GetPlate(_currentPlateId);
+        var plate = _simulation.GetPlate(_currentPlateId);
         if (plate != null)
         {
             plate.TargetVelocity = Quaternion.identity;

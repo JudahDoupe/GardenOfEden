@@ -108,16 +108,16 @@ public class CameraUtils : MonoBehaviour
         end.Focus.parent = end.FocusParent;
         Cursor.lockState = end.Cursor;
         var start = new CameraState(end.Camera, end.Focus);
-        var speed = new []
+        var speeds = new []
         {
             GetTransitionTime(start.CameraLocalPosition, end.CameraLocalPosition, transition.Speed), 
             GetTransitionTime(start.CameraLocalRotation, end.CameraLocalRotation, transition.Speed),
             GetTransitionTime(start.FocusLocalPosition, end.FocusLocalPosition, transition.Speed),
             GetTransitionTime(start.FocusLocalRotation, end.FocusLocalRotation, transition.Speed),
             GetTransitionTime(start.FieldOfView, end.FieldOfView, transition.Speed),
-        }.Max();
+        };
 
-        Singleton.Instance.StartCoroutine(AnimateTransition(speed, start, end, callback, transition.Ease));
+        Singleton.Instance.StartCoroutine(AnimateTransition(speeds.Max(), start, end, callback, transition.Ease));
     }
     private static IEnumerator AnimateTransition(float seconds, CameraState start, CameraState end, Action callback, EaseType ease)
     {

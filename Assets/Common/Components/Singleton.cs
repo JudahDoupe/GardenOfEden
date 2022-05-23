@@ -5,9 +5,6 @@ public class Singleton : MonoBehaviour
 {
     public static Singleton Instance;
 
-    public static PlateTectonicsSimulation PlateTectonics;
-    public static WaterSimulation Water;
-
     public static TimeService TimeService;
     public static ILoadBalancer LoadBalancer;
 
@@ -22,9 +19,6 @@ public class Singleton : MonoBehaviour
 
     private void OnEnable()
     {
-        PlateTectonics = FindObjectOfType<PlateTectonicsSimulation>();
-        Water = FindObjectOfType<WaterSimulation>();
-
         TimeService = FindObjectOfType<TimeService>();
         LoadBalancer = FindObjectOfType<ProximityLoadBalancer>();
 

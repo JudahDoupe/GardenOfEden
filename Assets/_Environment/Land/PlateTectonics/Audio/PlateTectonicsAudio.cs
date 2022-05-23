@@ -2,6 +2,7 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 
+[RequireComponent(typeof(PlateTectonicsSimulation))]
 public class PlateTectonicsAudio : MonoBehaviour
 {
     [Range(0, 1)]
@@ -33,10 +34,16 @@ public class PlateTectonicsAudio : MonoBehaviour
         }
     }
 
+    private PlateTectonicsSimulation _simulation;
+
+    public void Start()
+    {
+        _simulation = GetComponent<PlateTectonicsSimulation>();
+    }
     public void Update()
     {
         if (!IsActive) return;
-        var velocity = Singleton.PlateTectonics.GetAllPlates().Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
+        var velocity = _simulation.GetAllPlates().Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
         RumbleSound.volume = GetVolume(RumbleSound.volume, velocity, RumbleThreshhold);
         BoulderSound.volume = GetVolume(BoulderSound.volume, velocity, BoulderThreshhold);
     }

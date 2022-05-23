@@ -39,7 +39,7 @@ public class PateTectonicsGenerator : MonoBehaviour
     {
         int kernel = LandGenerationShader.FindKernel(kernelName);
         using var buffer = new ComputeBuffer(NumPlates, Marshal.SizeOf(typeof(PlateGpuData)));
-        buffer.SetData(Singleton.PlateTectonics.GetAllPlates().Select(x => x.ToGpuData()).ToArray());
+        buffer.SetData(sim.GetAllPlates().Select(x => x.ToGpuData()).ToArray());
         LandGenerationShader.SetBuffer(kernel, "Plates", buffer);
         LandGenerationShader.SetTexture(kernel, "PlateThicknessMaps", sim.Data.PlateThicknessMaps.RenderTexture);
         LandGenerationShader.SetTexture(kernel, "ContinentalIdMap", sim.Data.ContinentalIdMap.RenderTexture);

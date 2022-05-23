@@ -77,13 +77,14 @@ public class SatelliteCamera : CameraPerspective
 
         cameraPosition = lerp ? Vector3.Lerp(cameraPosition, _coord.LocalPlanet, Time.deltaTime * LerpSpeed) : (Vector3)_coord.LocalPlanet;
         t = Ease.Out((MinAltitude - cameraPosition.magnitude) / (MinAltitude - MaxAltitude));
+        var height = Planet.Data.PlateTectonics.LandHeightMap.Sample(_coord).r;
         return new CameraState(CurrentState.Camera, CurrentState.Focus)
         {
             CameraParent = Planet.Transform,
             CameraLocalPosition = cameraPosition,
             CameraLocalRotation = Quaternion.LookRotation(-cameraPosition.normalized, Vector3.up),
             FocusParent = Planet.Transform,
-            FocusLocalPosition = Planet.Data.PlateTectonics.LandHeightMap.Sample(_coord).r * cameraPosition.normalized,
+            FocusLocalPosition = height * cameraPosition.normalized,
             FocusLocalRotation = Quaternion.LookRotation(-cameraPosition.normalized, Vector3.up),
             FieldOfView = math.lerp(Near.Fov, Far.Fov, t),
             NearClip = 10,

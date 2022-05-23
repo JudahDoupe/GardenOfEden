@@ -18,10 +18,10 @@ public class BreakPlateTool : MonoBehaviour, ITool
         set
         {
             _isActive = value;
-            SimulationController.StopSimulations(SimulationType.PlateTectonics);
-            _break = ResetTool(null);
             _visualization = FindObjectOfType<PlateTectonicsVisualization>();
             _simulation = FindObjectOfType<PlateTectonicsSimulation>();
+            _break = ResetTool(null);
+            SimulationController.StopSimulations(SimulationType.PlateTectonics);
             if (!value)
             {
                 _visualization.HighlightPlate(0);
@@ -54,7 +54,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
         else if (GetMouseCoord() is { } breakpoint)
         {
-            var plate = Singleton.PlateTectonics.GetPlate(_simulation.Data.ContinentalIdMap.SamplePoint(breakpoint).r);
+            var plate = _simulation.GetPlate(_simulation.Data.ContinentalIdMap.SamplePoint(breakpoint).r);
             _visualization.HighlightPlate(plate.Id);
 
             if (Input.GetMouseButtonDown(0))
@@ -99,8 +99,8 @@ public class BreakPlateTool : MonoBehaviour, ITool
     }
     private Break? BreakPlate(Break b)
     {
-        var oldPlate = Singleton.PlateTectonics.GetPlate(b.OriginalPlateId.Value);
-        var plate = Singleton.PlateTectonics.AddPlate();
+        var oldPlate = _simulation.GetPlate(b.OriginalPlateId.Value);
+        var plate = _simulation.AddPlate();
         b.NewPlateId = plate.Id;
         plate.Rotation = oldPlate.Rotation;
         plate.Velocity = oldPlate.Velocity;
@@ -139,7 +139,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
         BreakPlateShader.SetTexture(kernel, "ContinentalIdMap", _simulation.Data.ContinentalIdMap.RenderTexture);
         BreakPlateShader.SetTexture(kernel, "PlateThicknessMaps", _simulation.Data.PlateThicknessMaps.RenderTexture);
         BreakPlateShader.SetFloat("FaultLineNoise", FaultLineNoise);
-        BreakPlateShader.SetFloat("MantleHeight", Singleton.PlateTectonics.MantleHeight);
+        BreakPlateShader.SetFloat("MantleHeight", _simulation.MantleHeight);
         BreakPlateShader.SetFloat("OldPlateId", b.OriginalPlateId ?? 0);
         BreakPlateShader.SetFloat("NewPlateId", b.NewPlateId ?? b.NewTmpPlateId ?? 0);
         BreakPlateShader.SetFloat("OldPlateIdx", b.OriginalPlateIdx ?? 0);
