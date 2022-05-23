@@ -27,7 +27,7 @@ namespace Assets.Scripts.Plants.Growth
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             var genericSeed = new System.Random().Next();
             var planet = Planet.Entity;
-            var landMaps = EnvironmentMapDataStore.LandHeightMap.CachedTextures.Select(x => x.GetRawTextureData<float>()).ToArray();
+            var landMaps = Planet.Data.PlateTectonics.LandHeightMap.CachedTextures.Select(x => x.GetRawTextureData<float>()).ToArray();
             var landMaps0 = landMaps[0];
             var landMaps1 = landMaps[1];
             var landMaps2 = landMaps[2];

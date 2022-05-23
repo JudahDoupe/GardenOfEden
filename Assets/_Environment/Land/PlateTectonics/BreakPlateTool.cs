@@ -20,21 +20,19 @@ public class BreakPlateTool : MonoBehaviour, ITool
             _isActive = value;
             SimulationController.StopSimulations(SimulationType.PlateTectonics);
             _break = ResetTool(null);
+            _visualization = FindObjectOfType<PlateTectonicsVisualization>();
+            _simulation = FindObjectOfType<PlateTectonicsSimulation>();
             if (!value)
             {
-                FindObjectOfType<PlateTectonicsVisualization>().HighlightPlate(0);
+                _visualization.HighlightPlate(0);
             }
         }
     }
 
     private bool _isActive;
     private PlateTectonicsVisualization _visualization;
+    private PlateTectonicsSimulation _simulation;
     private Break? _break;
-
-    void Start()
-    {
-        _visualization = FindObjectOfType<PlateTectonicsVisualization>();
-    }
 
     void Update()
     {
@@ -56,7 +54,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
         else if (GetMouseCoord() is { } breakpoint)
         {
-            var plate = Singleton.PlateTectonics.GetPlate(EnvironmentMapDataStore.ContinentalIdMap.SamplePoint(breakpoint).r);
+            var plate = Singleton.PlateTectonics.GetPlate(_simulation.Data.ContinentalIdMap.SamplePoint(breakpoint).r);
             _visualization.HighlightPlate(plate.Id);
 
             if (Input.GetMouseButtonDown(0))
@@ -71,7 +69,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
         }
     }
 
-    private Break StartBreak(Coordinate start, Plate originalPlate)
+    private Break StartBreak(Coordinate start, PlateData originalPlate)
     {
         return new Break
         {
@@ -112,7 +110,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
         RunKernel("UpdatePlateId", new Break { OriginalPlateId = b.NewTmpPlateId, NewPlateId = b.NewPlateId});
         RunKernel("BreakPlate", b);
 
-        EnvironmentMapDataStore.ContinentalIdMap.RefreshCache();
+        _simulation.Data.ContinentalIdMap.RefreshCache();
         return null;
     }
     private Break? ResetTool(Break? b)
@@ -138,8 +136,8 @@ public class BreakPlateTool : MonoBehaviour, ITool
     private void RunKernel(string kernelName, Break b)
     {
         int kernel = BreakPlateShader.FindKernel(kernelName);
-        BreakPlateShader.SetTexture(kernel, "ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
-        BreakPlateShader.SetTexture(kernel, "PlateThicknessMaps", EnvironmentMapDataStore.PlateThicknessMaps.RenderTexture);
+        BreakPlateShader.SetTexture(kernel, "ContinentalIdMap", _simulation.Data.ContinentalIdMap.RenderTexture);
+        BreakPlateShader.SetTexture(kernel, "PlateThicknessMaps", _simulation.Data.PlateThicknessMaps.RenderTexture);
         BreakPlateShader.SetFloat("FaultLineNoise", FaultLineNoise);
         BreakPlateShader.SetFloat("MantleHeight", Singleton.PlateTectonics.MantleHeight);
         BreakPlateShader.SetFloat("OldPlateId", b.OriginalPlateId ?? 0);

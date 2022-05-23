@@ -15,20 +15,39 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     public float Gravity = 9.8f;
     public float SeaLevel = 999.8f;
     public float MaxDepth = 1000f;
-    public bool IsActive { get; set; }
+
+    private bool _isInitialized => Data != null;
+    private bool _isActive;
+    public bool IsActive {
+        get => _isActive;
+        set
+        {
+            if (value && !_isInitialized)
+                Debug.LogWarning($"{nameof(WaterSimulation)} cannot be activated before it has been initialized.");
+
+            _isActive = value;
+        }
+    }
+    public WaterData Data { get; set; }
+
+    public void Initialize(WaterData data)
+    {
+        Data = data;
+        if (data.NeedsRegeneration)
+        {
+            Regenerate();
+            data.NeedsRegeneration = false;
+        }
+        UpdateVizualization();
+    }
 
     public float SampleDepth(Coordinate coord)
     {
-        return EnvironmentMapDataStore.WaterMap.Sample(coord).b;
+        return Data.WaterMap.Sample(coord).b;
     }
     public float SampleHeight(Coordinate coord)
     {
-        return EnvironmentMapDataStore.WaterMap.Sample(coord).a;
-    }
-
-    void Start()
-    {
-        UpdateVizualization();
+        return Data.WaterMap.Sample(coord).a;
     }
 
     void FixedUpdate()
@@ -36,10 +55,11 @@ public class WaterSimulation : MonoBehaviour, ISimulation
         if (IsActive)
         {
             RunKernel("Update");
-            EnvironmentMapDataStore.WaterMap.RefreshCache(); 
+            Data.WaterMap.RefreshCache(); 
             UpdateVizualization();
         }
     }
+
     public void Regenerate()
     {
         RunKernel("Reset");
@@ -49,7 +69,7 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     private void UpdateVizualization()
     {
         var waterRenderer = GetComponent<Renderer>();
-        waterRenderer.material.SetTexture("HeightMap", EnvironmentMapDataStore.WaterMap.RenderTexture);
+        waterRenderer.material.SetTexture("HeightMap", Data.WaterMap.RenderTexture);
         waterRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000, 2000, 2000));
         waterRenderer.material.SetFloat("SeaLevel", SeaLevel);
     }
@@ -64,9 +84,9 @@ public class WaterSimulation : MonoBehaviour, ISimulation
         WaterShader.SetFloat("SeaLevel", SeaLevel);
         WaterShader.SetFloat("Gravity", Gravity);
         WaterShader.SetFloat("MaxDepth", MaxDepth);
-        WaterShader.SetTexture(kernel, "LandHeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
-        WaterShader.SetTexture(kernel, "WaterMap", EnvironmentMapDataStore.WaterMap.RenderTexture);
-        WaterShader.SetTexture(kernel, "WaterSourceMap", EnvironmentMapDataStore.WaterSourceMap.RenderTexture);
+        WaterShader.SetTexture(kernel, "LandHeightMap", Data.LandHeightMap.RenderTexture);
+        WaterShader.SetTexture(kernel, "WaterMap", Data.WaterMap.RenderTexture);
+        WaterShader.SetTexture(kernel, "WaterSourceMap", Data.WaterSourceMap.RenderTexture);
         WaterShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 }

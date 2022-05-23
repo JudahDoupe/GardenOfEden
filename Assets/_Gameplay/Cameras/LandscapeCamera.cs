@@ -84,7 +84,7 @@ public class LandscapeCamera : CameraPerspective
         var center = _centerCoord.LocalPlanet.ToVector3();
         var swing = math.clamp(1 - math.pow(t, 2), 0.001f, 1) * Swing;
 
-        var targetFocusPos = EnvironmentMapDataStore.LandHeightMap.Sample(_centerCoord).r * center.normalized;
+        var targetFocusPos = Planet.Data.PlateTectonics.LandHeightMap.Sample(_centerCoord).r * center.normalized;
         focusPos = lerp ? Vector3.Lerp(focusPos, targetFocusPos, Time.deltaTime * LerpSpeed) : targetFocusPos;
 
         var targetCameraPos = center - forward * swing;

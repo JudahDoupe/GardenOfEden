@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -8,25 +7,58 @@ using UnityEngine.Rendering;
 
 public class EnvironmentMap
 {
-    public EnvironmentMapType Type { get; }
-    public EnvironmentMapMetaData MetaData { get; }
     public RenderTexture RenderTexture { get; }
     public Texture2D[] CachedTextures { get; private set; }
-    public string Name => MetaData.Name;
-    public int Channels => MetaData.Channels;
+    public string PlanetName { get; }
+    public string Name { get; }
+    public int Channels { get; }
     public int Layers { get => RenderTexture.volumeDepth; set => ResetTexture(value); }
+    public RenderTextureFormat RenderTextureFormat => Channels switch
+    {
+        1 => RenderTextureFormat.RFloat,
+        2 => RenderTextureFormat.RGFloat,
+        _ => RenderTextureFormat.ARGBFloat
+    };
+    public TextureFormat TextureFormat => Channels switch
+    {
+        1 => TextureFormat.RFloat,
+        2 => TextureFormat.RGFloat,
+        _ => TextureFormat.RGBAFloat,
+    };
+    public GraphicsFormat GraphicsFormat => Channels switch
+    {
+        1 => GraphicsFormat.R32_SFloat,
+        2 => GraphicsFormat.R32G32_SFloat,
+        _ => GraphicsFormat.R32G32B32A32_SFloat,
+    };
     public bool IsCacheBeingUpdated => !_request.done;
 
     private AsyncGPUReadbackRequest _request;
     private List<Action> _cacheCallbacks = new List<Action>();
 
-    public EnvironmentMap(EnvironmentMapType type)
+    public EnvironmentMap(string planetName, string mapName, int layers = 6, int channels = 1)
     {
-        Type = type;
-        MetaData = Type.MetaData();
-        RenderTexture = new RenderTexture(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, 0, MetaData.RenderTextureFormat, 0);
-        ResetTexture(MetaData.Layers);
+        PlanetName = planetName;
+        Name = mapName;
+        Channels = channels;
+        RenderTexture = new RenderTexture(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, 0, RenderTextureFormat, 0);
+        ResetTexture(layers);
     }
+    public EnvironmentMap(EnvironmentMapDbData dbData)
+    {
+        PlanetName = dbData.PlanetName;
+        Name = dbData.MapName;
+        Channels = dbData.Channels;
+        RenderTexture = new RenderTexture(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, 0, RenderTextureFormat, 0);
+        ResetTexture(dbData.Layers);
+    }
+    public EnvironmentMapDbData ToDbData() => new EnvironmentMapDbData
+    {
+        PlanetName = PlanetName,
+        MapName = Name,
+        Channels = Channels,
+        Layers = Layers,
+    };
 
     public void RefreshCache(Action callback = null)
     {
@@ -47,7 +79,7 @@ public class EnvironmentMap
                 {
                     for (var i = 0; i < Layers; i++)
                     {
-                        switch (MetaData.RenderTextureFormat)
+                        switch (RenderTextureFormat)
                         {
                             case RenderTextureFormat.RFloat:
                                 CachedTextures[i].SetPixelData(request.GetData<float>(i), 0);
@@ -77,7 +109,7 @@ public class EnvironmentMap
         CachedTextures = textures;
         Layers = textures.Length;
 
-        var texture = new Texture2DArray(textures[0].width, textures[0].height, Layers, MetaData.GraphicsFormat, TextureCreationFlags.None);
+        var texture = new Texture2DArray(textures[0].width, textures[0].height, Layers, GraphicsFormat, TextureCreationFlags.None);
         for (var i = 0; i < Layers; i++)
         {
             texture.SetPixels(textures[i].GetPixels(0), i, 0);
@@ -114,7 +146,7 @@ public class EnvironmentMap
         CachedTextures = new Texture2D[layers];
         for (var i = 0; i < layers; i++)
         {
-            CachedTextures[i] = new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, MetaData.TextureFormat, false);
+            CachedTextures[i] = new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat, false);
         }
     }
 }

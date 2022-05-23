@@ -40,6 +40,6 @@ void ResetMaps(uint3 id : SV_DispatchThreadID)
         PlateThicknessMaps[xyp] = 0;
 	}
     
-    PlateThicknessMaps[closestXyp] = 0.01f;
+    PlateThicknessMaps[closestXyp] = 0.1f;
     ContinentalIdMap[id] = closestPlateId;
 }

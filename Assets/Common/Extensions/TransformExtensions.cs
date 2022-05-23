@@ -6,9 +6,9 @@ using UnityEngine.UI;
 
 public static class TransformExtensions
 {
-    public static TransformDto ToDto(this Transform t)
+    public static TransformDbData ToDto(this Transform t)
     {
-        return new TransformDto
+        return new TransformDbData
         {
             Position = new BsonArray(new BsonValue[] { t.position.x, t.position.y, t.position.z }),
             Scale = new BsonArray(new BsonValue[] { t.localScale.x, t.localScale.y, t.localScale.z }),

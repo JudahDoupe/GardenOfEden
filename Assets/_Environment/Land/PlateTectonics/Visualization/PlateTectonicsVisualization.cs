@@ -1,6 +1,7 @@
 using Assets.Scripts.Utils;
 using UnityEngine;
 
+[RequireComponent(typeof(PlateTectonicsSimulation))]
 public class PlateTectonicsVisualization : MonoBehaviour
 {
     [Header("Materials")]
@@ -29,13 +30,12 @@ public class PlateTectonicsVisualization : MonoBehaviour
 
     public bool IsActive { get; set; }
 
-    private float _mantleHeight;
+    private PlateTectonicsSimulation _simulation;
 
-    public void Initialize(float mantleHeight)
+    public void Initialize()
     {
-        _mantleHeight = mantleHeight;
-        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
-        OutlineReplacementMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
+        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", _simulation.Data.ContinentalIdMap.RenderTexture);
+        OutlineReplacementMaterial.SetTexture("HeightMap", _simulation.Data.LandHeightMap.RenderTexture);
         SetLandMaterialValues();
         ShowFaultLines(false);
     }
@@ -50,9 +50,13 @@ public class PlateTectonicsVisualization : MonoBehaviour
         FaultLineMaterial.SetFloat("Transparency", 0.6f);
     }
     
+    private void Start()
+    {
+        _simulation = GetComponent<PlateTectonicsSimulation>();
+    }
     private void OnValidate()
     {
-        if (EnvironmentMapDataStore.IsLoaded)
+        if (_simulation != null && _simulation.IsActive)
             SetLandMaterialValues();
     }
 
@@ -60,10 +64,10 @@ public class PlateTectonicsVisualization : MonoBehaviour
     {
         GetComponent<MeshFilter>().sharedMesh.bounds = new Bounds(Vector3.zero, new Vector3(1,1,1) * Coordinate.PlanetRadius * 2);
         var landMaterial = GetComponent<Renderer>().sharedMaterial;
-        landMaterial.SetTexture("HeightMap", EnvironmentMapDataStore.LandHeightMap.RenderTexture);
-        landMaterial.SetTexture("ContinentalIdMap", EnvironmentMapDataStore.ContinentalIdMap.RenderTexture);
-        landMaterial.SetFloat("MantleHeight", _mantleHeight);
-        landMaterial.SetFloat("MaxHeight", _mantleHeight + (_mantleHeight / 3));
+        landMaterial.SetTexture("HeightMap", _simulation.Data.LandHeightMap.RenderTexture);
+        landMaterial.SetTexture("ContinentalIdMap", _simulation.Data.ContinentalIdMap.RenderTexture);
+        landMaterial.SetFloat("MantleHeight", _simulation.MantleHeight);
+        landMaterial.SetFloat("MaxHeight", _simulation.MantleHeight + (_simulation.MantleHeight / 3));
         landMaterial.SetFloat("FacetDencity", FacetsDencity);
         landMaterial.SetFloat("FacetStrength", FacetStrength);
         landMaterial.SetFloat("FacetPatchSize", PatchSize);

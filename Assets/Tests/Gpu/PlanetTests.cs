@@ -24,7 +24,7 @@ namespace Tests
         [Test]
         public void TestTextureSampling()
         {
-            var texture = new EnvironmentMap(EnvironmentMapType.LandHeightMap);
+            var texture = new EnvironmentMap("Test","Land");
             InitializeXyw(texture.RenderTexture);
             Prop.ForAll(GenCroppedUvw().ToArbitrary(), uvw =>
             {
@@ -53,7 +53,7 @@ namespace Tests
         [TestCase(0.00048828125f, 0.00048828125f)]
         public void TestTextureSamplingExpliciate(float u, float v)
         {
-            var texture = new EnvironmentMap(EnvironmentMapType.LandHeightMap);
+            var texture = new EnvironmentMap("Test", "Land");
             InitializeXyw(texture.RenderTexture);
             for(var i = 0; i < 6; i++)
             {

@@ -11,11 +11,14 @@ public class MovePlateTool : MonoBehaviour, ITool
         set
         {
             _isActive = value;
-            FindObjectOfType<PlateTectonicsVisualization>().ShowFaultLines(value);
-            SimulationController.SetEnabledSimulations(_isActive, SimulationType.PlateTectonics);
+            _simulation = FindObjectOfType<PlateTectonicsSimulation>();
+            _visualization = FindObjectOfType<PlateTectonicsVisualization>();
+            _visualization.ShowFaultLines(value);
         }
     }
 
+    private PlateTectonicsSimulation _simulation;
+    private PlateTectonicsVisualization _visualization;
     private float _currentPlateId;
     private Coordinate _currentCoord;
 
@@ -35,7 +38,7 @@ public class MovePlateTool : MonoBehaviour, ITool
         {
             _currentCoord = new Coordinate(hit.point, Planet.LocalToWorld);
             _currentCoord.Altitude = Coordinate.PlanetRadius;
-            _currentPlateId = EnvironmentMapDataStore.ContinentalIdMap.SamplePoint(_currentCoord).r;
+            _currentPlateId = _simulation.Data.ContinentalIdMap.SamplePoint(_currentCoord).r;
         }
         else
         {
@@ -48,7 +51,7 @@ public class MovePlateTool : MonoBehaviour, ITool
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         var targetPos = Physics.Raycast(ray, out var hit, distance) ? hit.point : Camera.main.transform.position + ray.direction * distance;
-        var plate = Singleton.PlateTectonics.GetPlate(_currentPlateId);
+        var plate = _simulation.GetPlate(_currentPlateId);
         _currentCoord.LocalPlanet = plate.Velocity * _currentCoord.LocalPlanet.ToVector3();
 
         var targetCoord = new Coordinate(targetPos, Planet.LocalToWorld);
