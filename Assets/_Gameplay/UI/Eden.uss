@@ -1,0 +1,22 @@
+.eden-title {
+    -unity-font: url('/Assets/_Gameplay/UI/Fonts/Raleway/Raleway-SemiBold.ttf');
+    font-size: 26px;
+    -unity-text-align: middle-center;
+}
+
+.eden-button {
+    background-image: url('/Assets/_Gameplay/UI/Sprites/Button_1.png');
+    background-color: rgba(88, 88, 88, 0);
+    -unity-font: url('/Assets/_Gameplay/UI/Fonts/Raleway/Raleway-Regular.ttf');
+    font-size: 15px;
+    width: 175px;
+    height: 35px;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}

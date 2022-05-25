@@ -167,6 +167,7 @@
     <None Include="Assets\_Environment\Land\PlateTectonics\BakePlates.compute" />
     <None Include="Assets\_Environment\Land\PlateTectonics\BreakPlate.compute" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\NoiseUtils.hlsl" />
+    <None Include="Assets\_Gameplay\UI\MainMenu.uxml" />
     <None Include="Assets\_Environment\Water\Water.compute" />
     <None Include="Assets\Packages\QuikGraph.2.3.0\lib\net45\QuikGraph.xml" />
     <None Include="Assets\Common\Shaders\Includes\Quaternion.hlsl" />
@@ -197,6 +198,7 @@
     <None Include="Assets\Common\Shaders\Includes\DecodeDepthNormals.hlsl" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\WhiteNoise2D.hlsl" />
     <None Include="Assets\Packages\stateless.5.10.1\lib\net45\stateless.xml" />
+    <None Include="Assets\_Gameplay\UI\Eden.uss" />
     <None Include="Assets\_Environment\Land\PlateTectonics\Tectonics.compute" />
     <None Include="Assets\Packages\LiteDB.5.0.10\lib\net45\LiteDB.dll" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\Voronoi3D.hlsl" />

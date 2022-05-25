@@ -24,7 +24,6 @@ public class WaterData
 
     public WaterDbData ToDbData() => new WaterDbData
     {
-
         PlanetName = PlanetName,
         WaterMap = WaterMap.ToDbData(),
         WaterSourceMap = WaterSourceMap.ToDbData(),

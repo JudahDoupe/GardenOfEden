@@ -1,5 +1,6 @@
 using Assets.GamePlay.Cameras;
 using Assets.Scripts.Utils;
+using UnityEngine;
 
 public class SystemsMenu : MenuUi
 {
@@ -9,6 +10,15 @@ public class SystemsMenu : MenuUi
     {
         SetAllButtonsActive(false);
     }
+    private void Update()
+    {
+        if (IsActive && Input.GetKeyDown(KeyCode.Escape))
+        {
+            Disable();
+            FindObjectOfType<MainMenu>().Enable();
+        }
+    }
+
     public override void Enable()
     {
         SlideToPosition(0);
