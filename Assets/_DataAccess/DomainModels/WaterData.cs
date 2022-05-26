@@ -1,26 +1,18 @@
 public class WaterData
 {
-    public string PlanetName { get; set; }
-    public EnvironmentMap WaterMap {get; set;}
-    public EnvironmentMap WaterSourceMap {get; set;}
-    public EnvironmentMap LandHeightMap { get; set;}
+    public string PlanetName { get; }
+    public EnvironmentMap WaterMap {get; }
+    public EnvironmentMap WaterSourceMap {get; }
+    public EnvironmentMap LandHeightMap { get; }
 
     public bool NeedsRegeneration { get; set; } = false;
 
     public WaterData(string planetName)
     {
         PlanetName = planetName;
-        WaterMap = Create("WaterMap", 4);
-        WaterSourceMap = Create("WaterSourceMap");
-        LandHeightMap = Create("LandHeightMap");
-
-        EnvironmentMap Create(string name, int chanels = 1) => EnvironmentMapDataStore.Create(new EnvironmentMapDbData
-        {
-            PlanetName = planetName,
-            MapName = name,
-            Channels = chanels,
-            Layers = 6
-        });
+        WaterMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "WaterMap", channels: 4));
+        WaterSourceMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "WaterSourceMap"));
+        LandHeightMap = EnvironmentMapDataStore.GetOrCreate(new EnvironmentMapDbData(planetName, "LandHeightMap"));
     }
     public WaterData(WaterDbData dbData)
     {

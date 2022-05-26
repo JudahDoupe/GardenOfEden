@@ -1,25 +1,14 @@
-using LiteDB;
 using UnityEngine;
 
 public static class PlanetDataStore
 {
     public static PlanetData GetOrCreate(string planetName)
     {
-        return new PlanetData
-        {
-            PlanetName = planetName,
-            PlateTectonics = SimulationDataStore.GetOrCreatePlateTectonics(planetName),
-            Water = SimulationDataStore.GetOrCreateWater(planetName),
-        };
+        return new PlanetData(new PlanetDbData{PlanetName = planetName});
     }
     public static PlanetData Create(string planetName)
     {
-        return new PlanetData
-        {
-            PlanetName = planetName,
-            PlateTectonics = SimulationDataStore.CreatePlateTectonics(planetName),
-            Water = SimulationDataStore.CreateWater(planetName),
-        };
+        return new PlanetData(planetName);
     }
     public static void Update(PlanetData data)
     {

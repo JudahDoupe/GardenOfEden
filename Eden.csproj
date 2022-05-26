@@ -159,6 +159,7 @@
     <Compile Include="Assets\_Gameplay\UI\SystemsMenu.cs" />
     <Compile Include="Assets\_Plants\Systems\Environment\EnvironmentSystemGroup.cs" />
     <Compile Include="Assets\Common\Rendering\RenderFeatures\BlitMaterialFeature.cs" />
+    <Compile Include="Assets\_DataAccess\DBModel\PlanetDbData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise2D.hlsl" />

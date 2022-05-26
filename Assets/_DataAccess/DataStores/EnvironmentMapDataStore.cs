@@ -6,14 +6,15 @@ using System.IO;
 
 public static class EnvironmentMapDataStore
 {
-    private static Dictionary<(string, string), EnvironmentMap> Cache = new Dictionary<(string, string), EnvironmentMap>();
+    private static readonly Dictionary<(string, string), EnvironmentMap> Cache = new Dictionary<(string, string), EnvironmentMap>();
 
     public static EnvironmentMap GetOrCreate(EnvironmentMapDbData dbData)
     {
         if (!Cache.TryGetValue((dbData.PlanetName, dbData.MapName), out var map))
         {
-            Cache[(dbData.PlanetName, dbData.MapName)] = map = new EnvironmentMap(dbData);
+            map = Create(dbData);
         }
+
         var folderPath = $"{Application.persistentDataPath}/{dbData.PlanetName}/{dbData.MapName}";
         Directory.CreateDirectory(folderPath);
         var files = Directory.GetFiles(folderPath);
@@ -27,7 +28,7 @@ public static class EnvironmentMapDataStore
         foreach (var filePath in files)
         {
             var data = File.ReadAllBytes(filePath);
-            var index = Int32.Parse(Path.GetFileNameWithoutExtension(filePath));
+            var index = int.Parse(Path.GetFileNameWithoutExtension(filePath));
             textures[index] = new Texture2D(map.RenderTexture.width, map.RenderTexture.height, map.TextureFormat, false);
             textures[index].LoadRawTextureData(data);
             textures[index].Apply();
@@ -56,6 +57,5 @@ public static class EnvironmentMapDataStore
                 File.WriteAllBytes(filePath, data);
             }
         });
-
     }
 }
