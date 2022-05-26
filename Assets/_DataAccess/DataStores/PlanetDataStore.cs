@@ -5,9 +5,17 @@ public static class PlanetDataStore
 {
     public static PlanetData GetOrCreate(string planetName)
     {
-        return new PlanetData(planetName);
+        var plateTectonics = SimulationDataStore.GetOrCreatePlateTectonics(planetName);
+        var water = SimulationDataStore.GetOrCreateWater(planetName);
+        return new PlanetData(planetName, plateTectonics, water);
     }
-    public static void UpdatePlanet(PlanetData data)
+    public static PlanetData Create(string planetName)
+    {
+        var plateTectonics = SimulationDataStore.CreatePlateTectonics(planetName);
+        var water = SimulationDataStore.CreateWater(planetName);
+        return new PlanetData(planetName, plateTectonics, water);
+    }
+    public static void Update(PlanetData data)
     {
         Debug.Log("Saving Planet");
         SimulationDataStore.UpdatePlateTectonics(data.PlateTectonics);

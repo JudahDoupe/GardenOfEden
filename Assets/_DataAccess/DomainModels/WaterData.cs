@@ -10,9 +10,9 @@ public class WaterData
     public WaterData(string planetName)
     {
         PlanetName = planetName;
-        WaterMap = EnvironmentMapDataStore.GetOrCreate(planetName, "WaterMap", channels: 4);
-        WaterSourceMap = EnvironmentMapDataStore.GetOrCreate(planetName, "WaterSourceMap");
-        LandHeightMap = EnvironmentMapDataStore.GetOrCreate(planetName, "LandHeightMap");
+        WaterMap = EnvironmentMapDataStore.Create(planetName, "WaterMap", channels: 4);
+        WaterSourceMap = EnvironmentMapDataStore.Create(planetName, "WaterSourceMap");
+        LandHeightMap = EnvironmentMapDataStore.Create(planetName, "LandHeightMap");
     }
     public WaterData(WaterDbData dbData)
     {

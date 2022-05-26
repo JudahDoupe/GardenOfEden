@@ -24,10 +24,18 @@ public static class SimulationDataStore
         var collection = db.GetCollection<PlateTectonicsDbData>("PlateTectonics");
         collection.EnsureIndex(x => x.PlanetName);
         var dbData = collection.FindOne(x => x.PlanetName.Equals(planetName));
-        return dbData == null
-            ? new PlateTectonicsData(planetName) {  NeedsRegeneration = true }
-            : new PlateTectonicsData(dbData);
+
+        if (dbData != null)
+            return new PlateTectonicsData(dbData);
+        else
+            return CreatePlateTectonics(planetName);
     }
+
+    public static PlateTectonicsData CreatePlateTectonics(string planetName)
+    {
+        return new PlateTectonicsData(planetName) { NeedsRegeneration = true };
+    }
+
 
     public static void UpdateWater(WaterData data)
     {
@@ -44,9 +52,16 @@ public static class SimulationDataStore
         using var db = new LiteDatabase(ConnectionString);
         var collection = db.GetCollection<WaterDbData>("Water");
         var dbData = collection.FindOne(x => x.PlanetName.Equals(planetName));
-        return dbData == null
-            ? new WaterData(planetName) { NeedsRegeneration = true }
-            : new WaterData(dbData);
+
+        if (dbData != null)
+            return new WaterData(dbData);
+        else
+            return CreateWater(planetName);
+    }
+
+    public static WaterData CreateWater(string planetName)
+    {
+        return new WaterData(planetName) { NeedsRegeneration = true };
     }
 }
 

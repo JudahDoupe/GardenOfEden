@@ -14,16 +14,16 @@ public class PlateTectonicsData
 
     public bool NeedsRegeneration { get; set; } = false;
 
-    public PlateTectonicsData(string planetName, List<PlateData> plates = null)
+    public PlateTectonicsData(string planetName)
     {
         PlanetName = planetName;
-        Plates = plates ?? new List<PlateData> { new PlateData(0, 0) };
-        LandHeightMap = GetOrCreate("LandHeightMap");
-        ContinentalIdMap = GetOrCreate("ContinentalIdMap");
-        PlateThicknessMaps = GetOrCreate("PlateThicknessMaps", Plates.Count * 6);
-        TmpPlateThicknessMaps = GetOrCreate("TmpPlateThicknessMaps", Plates.Count * 6);
+        Plates = new List<PlateData> { new PlateData(0, 0) };
+        LandHeightMap = Create("LandHeightMap");
+        ContinentalIdMap = Create("ContinentalIdMap");
+        PlateThicknessMaps = Create("PlateThicknessMaps", Plates.Count * 6);
+        TmpPlateThicknessMaps = Create("TmpPlateThicknessMaps", Plates.Count * 6);
 
-        EnvironmentMap GetOrCreate(string name, int layers = 6) => EnvironmentMapDataStore.GetOrCreate(new EnvironmentMapDbData
+        EnvironmentMap Create(string name, int layers = 6) => EnvironmentMapDataStore.Create(new EnvironmentMapDbData
         {
             PlanetName = planetName,
             MapName = name,

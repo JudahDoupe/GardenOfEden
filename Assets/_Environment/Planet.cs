@@ -12,15 +12,22 @@ public class Planet : MonoBehaviour
     public static LocalToWorld LocalToWorld => World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<LocalToWorld>(Entity);
     public static PlanetData Data;
 
-    public static void Save() => PlanetDataStore.UpdatePlanet(Data);
+    public static void Save() => PlanetDataStore.Update(Data);
     public void ResetPlanet()
     {
-        Data.PlateTectonics.NeedsRegeneration = true;
-        Data.Water.NeedsRegeneration = true;
-        Initialize(Data);
+        var data = PlanetDataStore.Create(Name);
+        Initialize(data);
     }
 
     public void Initialize(PlanetData data)
+    {
+        Data = data;
+        
+        FindObjectOfType<WaterSimulation>().Initialize(data.Water);
+        FindObjectOfType<PlateTectonicsSimulation>().Initialize(data.PlateTectonics);
+    }
+
+    void Start()
     {
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         Entity = em.CreateEntity();
@@ -32,14 +39,7 @@ public class Planet : MonoBehaviour
 #endif
 
         Transform = transform;
-        Data = data;
-        
-        FindObjectOfType<WaterSimulation>().Initialize(data.Water);
-        FindObjectOfType<PlateTectonicsSimulation>().Initialize(data.PlateTectonics);
-    }
 
-    void Start()
-    {
         Initialize(PlanetDataStore.GetOrCreate(Name));
     }
 
