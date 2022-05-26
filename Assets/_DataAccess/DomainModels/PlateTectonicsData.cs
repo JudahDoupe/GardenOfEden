@@ -30,6 +30,8 @@ public class PlateTectonicsData
             Channels = 1,
             Layers = layers
         });
+
+
     }
     public PlateTectonicsData(PlateTectonicsDbData dbData)
     {
@@ -80,7 +82,9 @@ public class PlateData
     {
         Id = dbData.Id;
         Idx = dbData.Idx;
-        Rotation = new Quaternion(dbData.Rotation[0], dbData.Rotation[1], dbData.Rotation[2], dbData.Rotation[3]);
+        Rotation = dbData != null 
+            ? new Quaternion(dbData.Rotation[0], dbData.Rotation[1], dbData.Rotation[2], dbData.Rotation[3])
+            : Quaternion.identity;
         Velocity = Quaternion.identity;
         TargetVelocity = Quaternion.identity;
     }

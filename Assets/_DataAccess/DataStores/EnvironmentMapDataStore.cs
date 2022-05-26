@@ -12,7 +12,7 @@ public static class EnvironmentMapDataStore
     {
         if (!Cache.TryGetValue((dbData.PlanetName, dbData.MapName), out var map))
         {
-            map = Create(dbData);
+            Cache[(dbData.PlanetName, dbData.MapName)] = map = new EnvironmentMap(dbData);
         }
         var folderPath = $"{Application.persistentDataPath}/{dbData.PlanetName}/{dbData.MapName}";
         Directory.CreateDirectory(folderPath);
@@ -37,11 +37,10 @@ public static class EnvironmentMapDataStore
         return map;
     }
 
-    public static EnvironmentMap Create(string planetName, string mapName, int layers = 6, int channels = 1) 
-        => Cache[(planetName, mapName)] = new EnvironmentMap(planetName, mapName, layers, channels);
-    
-    public static EnvironmentMap Create(EnvironmentMapDbData dbData) 
-        => Cache[(dbData.PlanetName, dbData.MapName)] = new EnvironmentMap(dbData);
+    public static EnvironmentMap Create(EnvironmentMapDbData dbData)
+    {
+        return Cache[(dbData.PlanetName, dbData.MapName)] = new EnvironmentMap(dbData);
+    }
 
     public static void Update(EnvironmentMap map)
     {
