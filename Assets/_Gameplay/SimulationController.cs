@@ -16,21 +16,24 @@ public class SimulationController : MonoBehaviour
     {
         foreach (var sim in sims)
         {
-            _simulations[sim].IsActive = true;
+            _simulations[sim].Enable();
         }
     }
     public static void StopSimulations(params SimulationType[] sims)
     {
         foreach (var sim in sims)
         {
-            _simulations[sim].IsActive = false;
+            _simulations[sim].Disable();
         }
     }
     public static void SetEnabledSimulations(bool isEnabled, params SimulationType[] sims)
     {
         foreach (var sim in _simulations.Where(x => sims.Contains(x.Key)))
         {
-            sim.Value.IsActive = isEnabled;
+            if (isEnabled)
+                sim.Value.Enable();
+            else
+                sim.Value.Disable();
         }
     }
     public static bool IsSimulationRunning(SimulationType simulation) => _simulations[simulation].IsActive;

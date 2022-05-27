@@ -4,8 +4,27 @@ using Assets.Scripts.Utils;
 public class PlateTectonicsToolbar : MenuUi
 {
     private StateMachine<IState> _stateMachine = new StateMachine<IState>();
+    private MovePlateTool _movePlateTool;
+    private BreakPlateTool _breakPlateTool;
+    private MergePlateTool _mergePlateTool;
+    private bool _isInitialized;
+
+    public void Initialize(PlateTectonicsData data,
+        PlateTectonicsSimulation simulation,
+        PlateTectonicsVisualization visualization)
+    {
+        _movePlateTool = FindObjectOfType<MovePlateTool>();
+        _movePlateTool.Initialize(data, simulation, visualization);
+        _breakPlateTool = FindObjectOfType<BreakPlateTool>();
+        _breakPlateTool.Initialize(data, simulation, visualization);
+        _mergePlateTool = FindObjectOfType<MergePlateTool>();
+        _mergePlateTool.Initialize(data, simulation, visualization);
+        _isInitialized = true;
+    }
     public override void Enable()
     {
+        if (!_isInitialized)
+            return;
         SetAllButtonsActive(false);
         SlideToPosition(0);
         MovePlates();
@@ -17,10 +36,36 @@ public class PlateTectonicsToolbar : MenuUi
         _stateMachine.State.Disable();
         IsActive = false;
     }
-    public void Pause() => _stateMachine.SetState(new ButtonState(this, "Pause", enabled => SimulationController.SetEnabledSimulations(false, SimulationType.PlateTectonics)));
-    public void MovePlates() => _stateMachine.SetState(new ButtonState(this, "Move", enabled => FindObjectOfType<MovePlateTool>().IsActive = enabled));
-    public void BreakPlates() => _stateMachine.SetState(new ButtonState(this, "Break", enabled => FindObjectOfType<BreakPlateTool>().IsActive = enabled));
-    public void CombinePlates() => _stateMachine.SetState(new ButtonState(this, "Combine", enabled => FindObjectOfType<MergePlateTool>().IsActive = enabled));
+
+    public void Pause() => _stateMachine.SetState(new ButtonState(this, "Pause",
+        enabled => SimulationController.SetEnabledSimulations(false, SimulationType.PlateTectonics)));
+
+    public void MovePlates() => _stateMachine.SetState(new ButtonState(this, "Move",
+        enabled =>
+        {
+            if (enabled)
+                _movePlateTool.Enable();
+            else
+                _movePlateTool.Disable();
+        }));
+
+    public void BreakPlates() => _stateMachine.SetState(new ButtonState(this, "Break",
+        enabled =>
+        {
+            if (enabled)
+                _breakPlateTool.Enable();
+            else
+                _breakPlateTool.Disable();
+        }));
+
+    public void CombinePlates() => _stateMachine.SetState(new ButtonState(this, "Combine",
+        enabled =>
+        {
+            if (enabled)
+                _mergePlateTool.Enable();
+            else
+                _mergePlateTool.Disable();
+        }));
 
     private void Update()
     {

@@ -15,8 +15,7 @@ public class Planet : MonoBehaviour
     public static void Save() => PlanetDataStore.Update(Data);
     public void ResetPlanet()
     {
-        var data = PlanetDataStore.Create(Name);
-        Initialize(data);
+        Initialize(PlanetDataStore.Create(Name));
     }
 
     public void Initialize(PlanetData data)

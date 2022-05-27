@@ -1,8 +1,4 @@
-﻿
-using System.Collections.Generic;
-using Unity.Mathematics;
-
-public class PlateTectonicsDbData
+﻿public class PlateTectonicsDbData
 {
     public string PlanetName { get; set; }
     public PlateDbData[] Plates { get; set; }

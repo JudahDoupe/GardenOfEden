@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
@@ -6,6 +7,7 @@ using UnityEngine;
 public class PlateTectonicsData
 {
     public string PlanetName { get; }
+    public float MantleHeight { get; set; }
     public List<PlateData> Plates { get; }
     public EnvironmentMap LandHeightMap { get; }
     public EnvironmentMap ContinentalIdMap { get; }
@@ -13,6 +15,52 @@ public class PlateTectonicsData
     public EnvironmentMap TmpPlateThicknessMaps { get; }
 
     public bool NeedsRegeneration { get; set; } = false;
+
+    public PlateData GetPlate(float id) => Plates.First(x => Math.Abs(x.Id - id) < float.Epsilon);
+    public PlateData AddPlate() => AddPlate(Plates.Max(x => x.Id) + 1f);
+    public PlateData AddPlate(float id)
+    {
+        var plate = new PlateData(id, Plates.Count);
+        var currentLayerCount = Plates.Count * 6;
+        var newLayerCount = (Plates.Count + 1) * 6;
+
+        if (Plates.Count > 0)
+        {
+            Graphics.CopyTexture(PlateThicknessMaps.RenderTexture, TmpPlateThicknessMaps.RenderTexture);
+        }
+
+        PlateThicknessMaps.Layers = newLayerCount;
+        for (var i = 0; i < currentLayerCount; i++)
+        {
+            Graphics.CopyTexture(TmpPlateThicknessMaps.RenderTexture, i, PlateThicknessMaps.RenderTexture, i);
+        }
+        TmpPlateThicknessMaps.Layers = newLayerCount;
+
+        Plates.Add(plate);
+        return plate;
+    }
+    public void RemovePlate(float id)
+    {
+        var plate = GetPlate(id);
+        if (plate == null) return;
+
+        Plates.Remove(plate);
+        var newLayerCount = Plates.Count * 6;
+
+        Graphics.CopyTexture(PlateThicknessMaps.RenderTexture, TmpPlateThicknessMaps.RenderTexture);
+        PlateThicknessMaps.Layers = newLayerCount;
+        foreach (var p in Plates)
+        {
+            var newIdx = Plates.IndexOf(p);
+            for (var i = 0; i < 6; i++)
+            {
+                Graphics.CopyTexture(TmpPlateThicknessMaps.RenderTexture, (p.Idx * 6) + i, PlateThicknessMaps.RenderTexture, (newIdx * 6) + i);
+            }
+            p.Idx = newIdx;
+        }
+        TmpPlateThicknessMaps.Layers = newLayerCount;
+    }
+
 
     public PlateTectonicsData(string planetName)
     {

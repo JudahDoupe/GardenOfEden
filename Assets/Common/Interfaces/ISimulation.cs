@@ -1,4 +1,6 @@
 ﻿public interface ISimulation
 {
-    bool IsActive { get; set; }
+    bool IsActive { get; }
+    void Enable();
+    void Disable();
 }

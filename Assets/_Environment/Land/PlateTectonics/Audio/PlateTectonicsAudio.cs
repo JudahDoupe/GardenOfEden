@@ -2,7 +2,6 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 
-[RequireComponent(typeof(PlateTectonicsSimulation))]
 public class PlateTectonicsAudio : MonoBehaviour
 {
     [Range(0, 1)]
@@ -14,36 +13,32 @@ public class PlateTectonicsAudio : MonoBehaviour
     public float BoulderThreshhold = 1;
     public AudioSource BoulderSound;
 
-    private bool _isActive;
-    public bool IsActive
+    private PlateTectonicsData _data;
+    public bool IsInitialized => _data != null;
+    public bool IsActive { get; private set; }
+
+    public void Initialize(PlateTectonicsData data)
     {
-        get => _isActive;
-        set
-        {
-            _isActive = value;
-            if (_isActive)
-            {
-                RumbleSound.Play();
-                BoulderSound.Play();
-            }
-            else
-            {
-                RumbleSound.Stop();
-                BoulderSound.Stop();
-            }
-        }
+        _data = data;
+    }
+    public void Enable()
+    {
+        if (!IsInitialized) return;
+        RumbleSound.Play();
+        BoulderSound.Play();
+        IsActive = true;
+    }
+    public void Disable()
+    {
+        RumbleSound.Stop();
+        BoulderSound.Stop();
+        IsActive = false;
     }
 
-    private PlateTectonicsSimulation _simulation;
-
-    public void Start()
-    {
-        _simulation = GetComponent<PlateTectonicsSimulation>();
-    }
     public void Update()
     {
         if (!IsActive) return;
-        var velocity = _simulation.GetAllPlates().Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
+        var velocity = _data.Plates.Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
         RumbleSound.volume = GetVolume(RumbleSound.volume, velocity, RumbleThreshhold);
         BoulderSound.volume = GetVolume(BoulderSound.volume, velocity, BoulderThreshhold);
     }

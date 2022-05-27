@@ -8,122 +8,126 @@ using System.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using Debug = UnityEngine.Debug;
 
-[RequireComponent(typeof(PlateTectonicsSimulation))]
 public class PlateBaker : MonoBehaviour
 {
     public ComputeShader BakePlatesShader;
     public int MinContinentSize = 2500;
-    public bool debug = false;
+    public bool Debug = false;
+    public bool IsInitialized => _data != null;
 
     private CancellationTokenSource _cancelation;
     private bool _needsBaking = false;
     private bool _isBaking = false;
     private int _lastPlateCount = 0;
 
-    private PlateTectonicsSimulation _simulation;
+    private PlateTectonicsData _data;
 
-    private EnvironmentMap TmpPlateThicknessMaps;
-    private EnvironmentMap TmpContinentalIdMap;
+    private EnvironmentMap _tmpPlateThicknessMaps;
+    private EnvironmentMap _tmpContinentalIdMap;
 
-    private void Start()
+    public void Initialize(PlateTectonicsData data)
     {
-        _simulation = GetComponent<PlateTectonicsSimulation>();
+        _data = data;
     }
 
     private void Update()
     {
-        if (!_simulation.IsActive)
+        if (!IsInitialized)
             return;
 
-        var plates = _simulation.Data.Plates;
-        if (plates.Any(x => !x.IsAligned))
+        if (_data.Plates.Any(x => !x.IsAligned))
         {
             _needsBaking = true;
         }
-        if (_needsBaking && !_isBaking && plates.All(x => x.IsStopped))
+
+        if (_needsBaking && !_isBaking && _data.Plates.All(x => x.IsStopped))
         {
             _cancelation = new CancellationTokenSource();
-            _simulation.Data.ContinentalIdMap.RefreshCache(BakePlates);
+            _data.ContinentalIdMap.RefreshCache(BakePlates);
         }
-        if (_isBaking && (!plates.All(x => x.IsStopped) || plates.Count() != _lastPlateCount))
+
+        if (_isBaking && (!_data.Plates.All(x => x.IsStopped) || _data.Plates.Count() != _lastPlateCount))
         {
             _cancelation.Cancel();
         }
-        _lastPlateCount = plates.Count;
+
+        _lastPlateCount = _data.Plates.Count;
     }
 
     public async void BakePlates()
     {
-        if (debug) Debug.Log("Starting Bake");
+        if (Debug) UnityEngine.Debug.Log("Starting Bake");
         var timer = new Stopwatch();
         timer.Start();
         _isBaking = true;
 
-        _simulation = FindObjectOfType<PlateTectonicsSimulation>();
-        TmpPlateThicknessMaps = new EnvironmentMap(_simulation.Data.PlateThicknessMaps.ToDbData());
-        TmpContinentalIdMap = new EnvironmentMap(_simulation.Data.ContinentalIdMap.ToDbData());
+        _tmpPlateThicknessMaps = new EnvironmentMap(_data.PlateThicknessMaps.ToDbData());
+        _tmpContinentalIdMap = new EnvironmentMap(_data.ContinentalIdMap.ToDbData());
 
         AlignPlates();
 
         if (_cancelation.IsCancellationRequested)
         {
             _isBaking = false;
-            if (debug) Debug.Log("Canceled Bake");
+            if (Debug) UnityEngine.Debug.Log("Canceled Bake");
             return;
         }
 
-        var continentIdMaps = _simulation.Data.ContinentalIdMap.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
-        var continents = await Task.Run(() => CoalesceContinents(DetectContinents(continentIdMaps)), _cancelation.Token);
+        var continentIdMaps = _data.ContinentalIdMap.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray())
+            .ToArray();
+        var continents =
+            await Task.Run(() => CoalesceContinents(DetectContinents(continentIdMaps)), _cancelation.Token);
 
         if (_cancelation.IsCancellationRequested)
         {
             _isBaking = false;
-            if (debug) Debug.Log("Canceled Bake");
+            if (Debug) UnityEngine.Debug.Log("Canceled Bake");
             return;
         }
 
         UpdateContinentIds(continents);
-        
-        foreach (var plateId in _simulation.GetAllPlates()
-                     .Where(x=> !continents.Select(c => c.CurrentId).Contains(x.Id))
+
+        foreach (var plateId in _data.Plates
+                     .Where(x => !continents.Select(c => c.CurrentId).Contains(x.Id))
                      .Select(x => x.Id))
         {
-            _simulation.RemovePlate(plateId);
+            _data.RemovePlate(plateId);
         }
 
-        if (debug) Debug.Log($"Finished Bake in {timer.ElapsedMilliseconds} ms");
+        if (Debug) UnityEngine.Debug.Log($"Finished Bake in {timer.ElapsedMilliseconds} ms");
 
-        SimulationDataStore.UpdatePlateTectonics(_simulation.Data);
+        SimulationDataStore.UpdatePlateTectonics(_data);
         SimulationDataStore.UpdateWater(Planet.Data.Water);
 
         _isBaking = false;
         _needsBaking = false;
     }
+
     private void AlignPlates()
     {
         RunTectonicKernel("StartAligningPlateThicknessMaps");
-        foreach (var plate in _simulation.GetAllPlates())
+        foreach (var plate in _data.Plates)
         {
             plate.Rotation = Quaternion.identity;
             plate.Velocity = Quaternion.identity;
         }
+
         RunTectonicKernel("FinishAligningPlateThicknessMaps");
     }
+
     private void RunTectonicKernel(string name)
     {
-        var plates = _simulation.GetAllPlates();
         var kernel = BakePlatesShader.FindKernel(name);
-        using var buffer = new ComputeBuffer(plates.Count(), Marshal.SizeOf(typeof(PlateGpuData)));
-        buffer.SetData(plates.Select(x => x.ToGpuData()).ToArray());
+        using var buffer = new ComputeBuffer(_data.Plates.Count(), Marshal.SizeOf(typeof(PlateGpuData)));
+        buffer.SetData(_data.Plates.Select(x => x.ToGpuData()).ToArray());
         BakePlatesShader.SetBuffer(kernel, "Plates", buffer);
-        BakePlatesShader.SetInt("NumPlates", plates.Count());
-        BakePlatesShader.SetFloat("MantleHeight", _simulation.MantleHeight);
-        BakePlatesShader.SetTexture(kernel, "TmpPlateThicknessMaps", TmpPlateThicknessMaps.RenderTexture);
-        BakePlatesShader.SetTexture(kernel, "PlateThicknessMaps", _simulation.Data.PlateThicknessMaps.RenderTexture);
-        BakePlatesShader.SetTexture(kernel, "TmpContinentalIdMap", TmpContinentalIdMap.RenderTexture);
-        BakePlatesShader.SetTexture(kernel, "ContinentalIdMap", _simulation.Data.ContinentalIdMap.RenderTexture);
+        BakePlatesShader.SetInt("NumPlates", _data.Plates.Count());
+        BakePlatesShader.SetFloat("MantleHeight", _data.MantleHeight);
+        BakePlatesShader.SetTexture(kernel, "TmpPlateThicknessMaps", _tmpPlateThicknessMaps.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "TmpContinentalIdMap", _tmpContinentalIdMap.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
         BakePlatesShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
@@ -183,6 +187,7 @@ public class PlateBaker : MonoBehaviour
 
         return continents;
     }
+
     private List<Continent> CoalesceContinents(List<Continent> continents)
     {
         var lastCount = 0;
@@ -194,7 +199,7 @@ public class PlateBaker : MonoBehaviour
             foreach (var continent in smallContinents.ToArray())
             {
                 var potentialParents = new Dictionary<Continent, float>();
-                foreach(var c in largeContinents)
+                foreach (var c in largeContinents)
                 {
                     potentialParents[c] = 0;
                 }
@@ -211,18 +216,21 @@ public class PlateBaker : MonoBehaviour
                 if (potentialParents.Values.Sum() > 0)
                 {
                     var parentContinent = potentialParents.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
-                    foreach(var t in continent.TexCoords)
+                    foreach (var t in continent.TexCoords)
                     {
                         parentContinent.TexCoords.Add(t);
                     }
+
                     smallContinents.Remove(continent);
                 }
             }
+
             lastCount = smallContinents.Count();
         }
 
         return largeContinents.Concat(smallContinents).ToList();
     }
+
     private void UpdateContinentIds(List<Continent> continents)
     {
         var c = Coordinate.TextureWidthInPixels * Coordinate.TextureWidthInPixels;
@@ -244,13 +252,15 @@ public class PlateBaker : MonoBehaviour
             }
         }
 
-        var texture2dArray = new Texture2DArray(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, 6, TmpContinentalIdMap.GraphicsFormat, TextureCreationFlags.None);
+        var texture2dArray = new Texture2DArray(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, 6,
+            _tmpContinentalIdMap.GraphicsFormat, TextureCreationFlags.None);
         for (var i = 0; i < textureArrays.Length; i++)
         {
             texture2dArray.SetPixelData(textureArrays[i], 0, i);
         }
+
         texture2dArray.Apply();
-        TmpContinentalIdMap.SetTextures(texture2dArray);
+        _tmpContinentalIdMap.SetTextures(texture2dArray);
 
         RunTectonicKernel("BakePlates");
     }
@@ -262,21 +272,24 @@ public class PlateBaker : MonoBehaviour
         public HashSet<int3> Neighbors = new HashSet<int3>();
         public HashSet<int3> TexCoords = new HashSet<int3>();
     }
+
     private class TexCoord : IEquatable<TexCoord>
     {
         public List<TexCoord> Neighbors => new List<TexCoord>
         {
-            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x-1, Xyw.y, Xyw.z))),
-            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x+1, Xyw.y, Xyw.z))),
-            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x, Xyw.y+1, Xyw.z))),
-            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x, Xyw.y-1, Xyw.z))),
+            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x - 1, Xyw.y, Xyw.z))),
+            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x + 1, Xyw.y, Xyw.z))),
+            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x, Xyw.y + 1, Xyw.z))),
+            new TexCoord(CoordinateTransforms.GetSourceXyw(new int3(Xyw.x, Xyw.y - 1, Xyw.z))),
         };
+
         public readonly int3 Xyw;
 
         public TexCoord(int3 coord)
         {
             Xyw = coord;
         }
+
         public bool Equals(TexCoord other) => Xyw.Equals(other.Xyw);
         public int ArrayW => Xyw.z;
         public int ArrayXY => Xyw.y * Coordinate.TextureWidthInPixels + Xyw.x;

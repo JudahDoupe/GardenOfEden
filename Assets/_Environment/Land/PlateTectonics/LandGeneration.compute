@@ -4,6 +4,7 @@
 
 RWTexture2DArray<float> ContinentalIdMap; 
 RWTexture2DArray<float> PlateThicknessMaps;
+RWTexture2DArray<float> LandHeightMap;
 
 float FaultLineNoise;
 
@@ -42,4 +43,5 @@ void ResetMaps(uint3 id : SV_DispatchThreadID)
     
     PlateThicknessMaps[closestXyp] = 0.1f;
     ContinentalIdMap[id] = closestPlateId;
+    LandHeightMap[id] = MantleHeight;
 }

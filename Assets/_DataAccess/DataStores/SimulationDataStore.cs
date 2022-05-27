@@ -22,7 +22,7 @@ public static class SimulationDataStore
 
     public static PlateTectonicsData CreatePlateTectonics(string planetName)
     {
-        return new PlateTectonicsData(planetName) { NeedsRegeneration = true };
+        return PateTectonicsGenerator.Generate(planetName);
     }
 
     public static void UpdatePlateTectonics(PlateTectonicsData data)

@@ -28,46 +28,49 @@ public class PlateTectonicsVisualization : MonoBehaviour
     [Range(0, 0.1f)]
     public float NoiseScale = 0.5f;
 
-    public bool IsActive { get; set; }
+    private PlateTectonicsData _data;
+    public bool IsInitialized => _data != null;
+    public bool IsActive { get; private set; }
 
-    private PlateTectonicsSimulation _simulation;
-
-    public void Initialize()
+    public void Initialize(PlateTectonicsData data)
     {
-        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", _simulation.Data.ContinentalIdMap.RenderTexture);
-        OutlineReplacementMaterial.SetTexture("HeightMap", _simulation.Data.LandHeightMap.RenderTexture);
+        _data = data; 
+        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
+        OutlineReplacementMaterial.SetTexture("HeightMap", _data.LandHeightMap.RenderTexture);
         SetLandMaterialValues();
         ShowFaultLines(false);
     }
+    public void Enable()
+    {
+        if (!IsInitialized) return;
+        IsActive = true;
+    }
+    public void Disable()
+    {
+        IsActive = false;
+    }
+
     public void ShowFaultLines(bool show)
     {
+        if (show && !IsActive) return;
         OutlineReplacementMaterial.SetFloat("PlateId", 0);
         FaultLineMaterial.SetFloat("Transparency", show ? 0.3f : 0);
     }
     public void HighlightPlate(float plateId)
     {
+        if (plateId > 0 && !IsActive) return;
         OutlineReplacementMaterial.SetFloat("PlateId", plateId);
         FaultLineMaterial.SetFloat("Transparency", 0.6f);
     }
     
-    private void Start()
-    {
-        _simulation = GetComponent<PlateTectonicsSimulation>();
-    }
-    private void OnValidate()
-    {
-        if (_simulation != null && _simulation.IsActive)
-            SetLandMaterialValues();
-    }
-
     private void SetLandMaterialValues()
     {
         GetComponent<MeshFilter>().sharedMesh.bounds = new Bounds(Vector3.zero, new Vector3(1,1,1) * Coordinate.PlanetRadius * 2);
         var landMaterial = GetComponent<Renderer>().sharedMaterial;
-        landMaterial.SetTexture("HeightMap", _simulation.Data.LandHeightMap.RenderTexture);
-        landMaterial.SetTexture("ContinentalIdMap", _simulation.Data.ContinentalIdMap.RenderTexture);
-        landMaterial.SetFloat("MantleHeight", _simulation.MantleHeight);
-        landMaterial.SetFloat("MaxHeight", _simulation.MantleHeight + (_simulation.MantleHeight / 3));
+        landMaterial.SetTexture("HeightMap", _data.LandHeightMap.RenderTexture);
+        landMaterial.SetTexture("ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
+        landMaterial.SetFloat("MantleHeight", _data.MantleHeight);
+        landMaterial.SetFloat("MaxHeight", _data.MantleHeight + (_data.MantleHeight / 3));
         landMaterial.SetFloat("FacetDencity", FacetsDencity);
         landMaterial.SetFloat("FacetStrength", FacetStrength);
         landMaterial.SetFloat("FacetPatchSize", PatchSize);

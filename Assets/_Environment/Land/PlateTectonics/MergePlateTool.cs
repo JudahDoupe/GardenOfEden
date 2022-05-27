@@ -4,28 +4,40 @@ public class MergePlateTool : MonoBehaviour, ITool
 {
     public ComputeShader MergePlateShader;
 
-    private bool _isActive;
-    public bool IsActive
-    {
-        get => _isActive;
-        set
-        {
-            _isActive = value;
-            ResetTool();
-            _visualization = FindObjectOfType<PlateTectonicsVisualization>();
-            _simulation = FindObjectOfType<PlateTectonicsSimulation>();
-            _simulation.IsActive = false;
-            if (!value)
-            {
-               _visualization.HighlightPlate(0);
-            }
-        }
-    }
+    public bool IsInitialized { get; private set; }
+    public bool IsActive { get; private set; }
 
-    private PlateTectonicsSimulation _simulation;
+    private PlateTectonicsData _data;
     private PlateTectonicsVisualization _visualization;
+    private PlateTectonicsSimulation _simulation;
     private PlateData oldPlate;
     private float? oldPlateId;
+
+    public void Initialize(PlateTectonicsData data,
+        PlateTectonicsSimulation simulation,
+        PlateTectonicsVisualization visualization)
+    {
+        _data = data;
+        _simulation = simulation;
+        _visualization = visualization;
+        IsInitialized = true;
+    }
+    public void Enable()
+    {
+        if (!IsInitialized)
+            return;
+
+        ResetTool();
+        _simulation.Disable();
+        IsActive = true;
+    }
+    public void Disable()
+    {
+        ResetTool();
+        _visualization.HighlightPlate(0);
+        IsActive = false;
+    }
+
 
     void Start()
     {
@@ -41,7 +53,7 @@ public class MergePlateTool : MonoBehaviour, ITool
 
             if (GetMouseCoord() is { } coord)
             {
-                var newPlateId = _simulation.Data.ContinentalIdMap.SamplePoint(coord).r;
+                var newPlateId = _data.ContinentalIdMap.SamplePoint(coord).r;
                 _visualization.HighlightPlate(newPlateId);
 
                 if (newPlateId == oldPlateId.Value)
@@ -56,10 +68,10 @@ public class MergePlateTool : MonoBehaviour, ITool
 
                     if (Input.GetMouseButtonDown(0))
                     {
-                        var newPlate = _simulation.GetPlate(newPlateId);
+                        var newPlate = _data.GetPlate(newPlateId);
                         MergePlates(oldPlateId.Value, newPlateId, oldPlate, newPlate);
                         UpdatePlateId(oldPlateId.Value, newPlateId);
-                        _simulation.RemovePlate(oldPlate.Id);
+                        _data.RemovePlate(oldPlate.Id);
                         ResetTool();
                         FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
                     }
@@ -69,7 +81,7 @@ public class MergePlateTool : MonoBehaviour, ITool
         }
         else if (GetMouseCoord() is { } coord)
         {
-            var plate = _simulation.GetPlate(_simulation.Data.ContinentalIdMap.SamplePoint(coord).r);
+            var plate = _data.GetPlate(_data.ContinentalIdMap.SamplePoint(coord).r);
             _visualization.HighlightPlate(plate.Id);
 
             if (Input.GetMouseButtonDown(0))
@@ -109,8 +121,8 @@ public class MergePlateTool : MonoBehaviour, ITool
     private void UpdatePlateId(float oldId, float newId)
     {
         int kernel = MergePlateShader.FindKernel("UpdatePlateId");
-        MergePlateShader.SetTexture(kernel, "ContinentalIdMap", _simulation.Data.ContinentalIdMap.RenderTexture);
-        MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", _simulation.Data.PlateThicknessMaps.RenderTexture);
+        MergePlateShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
+        MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
         MergePlateShader.SetFloat("OldPlateId", oldId);
         MergePlateShader.SetFloat("NewPlateId", newId);
         MergePlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
@@ -118,8 +130,8 @@ public class MergePlateTool : MonoBehaviour, ITool
     private void MergePlates(float oldId, float newId, PlateData oldPlate, PlateData newPlate)
     {
         int kernel = MergePlateShader.FindKernel("MergePlates");
-        MergePlateShader.SetTexture(kernel, "ContinentalIdMap", _simulation.Data.ContinentalIdMap.RenderTexture);
-        MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", _simulation.Data.PlateThicknessMaps.RenderTexture);
+        MergePlateShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
+        MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
         MergePlateShader.SetFloat("OldPlateId", oldId);
         MergePlateShader.SetFloat("NewPlateId", newId);
         MergePlateShader.SetFloat("OldPlateIdx", oldPlate.Idx);
