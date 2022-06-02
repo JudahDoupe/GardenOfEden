@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Unity.Mathematics;
 using UnityEngine;
 
 [RequireComponent(typeof(PateTectonicsGenerator))]
@@ -14,7 +15,6 @@ using UnityEngine;
 public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 {
     public ComputeShader TectonicsShader;
-    public float MantleHeight = 900;
     public float OceanicCrustThickness = 25;
     [Range(0, 0.1f)]
     public float SubductionRate = 0.001f;
@@ -35,9 +35,9 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public void Initialize(PlateTectonicsData data)
     {
         _data = data;
-        GetComponent<PlateBaker>().Initialize(_data);
-        GetComponent<PlateTectonicsVisualization>().Initialize(_data);
-        GetComponent<PlateTectonicsAudio>().Initialize(_data);
+        GetComponent<PlateBaker>().Initialize(data);
+        GetComponent<PlateTectonicsVisualization>().Initialize(data);
+        GetComponent<PlateTectonicsAudio>().Initialize(data);
         FindObjectOfType<PlateTectonicsToolbar>().Initialize(data, this, GetComponent<PlateTectonicsVisualization>());
     }
     public void Enable()
@@ -61,7 +61,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 
     public void UpdateSystem()
     {
-        _data.MantleHeight = MantleHeight;
         UpdateVelocity();
         UpdateContinentalIdMap();
         UpdatePlateThicknessMaps();
@@ -106,7 +105,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         TectonicsShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
         TectonicsShader.SetInt("NumPlates", _data.Plates.Count);
         TectonicsShader.SetFloat("OceanicCrustThickness", OceanicCrustThickness);
-        TectonicsShader.SetFloat("MantleHeight", MantleHeight);
+        TectonicsShader.SetFloat("MantleHeight", _data.MantleHeight);
         TectonicsShader.SetFloat("SubductionRate", SubductionRate * frameRateMultiplier);
         TectonicsShader.SetFloat("InflationRate", InflationRate * frameRateMultiplier);
         TectonicsShader.SetFloat("Gravity", Gravity * frameRateMultiplier);

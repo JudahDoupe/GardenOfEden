@@ -3,7 +3,7 @@
 #pragma kernel SmoothPlates
 #pragma kernel UpdateHeightMap
 
-#include "TectonicsInclude.hlsl"
+#include "PlateTectonicsInclude.hlsl"
 
 RWTexture2DArray<float> ContinentalIdMap; 
 RWTexture2DArray<float> PlateThicknessMaps;

@@ -12,7 +12,9 @@ public class Planet : MonoBehaviour
     public static LocalToWorld LocalToWorld => World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<LocalToWorld>(Entity);
     public static PlanetData Data;
 
+    [ContextMenu("Save")]
     public static void Save() => PlanetDataStore.Update(Data);
+    [ContextMenu("Reset")]
     public void ResetPlanet()
     {
         Initialize(PlanetDataStore.Create(Name));

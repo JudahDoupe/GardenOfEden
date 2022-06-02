@@ -47,6 +47,7 @@ public class PlateTectonicsVisualization : MonoBehaviour
     }
     public void Disable()
     {
+        ShowFaultLines(false);
         IsActive = false;
     }
 

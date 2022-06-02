@@ -1,7 +1,8 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Unity.Mathematics;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(PlateTectonicsSimulation))]
 public class PateTectonicsGenerator : MonoBehaviour
@@ -41,7 +42,7 @@ public class PateTectonicsGenerator : MonoBehaviour
 
         _instance.RunTectonicKernel(data, "ResetMaps");
         data.ContinentalIdMap.RefreshCache();
-        data.LandHeightMap.RefreshCache();
+        data.LandHeightMap.RefreshCache( () => Debug.Log(data.LandHeightMap.Sample(new float3(0.5f, 0.5f, 3))));
 
         return data;
     }

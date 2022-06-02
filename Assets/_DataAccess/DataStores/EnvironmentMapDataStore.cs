@@ -9,11 +9,12 @@ public static class EnvironmentMapDataStore
 
     public static EnvironmentMap GetOrCreate(EnvironmentMapDbData dbData)
     {
-        if (!Cache.TryGetValue((dbData.PlanetName, dbData.MapName), out var map))
+        if (Cache.TryGetValue((dbData.PlanetName, dbData.MapName), out var map))
         {
-            map = Create(dbData);
+            return map;
         }
 
+        map = Create(dbData);
         var folderPath = $"{Application.persistentDataPath}/{dbData.PlanetName}/{dbData.MapName}";
         Directory.CreateDirectory(folderPath);
         var files = Directory.GetFiles(folderPath);

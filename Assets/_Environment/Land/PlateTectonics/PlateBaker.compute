@@ -2,7 +2,7 @@
 #pragma kernel FinishAligningPlateThicknessMaps
 #pragma kernel BakePlates
 
-#include "TectonicsInclude.hlsl"
+#include "PlateTectonicsInclude.hlsl"
 
 RWTexture2DArray<float> PlateThicknessMaps;
 RWTexture2DArray<float> TmpPlateThicknessMaps;
