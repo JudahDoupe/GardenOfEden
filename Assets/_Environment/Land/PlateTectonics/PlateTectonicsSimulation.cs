@@ -24,13 +24,17 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float Gravity = 1f;
     [Range(1, 2)]
     public float PlateCohesion = 1.5f;
-    [Range(0, 1)]
-    public float PlateInertia = 0.3f;
+    public float PlateInertia = 0.9f;
+    [Range(0.25f, 3)]
     public float PlateSpeed = 500;
+    [Range(1, 90)]
+    public float SimulationSpeed = 60;
+    private float SimulationTimeStep => SimulationSpeed * Mathf.Clamp(Time.deltaTime, 1 / 90f, 1);
 
     private PlateTectonicsData _data;
     public bool IsInitialized => _data != null;
     public bool IsActive { get; private set; }
+
 
     public void Initialize(PlateTectonicsData data)
     {
@@ -68,11 +72,10 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     }
     public void UpdateVelocity()
     {
-        float frameRateMultiplier = (60 * Math.Min(Time.deltaTime, 1 / 60f));
         foreach (var plate in _data.Plates)
         {
-            var velocity = Quaternion.Slerp(plate.Velocity, plate.TargetVelocity, (1 - PlateInertia));
-            plate.Velocity = Quaternion.Slerp(Quaternion.identity, velocity, PlateSpeed * frameRateMultiplier);
+            var targetValocity = Quaternion.SlerpUnclamped(plate.Velocity, plate.TargetVelocity, (1 - PlateInertia * SimulationTimeStep));
+            plate.Velocity = Quaternion.SlerpUnclamped(Quaternion.identity, targetValocity, PlateSpeed * SimulationTimeStep);
             plate.Rotation *= plate.Velocity;
         }
     }
@@ -94,7 +97,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
   
     private void RunTectonicKernel(string kernelName)
     {
-        float frameRateMultiplier = (60 * Math.Min(Time.deltaTime, 1/60f));
         int kernel = TectonicsShader.FindKernel(kernelName);
         using var buffer = new ComputeBuffer(_data.Plates.Count, Marshal.SizeOf(typeof(PlateGpuData)));
         buffer.SetData(_data.Plates.Select(x => x.ToGpuData()).ToArray());
@@ -106,10 +108,10 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         TectonicsShader.SetInt("NumPlates", _data.Plates.Count);
         TectonicsShader.SetFloat("OceanicCrustThickness", OceanicCrustThickness);
         TectonicsShader.SetFloat("MantleHeight", _data.MantleHeight);
-        TectonicsShader.SetFloat("SubductionRate", SubductionRate * frameRateMultiplier);
-        TectonicsShader.SetFloat("InflationRate", InflationRate * frameRateMultiplier);
-        TectonicsShader.SetFloat("Gravity", Gravity * frameRateMultiplier);
-        TectonicsShader.SetFloat("PlateCohesion", PlateCohesion * frameRateMultiplier);
+        TectonicsShader.SetFloat("SubductionRate", SubductionRate * SimulationTimeStep);
+        TectonicsShader.SetFloat("InflationRate", InflationRate * SimulationTimeStep);
+        TectonicsShader.SetFloat("Gravity", Gravity * SimulationTimeStep);
+        TectonicsShader.SetFloat("PlateCohesion", PlateCohesion * SimulationTimeStep);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 

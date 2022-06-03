@@ -47,7 +47,6 @@ public static class EnvironmentMapDataStore
     {
         map.RefreshCache(() =>
         {
-            Debug.Log($"Saving {map.PlanetName}'s {map.Name}");
             var folderPath = $"{Application.persistentDataPath}/{map.PlanetName}/{map.Name}";
             Directory.CreateDirectory(folderPath);
             foreach (var (tex, i) in map.CachedTextures.WithIndex())

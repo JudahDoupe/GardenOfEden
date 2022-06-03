@@ -27,7 +27,6 @@ public static class SimulationDataStore
 
     public static void UpdatePlateTectonics(PlateTectonicsData data)
     {
-        Debug.Log($"Saving {data.PlanetName}'s Plate Tectonics");
         EnvironmentMapDataStore.Update(data.LandHeightMap);
         EnvironmentMapDataStore.Update(data.ContinentalIdMap);
         EnvironmentMapDataStore.Update(data.PlateThicknessMaps);
@@ -61,7 +60,6 @@ public static class SimulationDataStore
 
     public static void UpdateWater(WaterData data)
     {
-        Debug.Log($"Saving {data.PlanetName}'s Water");
         EnvironmentMapDataStore.Update(data.WaterMap);
 
         using var db = new LiteDatabase(ConnectionString);

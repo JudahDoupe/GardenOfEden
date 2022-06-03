@@ -42,7 +42,7 @@ public class PateTectonicsGenerator : MonoBehaviour
 
         _instance.RunTectonicKernel(data, "ResetMaps");
         data.ContinentalIdMap.RefreshCache();
-        data.LandHeightMap.RefreshCache( () => Debug.Log(data.LandHeightMap.Sample(new float3(0.5f, 0.5f, 3))));
+        data.LandHeightMap.RefreshCache();
 
         return data;
     }
