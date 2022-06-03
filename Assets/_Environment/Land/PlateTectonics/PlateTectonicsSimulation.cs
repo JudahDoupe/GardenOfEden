@@ -24,12 +24,11 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float Gravity = 1f;
     [Range(1, 2)]
     public float PlateCohesion = 1.5f;
-    public float PlateInertia = 0.9f;
-    [Range(0.25f, 3)]
-    public float PlateSpeed = 500;
+    [Range(0.01f, 0.99f)]
+    public float PlateInertia = 1f;
     [Range(1, 90)]
     public float SimulationSpeed = 60;
-    private float SimulationTimeStep => SimulationSpeed * Mathf.Clamp(Time.deltaTime, 1 / 90f, 1);
+    private float SimulationTimeStep => SimulationSpeed * Mathf.Clamp(Time.deltaTime, 1 / 60f, 1);
 
     private PlateTectonicsData _data;
     public bool IsInitialized => _data != null;
@@ -74,9 +73,9 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     {
         foreach (var plate in _data.Plates)
         {
-            var targetValocity = Quaternion.SlerpUnclamped(plate.Velocity, plate.TargetVelocity, (1 - PlateInertia * SimulationTimeStep));
-            plate.Velocity = Quaternion.SlerpUnclamped(Quaternion.identity, targetValocity, PlateSpeed * SimulationTimeStep);
-            plate.Rotation *= plate.Velocity;
+            plate.Velocity = Quaternion.Slerp(plate.Velocity, plate.TargetVelocity, (1 - PlateInertia) / SimulationTimeStep);
+            var rotation = Quaternion.SlerpUnclamped(Quaternion.identity, plate.Velocity, SimulationTimeStep);
+            plate.Rotation *= rotation;
         }
     }
     public void UpdateContinentalIdMap()

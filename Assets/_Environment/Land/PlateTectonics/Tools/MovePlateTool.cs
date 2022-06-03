@@ -11,7 +11,7 @@ public class MovePlateTool : MonoBehaviour, ITool
     private PlateTectonicsVisualization _visualization;
     private PlateTectonicsSimulation _simulation; 
     private float _currentPlateId;
-    private Coordinate _currentCoord;
+    private Coordinate _startingCoord;
 
     public void Initialize(PlateTectonicsData data,
         PlateTectonicsSimulation simulation,
@@ -42,6 +42,7 @@ public class MovePlateTool : MonoBehaviour, ITool
     void Update()
     {
         if (!IsActive) return;
+
         if (Input.GetMouseButtonDown(0)) StartMoving();
         if (Input.GetMouseButton(0) && _currentPlateId > 0) Move();
         if (Input.GetMouseButtonUp(0) && _currentPlateId > 0) Clear();
@@ -53,9 +54,14 @@ public class MovePlateTool : MonoBehaviour, ITool
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out var hit, distance))
         {
-            _currentCoord = new Coordinate(hit.point, Planet.LocalToWorld);
-            _currentCoord.Altitude = Coordinate.PlanetRadius;
-            _currentPlateId = _data.ContinentalIdMap.SamplePoint(_currentCoord).r;
+            _startingCoord = new Coordinate(hit.point, Planet.LocalToWorld)
+            {
+                Altitude = Coordinate.PlanetRadius
+            };
+            _currentPlateId = _data.ContinentalIdMap.SamplePoint(_startingCoord).r;
+            var plate = _data.GetPlate(_currentPlateId);
+            _startingCoord.LocalPlanet = Quaternion.Inverse(plate.Rotation) * _startingCoord.LocalPlanet;
+            Debug.Log(_startingCoord.LocalPlanet);
         }
         else
         {
@@ -68,15 +74,16 @@ public class MovePlateTool : MonoBehaviour, ITool
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         var targetPos = Physics.Raycast(ray, out var hit, distance) ? hit.point : Camera.main.transform.position + ray.direction * distance;
+        targetPos = new Coordinate(targetPos, Planet.LocalToWorld).LocalPlanet;
         var plate = _data.GetPlate(_currentPlateId);
-        _currentCoord.LocalPlanet = plate.Velocity * _currentCoord.LocalPlanet.ToVector3();
 
-        var targetCoord = new Coordinate(targetPos, Planet.LocalToWorld);
-        var motionVector = Vector3.ClampMagnitude(targetCoord.LocalPlanet - _currentCoord.LocalPlanet, MaxVelocity).ToFloat3();
-        targetCoord.LocalPlanet = _currentCoord.LocalPlanet + motionVector;
+        var currentPos = plate.Rotation * _startingCoord.LocalPlanet;
+        Debug.Log(currentPos);
+        var motionVector = Vector3.ClampMagnitude(targetPos - currentPos, MaxVelocity);
+        targetPos = currentPos + motionVector;
 
-        var lastRotation = Quaternion.LookRotation(_currentCoord.LocalPlanet, Camera.main.transform.up);
-        var targetRotation = Quaternion.LookRotation(targetCoord.LocalPlanet, Camera.main.transform.up);
+        var lastRotation = Quaternion.LookRotation(currentPos, Camera.main.transform.up);
+        var targetRotation = Quaternion.LookRotation(targetPos, Camera.main.transform.up);
         var targetVelocity = targetRotation * Quaternion.Inverse(lastRotation);
 
         plate.TargetVelocity = targetVelocity;
