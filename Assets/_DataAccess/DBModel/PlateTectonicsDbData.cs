@@ -1,6 +1,7 @@
 ﻿public class PlateTectonicsDbData
 {
     public string PlanetName { get; set; }
+    public float MantleHeight { get; set; }
     public PlateDbData[] Plates { get; set; }
     public EnvironmentMapDbData LandHeightMap { get; set; }
     public EnvironmentMapDbData ContinentalIdMap { get; set; } 

@@ -65,6 +65,7 @@ public class PlateTectonicsData
     public PlateTectonicsData(string planetName)
     {
         PlanetName = planetName;
+        MantleHeight = 900;
         Plates = new List<PlateData> { new PlateData(0, 0) };
         LandHeightMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "LandHeightMap"));
         ContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "ContinentalIdMap"));
@@ -74,6 +75,7 @@ public class PlateTectonicsData
     public PlateTectonicsData(PlateTectonicsDbData dbData)
     {
         PlanetName = dbData.PlanetName;
+        MantleHeight = dbData.MantleHeight;
         Plates = dbData.Plates.Select(plateData => new PlateData(plateData)).ToList();
         LandHeightMap = EnvironmentMapDataStore.GetOrCreate(dbData.LandHeightMap);
         ContinentalIdMap = EnvironmentMapDataStore.GetOrCreate(dbData.ContinentalIdMap);
@@ -84,6 +86,7 @@ public class PlateTectonicsData
     public PlateTectonicsDbData ToDbData() => new PlateTectonicsDbData
     {
         PlanetName = PlanetName,
+        MantleHeight = MantleHeight,
         Plates = Plates.Select(x => x.ToDbData()).ToArray(),
         LandHeightMap = LandHeightMap.ToDbData(),
         ContinentalIdMap = ContinentalIdMap.ToDbData(),
