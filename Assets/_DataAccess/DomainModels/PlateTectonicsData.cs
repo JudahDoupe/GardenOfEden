@@ -103,8 +103,8 @@ public class PlateData
     public Quaternion Velocity { get; set; }
     public Quaternion TargetVelocity { get; set; }
     public Vector3 Center => Rotation * Vector3.forward * 1000;
-    public bool IsStopped => Quaternion.Angle(Velocity, Quaternion.identity) < 0.001f;
-    public bool IsAligned => Quaternion.Angle(Rotation, Quaternion.identity) < 0.001f;
+    public bool IsStopped => Quaternion.Angle(Velocity, Quaternion.identity) < 0.0001f;
+    public bool IsAligned => Quaternion.Angle(Rotation, Quaternion.identity) < 0.0001f;
 
     public PlateData(float id, int idx, Quaternion? rotation = null)
     {

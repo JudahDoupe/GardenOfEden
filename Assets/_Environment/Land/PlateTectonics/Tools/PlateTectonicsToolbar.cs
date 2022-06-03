@@ -14,7 +14,7 @@ public class PlateTectonicsToolbar : MenuUi
         PlateTectonicsVisualization visualization)
     {
         _movePlateTool = FindObjectOfType<MovePlateTool>();
-        _movePlateTool.Initialize(data, simulation, visualization);
+        _movePlateTool.Initialize(data, simulation, visualization, FindObjectOfType<PlateBaker>());
         _breakPlateTool = FindObjectOfType<BreakPlateTool>();
         _breakPlateTool.Initialize(data, simulation, visualization);
         _mergePlateTool = FindObjectOfType<MergePlateTool>();

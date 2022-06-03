@@ -15,9 +15,9 @@ public class PlateBaker : MonoBehaviour
     public int MinContinentSize = 2500;
     public bool Debug = false;
     public bool IsInitialized => _data != null;
+    public bool IsActive { get; private set; }
 
     private CancellationTokenSource _cancelation;
-    private bool _needsBaking = false;
     private bool _isBaking = false;
     private int _lastPlateCount = 0;
 
@@ -31,20 +31,26 @@ public class PlateBaker : MonoBehaviour
         _data = data;
     }
 
+    public void Enable()
+    {
+        if (Debug) UnityEngine.Debug.Log("Plate Baker Enabled");
+        IsActive = true;
+    }
+
+    public void Disable()
+    {
+        if (Debug) UnityEngine.Debug.Log("Plate Baker Disabled");
+        IsActive = false;
+    }
+
     private void Update()
     {
-        if (!IsInitialized)
+        if (!IsInitialized || !IsActive)
             return;
 
-        if (_data.Plates.Any(x => !x.IsAligned))
+        if (NeedsBaking())
         {
-            _needsBaking = true;
-        }
-
-        if (_needsBaking && !_isBaking && _data.Plates.All(x => x.IsStopped))
-        {
-            _cancelation = new CancellationTokenSource();
-            _data.ContinentalIdMap.RefreshCache(BakePlates);
+            BakePlates();
         }
 
         if (_isBaking && (!_data.Plates.All(x => x.IsStopped) || _data.Plates.Count() != _lastPlateCount))
@@ -53,9 +59,18 @@ public class PlateBaker : MonoBehaviour
         }
 
         _lastPlateCount = _data.Plates.Count;
+
+        bool NeedsBaking() => !_isBaking
+                              && _data.Plates.Any(x => !x.IsAligned) 
+                              && _data.Plates.All(x => x.IsStopped);
     }
 
-    public async void BakePlates()
+    public void BakePlates()
+    {
+        _cancelation = new CancellationTokenSource();
+        _data.ContinentalIdMap.RefreshCache(BakePlatesAsync);
+    }
+    private async void BakePlatesAsync()
     {
         if (Debug) UnityEngine.Debug.Log("Starting Bake");
         var timer = new Stopwatch();
@@ -101,7 +116,6 @@ public class PlateBaker : MonoBehaviour
         SimulationDataStore.UpdateWater(Planet.Data.Water);
 
         _isBaking = false;
-        _needsBaking = false;
     }
 
     private void AlignPlates()

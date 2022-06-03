@@ -34,7 +34,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public bool IsInitialized => _data != null;
     public bool IsActive { get; private set; }
 
-
     public void Initialize(PlateTectonicsData data)
     {
         _data = data;
@@ -42,6 +41,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         GetComponent<PlateTectonicsVisualization>().Initialize(data);
         GetComponent<PlateTectonicsAudio>().Initialize(data);
         FindObjectOfType<PlateTectonicsToolbar>().Initialize(data, this, GetComponent<PlateTectonicsVisualization>());
+        GetComponent<PlateBaker>().Enable();
     }
     public void Enable()
     {
@@ -59,6 +59,8 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         SimulationDataStore.UpdatePlateTectonics(_data);
         GetComponent<PlateTectonicsAudio>().Disable();
         GetComponent<PlateTectonicsVisualization>().Disable();
+        GetComponent<PlateBaker>().Disable();
+        GetComponent<PlateBaker>().BakePlates();
         IsActive = false;
     }
 

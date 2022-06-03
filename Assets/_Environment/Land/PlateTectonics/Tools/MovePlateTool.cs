@@ -3,6 +3,8 @@ using UnityEngine;
 public class MovePlateTool : MonoBehaviour, ITool
 {
     public float MaxVelocity = 10;
+    [Range(0,1)]
+    public float Dampening = 0.5f;
 
     public bool IsInitialized { get; private set; }
     public bool IsActive { get; private set; }
@@ -10,16 +12,19 @@ public class MovePlateTool : MonoBehaviour, ITool
     private PlateTectonicsData _data;
     private PlateTectonicsVisualization _visualization;
     private PlateTectonicsSimulation _simulation; 
+    private PlateBaker _baker; 
     private float _currentPlateId;
-    private Coordinate _startingCoord;
+    private Vector3 _startingPosition;
 
     public void Initialize(PlateTectonicsData data,
         PlateTectonicsSimulation simulation,
-        PlateTectonicsVisualization visualization)
+        PlateTectonicsVisualization visualization,
+        PlateBaker baker)
     {
         _data = data;
         _simulation = simulation;
         _visualization = visualization;
+        _baker = baker;
         IsInitialized = true;
     }
     public void Enable()
@@ -54,14 +59,14 @@ public class MovePlateTool : MonoBehaviour, ITool
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out var hit, distance))
         {
-            _startingCoord = new Coordinate(hit.point, Planet.LocalToWorld)
+            var coord = new Coordinate(hit.point, Planet.LocalToWorld)
             {
                 Altitude = Coordinate.PlanetRadius
             };
-            _currentPlateId = _data.ContinentalIdMap.SamplePoint(_startingCoord).r;
+            _currentPlateId = _data.ContinentalIdMap.SamplePoint(coord).r;
             var plate = _data.GetPlate(_currentPlateId);
-            _startingCoord.LocalPlanet = Quaternion.Inverse(plate.Rotation) * _startingCoord.LocalPlanet;
-            Debug.Log(_startingCoord.LocalPlanet);
+            _startingPosition = Quaternion.Inverse(plate.Rotation) * coord.LocalPlanet;
+            _baker.Disable();
         }
         else
         {
@@ -77,10 +82,14 @@ public class MovePlateTool : MonoBehaviour, ITool
         targetPos = new Coordinate(targetPos, Planet.LocalToWorld).LocalPlanet;
         var plate = _data.GetPlate(_currentPlateId);
 
-        var currentPos = plate.Rotation * _startingCoord.LocalPlanet;
-        Debug.Log(currentPos);
+
+        var currentPos = plate.Rotation * _startingPosition;
         var motionVector = Vector3.ClampMagnitude(targetPos - currentPos, MaxVelocity);
-        targetPos = currentPos + motionVector;
+        var remainingDistance = Vector3.Distance(currentPos, targetPos);
+        var totalDistance = Vector3.Distance(_startingPosition, targetPos);
+        var speedMultiplier = Mathf.Clamp01(remainingDistance / (totalDistance * Dampening));
+        var scaledMotionVector = motionVector * speedMultiplier;
+        targetPos = currentPos + scaledMotionVector;
 
         var lastRotation = Quaternion.LookRotation(currentPos, Camera.main.transform.up);
         var targetRotation = Quaternion.LookRotation(targetPos, Camera.main.transform.up);
@@ -100,5 +109,10 @@ public class MovePlateTool : MonoBehaviour, ITool
             }
         }
         _currentPlateId = 0;
+
+        if (_simulation.IsActive)
+        {
+            _baker.Enable();
+        }
     }
 }

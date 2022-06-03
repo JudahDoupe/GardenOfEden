@@ -12,7 +12,6 @@ public static class PlanetDataStore
     }
     public static void Update(PlanetData data)
     {
-        Debug.Log("Saving Planet");
         SimulationDataStore.UpdatePlateTectonics(data.PlateTectonics);
         SimulationDataStore.UpdateWater(data.Water);
     }
