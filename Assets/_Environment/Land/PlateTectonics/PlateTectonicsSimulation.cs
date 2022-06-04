@@ -12,7 +12,7 @@ using UnityEngine;
 public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 {
     public ComputeShader TectonicsShader;
-    [Header("Shrinking")]
+    [Header("Subduction")]
     [Range(0, 1f)]
     public float StillPlateSubductionRate = 0.1f;
     [Range(0, 1f)]
@@ -21,24 +21,22 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float StillMinSubductionPreasure = 0.1f;
     [Range(0, 0.1f)]
     public float MovingMinSubductionPreasure = 0;
-    [Range(0.00001f, 10f)]
+    [Range(1, 50)]
     public float Gravity = 1f;
-    [Header("Growing")]
+    [Header("Inflation")]
     public float OceanicCrustThickness = 25;
-    [Range(0, 0.1f)]
-    public float InflationRate = 0.001f;
     [Range(0, 1)]
-    public float MovingPlateInflationInfluance = 1f;
+    public float MovingPlateInflationRate = 1f;
     [Range(0, 1)]
-    public float StillPlateInflationInfluance = 0.1f;
+    public float StillPlateInflationRate = 0.1f;
     [Header("Motion")]
     [Range(1, 2)]
     public float PlateCohesion = 1.5f;
-    [Range(0.01f, 0.99f)]
-    public float PlateInertia = 1f;
-    [Range(1, 90)]
-    public float SimulationSpeed = 60;
-    private float SimulationTimeStep => SimulationSpeed * Mathf.Clamp(Time.deltaTime, 1 / 60f, 1);
+    [Range(1, 10)]
+    public float PlateInertia = 5;
+    [Range(0.1f, 1)]
+    public float SimulationSpeed = 1;
+    private float SimulationTimeStep => SimulationSpeed * Mathf.Min(Time.deltaTime, 1);
 
     private PlateTectonicsData _data;
     public bool IsInitialized => _data != null;
@@ -85,7 +83,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     {
         foreach (var plate in _data.Plates)
         {
-            plate.Velocity = Quaternion.Slerp(plate.Velocity, plate.TargetVelocity, (1 - PlateInertia) / SimulationTimeStep);
+            plate.Velocity = Quaternion.Slerp(plate.Velocity, plate.TargetVelocity, (10 - PlateInertia) * SimulationTimeStep);
             var rotation = Quaternion.SlerpUnclamped(Quaternion.identity, plate.Velocity, SimulationTimeStep);
             plate.Rotation *= rotation;
         }
@@ -124,11 +122,10 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         TectonicsShader.SetFloat("MovingMinSubductionPreasure", MovingMinSubductionPreasure);
         TectonicsShader.SetFloat("StillPlateSubductionRate", StillPlateSubductionRate * SimulationTimeStep);
         TectonicsShader.SetFloat("MovingPlateSubductionRate", MovingPlateSubductionRate * SimulationTimeStep);
-        TectonicsShader.SetFloat("InflationRate", InflationRate * SimulationTimeStep);
-        TectonicsShader.SetFloat("StillPlateInflationInfluance", StillPlateInflationInfluance);
-        TectonicsShader.SetFloat("MovingPlateInflationInfluance", MovingPlateInflationInfluance);
+        TectonicsShader.SetFloat("StillPlateInflationRate", StillPlateInflationRate * SimulationTimeStep);
+        TectonicsShader.SetFloat("MovingPlateInflationRate", MovingPlateInflationRate * SimulationTimeStep);
         TectonicsShader.SetFloat("Gravity", Gravity * SimulationTimeStep);
-        TectonicsShader.SetFloat("PlateCohesion", PlateCohesion * SimulationTimeStep);
+        TectonicsShader.SetFloat("PlateCohesion", PlateCohesion);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 

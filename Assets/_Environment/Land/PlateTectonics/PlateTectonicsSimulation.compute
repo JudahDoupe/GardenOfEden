@@ -14,9 +14,8 @@ float StillPlateSubductionRate;
 float MovingPlateSubductionRate;
 float StillMinSubductionPreasure;
 float MovingMinSubductionPreasure;
-float InflationRate;
-float StillPlateInflationInfluance;
-float MovingPlateInflationInfluance;
+float StillPlateInflationRate;
+float MovingPlateInflationRate;
 float OceanicCrustThickness;
 float Gravity;
 float PlateCohesion;
@@ -66,13 +65,13 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 {
     float3 xyz = xyw_to_xyz(id, MantleHeight);
     float totalThickness = 0;
+    float totalTravelDistance = 0;
     for (uint p1 = 0; p1 < NumPlates; p1++)
     {
-        Plate plate = Plates[p1];
         uint3 xyp = xyz_to_xyp(xyz, p1);
         float plateThickness = PlateThicknessMaps[xyp];
-        float thicknessInfluance = clamp((plate.TravelDistance * MovingPlateInflationInfluance) + (ContinentalIdMap[id] == plate.Id), StillPlateInflationInfluance, 1);
-        totalThickness += plateThickness * thicknessInfluance;
+        totalThickness += plateThickness;
+        totalTravelDistance += Plates[p1].TravelDistance * saturate(plateThickness / OceanicCrustThickness);
     }
     
     for (uint p2 = 0; p2 < NumPlates; p2++)
@@ -85,13 +84,16 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 		
 		if (isTopPlate)
         {
+            //Infalation
+            float inflationRate = lerp(StillPlateInflationRate, MovingPlateInflationRate, saturate(totalTravelDistance));
 			float targetThickness = max(OceanicCrustThickness, totalThickness);
-            myThickness = lerp(myThickness, targetThickness, InflationRate);
+            myThickness = lerp(myThickness, targetThickness, inflationRate);
         }
         else
         {
-            float subductionRate = lerp(StillPlateSubductionRate, MovingPlateSubductionRate, saturate(plate.TravelDistance));
-            float minSubductionPreasure = lerp(StillMinSubductionPreasure, MovingMinSubductionPreasure, saturate(plate.TravelDistance));
+            //Subduction
+            float subductionRate = lerp(StillPlateSubductionRate, MovingPlateSubductionRate, saturate(totalTravelDistance));
+            float minSubductionPreasure = lerp(StillMinSubductionPreasure, MovingMinSubductionPreasure, saturate(totalTravelDistance));
 			float preasure = clamp((otherThickness - myThickness) / (totalThickness + 0.00000001), minSubductionPreasure, 1);
             float heightLimitingFactor = pow(1 + (totalThickness / MantleHeight), 3);
             float subduction = myThickness * preasure * subductionRate * heightLimitingFactor;
