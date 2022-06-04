@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Runtime.InteropServices;
-using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -38,11 +37,15 @@ public class PateTectonicsGenerator : MonoBehaviour
             var plate = data.AddPlate(p + 1.0001f);
             plate.Rotation = Random.rotation;
         }
-        data.NeedsRegeneration = false;
 
         _instance.RunTectonicKernel(data, "ResetMaps");
         data.ContinentalIdMap.RefreshCache();
         data.LandHeightMap.RefreshCache();
+
+        foreach (var plate in data.Plates)
+        {
+            plate.Rotation = Quaternion.identity;
+        }
 
         return data;
     }

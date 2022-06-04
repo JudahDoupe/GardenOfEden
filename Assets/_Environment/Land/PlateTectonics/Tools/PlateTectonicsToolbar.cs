@@ -7,18 +7,22 @@ public class PlateTectonicsToolbar : MenuUi
     private MovePlateTool _movePlateTool;
     private BreakPlateTool _breakPlateTool;
     private MergePlateTool _mergePlateTool;
+    private PlateTectonicsSimulation _simulation;
+    private PlateTectonicsVisualization _visualization;
+    private PlateBaker _baker;
     private bool _isInitialized;
 
-    public void Initialize(PlateTectonicsData data,
-        PlateTectonicsSimulation simulation,
-        PlateTectonicsVisualization visualization)
+    public void Initialize(PlateTectonicsData data)
     {
+        _simulation = FindObjectOfType<PlateTectonicsSimulation>();
+        _visualization = FindObjectOfType<PlateTectonicsVisualization>();
+        _baker = FindObjectOfType<PlateBaker>();
         _movePlateTool = FindObjectOfType<MovePlateTool>();
-        _movePlateTool.Initialize(data, simulation, visualization, FindObjectOfType<PlateBaker>());
+        _movePlateTool.Initialize(data, _simulation, _visualization, _baker);
         _breakPlateTool = FindObjectOfType<BreakPlateTool>();
-        _breakPlateTool.Initialize(data, simulation, visualization);
+        _breakPlateTool.Initialize(data, _simulation, _visualization, _baker);
         _mergePlateTool = FindObjectOfType<MergePlateTool>();
-        _mergePlateTool.Initialize(data, simulation, visualization);
+        _mergePlateTool.Initialize(data, _simulation, _visualization);
         _isInitialized = true;
     }
     public override void Enable()
@@ -38,7 +42,13 @@ public class PlateTectonicsToolbar : MenuUi
     }
 
     public void Pause() => _stateMachine.SetState(new ButtonState(this, "Pause",
-        enabled => SimulationController.SetEnabledSimulations(false, SimulationType.PlateTectonics)));
+        enabled => 
+        {
+            if (enabled)
+                _simulation.Enable();
+            else
+                _simulation.Disable();
+        }));
 
     public void MovePlates() => _stateMachine.SetState(new ButtonState(this, "Move",
         enabled =>
@@ -66,15 +76,4 @@ public class PlateTectonicsToolbar : MenuUi
             else
                 _mergePlateTool.Disable();
         }));
-
-    private void Update()
-    {
-        if (IsActive && Input.GetKeyDown(KeyCode.Space))
-        {
-            if (SimulationController.IsSimulationRunning(SimulationType.PlateTectonics))
-                Pause();
-            else
-                MovePlates();
-        }
-    }
 }

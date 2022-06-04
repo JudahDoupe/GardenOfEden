@@ -23,9 +23,7 @@ public class Planet : MonoBehaviour
     public void Initialize(PlanetData data)
     {
         Data = data;
-        
-        FindObjectOfType<WaterSimulation>().Initialize(data.Water);
-        FindObjectOfType<PlateTectonicsSimulation>().Initialize(data.PlateTectonics);
+        FindObjectOfType<SystemsController>().InitializeAllSystems(data);
     }
 
     void Start()

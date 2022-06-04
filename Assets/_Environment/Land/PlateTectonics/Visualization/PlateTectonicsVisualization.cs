@@ -38,7 +38,7 @@ public class PlateTectonicsVisualization : MonoBehaviour
         OutlineReplacementMaterial.SetTexture("ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
         OutlineReplacementMaterial.SetTexture("HeightMap", _data.LandHeightMap.RenderTexture);
         SetLandMaterialValues();
-        ShowFaultLines(false);
+        Disable();
     }
     public void Enable()
     {

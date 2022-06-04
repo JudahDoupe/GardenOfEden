@@ -40,7 +40,7 @@ public class PlateBaker : MonoBehaviour
     public void Disable()
     {
         if (Debug) UnityEngine.Debug.Log("Plate Baker Disabled");
-        _cancelation.Cancel();
+        if (_cancelation != null) _cancelation.Cancel();
         IsActive = false;
     }
 

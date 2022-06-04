@@ -14,8 +14,6 @@ public class PlateTectonicsData
     public EnvironmentMap PlateThicknessMaps { get; }
     public EnvironmentMap TmpPlateThicknessMaps { get; }
 
-    public bool NeedsRegeneration { get; set; } = false;
-
     public PlateData GetPlate(float id) => Plates.First(x => Math.Abs(x.Id - id) < float.Epsilon);
     public PlateData AddPlate() => AddPlate(Plates.Max(x => x.Id) + 1f);
     public PlateData AddPlate(float id)

@@ -5,10 +5,12 @@ using UnityEngine;
 public class SystemsMenu : MenuUi
 {
     private StateMachine<IState> _stateMachine = new StateMachine<IState>();
-    
+    private SystemsController _systemsContoller;
+
     private void Start()
     {
         SetAllButtonsActive(false);
+        _systemsContoller = FindObjectOfType<SystemsController>();
     }
     private void Update()
     {
@@ -37,7 +39,7 @@ public class SystemsMenu : MenuUi
         _stateMachine.SetState(new ButtonState(this, "Globe", e =>
         {
             FindObjectOfType<SatelliteCamera>().IsDragEnabled = true;
-            SimulationController.SetEnabledSimulations(e, SimulationType.Water);
+            _systemsContoller.EnableGlobe();
             if (e) Singleton.PerspectiveController.SetPerspective(FindObjectOfType<SatelliteCamera>(), new CameraTransition { Speed = 1, Ease = EaseType.InOut });
         }));
     }
@@ -46,7 +48,7 @@ public class SystemsMenu : MenuUi
         _stateMachine.SetState(new ButtonState(this, "Land", e =>
         {
             FindObjectOfType<SatelliteCamera>().IsDragEnabled = false;
-            SimulationController.SetEnabledSimulations(e, SimulationType.Water, SimulationType.PlateTectonics);
+            _systemsContoller.EnablePlateTectonics();
             if (e) Singleton.PerspectiveController.SetPerspectives((FindObjectOfType<SatelliteCamera>(), CameraTransition.Smooth), (FindObjectOfType<LandscapeCamera>(), CameraTransition.Smooth));
             if (e) FindObjectOfType<PlateTectonicsToolbar>().Enable();
             else FindObjectOfType<PlateTectonicsToolbar>().Disable();

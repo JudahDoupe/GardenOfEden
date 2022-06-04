@@ -45,11 +45,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public void Initialize(PlateTectonicsData data)
     {
         _data = data;
-        GetComponent<PlateBaker>().Initialize(data);
-        GetComponent<PlateTectonicsVisualization>().Initialize(data);
-        GetComponent<PlateTectonicsAudio>().Initialize(data);
-        FindObjectOfType<PlateTectonicsToolbar>().Initialize(data, this, GetComponent<PlateTectonicsVisualization>());
-        GetComponent<PlateBaker>().Enable();
     }
     public void Enable()
     {
@@ -58,17 +53,10 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
             Debug.LogWarning($"{nameof(PlateTectonicsSimulation)} cannot be activated before it has been initialized.");
             return;
         }
-        GetComponent<PlateTectonicsAudio>().Enable();
-        GetComponent<PlateTectonicsVisualization>().Enable();
         IsActive = true;
     }
     public void Disable()
     {
-        SimulationDataStore.UpdatePlateTectonics(_data);
-        GetComponent<PlateTectonicsAudio>().Disable();
-        GetComponent<PlateTectonicsVisualization>().Disable();
-        GetComponent<PlateBaker>().Disable();
-        GetComponent<PlateBaker>().BakePlates();
         IsActive = false;
     }
 

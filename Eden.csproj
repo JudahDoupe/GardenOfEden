@@ -75,7 +75,7 @@
     <Compile Include="Assets\Common\Rendering\RenderFeatures\OutlineFeature.cs" />
     <Compile Include="Assets\Common\Extensions\Vector3Extensions.cs" />
     <Compile Include="Assets\_Environment\Land\PlateTectonics\Tools\PlateTectonicsToolbar.cs" />
-    <Compile Include="Assets\_Gameplay\SimulationController.cs" />
+    <Compile Include="Assets\_Gameplay\SystemsController.cs" />
     <Compile Include="Assets\_Environment\Land\PlateTectonics\Tools\MergePlateTool.cs" />
     <Compile Include="Assets\_Plants\Systems\Growth\NodeDivisionSystem.cs" />
     <Compile Include="Assets\Common\Extensions\FloatExtensions.cs" />
