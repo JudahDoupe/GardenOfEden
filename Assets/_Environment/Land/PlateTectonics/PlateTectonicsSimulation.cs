@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Unity.Mathematics;
 using UnityEngine;
 
 [RequireComponent(typeof(PateTectonicsGenerator))]
@@ -15,13 +12,26 @@ using UnityEngine;
 public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 {
     public ComputeShader TectonicsShader;
-    public float OceanicCrustThickness = 25;
+    [Header("Shrinking")]
+    [Range(0, 1f)]
+    public float StillPlateSubductionRate = 0.1f;
+    [Range(0, 1f)]
+    public float MovingPlateSubductionRate = 0.1f;
     [Range(0, 0.1f)]
-    public float SubductionRate = 0.001f;
+    public float StillMinSubductionPreasure = 0.1f;
     [Range(0, 0.1f)]
-    public float InflationRate = 0.001f;
+    public float MovingMinSubductionPreasure = 0;
     [Range(0.00001f, 10f)]
     public float Gravity = 1f;
+    [Header("Growing")]
+    public float OceanicCrustThickness = 25;
+    [Range(0, 0.1f)]
+    public float InflationRate = 0.001f;
+    [Range(0, 1)]
+    public float MovingPlateInflationInfluance = 1f;
+    [Range(0, 1)]
+    public float StillPlateInflationInfluance = 0.1f;
+    [Header("Motion")]
     [Range(1, 2)]
     public float PlateCohesion = 1.5f;
     [Range(0.01f, 0.99f)]
@@ -100,7 +110,8 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     {
         int kernel = TectonicsShader.FindKernel(kernelName);
         using var buffer = new ComputeBuffer(_data.Plates.Count, Marshal.SizeOf(typeof(PlateGpuData)));
-        buffer.SetData(_data.Plates.Select(x => x.ToGpuData()).ToArray());
+        var gpuData = _data.Plates.Select(x => x.ToGpuData()).ToArray();
+        buffer.SetData(gpuData);
         TectonicsShader.SetBuffer(kernel, "Plates", buffer);
         TectonicsShader.SetTexture(kernel, "LandHeightMap", _data.LandHeightMap.RenderTexture);
         TectonicsShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
@@ -109,8 +120,13 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         TectonicsShader.SetInt("NumPlates", _data.Plates.Count);
         TectonicsShader.SetFloat("OceanicCrustThickness", OceanicCrustThickness);
         TectonicsShader.SetFloat("MantleHeight", _data.MantleHeight);
-        TectonicsShader.SetFloat("SubductionRate", SubductionRate * SimulationTimeStep);
+        TectonicsShader.SetFloat("StillMinSubductionPreasure", StillMinSubductionPreasure);
+        TectonicsShader.SetFloat("MovingMinSubductionPreasure", MovingMinSubductionPreasure);
+        TectonicsShader.SetFloat("StillPlateSubductionRate", StillPlateSubductionRate * SimulationTimeStep);
+        TectonicsShader.SetFloat("MovingPlateSubductionRate", MovingPlateSubductionRate * SimulationTimeStep);
         TectonicsShader.SetFloat("InflationRate", InflationRate * SimulationTimeStep);
+        TectonicsShader.SetFloat("StillPlateInflationInfluance", StillPlateInflationInfluance);
+        TectonicsShader.SetFloat("MovingPlateInflationInfluance", MovingPlateInflationInfluance);
         TectonicsShader.SetFloat("Gravity", Gravity * SimulationTimeStep);
         TectonicsShader.SetFloat("PlateCohesion", PlateCohesion * SimulationTimeStep);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);

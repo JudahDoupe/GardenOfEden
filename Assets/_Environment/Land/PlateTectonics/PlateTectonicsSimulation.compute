@@ -10,9 +10,13 @@ RWTexture2DArray<float> PlateThicknessMaps;
 RWTexture2DArray<float> TmpPlateThicknessMaps;
 RWTexture2DArray<float> LandHeightMap;
 
-float FaultLineNoise; 
-float SubductionRate;
+float StillPlateSubductionRate;
+float MovingPlateSubductionRate;
+float StillMinSubductionPreasure;
+float MovingMinSubductionPreasure;
 float InflationRate;
+float StillPlateInflationInfluance;
+float MovingPlateInflationInfluance;
 float OceanicCrustThickness;
 float Gravity;
 float PlateCohesion;
@@ -64,15 +68,20 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
     float totalThickness = 0;
     for (uint p1 = 0; p1 < NumPlates; p1++)
     {
+        Plate plate = Plates[p1];
         uint3 xyp = xyz_to_xyp(xyz, p1);
-        totalThickness += PlateThicknessMaps[xyp];
+        float plateThickness = PlateThicknessMaps[xyp];
+        float thicknessInfluance = clamp((plate.TravelDistance * MovingPlateInflationInfluance) + (ContinentalIdMap[id] == plate.Id), StillPlateInflationInfluance, 1);
+        totalThickness += plateThickness * thicknessInfluance;
     }
     
     for (uint p2 = 0; p2 < NumPlates; p2++)
     {
+        Plate plate = Plates[p2];
         uint3 xyp = xyz_to_xyp(xyz, p2);
-        bool isTopPlate = ContinentalIdMap[id] == Plates[p2].Id;
+        bool isTopPlate = ContinentalIdMap[id] == plate.Id;
 		float myThickness = PlateThicknessMaps[xyp];
+        float otherThickness = totalThickness - myThickness;
 		
 		if (isTopPlate)
         {
@@ -81,8 +90,11 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         }
         else
         {
-			float preasure = (myThickness - (totalThickness - myThickness)) / (totalThickness + 0.00000001f);
-            float subduction = myThickness * max(-preasure, 0) * SubductionRate * pow(1 + (totalThickness / MantleHeight), 3);
+            float subductionRate = lerp(StillPlateSubductionRate, MovingPlateSubductionRate, saturate(plate.TravelDistance));
+            float minSubductionPreasure = lerp(StillMinSubductionPreasure, MovingMinSubductionPreasure, saturate(plate.TravelDistance));
+			float preasure = clamp((otherThickness - myThickness) / (totalThickness + 0.00000001), minSubductionPreasure, 1);
+            float heightLimitingFactor = pow(1 + (totalThickness / MantleHeight), 3);
+            float subduction = myThickness * preasure * subductionRate * heightLimitingFactor;
 			myThickness = max(myThickness - subduction, 0);
         }
 		
@@ -93,7 +105,7 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 [numthreads(8, 8, 6)]
 void SmoothPlates(uint3 id : SV_DispatchThreadID)
 {
-    Plate myPlate = Plates[GetPlateIdx(ContinentalIdMap[id])];
+    Plate myPlate = Plates[GetPlateIdx(ContinentalIdMap[id])]; 
     
     float sumThickness = 0;
     float sumWeights = 0;

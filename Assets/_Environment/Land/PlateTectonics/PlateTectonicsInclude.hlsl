@@ -7,6 +7,7 @@ struct Plate
     float Id;
     int Idx;
     float4 Rotation;
+    float TravelDistance;
 }; 
 RWStructuredBuffer<Plate> Plates;
 uint NumPlates;

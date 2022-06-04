@@ -102,6 +102,7 @@ public class PlateData
     public Quaternion Rotation { get; set; }
     public Quaternion Velocity { get; set; }
     public Quaternion TargetVelocity { get; set; }
+    public float TravelDistance => Quaternion.Angle(Quaternion.identity, Velocity) * (math.PI/180) * Coordinate.PlanetRadius;
     public Vector3 Center => Rotation * Vector3.forward * 1000;
     public bool IsStopped => Quaternion.Angle(Velocity, Quaternion.identity) < 0.0001f;
     public bool IsAligned => Quaternion.Angle(Rotation, Quaternion.identity) < 0.0001f;
@@ -125,7 +126,7 @@ public class PlateData
         TargetVelocity = Quaternion.identity;
     }
     
-    public PlateGpuData ToGpuData() => new PlateGpuData { Id = Id, Idx = Idx, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]) };
+    public PlateGpuData ToGpuData() => new PlateGpuData { Id = Id, Idx = Idx, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]), TravelDistance = TravelDistance };
     public PlateDbData ToDbData() => new PlateDbData { Id = Id, Idx = Idx, Rotation = new float[] { Rotation[0], Rotation[1], Rotation[2], Rotation[3] } };
 
 }

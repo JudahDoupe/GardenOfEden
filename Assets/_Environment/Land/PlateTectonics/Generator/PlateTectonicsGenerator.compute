@@ -41,7 +41,7 @@ void ResetMaps(uint3 id : SV_DispatchThreadID)
         PlateThicknessMaps[xyp] = 0;
 	}
     
-    PlateThicknessMaps[closestXyp] = 0.1f;
+    PlateThicknessMaps[closestXyp] = 10;
     ContinentalIdMap[id] = closestPlateId;
     LandHeightMap[id] = MantleHeight;
 }
