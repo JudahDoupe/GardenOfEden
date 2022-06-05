@@ -23,7 +23,7 @@ void ResetMaps(uint3 id : SV_DispatchThreadID)
 	{
         Plate myPlate = Plates[p];
         uint3 myXyp = uint3(id.xy, id.z + p * 6);
-		float3 myCenter = rotate_vector(xyw_to_xyz(id, MantleHeight), myPlate.Rotation);
+		float3 myCenter = rotate_vector(float3(0,0,MantleHeight), myPlate.Rotation);
 
 		float dist = distance(xyz, myCenter);
 		if (dist < minDist)

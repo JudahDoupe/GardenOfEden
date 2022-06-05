@@ -106,7 +106,8 @@ public class PlateBaker : MonoBehaviour
 
         foreach (var plateId in _data.Plates
                      .Where(x => !continents.Select(c => c.CurrentId).Contains(x.Id))
-                     .Select(x => x.Id))
+                     .Select(x => x.Id)
+                     .ToArray())
         {
             _data.RemovePlate(plateId);
         }

@@ -195,6 +195,7 @@
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\BCCNoise4.hlsl" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\ClassicNoise3D.hlsl" />
     <None Include="Assets\Imports\NuGet\Editor\NuGetForUnity.dll" />
+    <None Include="Assets\Resources\Shaders\CoordinateTransformsTests.compute" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\SimplexNoise3D.hlsl" />
     <None Include="Assets\Common\Shaders\Includes\DecodeDepthNormals.hlsl" />
     <None Include="Assets\Imports\3dNoise\NoiseShader\HLSL\WhiteNoise2D.hlsl" />

@@ -75,7 +75,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Tests\Tests.asmdef" />
-    <None Include="Assets\Tests\Gpu\CoordinateTransformsTests.compute" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
