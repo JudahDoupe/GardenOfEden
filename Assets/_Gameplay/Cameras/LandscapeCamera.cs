@@ -1,6 +1,5 @@
 using Assets.GamePlay.Cameras;
 using System;
-using System.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,6 +16,7 @@ public class LandscapeCamera : CameraPerspective
     public float DragSpeed = 0.25f;
     public float LerpSpeed = 5f;
     public float Swing = 100;
+    public float MinSwing = 10;
     public bool IsDragEnabled = true;
     [SerializeField]
     private Settings Near; 
@@ -83,6 +83,7 @@ public class LandscapeCamera : CameraPerspective
 
         var center = _centerCoord.LocalPlanet.ToVector3();
         var swing = math.clamp(1 - math.pow(t, 2), 0.001f, 1) * Swing;
+        swing = math.max(swing, MinSwing);
 
         var targetFocusPos = Planet.Data.PlateTectonics.LandHeightMap.Sample(_centerCoord).r * center.normalized;
         focusPos = lerp ? Vector3.Lerp(focusPos, targetFocusPos, Time.deltaTime * LerpSpeed) : targetFocusPos;
