@@ -1,6 +1,4 @@
 using Assets.Scripts.Utils;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -8,6 +6,7 @@ public class HeightMapVisualizer : MonoBehaviour
 {
     public GameObject[] Planes = new GameObject[6];
     public GameObject Cube;
+    public string Planet = "Earth";
 
     [Header("Expanded Layers")]
     public float LayerSetback = 100;
@@ -22,6 +21,7 @@ public class HeightMapVisualizer : MonoBehaviour
     [Header("Height Map")]
 
     [Header("Colored Height Map")]
+    public Vector3 ClosePosition;
 
 
     private Controls Controls;
@@ -36,6 +36,14 @@ public class HeightMapVisualizer : MonoBehaviour
         Controls.Exhibit.Forward.performed += Forward;
         Controls.Exhibit.Back.performed += Back;
 
+
+        var map = EnvironmentMapDataStore.GetOrCreate(new EnvironmentMapDbData(Planet, "LandHeightMap"));
+        for (int i = 0; i < 6; i++)
+        {
+            Planes[i].GetComponent<Renderer>().material.SetTexture("HeightMap", map.CachedTextures[i]);
+        }
+        Cube.GetComponent<Renderer>().material.SetTexture("HeightMap", map.RenderTexture);
+
         var startPosition = new VisualizationState {
             TextureAlphas = new float[] { 1, 1, 1, 1, 1, 1 },
             TextureRotations = new []
@@ -46,7 +54,16 @@ public class HeightMapVisualizer : MonoBehaviour
                 Quaternion.LookRotation(-Camera.main.transform.forward, Camera.main.transform.up),
                 Quaternion.LookRotation(-Camera.main.transform.forward, Camera.main.transform.up),
                 Quaternion.LookRotation(-Camera.main.transform.forward, Camera.main.transform.up),
-            }
+            },
+            TexturePositions = new[]
+            {
+                Vector3.back * 1,
+                Vector3.back * 2,
+                Vector3.back * 3,
+                Vector3.back * 4,
+                Vector3.back * 5,
+                Vector3.back * 6,
+            },
         };
 
         var expandedLayers = new VisualizationState(startPosition)
@@ -68,19 +85,19 @@ public class HeightMapVisualizer : MonoBehaviour
             TextureAlphas = new float[] { 1, 1, 1, 1, 1, 1 },
             TextureRotations = new[]
             {
+                Quaternion.LookRotation(Vector3.right, Vector3.back),
+                Quaternion.LookRotation(Vector3.left, Vector3.back),
                 Quaternion.LookRotation(Vector3.up, Vector3.forward),
                 Quaternion.LookRotation(Vector3.down, Vector3.forward),
-                Quaternion.LookRotation(Vector3.right, Vector3.up),
-                Quaternion.LookRotation(Vector3.left, Vector3.up),
                 Quaternion.LookRotation(Vector3.forward, Vector3.up),
                 Quaternion.LookRotation(Vector3.back, Vector3.up),
             },
             TexturePositions = new[]
             {
-                Vector3.up * CubeScale, 
-                Vector3.down * CubeScale, 
                 Vector3.right * CubeScale, 
                 Vector3.left * CubeScale, 
+                Vector3.up * CubeScale, 
+                Vector3.down * CubeScale, 
                 Vector3.forward * CubeScale, 
                 Vector3.back * CubeScale, 
             },
@@ -101,6 +118,19 @@ public class HeightMapVisualizer : MonoBehaviour
             CubeToSphereLerp = 1,
         };
 
+        var heightMap = new VisualizationState(sphereMap)
+        {
+            TransitionTime = 1,
+            SphereToHeightLerp = 1,
+        };
+
+        var rotateCloser = new VisualizationState(sphereMap)
+        {
+            TransitionTime = 3,
+            ParentPosition = ClosePosition,
+            ParentRotation = Quaternion.LookRotation(Vector3.back, Vector3.up),
+        };
+
         States = new[]
         {
             startPosition,
@@ -108,6 +138,8 @@ public class HeightMapVisualizer : MonoBehaviour
             cubeMap,
             cubeMapFromSphere,
             sphereMap,
+            heightMap,
+            rotateCloser,
         };
 
         Forward(new InputAction.CallbackContext());
@@ -145,6 +177,12 @@ public class HeightMapVisualizer : MonoBehaviour
                                         state.CubeToSphereLerp, 
                                         x => material.SetFloat("CubeToSphere", x),
                                         ease: EaseType.InOut));
+        Singleton.Instance.StartCoroutine(
+            AnimationUtils.AnimateFloat(speed,
+                                        material.GetFloat("SphereToHeight"),
+                                        state.SphereToHeightLerp,
+                                        x => material.SetFloat("SphereToHeight", x),
+                                        ease: EaseType.InOut));
 
     }
 
@@ -160,6 +198,7 @@ public class HeightMapVisualizer : MonoBehaviour
             SphereAlpha = 0;
             TransitionTime = 1;
             CubeToSphereLerp = 0;
+            SphereToHeightLerp = 0;
         }
         public VisualizationState(VisualizationState state) 
         {
@@ -171,6 +210,7 @@ public class HeightMapVisualizer : MonoBehaviour
             SphereAlpha = state.SphereAlpha;
             TransitionTime = state.TransitionTime;
             CubeToSphereLerp = state.CubeToSphereLerp;
+            SphereToHeightLerp = state.SphereToHeightLerp;
         }
 
         public Vector3[] TexturePositions; 
@@ -181,6 +221,7 @@ public class HeightMapVisualizer : MonoBehaviour
         public Quaternion ParentRotation;
         public float SphereAlpha;
         public float CubeToSphereLerp;
+        public float SphereToHeightLerp;
 
         public float TransitionTime;
     }
