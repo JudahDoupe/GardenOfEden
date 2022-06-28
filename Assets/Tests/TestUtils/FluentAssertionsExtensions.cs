@@ -22,10 +22,7 @@ namespace Tests
 
     public class Float3Assertions : ReferenceTypeAssertions<float3, Float3Assertions>
     {
-        public Float3Assertions(float3 instance)
-        {
-            Subject = instance;
-        }
+        public Float3Assertions(float3 instance) : base(instance) { }
 
         protected override string Identifier => "float3";
 
@@ -52,10 +49,7 @@ namespace Tests
 
     public class Float4Assertions : ReferenceTypeAssertions<float4, Float4Assertions>
     {
-        public Float4Assertions(float4 instance)
-        {
-            Subject = instance;
-        }
+        public Float4Assertions(float4 instance) : base(instance) { }
 
         protected override string Identifier => "float3";
 
