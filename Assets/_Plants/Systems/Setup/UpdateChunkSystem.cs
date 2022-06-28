@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Plants.Growth;
@@ -23,7 +23,7 @@ namespace Assets.Scripts.Plants.Setup
     }
 
     [UpdateInGroup(typeof(SetupSystemGroup), OrderFirst = true)]
-    class UpdateChunkSystem : SystemBase
+partial     class UpdateChunkSystem : SystemBase
     {
         SetupEcbSystem _ecbSystem;
         protected override void OnCreate()

@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Assets.Scripts.Plants.Growth;
 using Unity.Collections;
 using Unity.Entities;
@@ -8,7 +8,7 @@ namespace Assets.Plants.Systems.Cleanup
 {
 
     [UpdateInGroup(typeof(CleanupSystemGroup))]
-    public class DeadNodeSystem : SystemBase
+    public partial class DeadNodeSystem : SystemBase
     {
         DeleteEntityEcbSystem _trashEcbSystem;
         protected override void OnCreate()

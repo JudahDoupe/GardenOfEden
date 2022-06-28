@@ -1,4 +1,4 @@
-﻿using Unity.Entities;
+using Unity.Entities;
 using Unity.Transforms;
 
 namespace Assets.Plants.Systems.Cleanup
@@ -11,7 +11,7 @@ namespace Assets.Plants.Systems.Cleanup
     }
 
     [UpdateInGroup(typeof(CleanupSystemGroup))]
-    public class DormancySystem : SystemBase
+    public partial class DormancySystem : SystemBase
     {
         CleanupEcbSystem _ecbSystem;
         protected override void OnCreate()

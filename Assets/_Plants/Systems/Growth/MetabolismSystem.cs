@@ -1,4 +1,4 @@
-﻿using Assets.Plants.Systems.Cleanup;
+using Assets.Plants.Systems.Cleanup;
 using Unity.Entities;
 
 namespace Assets.Scripts.Plants.Growth
@@ -15,7 +15,7 @@ namespace Assets.Scripts.Plants.Growth
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
     [UpdateAfter(typeof(PhotosynthesisSystem))]
-    public class MetabolismSystem : SystemBase
+    public partial class MetabolismSystem : SystemBase
     {
         protected override void OnUpdate()
         {

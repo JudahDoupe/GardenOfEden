@@ -1,4 +1,4 @@
-﻿using Assets.Plants.Systems.Cleanup;
+using Assets.Plants.Systems.Cleanup;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -24,7 +24,7 @@ namespace Assets.Scripts.Plants.Growth
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
     [UpdateAfter(typeof(MetabolismSystem))]
-    public class GrowthSystem : SystemBase
+    public partial class GrowthSystem : SystemBase
     {
         public const float EnergyToVolumeRatio = 0.25f; 
 

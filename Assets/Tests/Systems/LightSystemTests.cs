@@ -325,7 +325,7 @@ namespace Tests
                 m_Manager.AddSharedComponentData(entity, Singleton.LoadBalancer.CurrentChunk);
             }
 
-            World.GetOrCreateSystem<EndFrameTRSToLocalToWorldSystem>().Update();
+            World.GetOrCreateSystem<TRSToLocalToWorldSystem>().Update(World.Unmanaged);
             World.GetOrCreateSystem<LightSystem>().Update();
         }
 

@@ -1,4 +1,4 @@
-﻿using Unity.Entities;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -23,7 +23,7 @@ namespace Assets.Plants.Systems.Cleanup
     }
 
     [UpdateInGroup(typeof(CleanupSystemGroup))]
-    class AssignMeshSystem : SystemBase
+partial     class AssignMeshSystem : SystemBase
     {
         CleanupEcbSystem _ecbSystem;
         DeleteEntityEcbSystem _trashEcbSystem;

@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Plants.Growth;
+using Assets.Scripts.Plants.Growth;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -19,7 +19,7 @@ namespace Assets.Scripts.Plants.Environment
     }
 
     [UpdateInGroup(typeof(EnvironmentSystemGroup))]
-    public class LightSystem : SystemBase
+    public partial class LightSystem : SystemBase
     {
         public static readonly float LightLevel = 1;
         public static float PlanetSurfaceArea => 4 * math.PI * math.pow(Coordinate.PlanetRadius, 2);
@@ -30,7 +30,7 @@ namespace Assets.Scripts.Plants.Environment
         protected override void OnUpdate()
         {
             var planet = Planet.Entity;
-            var lightCells = new NativeMultiHashMap<int3, Entity>(NumCells, Allocator.TempJob);
+            var lightCells = new NativeParallelMultiHashMap<int3, Entity>(NumCells, Allocator.TempJob);
             var lightCellsWriter = lightCells.AsParallelWriter();
 
             Entities

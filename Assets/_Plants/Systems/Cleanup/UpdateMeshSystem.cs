@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Plants.Growth;
+using Assets.Scripts.Plants.Growth;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -8,7 +8,7 @@ namespace Assets.Plants.Systems.Cleanup
 {
 
     [UpdateInGroup(typeof(CleanupSystemGroup))]
-    class UpdateMeshSystem : SystemBase
+partial     class UpdateMeshSystem : SystemBase
     {
         protected override void OnUpdate()
         {

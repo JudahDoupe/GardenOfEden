@@ -26,10 +26,10 @@ namespace Tests
             var buffer = m_Manager.AddBuffer<DivisionInstruction>(middle);
             buffer.Add(new DivisionInstruction { Entity = embryo, Order = order });
 
-            World.GetOrCreateSystem<EndFrameParentSystem>().Update();
+            World.GetOrCreateSystem<ParentSystem>().Update(World.Unmanaged);
             World.GetOrCreateSystem<NodeDivisionSystem>().Update();
             World.GetOrCreateSystem<GrowthEcbSystem>().Update();
-            World.GetOrCreateSystem<EndFrameParentSystem>().Update();
+            World.GetOrCreateSystem<ParentSystem>().Update(World.Unmanaged);
 
             Assert.IsTrue(m_Manager.HasComponent<Parent>(top));
 
@@ -74,7 +74,7 @@ namespace Tests
             m_Manager.SetComponentData(top, new Parent { Value = middle });
             m_Manager.SetComponentData(middle, new Parent { Value = bottom });
 
-            World.GetOrCreateSystem<EndFrameParentSystem>().Update();
+            World.GetOrCreateSystem<ParentSystem>().Update(World.Unmanaged);
             var ecb = World.GetOrCreateSystem<GrowthEcbSystem>().CreateCommandBuffer();
 
             ecb.RemoveComponent<Child>(middle);
@@ -83,7 +83,7 @@ namespace Tests
             ecb.SetComponent(top, new PreviousParent{Value = Entity.Null});
 
             World.GetOrCreateSystem<GrowthEcbSystem>().Update();
-            World.GetOrCreateSystem<EndFrameParentSystem>().Update();
+            World.GetOrCreateSystem<ParentSystem>().Update(World.Unmanaged);
 
             Assert.AreEqual(m_Manager.GetComponentData<Parent>(top).Value, bottom);
         }
@@ -101,12 +101,12 @@ namespace Tests
             var buffer = m_Manager.AddBuffer<DivisionInstruction>(top);
             buffer.Add(new DivisionInstruction { Entity = embryo, Order = DivisionOrder.InPlace });
 
-            World.GetOrCreateSystem<EndFrameParentSystem>().Update();
+            World.GetOrCreateSystem<ParentSystem>().Update(World.Unmanaged);
             Assert.AreEqual(1, m_Manager.GetBuffer<Child>(bottom).Length);
 
             World.GetOrCreateSystem<NodeDivisionSystem>().Update();
             World.GetOrCreateSystem<GrowthEcbSystem>().Update();
-            World.GetOrCreateSystem<EndFrameParentSystem>().Update();
+            World.GetOrCreateSystem<ParentSystem>().Update(World.Unmanaged);
 
             Assert.AreEqual(quantity > 0.5f ? 2 : 1, m_Manager.GetBuffer<Child>(bottom).Length);
         }
@@ -126,7 +126,7 @@ namespace Tests
             {
                 World.GetOrCreateSystem<NodeDivisionSystem>().Update();
                 World.GetOrCreateSystem<GrowthEcbSystem>().Update();
-                World.GetOrCreateSystem<EndFrameParentSystem>().Update();
+                World.GetOrCreateSystem<ParentSystem>().Update(World.Unmanaged);
             }
 
             Assert.AreEqual(divisions + 1, m_Manager.GetBuffer<Child>(baseNode).Length);
@@ -145,7 +145,7 @@ namespace Tests
             {
                 World.GetOrCreateSystem<NodeDivisionSystem>().Update();
                 World.GetOrCreateSystem<GrowthEcbSystem>().Update();
-                World.GetOrCreateSystem<EndFrameParentSystem>().Update();
+                World.GetOrCreateSystem<ParentSystem>().Update(World.Unmanaged);
             }
 
             Assert.AreEqual( 1, m_Manager.GetBuffer<Child>(baseNode).Length);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Assets.Plants.Systems.Cleanup;
 using Unity.Entities;
@@ -13,7 +13,7 @@ namespace Assets.Scripts.Plants.Growth
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
     [UpdateAfter(typeof(GrowthSystem))]
-    public class EmbryoDispersalSystem : SystemBase
+    public partial class EmbryoDispersalSystem : SystemBase
     {
         GrowthEcbSystem _ecbSystem;
         protected override void OnCreate()

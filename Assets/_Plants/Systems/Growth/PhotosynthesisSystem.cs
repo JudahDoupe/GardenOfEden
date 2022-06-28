@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Plants.Environment;
+using Assets.Scripts.Plants.Environment;
 using Unity.Entities;
 
 namespace Assets.Scripts.Plants.Growth
@@ -9,7 +9,7 @@ namespace Assets.Scripts.Plants.Growth
     }
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
-    public class PhotosynthesisSystem : SystemBase
+    public partial class PhotosynthesisSystem : SystemBase
     {
         protected override void OnUpdate()
         {

@@ -1,4 +1,4 @@
-﻿using Unity.Entities;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -18,7 +18,7 @@ namespace Assets.Scripts.Plants.Growth
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
     [UpdateBefore(typeof(GrowthSystem))]
-    public class GrowthHormoneSystem : SystemBase
+    public partial class GrowthHormoneSystem : SystemBase
     {
         protected override void OnUpdate()
         {

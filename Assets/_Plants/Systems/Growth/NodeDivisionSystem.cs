@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Assets.Plants.Systems.Cleanup;
 using Assets.Scripts.Plants.Dna;
@@ -41,7 +41,7 @@ namespace Assets.Scripts.Plants.Growth
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
     [UpdateAfter(typeof(GrowthSystem))]
-    public class NodeDivisionSystem : SystemBase
+    public partial class NodeDivisionSystem : SystemBase
     {
         GrowthEcbSystem _ecbSystem;
         DeleteEntityEcbSystem _trashEcbSystem;

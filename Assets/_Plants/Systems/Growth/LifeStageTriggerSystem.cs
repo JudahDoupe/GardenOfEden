@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Assets.Plants.Systems.Cleanup;
 using Unity.Entities;
 using Unity.Transforms;
@@ -29,7 +29,7 @@ namespace Assets.Scripts.Plants.Growth
 
     [UpdateInGroup(typeof(GrowthSystemGroup))]
     [UpdateBefore(typeof(NodeDivisionSystem))]
-    public class LifeStageTriggerSystem : SystemBase
+    public partial class LifeStageTriggerSystem : SystemBase
     {
         protected override void OnUpdate()
         {
