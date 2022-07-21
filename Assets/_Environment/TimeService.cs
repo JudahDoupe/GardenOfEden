@@ -26,7 +26,7 @@ public class TimeService : MonoBehaviour
 
 #if UNITY_EDITOR
 [CustomEditor(typeof(TimeService))]
-public class TimeServiceEditor : Editor
+public class TimeServiceEditor : UnityEditor.Editor
 {
     public override void OnInspectorGUI()
     {
