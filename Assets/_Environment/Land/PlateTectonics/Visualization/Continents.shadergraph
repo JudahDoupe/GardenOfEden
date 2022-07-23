@@ -1,5 +1,5 @@
 {
-    "m_SGVersion": 2,
+    "m_SGVersion": 3,
     "m_Type": "UnityEditor.ShaderGraph.GraphData",
     "m_ObjectId": "1831d8d6dbd9482a885188a916abe73b",
     "m_Properties": [
@@ -14,6 +14,12 @@
         }
     ],
     "m_Keywords": [],
+    "m_Dropdowns": [],
+    "m_CategoryData": [
+        {
+            "m_Id": "7afdaa7792634513bcd1666ac203ff5d"
+        }
+    ],
     "m_Nodes": [
         {
             "m_Id": "bd4fcc145e02410c8fe4ce4db72b4fcb"
@@ -245,10 +251,11 @@
         "serializedMesh": {
             "m_SerializedMesh": "{\"mesh\":{\"instanceID\":0}}",
             "m_Guid": ""
-        }
+        },
+        "preventRotation": false
     },
     "m_Path": "Shader Graphs",
-    "m_ConcretePrecision": 0,
+    "m_GraphPrecision": 0,
     "m_PreviewMode": 2,
     "m_OutputNode": {
         "m_Id": ""
@@ -287,10 +294,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -807.0,
-            "y": 172.00001525878907,
-            "width": 217.00001525878907,
-            "height": 190.0
+            "x": -780.9999389648438,
+            "y": 147.00001525878907,
+            "width": 219.0,
+            "height": 189.99998474121095
         }
     },
     "m_Slots": [
@@ -328,7 +335,8 @@
     "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
-    }
+    },
+    "m_EnableGlobalMipBias": false
 }
 
 {
@@ -467,7 +475,8 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_Space": 0
+    "m_Space": 0,
+    "m_PositionSource": 0
 }
 
 {
@@ -605,6 +614,8 @@
     "m_DefaultReferenceName": "HeightMap",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -629,6 +640,8 @@
     "m_DefaultReferenceName": "PlateId",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -741,6 +754,24 @@
     },
     "m_Labels": [],
     "m_Channel": 0
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "7afdaa7792634513bcd1666ac203ff5d",
+    "m_Name": "",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "f71b5a47264743308f9b4ccb770a0130"
+        },
+        {
+            "m_Id": "5b8dab907ad4424986fd5d82e299efe6"
+        },
+        {
+            "m_Id": "5b940d26f96e438e8106db10153b3710"
+        }
+    ]
 }
 
 {
@@ -896,7 +927,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "LandGeometry",
+    "m_Name": "HeightMapGeometry",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -918,6 +949,9 @@
             "m_Id": "aadce62815234f40997073b6420a3883"
         },
         {
+            "m_Id": "ec7aaa150dd54a44963bd229e128d49b"
+        },
+        {
             "m_Id": "44b9776ce5d8477baf47bb92084d6a4e"
         },
         {
@@ -935,13 +969,17 @@
     "m_PropertyGuids": [
         "11675bab-433f-4f20-8125-5809c37535bb",
         "9948591d-4ee5-4533-8d35-3040b8233b18",
-        "de633baa-18f9-4474-bbf0-f995ffcb0cfc"
+        "de633baa-18f9-4474-bbf0-f995ffcb0cfc",
+        "26928a52-2686-4572-b666-b97485f2f5b3"
     ],
     "m_PropertyIds": [
         173544496,
         -408085450,
-        1067089698
-    ]
+        1067089698,
+        -1532217113
+    ],
+    "m_Dropdowns": [],
+    "m_DropdownSelectedEntries": []
 }
 
 {
@@ -1152,22 +1190,29 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_filter": 1,
-    "m_wrap": 1
+    "m_filter": 0,
+    "m_wrap": 1,
+    "m_aniso": 0
 }
 
 {
-    "m_SGVersion": 0,
+    "m_SGVersion": 1,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
     "m_ObjectId": "dd314d3c9c5c4cce9448c09993554d44",
     "m_ActiveSubTarget": {
         "m_Id": "3e55f1f312be461689fa95a5747dccc4"
     },
+    "m_AllowMaterialOverride": false,
     "m_SurfaceType": 0,
+    "m_ZTestMode": 4,
+    "m_ZWriteControl": 0,
     "m_AlphaMode": 0,
-    "m_TwoSided": false,
+    "m_RenderFace": 2,
     "m_AlphaClip": false,
-    "m_CustomEditorGUI": ""
+    "m_CastShadows": true,
+    "m_ReceiveShadows": true,
+    "m_CustomEditorGUI": "",
+    "m_SupportVFX": false
 }
 
 {
@@ -1210,6 +1255,31 @@
         "m_SerializedTexture": "{\"textureArray\":{\"instanceID\":0}}",
         "m_Guid": ""
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "ec7aaa150dd54a44963bd229e128d49b",
+    "m_Id": -1532217113,
+    "m_DisplayName": "Channel",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Channel",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_Labels": []
 }
 
 {
@@ -1277,6 +1347,8 @@
     "m_DefaultReferenceName": "ContinentalIdMap",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
