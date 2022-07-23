@@ -1,12 +1,7 @@
-﻿using NugetForUnity;
-
-namespace Editor
+﻿public static class ContinuousIntegration
 {
-    public static class ContinuousIntegration
+    public static void RestoreNugetPackages()
     {
-        public static void RestoreNugetPackages()
-        {
-            NugetHelper.Restore();
-        }
+        //NugetForUnity.NugetHelper.Restore();
     }
 }
