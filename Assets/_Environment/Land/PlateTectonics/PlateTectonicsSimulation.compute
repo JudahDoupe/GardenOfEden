@@ -12,12 +12,13 @@ RWTexture2DArray<float> LandHeightMap;
 
 float StillPlateSubductionRate;
 float MovingPlateSubductionRate;
-float StillMinSubductionPreasure;
-float MovingMinSubductionPreasure;
+float StillMinSubductionPressure;
+float MovingMinSubductionPressure;
 float StillPlateInflationRate;
 float MovingPlateInflationRate;
 float OceanicCrustThickness;
-float Gravity;
+float MaxThickness;
+float MaxSlope;
 float PlateCohesion;
 
 [numthreads(8, 8, 6)]
@@ -86,14 +87,17 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         {
             //Infalation
             float inflationRate = lerp(StillPlateInflationRate, MovingPlateInflationRate, saturate(totalTravelDistance));
-			float targetThickness = max(OceanicCrustThickness, totalThickness);
+			float inflationDampening = saturate(myThickness / MaxThickness);
+			inflationRate = lerp(inflationRate, 0, inflationDampening);
+
+			float targetThickness = clamp(totalThickness, OceanicCrustThickness, MaxThickness);
             myThickness = lerp(myThickness, targetThickness, inflationRate);
         }
         else
         {
             //Subduction
             float subductionRate = lerp(StillPlateSubductionRate, MovingPlateSubductionRate, saturate(totalTravelDistance));
-            float minSubductionPreasure = lerp(StillMinSubductionPreasure, MovingMinSubductionPreasure, saturate(totalTravelDistance));
+            float minSubductionPreasure = lerp(StillMinSubductionPressure, MovingMinSubductionPressure, saturate(totalTravelDistance));
 			float preasure = clamp((otherThickness - myThickness) / (totalThickness + 0.00000001), minSubductionPreasure, 1);
             float heightLimitingFactor = pow(1 + (totalThickness / MantleHeight), 3);
             float subduction = myThickness * preasure * subductionRate * heightLimitingFactor;
@@ -108,27 +112,28 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 void SmoothPlates(uint3 id : SV_DispatchThreadID)
 {
     Plate myPlate = Plates[GetPlateIdx(ContinentalIdMap[id])]; 
-    
-    float sumThickness = 0;
-    float sumWeights = 0;
 
-    for (int x = -1; x <= 1; x++)
-    {
-        for (int y = -1; y <= 1; y++)
-        {
-            int3 xyw = int3(id.xy + int2(x, y), id.z);
-            if (is_boundry_pixel(xyw.xy))
-            {
-                xyw = get_source_xyw(xyw);
-            }
-            float dist = length(float2(x, y));
-            float weight = pow(2.71828, -((dist * dist) / (Gravity * Gravity)));
-            sumThickness += (LandHeightMap[xyw] - MantleHeight) * weight;
-            sumWeights += weight;
-        }
-    }
-    int3 xyp = xyw_to_xyp(id, myPlate.Idx);
-    PlateThicknessMaps[xyp] = sumThickness / sumWeights;
+	float left = LandHeightMap[get_source_xyw(int3(id.xy + int2(-1, 0), id.z))] - MantleHeight;
+	float right = LandHeightMap[get_source_xyw(int3(id.xy + int2(1, 0), id.z))] - MantleHeight;
+	float up = LandHeightMap[get_source_xyw(int3(id.xy + int2(0, 1), id.z))] - MantleHeight;
+	float down = LandHeightMap[get_source_xyw(int3(id.xy + int2(0, -1), id.z))] - MantleHeight;
+	float center = LandHeightMap[id] - MantleHeight;
+    
+	float slope = (abs(center - left) +
+	               abs(center - right) +
+	               abs(center - up)  +
+	               abs(center - down)) / 4.0;
+
+	float t = saturate(slope - MaxSlope);
+	float outerWeight = lerp(0, 0.2, t);
+	float centerWeight = lerp(1, 0.2, t);
+	
+	int3 xyp = xyw_to_xyp(id, myPlate.Idx);
+	PlateThicknessMaps[xyp] = (left * outerWeight) +
+							  (right * outerWeight) +
+							  (up * outerWeight) +
+							  (down * outerWeight) +
+							  (center * centerWeight);
 }
 
 [numthreads(8, 8, 6)]

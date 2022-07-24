@@ -21,10 +21,11 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float StillMinSubductionPreasure = 0.1f;
     [Range(0, 0.1f)]
     public float MovingMinSubductionPreasure = 0;
-    [Range(1, 50)]
-    public float Gravity = 1f;
     [Header("Inflation")]
     public float OceanicCrustThickness = 25;
+    public float MaxThickness = 200;
+    [Range(0.1f, 10)]
+    public float MaxSlope = 10f;
     [Range(0, 1)]
     public float MovingPlateInflationRate = 1f;
     [Range(0, 1)]
@@ -36,6 +37,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float PlateInertia = 5;
     [Range(0.1f, 1)]
     public float SimulationSpeed = 1;
+    
     private float SimulationTimeStep => SimulationSpeed * Mathf.Min(Time.deltaTime, 1);
 
     private PlateTectonicsData _data;
@@ -106,13 +108,14 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         TectonicsShader.SetInt("NumPlates", _data.Plates.Count);
         TectonicsShader.SetFloat("OceanicCrustThickness", OceanicCrustThickness);
         TectonicsShader.SetFloat("MantleHeight", _data.MantleHeight);
-        TectonicsShader.SetFloat("StillMinSubductionPreasure", StillMinSubductionPreasure);
-        TectonicsShader.SetFloat("MovingMinSubductionPreasure", MovingMinSubductionPreasure);
+        TectonicsShader.SetFloat("StillMinSubductionPressure", StillMinSubductionPreasure);
+        TectonicsShader.SetFloat("MovingMinSubductionPressure", MovingMinSubductionPreasure);
         TectonicsShader.SetFloat("StillPlateSubductionRate", StillPlateSubductionRate * SimulationTimeStep);
         TectonicsShader.SetFloat("MovingPlateSubductionRate", MovingPlateSubductionRate * SimulationTimeStep);
         TectonicsShader.SetFloat("StillPlateInflationRate", StillPlateInflationRate * SimulationTimeStep);
         TectonicsShader.SetFloat("MovingPlateInflationRate", MovingPlateInflationRate * SimulationTimeStep);
-        TectonicsShader.SetFloat("Gravity", Gravity * SimulationTimeStep);
+        TectonicsShader.SetFloat("MaxSlope", MaxSlope);
+        TectonicsShader.SetFloat("MaxThickness", MaxThickness);
         TectonicsShader.SetFloat("PlateCohesion", PlateCohesion);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
