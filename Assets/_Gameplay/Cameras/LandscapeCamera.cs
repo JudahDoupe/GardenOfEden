@@ -18,6 +18,7 @@ public class LandscapeCamera : CameraPerspective
     public float Swing = 100;
     public float MinSwing = 10;
     public bool IsDragEnabled = true;
+    public Texture2D CursorTexture;
     [SerializeField]
     private Settings Near; 
     [SerializeField]
@@ -35,12 +36,14 @@ public class LandscapeCamera : CameraPerspective
         _controls.SateliteCamera.Enable();
         _controls.SateliteCamera.Click.started += context => _isDragging = true;
         _controls.SateliteCamera.Click.canceled += context => _isDragging = false;
+        Cursor.SetCursor(CursorTexture, new Vector2(CursorTexture.width / 2f, CursorTexture.height / 2f), CursorMode.Auto);
         IsActive = true;
     }
     public override void Disable()
     {
         _controls.SateliteCamera.Disable();
         _controls.Dispose();
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
         IsActive = false;
     }
 
