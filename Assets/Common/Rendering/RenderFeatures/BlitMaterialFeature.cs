@@ -21,7 +21,6 @@ public class BlitMaterialFeature : ScriptableRendererFeature
 {
     class RenderPass : ScriptableRenderPass
     {
-
         private string profilingName;
         private Material material;
         private RenderTargetIdentifier sourceID;

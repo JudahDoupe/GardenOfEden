@@ -162,3 +162,11 @@ Update Mode: updateDependencies
 
 The following packages were updated:
   com.unity.burst from version 1.6.5 to 1.6.6
+
+=== Fri Jul 29 18:29:35 2022
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.collab-proxy from version 1.15.18 to 1.17.1
