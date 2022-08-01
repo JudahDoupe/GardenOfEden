@@ -80,7 +80,7 @@ float opticalDepthBaked2(float3 rayOrigin, float3 rayDir, float rayLength, float
 }
 
 inline void InScatteredLight_float(float3 planetCenter,
-							 float planetRadius,
+							 float seaLevel,
 							 float atmosphereRadius,
 							 float3 scatteringCoefficients,
 							 float intensity,
@@ -92,9 +92,9 @@ inline void InScatteredLight_float(float3 planetCenter,
 							 float3 rayDir,
 							 float3 sunDir,
 							 float blueNoise,
-							 float3 originalColor,
 							 UnityTexture2D  BakedOpticalDepth,
-							 out float3 atmosphereColor)
+							 out float3 atmosphereColor,
+							 out float alpha)
 {
 	float3 inScatterPoint = rayOrigin;
 	float stepSize = rayLength / (numInScatteringPoints - 1);
@@ -102,29 +102,19 @@ inline void InScatteredLight_float(float3 planetCenter,
 	float viewRayOpticalDepth = 0;
 
 	for (int i = 0; i < numInScatteringPoints; i ++) {
-		float sunRayOpticalDepth = opticalDepthBaked(inScatterPoint + sunDir * ditherStrength, sunDir, planetCenter, planetRadius, atmosphereRadius, BakedOpticalDepth);
-		float localDensity = densityAtPoint(planetCenter, planetRadius, atmosphereRadius, inScatterPoint, densityFalloff);
-		viewRayOpticalDepth = opticalDepthBaked2(rayOrigin, rayDir, stepSize * i, planetCenter, planetRadius,		                                               atmosphereRadius, BakedOpticalDepth);
+		float sunRayOpticalDepth = opticalDepthBaked(inScatterPoint + sunDir * ditherStrength, sunDir, planetCenter, seaLevel, atmosphereRadius, BakedOpticalDepth);
+		float localDensity = densityAtPoint(planetCenter, seaLevel, atmosphereRadius, inScatterPoint, densityFalloff);
+		viewRayOpticalDepth = opticalDepthBaked2(rayOrigin, rayDir, stepSize * i, planetCenter, seaLevel, atmosphereRadius, BakedOpticalDepth);
 		float3 transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth) * scatteringCoefficients);
 	
 		inScatteredLight += localDensity * transmittance;
 		inScatterPoint += rayDir * stepSize;
 	}
-	inScatteredLight *= scatteringCoefficients * intensity * stepSize / planetRadius;
+	inScatteredLight *= scatteringCoefficients * intensity * stepSize / seaLevel;
 	inScatteredLight += blueNoise * 0.01;
 
-	// Attenuate brightness of original col (i.e light reflected from planet surfaces)
-	// This is a hacky mess, TODO: figure out a proper way to do this
-	const float brightnessAdaptionStrength = 0.15;
-	const float reflectedLightOutScatterStrength = 3;
-	float brightnessAdaption = dot (inScatteredLight,1) * brightnessAdaptionStrength;
-	float brightnessSum = viewRayOpticalDepth * intensity * reflectedLightOutScatterStrength + brightnessAdaption;
-	float reflectedLightStrength = exp(-brightnessSum);
-	float hdrStrength = saturate(dot(originalColor,1)/3-1);
-	reflectedLightStrength = lerp(reflectedLightStrength, 1, hdrStrength);
-	float3 reflectedLight = originalColor * reflectedLightStrength;
-
-	atmosphereColor = reflectedLight + inScatteredLight;
+	atmosphereColor = inScatteredLight;
+	alpha = saturate(length(atmosphereColor));
 }
 
 #endif
