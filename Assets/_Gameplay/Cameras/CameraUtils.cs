@@ -91,10 +91,10 @@ public class CameraUtils : MonoBehaviour
     public static void SetState(CameraState end)
     {
         var camera = end.Camera.GetComponent<Camera>();
-        end.Camera.parent = end.CameraParent;
+        end.Camera.transform.parent = end.CameraParent;
         end.Focus.parent = end.FocusParent;
-        end.Camera.localPosition = end.CameraLocalPosition;
-        end.Camera.localRotation = end.CameraLocalRotation;
+        end.Camera.transform.localPosition = end.CameraLocalPosition;
+        end.Camera.transform.localRotation = end.CameraLocalRotation;
         end.Focus.localPosition = end.FocusLocalPosition;
         end.Focus.localRotation = end.FocusLocalRotation;
         camera.fieldOfView = end.FieldOfView;
@@ -104,7 +104,7 @@ public class CameraUtils : MonoBehaviour
     }
     public static void TransitionState(CameraState end, CameraTransition transition, Action callback = null)
     {
-        end.Camera.parent = end.CameraParent;
+        end.Camera.transform.parent = end.CameraParent;
         end.Focus.parent = end.FocusParent;
         Cursor.lockState = end.Cursor;
         var start = new CameraState(end.Camera, end.Focus);
@@ -130,9 +130,9 @@ public class CameraUtils : MonoBehaviour
             yield return new WaitForEndOfFrame();
 
             var lerp = ease.LerpValue(t);
-            end.Camera.localPosition = Vector3.Lerp(start.CameraLocalPosition, end.CameraLocalPosition, lerp);
-            end.Camera.position = ClampAboveTerrain(new Coordinate(end.Camera.position, Planet.LocalToWorld)).Global(Planet.LocalToWorld);
-            end.Camera.localRotation = Quaternion.Lerp(start.CameraLocalRotation, end.CameraLocalRotation, lerp);
+            end.Camera.transform.localPosition = Vector3.Lerp(start.CameraLocalPosition, end.CameraLocalPosition, lerp);
+            end.Camera.transform.position = ClampAboveTerrain(new Coordinate(end.Camera.transform.position, Planet.LocalToWorld)).Global(Planet.LocalToWorld);
+            end.Camera.transform.localRotation = Quaternion.Lerp(start.CameraLocalRotation, end.CameraLocalRotation, lerp);
             end.Focus.localPosition = Vector3.Lerp(start.FocusLocalPosition, end.FocusLocalPosition, lerp);
             end.Focus.localRotation = Quaternion.Lerp(start.FocusLocalRotation, end.FocusLocalRotation, lerp);
             camera.fieldOfView = math.lerp(start.FieldOfView, end.FieldOfView, lerp);

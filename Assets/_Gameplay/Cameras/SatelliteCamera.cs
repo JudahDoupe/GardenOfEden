@@ -58,8 +58,8 @@ public class SatelliteCamera : CameraPerspective
 
     private CameraState GetTargetState(bool lerp)
     {
-        _coord = IsActive ? _coord : new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
-        var cameraPosition = CurrentState.Camera.localPosition;
+        _coord = IsActive ? _coord : new Coordinate(CurrentState.Camera.transform.position, Planet.LocalToWorld);
+        var cameraPosition = CurrentState.Camera.transform.localPosition;
         var t = Ease.Out((MinAltitude - _coord.Altitude) / (MinAltitude - MaxAltitude));
         var translation = Vector3.zero;
         if (IsActive)

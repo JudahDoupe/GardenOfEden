@@ -9,7 +9,7 @@ public class MainMenuCamera : CameraPerspective
 
     public CameraState GetTargetState()
     {
-        var rotation = Quaternion.LookRotation(CurrentState.Camera.forward, Vector3.up);
+        var rotation = Quaternion.LookRotation(CurrentState.Camera.transform.forward, Vector3.up);
         var pos = rotation * new Vector3(Coordinate.PlanetRadius * -0.66f, 0, Coordinate.PlanetRadius * -5f);
         return new CameraState(CurrentState.Camera, CurrentState.Focus)
         {

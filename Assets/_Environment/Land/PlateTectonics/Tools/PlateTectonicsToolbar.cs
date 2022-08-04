@@ -1,3 +1,4 @@
+using Assets.GamePlay.Cameras;
 using UnityEngine;
 using Assets.Scripts.Utils;
 
@@ -48,6 +49,22 @@ public class PlateTectonicsToolbar : MenuUi
                 _simulation.Enable();
             else
                 _simulation.Disable();
+        }));
+    
+    public void Camera() => _stateMachine.SetState(new ButtonState(this, "Camera",
+        enabled => 
+        {
+            if (enabled)
+            {
+                
+                Singleton.PerspectiveController.SetPerspective(FindObjectOfType<LandscapeCamera2>(), CameraTransition.Instant);
+                Debug.Log("Entering ");
+            }
+            else
+            {
+                Singleton.PerspectiveController.SetPerspectives((FindObjectOfType<SatelliteCamera>(), CameraTransition.Smooth), (FindObjectOfType<LandscapeCamera>(), CameraTransition.Smooth));
+                Debug.Log("Exiting");
+            }
         }));
 
     public void MovePlates() => _stateMachine.SetState(new ButtonState(this, "Move",

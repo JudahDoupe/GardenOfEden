@@ -12,7 +12,9 @@
         "Unity.Mathematics.Extensions",
         "Unity.Burst",
         "Unity.Collections",
-        "Unity.Rendering.Hybrid"
+        "Unity.Rendering.Hybrid",
+        "UnityEditor.UI",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

@@ -24,7 +24,7 @@ public class ObservationCamera : CameraPerspective
     public override void Enable()
     {
         IsActive = true;
-        _cameraCoord = new Coordinate(Camera.position, Planet.LocalToWorld);
+        _cameraCoord = new Coordinate(Camera.transform.position, Planet.LocalToWorld);
         _height = math.min(_cameraCoord.Altitude - Planet.Data.PlateTectonics.LandHeightMap.Sample(_cameraCoord).r, MaxHeight -1);
     }
 
@@ -51,14 +51,15 @@ public class ObservationCamera : CameraPerspective
         var zoom = -Input.mouseScrollDelta.y * math.lerp(MaxZoomSpeed, MinZoomSpeed, t);
 
         // Calculate orientation
-        var right = CurrentState.Camera.right;
-        var up = CurrentState.Camera.position.normalized;
+        var cameraTransform = CurrentState.Camera.transform;
+        var right = cameraTransform.right;
+        var up = cameraTransform.position.normalized;
         var forward = Quaternion.AngleAxis(90, right) * up;
 
         // Calculate rotation
-        var cameraRotation = Quaternion.LookRotation(CurrentState.Camera.forward, up);
+        var cameraRotation = Quaternion.LookRotation(CurrentState.Camera.transform.forward, up);
         cameraRotation = Quaternion.AngleAxis(rotation.x, up) * cameraRotation;
-        right = CurrentState.Camera.right;
+        right = CurrentState.Camera.transform.right;
         var desiredVerticalRotation = Quaternion.AngleAxis(rotation.y, right) * cameraRotation;
         var desiredAngle = Quaternion.Angle(quaternion.LookRotation(forward, up), desiredVerticalRotation);
         var currentAngle = Quaternion.Angle(quaternion.LookRotation(forward, up), cameraRotation);
@@ -95,20 +96,22 @@ public class ObservationCamera : CameraPerspective
 
     private CameraState GetInactiveTargetState()
     {
-        _cameraCoord = new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
+        var cameraTransform = CurrentState.Camera.transform;
+        _cameraCoord = new Coordinate(cameraTransform.position, Planet.LocalToWorld);
         _height = math.clamp(_cameraCoord.Altitude - Planet.Data.PlateTectonics.LandHeightMap.Sample(_cameraCoord).r, MinHeight, MaxHeight);
 
         // Calculate orientation
-        var right = CurrentState.Camera.right;
-        var up = CurrentState.Camera.position.normalized;
+        var right = cameraTransform.right;
+        var up = cameraTransform.position.normalized;
         var forward = Quaternion.AngleAxis(90, right) * up;
 
         // Calculate position
-        var cameraPosition = CurrentState.Focus.position - forward * _height + up * (_height * 2f / 3f);
-        _cameraCoord = new Coordinate(CurrentState.Focus.position - forward * _height + up * _height, Planet.LocalToWorld);
+        var focusPosition = CurrentState.Focus.position;
+        var cameraPosition = focusPosition - forward * _height + up * (_height * 2f / 3f);
+        _cameraCoord = new Coordinate(focusPosition - forward * _height + up * _height, Planet.LocalToWorld);
 
         // Calculate rotation
-        var cameraRotation = Quaternion.LookRotation((CurrentState.Focus.position - cameraPosition).normalized, up);
+        var cameraRotation = Quaternion.LookRotation((focusPosition - cameraPosition).normalized, up);
         var localCameraRotation = Quaternion.Inverse(Planet.Transform.rotation) * cameraRotation;
         var localFocusRotation = Quaternion.Inverse(Planet.Transform.rotation) * quaternion.LookRotation(forward, up);
 

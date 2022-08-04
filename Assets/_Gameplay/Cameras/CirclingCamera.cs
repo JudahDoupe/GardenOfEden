@@ -38,7 +38,7 @@ public class CirclingCamera : CameraPerspective
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         var bounds = CameraUtils.EncapsulateChildren(focusedEntity);
         var plantCoord = em.GetComponentData<Coordinate>(focusedEntity);
-        var backCoord = new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
+        var backCoord = new Coordinate(CurrentState.Camera.transform.position, Planet.LocalToWorld);
         var focusCoord = new Coordinate(bounds.center, Planet.LocalToWorld);
         backCoord.Altitude = plantCoord.Altitude;
         var distance = math.max(CameraUtils.GetDistanceToIncludeBounds(bounds, Fov), 2);
@@ -47,10 +47,10 @@ public class CirclingCamera : CameraPerspective
         var cameraCoord = new Coordinate(focusCoord.LocalPlanet + ((Quaternion) focusRot * cameraPos).ToFloat3());
         cameraPos +=  Vector3.up * (CameraUtils.ClampAboveTerrain(cameraCoord).Altitude - cameraCoord.Altitude);
 
-        var x = new CameraState(CurrentState.Camera, CurrentState.Focus)
+        var targetState = new CameraState(CurrentState.Camera, CurrentState.Focus)
         {
             CameraLocalPosition = IsActive 
-                ? Vector3.Lerp(CurrentState.Camera.localPosition, cameraPos, LerpSpeed * Time.deltaTime)
+                ? Vector3.Lerp(CurrentState.Camera.transform.localPosition, cameraPos, LerpSpeed * Time.deltaTime)
                 : cameraPos,
             CameraLocalRotation = quaternion.LookRotation(math.normalize(-cameraPos), Vector3.up),
             CameraParent = CurrentState.Focus,
@@ -64,12 +64,12 @@ public class CirclingCamera : CameraPerspective
             FarClip = Coordinate.PlanetRadius * 1.5f,
         };
 
-        if(x.CameraLocalPosition.x == float.NaN)
+        if(targetState.CameraLocalPosition.x == float.NaN)
         {
-            x = new CameraState();
+            targetState = new CameraState();
         }
 
-        return x;
+        return targetState;
     }
 
 }

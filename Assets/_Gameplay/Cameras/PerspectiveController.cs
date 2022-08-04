@@ -5,14 +5,14 @@ using UnityEngine;
 
 public class PerspectiveController : MonoBehaviour
 {
-    public Transform Camera;
+    public Camera Camera;
     public Transform Focus;
-    public float Altitude => Camera.position.magnitude;
+    public float Altitude => Camera.transform.position.magnitude;
     public CameraState CurrentState => new CameraState(Camera, Focus);
 
     private List<(CameraPerspective, CameraTransition)> _perspectives = new List<(CameraPerspective, CameraTransition)>();
     private readonly StateMachine<CameraPerspective> _stateMachine = new StateMachine<CameraPerspective>();
-
+    
     public void SetPerspective(CameraPerspective perspective, CameraTransition transition)
     {
         if (perspective == _stateMachine.State) return;
@@ -21,6 +21,8 @@ public class PerspectiveController : MonoBehaviour
         {
             _stateMachine.State.Disable();
         }
+
+        _perspectives = new List<(CameraPerspective, CameraTransition)> { (perspective, transition) };
 
         CameraUtils.TransitionState(perspective.TransitionToState(), transition, () => {
             _stateMachine.SetState(perspective);

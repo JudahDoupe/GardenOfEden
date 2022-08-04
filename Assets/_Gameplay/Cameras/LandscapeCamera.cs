@@ -51,6 +51,7 @@ public class LandscapeCamera : CameraPerspective
     {
         if (!IsActive) return;
 
+        Debug.Log("LandScape");
         CameraUtils.SetState(GetTargetState(true));
 
         if (Altitude < MinAltitude) Singleton.PerspectiveController.ZoomIn();
@@ -59,13 +60,14 @@ public class LandscapeCamera : CameraPerspective
 
     private CameraState GetTargetState(bool lerp)
     {
-        _centerCoord = IsActive ? _centerCoord : new Coordinate(CurrentState.Camera.position, Planet.LocalToWorld);
-        var cameraPos = CurrentState.Camera.localPosition;
+        _centerCoord = IsActive ? _centerCoord : new Coordinate(CurrentState.Camera.transform.position, Planet.LocalToWorld);
+        var cameraPos = CurrentState.CameraLocalPosition;
         var focusPos = CurrentState.FocusLocalPosition;
         var t = Ease.Out((MinAltitude - cameraPos.magnitude) / (MinAltitude - MaxAltitude));
 
-        var right = Planet.Transform.InverseTransformDirection(CurrentState.Camera.right);
+        var right = Planet.Transform.InverseTransformDirection(CurrentState.Camera.transform.right);
         var up = Vector3.Normalize(_centerCoord.LocalPlanet);
+        
         var forward = Quaternion.AngleAxis(90, right) * up;
 
         var translation = Vector3.zero;

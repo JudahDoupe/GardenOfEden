@@ -9,7 +9,7 @@ namespace Assets.GamePlay.Cameras
         public bool IsActive { get; protected set; } = false;
         public CameraState CurrentState => Singleton.PerspectiveController.CurrentState;
         public float Altitude => Singleton.PerspectiveController.Altitude;
-        public Transform Camera => CurrentState.Camera;
+        public Camera Camera => CurrentState.Camera;
         public Transform Focus => CurrentState.Focus;
 
         public virtual void Enable() => IsActive = true;
@@ -33,23 +33,24 @@ namespace Assets.GamePlay.Cameras
 
     public struct CameraState
     {
-        public CameraState(Transform camera, Transform focus)
+        public CameraState(Camera camera, Transform focus)
         {
             Camera = camera;
-            CameraParent = camera.parent;
-            CameraLocalPosition = camera.localPosition;
-            CameraLocalRotation = camera.localRotation;
+            var cameraTransform = camera.transform;
+            CameraParent = cameraTransform.parent;
+            CameraLocalPosition = cameraTransform.localPosition;
+            CameraLocalRotation = cameraTransform.localRotation;
             Focus = focus;
             FocusParent = focus.parent;
             FocusLocalPosition = focus.localPosition;
             FocusLocalRotation = focus.localRotation;
-            FieldOfView = camera.GetComponent<Camera>().fieldOfView;
+            FieldOfView = camera.fieldOfView;
             Cursor = CursorLockMode.None;
-            NearClip = camera.GetComponent<Camera>().nearClipPlane;
-            FarClip = camera.GetComponent<Camera>().farClipPlane;
+            NearClip = camera.nearClipPlane;
+            FarClip = camera.farClipPlane;
         }
 
-        public Transform Camera;
+        public Camera Camera;
         public Transform CameraParent;
         public Vector3 CameraLocalPosition;
         public Quaternion CameraLocalRotation;
