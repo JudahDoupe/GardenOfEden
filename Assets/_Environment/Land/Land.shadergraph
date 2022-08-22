@@ -1,5 +1,5 @@
 {
-    "m_SGVersion": 2,
+    "m_SGVersion": 3,
     "m_Type": "UnityEditor.ShaderGraph.GraphData",
     "m_ObjectId": "47f5effe2d6546689a82fc1270f29d9e",
     "m_Properties": [
@@ -53,6 +53,12 @@
         }
     ],
     "m_Keywords": [],
+    "m_Dropdowns": [],
+    "m_CategoryData": [
+        {
+            "m_Id": "78b33d596f2b4ae6bf6d29dbc6b98046"
+        }
+    ],
     "m_Nodes": [
         {
             "m_Id": "3400a265e63f415a9f242b3346207c88"
@@ -685,10 +691,11 @@
         "serializedMesh": {
             "m_SerializedMesh": "{\"mesh\":{\"instanceID\":0}}",
             "m_Guid": ""
-        }
+        },
+        "preventRotation": false
     },
     "m_Path": "Shader Graphs",
-    "m_ConcretePrecision": 0,
+    "m_GraphPrecision": 0,
     "m_PreviewMode": 2,
     "m_OutputNode": {
         "m_Id": ""
@@ -722,6 +729,8 @@
     "m_DefaultReferenceName": "FacetPatchDencity",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -856,6 +865,8 @@
     "m_DefaultReferenceName": "RenderPlate",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -907,17 +918,23 @@
 }
 
 {
-    "m_SGVersion": 0,
+    "m_SGVersion": 1,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
     "m_ObjectId": "1d0980b44f9946d9bd849b13ed9a23d7",
     "m_ActiveSubTarget": {
         "m_Id": "015296435c8d4954b70140cc420ed2c7"
     },
+    "m_AllowMaterialOverride": false,
     "m_SurfaceType": 0,
+    "m_ZTestMode": 4,
+    "m_ZWriteControl": 0,
     "m_AlphaMode": 0,
-    "m_TwoSided": false,
+    "m_RenderFace": 2,
     "m_AlphaClip": false,
-    "m_CustomEditorGUI": ""
+    "m_CastShadows": true,
+    "m_ReceiveShadows": true,
+    "m_CustomEditorGUI": "",
+    "m_SupportVFX": false
 }
 
 {
@@ -975,6 +992,8 @@
     "m_DefaultReferenceName": "HeightMap",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -1075,6 +1094,8 @@
     "m_DefaultReferenceName": "NormalStrength",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -1231,6 +1252,8 @@
     "m_DefaultReferenceName": "MantleHeight",
     "m_OverrideReferenceName": "MantleHeight",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 2,
@@ -1553,7 +1576,8 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_Space": 0
+    "m_Space": 0,
+    "m_PositionSource": 0
 }
 
 {
@@ -1637,7 +1661,9 @@
         -408085450,
         1067089698,
         -1189818477
-    ]
+    ],
+    "m_Dropdowns": [],
+    "m_DropdownSelectedEntries": []
 }
 
 {
@@ -1653,6 +1679,8 @@
     "m_DefaultReferenceName": "FacetDencity",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2048,6 +2076,63 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "78b33d596f2b4ae6bf6d29dbc6b98046",
+    "m_Name": "",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "8b34c7ce0ae44731b002e2640126048b"
+        },
+        {
+            "m_Id": "23a1d0bde5134b8eb21c5a1a380eafba"
+        },
+        {
+            "m_Id": "8b6d01a646594be899cc65604816e765"
+        },
+        {
+            "m_Id": "3c619b4236764ee1bcb0b1da8f322679"
+        },
+        {
+            "m_Id": "e2deb048e15e4d01a6defd934a0f37db"
+        },
+        {
+            "m_Id": "ebc7408de54547c48936937547456784"
+        },
+        {
+            "m_Id": "a0fa4f9fe0874f9f8e4deebabbaf2808"
+        },
+        {
+            "m_Id": "2e8b69d8d0ec4487a8cca3bdca092ab8"
+        },
+        {
+            "m_Id": "bbbd675d7c6b42ad88760f167201bef8"
+        },
+        {
+            "m_Id": "5d0bb269d128472b9e051f0dae143f56"
+        },
+        {
+            "m_Id": "b765504d5ed34c9a89b8a148f3c065ab"
+        },
+        {
+            "m_Id": "02e5d3e585d043b88648899736e912bf"
+        },
+        {
+            "m_Id": "adcb1e1c20f84a3983849a8c1288a104"
+        },
+        {
+            "m_Id": "ef2c0a85998e44fda3068f0c3cae951e"
+        },
+        {
+            "m_Id": "e87bd6a79fff47fb8c76df6739d56182"
+        },
+        {
+            "m_Id": "150c14312a3449beb615119f5898b66a"
+        }
+    ]
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "7aeeea1726154f649a63f1b6c1ebc29d",
     "m_Id": 0,
@@ -2311,6 +2396,8 @@
     "m_DefaultReferenceName": "ContinentalIdMap",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2335,6 +2422,8 @@
     "m_DefaultReferenceName": "BedrockColorGradient",
     "m_OverrideReferenceName": "BedrockColorGradient",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2617,6 +2706,8 @@
     "m_DefaultReferenceName": "RandomizeDistance",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2894,6 +2985,8 @@
     "m_DefaultReferenceName": "FacetPatchFalloffSharpness",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2957,6 +3050,8 @@
     "m_DefaultReferenceName": "FacetPatchSize",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -3046,7 +3141,7 @@
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Color",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
         "y": 0.0,
@@ -3073,6 +3168,8 @@
     "m_DefaultReferenceName": "FacetStrength",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -3171,7 +3268,9 @@
     "m_PropertyIds": [
         -378753816,
         -524367758
-    ]
+    ],
+    "m_Dropdowns": [],
+    "m_DropdownSelectedEntries": []
 }
 
 {
@@ -3272,7 +3371,9 @@
         -1221385673,
         1622197062,
         -461114744
-    ]
+    ],
+    "m_Dropdowns": [],
+    "m_DropdownSelectedEntries": []
 }
 
 {
@@ -3323,7 +3424,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "BedrockGradient",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": {
         "serializedVersion": "2",
         "key0": {
@@ -3505,7 +3606,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "MatleHeight",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -3626,7 +3727,7 @@
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "MaxHeight",
-    "m_StageCapability": 2,
+    "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -3902,6 +4003,8 @@
     "m_DefaultReferenceName": "MaxHeight",
     "m_OverrideReferenceName": "MaxHeight",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -3971,6 +4074,8 @@
     "m_DefaultReferenceName": "NormalNoiseStrength",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4035,6 +4140,8 @@
     "m_DefaultReferenceName": "NormalSampleDistance",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4060,6 +4167,8 @@
     "m_DefaultReferenceName": "NormalNoiseScale",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": false,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
