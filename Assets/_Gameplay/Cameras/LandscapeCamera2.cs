@@ -10,7 +10,8 @@ public class LandscapeCamera2 : CameraPerspective
     public float RotationSpeed;
     public float PitchSpeed;
     public float ZoomSpeed;
-    public float LerpSpeed;    
+    public float LerpSpeed;
+    public float SetbackMultiplier;
     
     private Controls _controls;
     private bool _isDragging;
@@ -22,16 +23,28 @@ public class LandscapeCamera2 : CameraPerspective
         var cameraPosition = CurrentState.Camera.transform.position;
         var focusPosition = CurrentState.Focus.position;
         var focusCoord = new Coordinate(focusPosition, Planet.LocalToWorld);
-        focusCoord.Altitude = Planet.Data.PlateTectonics.LandHeightMap.Sample(focusCoord).r;
+        focusCoord.Altitude = TerrainAltitude(focusCoord);
 
-        _cameraAltitude = cameraPosition.magnitude;
-        _cameraSetback = math.max(0.01f, Vector3.Distance(focusPosition, cameraPosition.normalized * focusPosition.magnitude));
-        
         _controls = new Controls();
         _controls.SateliteCamera.Enable();
         _controls.SateliteCamera.Click.started += context => _isDragging = true;
         _controls.SateliteCamera.Click.canceled += context => _isDragging = false;
         IsActive = true;
+
+        var forward = ((cameraPosition - CurrentState.Camera.transform.up) - focusPosition.normalized).normalized;
+        var up = focusPosition.normalized;
+
+        CurrentState.Focus.rotation = Quaternion.LookRotation(forward, up);
+        CurrentState.Focus.parent = Planet.Transform;
+        CurrentState.Focus.localPosition = focusCoord.LocalPlanet;
+
+        CurrentState.Camera.transform.parent = CurrentState.Focus;
+        
+        _cameraAltitude = cameraPosition.magnitude;
+        _cameraSetback = Vector3.Project(cameraPosition, forward).magnitude;
+
+        CameraUtils.SetState(new CameraState(CurrentState.Camera, CurrentState.Focus));
+
     }
     public override void Disable()
     {
@@ -52,7 +65,7 @@ public class LandscapeCamera2 : CameraPerspective
 
     private CameraState GetTargetState(bool lerp)
     {
-        var strafe = StrafeSpeed * new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+        var strafe = StrafeSpeed * new Vector2(KeyAxis(KeyCode.A, KeyCode.D), KeyAxis(KeyCode.S, KeyCode.W));
         var rotation = RotationSpeed * KeyAxis(KeyCode.LeftArrow, KeyCode.RightArrow);
         var pitch = PitchSpeed * KeyAxis(KeyCode.UpArrow, KeyCode.DownArrow);
         var zoom = ZoomSpeed * KeyAxis(KeyCode.LeftShift, KeyCode.Space);
@@ -67,7 +80,7 @@ public class LandscapeCamera2 : CameraPerspective
         var focusLocalPosition = CurrentState.FocusLocalPosition;
         focusLocalPosition += localRight * strafe.x + localForward * strafe.y;
         var focusCoord = new Coordinate(focusLocalPosition);
-        focusCoord.Altitude = Planet.Data.PlateTectonics.LandHeightMap.Sample(focusCoord).r;
+        focusCoord.Altitude = TerrainAltitude(focusCoord);
         focusLocalPosition = focusCoord.LocalPlanet;
         
         // Focus Rotation
@@ -81,14 +94,13 @@ public class LandscapeCamera2 : CameraPerspective
             _cameraAltitude + zoom,
             focusLocalPosition.magnitude,
             MinAltitude,
-            Planet.Data.PlateTectonics.LandHeightMap.Sample(cameraCoord).r + Camera.nearClipPlane * 1.5f, 
-            Planet.Data.Water.WaterMap.Sample(cameraCoord).a + Camera.nearClipPlane * 1.5f, 
+            TerrainAltitude(cameraCoord) + Camera.nearClipPlane * 1.5f,
         }.Max();
         _cameraAltitude = new [] {
             _cameraAltitude,
             MaxAltitude
         }.Min();
-        _cameraSetback = math.clamp(_cameraSetback + pitch, 0.1f, _cameraAltitude - focusAltitude);
+        _cameraSetback = math.clamp(_cameraSetback + pitch, 0.1f, (_cameraAltitude - focusAltitude) * SetbackMultiplier);
         var cameraLocalPosition = new Vector3(0, _cameraAltitude - focusAltitude, -_cameraSetback);
         
         return new CameraState(CurrentState.Camera, CurrentState.Focus)
@@ -98,11 +110,11 @@ public class LandscapeCamera2 : CameraPerspective
             FocusLocalRotation = Quaternion.Slerp(CurrentState.FocusLocalRotation, focusLocalRotation, lerpSpeed),
             CameraParent = CurrentState.Focus,
             CameraLocalPosition = Vector3.Lerp(CurrentState.CameraLocalPosition, cameraLocalPosition, lerpSpeed),
-            CameraLocalRotation = Quaternion.Slerp(CurrentState.CameraLocalRotation ,quaternion.LookRotation((focusLocalPosition - cameraLocalPosition).normalized, localUp), lerpSpeed),
+            CameraLocalRotation = Quaternion.Slerp(CurrentState.CameraLocalRotation ,quaternion.LookRotation(-cameraLocalPosition.normalized, Vector3.up), lerpSpeed),
         };
         
         float KeyAxis(KeyCode negative, KeyCode positive) => (Input.GetKey(positive) ? 1f : 0) + (Input.GetKey(negative) ? -1f : 0);
     }
 
-
+    float TerrainAltitude(Coordinate coord) => math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r, Planet.Data.Water.WaterMap.Sample(coord).a);
 }
