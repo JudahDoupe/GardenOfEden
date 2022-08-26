@@ -11,7 +11,8 @@
                     "id": "696672a2-189d-4ffb-aaf3-497f25e0ccee",
                     "expectedControlType": "Vector2",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Zoom",
@@ -19,7 +20,8 @@
                     "id": "1629ff1b-a517-45be-8b90-3de49c0a6264",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Click",
@@ -27,7 +29,8 @@
                     "id": "99052eed-8408-496b-973a-fd4ec4f001e8",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press(behavior=2)"
+                    "interactions": "Press(behavior=2)",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -155,6 +158,235 @@
             ]
         },
         {
+            "name": "LandscapeCamera",
+            "id": "5dc78f5f-bbea-4eb7-88a1-19d9d7416e91",
+            "actions": [
+                {
+                    "name": "Strafe",
+                    "type": "Value",
+                    "id": "3f530a0b-bd79-408d-8c4f-529d305aa3a1",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Click",
+                    "type": "Button",
+                    "id": "242d7fe2-acbd-4628-80e4-3f5b10e3bcab",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Zoom",
+                    "type": "Value",
+                    "id": "a27dddcb-d360-4ccd-a5e8-c318cbf125ab",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "Press",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Rotate",
+                    "type": "Value",
+                    "id": "2f64433c-5696-42fa-8009-df9e44d13e4f",
+                    "expectedControlType": "",
+                    "processors": "Invert",
+                    "interactions": "Press",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Pitch",
+                    "type": "Value",
+                    "id": "6d47f322-9489-4639-a85c-eb1eb6257e81",
+                    "expectedControlType": "",
+                    "processors": "Invert",
+                    "interactions": "Press",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "Keys",
+                    "id": "673bc291-8229-41ea-b994-d73ebc7bb5a6",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Rotate",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "6134e23d-21a4-4c08-b8f0-e951b533f9d3",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Rotate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "8c1c1cbe-2ed0-418b-bc69-ad1130792770",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Rotate",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "a1d1a219-474d-4303-9c32-df01cf8805bb",
+                    "path": "<Mouse>/scroll/y",
+                    "interactions": "",
+                    "processors": "Invert",
+                    "groups": "Keyboard/Mouse",
+                    "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "Keys",
+                    "id": "45daa9b2-e16a-4e17-8306-d3dd9dc6637e",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "Scale(factor=10)",
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "982b9b24-a407-4b73-8ef3-35bb6a1cf409",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "88d368f0-89f8-4742-93b8-cabc4927e57e",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "ce3f7aa2-2086-4d28-a172-d235887370c5",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "Keys",
+                    "id": "5730a745-5830-46ff-9e96-d43251cac8ee",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Strafe",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "6605046a-7b1a-44d7-ad01-bca96be8b115",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Strafe",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "a1a0219a-cbf7-47c2-9ff4-3dff5c5688b0",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Strafe",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "f0a282ea-3923-4627-baef-062cc7e447b6",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Strafe",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "65088863-d28a-40d6-b1f9-b22369c3dc0a",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Strafe",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Keys",
+                    "id": "f764606b-c532-4df1-9d96-20245b3897be",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pitch",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "Negative",
+                    "id": "279e6033-a660-4b8e-aff2-226923af4b94",
+                    "path": "<Keyboard>/downArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pitch",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Positive",
+                    "id": "56cc3c3a-ed77-4c08-864f-8ae4c8f241bf",
+                    "path": "<Keyboard>/upArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pitch",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                }
+            ]
+        },
+        {
             "name": "UI",
             "id": "a7c64916-9ad1-4d91-907a-aca96cbf53ca",
             "actions": [
@@ -164,7 +396,8 @@
                     "id": "b40095ed-417f-485f-9f4d-8ce1ba7106d4",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Cancel",
@@ -172,7 +405,8 @@
                     "id": "16a4697b-1dab-4aea-91e2-02a2ab0789ef",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -210,7 +444,8 @@
                     "id": "344b913c-fe8e-464a-bb1c-3baf13547dac",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Back",
@@ -218,7 +453,8 @@
                     "id": "8800ee36-67e1-4fd6-90ec-1478c4b6cd8e",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [

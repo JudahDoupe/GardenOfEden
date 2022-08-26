@@ -14,8 +14,9 @@ public class LandscapeCamera2 : CameraPerspective
         public float Fov;
     }
     
-    public float RotationSpeed;
     public float LerpSpeed;
+    public float SmoothTime;
+    public float RotationSpeed;
     public float PitchSpeed;
     [Range(0, 1)]
     public float PitchRange;
@@ -27,6 +28,26 @@ public class LandscapeCamera2 : CameraPerspective
     private float _cameraAltitude;
     private float _cameraDistance;
     private float _cameraSetbackT;
+    private Controls _controls;
+
+    private void Start()
+    {
+        _controls = new Controls();
+        _lastInput = new InputData()
+        {
+            Strafe = Vector2.zero,
+            Rotation = 0,
+            Pitch = 0,
+            Zoom = 0,
+        };
+        _velocity = new InputData()
+        {
+            Strafe = Vector2.zero,
+            Rotation = 0,
+            Pitch = 0,
+            Zoom = 0,
+        };
+    }
 
     public override void Enable()
     {
@@ -53,13 +74,14 @@ public class LandscapeCamera2 : CameraPerspective
         _cameraSetbackT = 0;
         cameraTransform.LookAt(focusCoord.Global(Planet.LocalToWorld),forward);
 
-
         CameraUtils.SetState(new CameraState(CurrentState.Camera, CurrentState.Focus));
+        _controls.LandscapeCamera.Enable();
 
     }
     public override void Disable()
     {
         IsActive = false;
+        _controls.LandscapeCamera.Disable();
     }
 
     private void LateUpdate()
@@ -69,15 +91,38 @@ public class LandscapeCamera2 : CameraPerspective
         CameraUtils.SetState(GetTargetState(true));
     }
 
+    private struct InputData 
+    {
+        public Vector2 Strafe;
+        public float Rotation;
+        public float Pitch;
+        public float Zoom;
+    };
+    private InputData _lastInput;
+    private InputData _velocity;
+    private InputData GetInput()
+    {
+        var t = Ease.Out((MinAltitude - _cameraAltitude) / (MinAltitude - MaxAltitude));
+        var zoom = math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * _controls.LandscapeCamera.Zoom.ReadValue<float>() * Time.deltaTime;
+        var strafe = math.lerp(Near.StrafeSpeed, Far.StrafeSpeed, t) * _controls.LandscapeCamera.Strafe.ReadValue<Vector2>() * Time.deltaTime;
+        var rotation = RotationSpeed * _controls.LandscapeCamera.Rotate.ReadValue<float>() * Time.deltaTime;
+        var pitch = PitchSpeed * _controls.LandscapeCamera.Pitch.ReadValue<float>() * Time.deltaTime;
+
+        _lastInput = new InputData
+        {
+            Strafe = Vector2.SmoothDamp(_lastInput.Strafe, strafe, ref _velocity.Strafe, SmoothTime),
+            Rotation = Mathf.SmoothDamp(_lastInput.Rotation, rotation, ref _velocity.Rotation, SmoothTime),
+            Pitch = Mathf.SmoothDamp(_lastInput.Pitch, pitch, ref _velocity.Pitch, SmoothTime),
+            Zoom = Mathf.SmoothDamp(_lastInput.Zoom, zoom, ref _velocity.Zoom, SmoothTime),
+        };
+        return _lastInput;
+    }
+
     private CameraState GetTargetState(bool lerp)
     {
         var t = Ease.Out((MinAltitude - _cameraAltitude) / (MinAltitude - MaxAltitude));
-        
-        var zoom = math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * KeyAxis(KeyCode.LeftShift, KeyCode.Space) * Time.deltaTime;
-        var strafe = math.lerp(Near.StrafeSpeed, Far.StrafeSpeed, t) * new Vector2(KeyAxis(KeyCode.A, KeyCode.D), KeyAxis(KeyCode.S, KeyCode.W)) * Time.deltaTime;
-        var rotation = RotationSpeed * KeyAxis(KeyCode.RightArrow, KeyCode.LeftArrow) * Time.deltaTime;
-        var pitch = PitchSpeed * KeyAxis(KeyCode.UpArrow, KeyCode.DownArrow) * Time.deltaTime;
-        
+        var input = GetInput();
+
         var localUp = Vector3.Normalize(CurrentState.FocusLocalPosition);
         var localRight = Planet.Transform.InverseTransformDirection(CurrentState.Focus.right);
         var localForward = Quaternion.AngleAxis(90, localRight) * localUp;
@@ -86,18 +131,18 @@ public class LandscapeCamera2 : CameraPerspective
         
         // Focus Position
         var focusLocalPosition = CurrentState.FocusLocalPosition;
-        focusLocalPosition += localRight * strafe.x + localForward * strafe.y;
+        focusLocalPosition += localRight * input.Strafe.x + localForward * input.Strafe.y;
         var focusCoord = new Coordinate(focusLocalPosition);
         focusCoord.Altitude = TerrainAltitude(focusCoord);
         focusLocalPosition = focusCoord.LocalPlanet;
         
         // Focus Rotation
         var focusLocalRotation = Quaternion.LookRotation(localForward, localUp);
-        focusLocalRotation = Quaternion.AngleAxis(rotation, localUp) * focusLocalRotation;
+        focusLocalRotation = Quaternion.AngleAxis(input.Rotation, localUp) * focusLocalRotation;
 
         // Camera Position
-        _cameraDistance = math.clamp(_cameraDistance + zoom, Near.Distance, Far.Distance);
-        _cameraSetbackT = math.clamp(_cameraSetbackT + pitch, 0.0001f, 1);
+        _cameraDistance = math.clamp(_cameraDistance + input.Zoom, Near.Distance, Far.Distance);
+        _cameraSetbackT = math.clamp(_cameraSetbackT + input.Pitch, 0.0001f, 1);
         var cameraLocalPosition = Vector3.Lerp(Vector3.up, -Vector3.forward, _cameraSetbackT * PitchRange).normalized * _cameraDistance;
         
         // Clamp Altitude
@@ -121,9 +166,6 @@ public class LandscapeCamera2 : CameraPerspective
             CameraLocalRotation = Quaternion.Slerp(CurrentState.CameraLocalRotation ,quaternion.LookRotation(-cameraLocalPosition.normalized, Vector3.up), lerpSpeed),
             FieldOfView = math.lerp(Near.Fov, Far.Fov, t)
         };
-        
-        float KeyAxis(KeyCode negative, KeyCode positive) => (Input.GetKey(positive) ? 1f : 0) + (Input.GetKey(negative) ? -1f : 0);
-        
     }
 
     float TerrainAltitude(Coordinate coord) => math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r, Planet.Data.Water.WaterMap.Sample(coord).a);
