@@ -171,13 +171,13 @@ public class HeightMapVisualizer : MonoBehaviour
         transform.AnimateRotation(speed, state.ParentRotation, ease: EaseType.InOut);
         Cube.transform.AnimateOpacity(speed, state.SphereAlpha, ease: EaseType.InOut);
         var material = Cube.transform.GetComponent<Renderer>().material;
-        Singleton.Instance.StartCoroutine(
+        Singletons.Instance.StartCoroutine(
             AnimationUtils.AnimateFloat(speed, 
                                         material.GetFloat("CubeToSphere"), 
                                         state.CubeToSphereLerp, 
                                         x => material.SetFloat("CubeToSphere", x),
                                         ease: EaseType.InOut));
-        Singleton.Instance.StartCoroutine(
+        Singletons.Instance.StartCoroutine(
             AnimationUtils.AnimateFloat(speed,
                                         material.GetFloat("SphereToHeight"),
                                         state.SphereToHeightLerp,

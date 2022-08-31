@@ -9,7 +9,7 @@ namespace Tests
         public void SetUp()
         {
             base.Setup();
-            Singleton.LoadBalancer = new MockLoadBalancer();
+            Singletons.LoadBalancer = new MockLoadBalancer();
         }
     }
 }

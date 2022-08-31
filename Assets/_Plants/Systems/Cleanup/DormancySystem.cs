@@ -25,7 +25,7 @@ namespace Assets.Plants.Systems.Cleanup
             var planet = Planet.Entity;
             var ecb1 = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             Entities
-                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
                 .ForEach((in ParentDormancyTrigger trigger, in Parent parent, in Entity entity, in int entityInQueryIndex) =>
                 {
                     var isDormant = GetComponentDataFromEntity<Dormant>(true).HasComponent(entity);

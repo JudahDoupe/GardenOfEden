@@ -14,7 +14,7 @@ namespace Assets.Scripts.Plants.Growth
         protected override void OnUpdate()
         {
             Entities
-                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
                 .ForEach((ref EnergyStore energyStore, in LightAbsorber absorber, in Photosynthesis photosynthesis) =>
                 {
                     energyStore.Quantity += absorber.AbsorbedLight * photosynthesis.Efficiency;

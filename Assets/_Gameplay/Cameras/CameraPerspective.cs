@@ -7,14 +7,10 @@ namespace Assets.GamePlay.Cameras
         public float MaxAltitude;
         public float MinAltitude;
         public bool IsActive { get; protected set; } = false;
-        public CameraState CurrentState => Singleton.PerspectiveController.CurrentState;
-        public float Altitude => Singleton.PerspectiveController.Altitude;
-        public Camera Camera => CurrentState.Camera;
-        public Transform Focus => CurrentState.Focus;
 
         public virtual void Enable() => IsActive = true;
         public virtual void Disable() => IsActive = false;
-        public virtual CameraState TransitionToState() => CurrentState;
+        public virtual CameraState TransitionToState() => CameraController.CurrentState;
     }
 
     public struct CameraTransition

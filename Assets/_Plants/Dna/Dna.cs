@@ -54,7 +54,7 @@ namespace Assets.Scripts.Plants.Dna
             coord.Altitude = Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r;
 
             var plant = em.Instantiate(GetProtoNode(NodeType.Embryo)); 
-            em.SetSharedComponentData(plant, Singleton.LoadBalancer.ActiveEntityChunk);
+            em.SetSharedComponentData(plant, Singletons.LoadBalancer.ActiveEntityChunk);
             em.RemoveComponent<Dormant>(plant);
             em.AddComponentData(plant, coord);
             em.SetComponentData(plant, new Parent {Value = Planet.Entity});

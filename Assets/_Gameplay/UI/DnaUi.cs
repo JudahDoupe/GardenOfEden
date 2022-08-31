@@ -55,7 +55,7 @@ public class DnaUi : MonoBehaviour
         yield return new WaitForEndOfFrame();
 
         var perspective = FindObjectOfType<ObservationCamera>();
-        Singleton.PerspectiveController.SetPerspective(perspective, CameraTransition.Instant);
+        CameraController.SetPerspective(perspective, CameraTransition.Instant);
     }
 
     private void Start()

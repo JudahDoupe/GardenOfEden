@@ -14,7 +14,7 @@ public class ProximityLoadBalancer : MonoBehaviour, ILoadBalancer
     public UpdateChunk EnvironmentalChunk { get; private set; }
     public UpdateChunk ActiveEntityChunk { get; private set; }
     public UpdateChunk InactiveEntityChunk { get; private set; }
-    public float3 Position => Singleton.PerspectiveController.Focus.position;
+    public float3 Position => Singletons.PerspectiveController.Focus.position;
     public float Radius { get; private set; }
 
     private List<Action> _environmentalSystems = new List<Action>();
@@ -40,7 +40,7 @@ public class ProximityLoadBalancer : MonoBehaviour, ILoadBalancer
         }
         else
         {
-            _deltaTimes[Singleton.TimeService.DayOfTheWeek] = Time.deltaTime;
+            _deltaTimes[Singletons.TimeService.DayOfTheWeek] = Time.deltaTime;
             var averageDeltaTime = _deltaTimes.Average();
             var targetDeltaTime = 1f / TargetFps;
             var surfaceArea = math.PI * math.pow(Radius, 2);

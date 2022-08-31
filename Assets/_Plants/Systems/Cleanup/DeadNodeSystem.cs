@@ -22,7 +22,7 @@ namespace Assets.Plants.Systems.Cleanup
             var trashEcb = _trashEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
             Entities
-                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
                     (ref Health health, in Entity entity, in int entityInQueryIndex) =>

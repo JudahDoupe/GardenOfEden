@@ -59,7 +59,7 @@ namespace Assets.Scripts.Plants.Growth
             var genericSeed = new System.Random().Next();
 
             Entities
-                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach((ref NodeDivision nodeDivision, ref EnergyStore energyStore, in Parent parent, in Entity entity, in int entityInQueryIndex) =>
                 {
@@ -91,7 +91,7 @@ namespace Assets.Scripts.Plants.Growth
                             _ => Quaternion.identity
                         };
                         ecb.RemoveComponent<Dormant>(entityInQueryIndex, newNode);
-                        ecb.SetSharedComponent(entityInQueryIndex, newNode, Singleton.LoadBalancer.CurrentChunk); 
+                        ecb.SetSharedComponent(entityInQueryIndex, newNode, Singletons.LoadBalancer.CurrentChunk); 
                         ecb.SetComponent(entityInQueryIndex, newNode, new Rotation { Value = newRotation * RandomQuaternion(0.05f, seed) });
 
                         switch (instruction.Order)

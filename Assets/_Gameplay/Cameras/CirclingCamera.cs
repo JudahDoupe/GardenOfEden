@@ -28,17 +28,18 @@ public class CirclingCamera : CameraPerspective
         }
 
         CameraUtils.SetState(GetTargetState(FocusedEntity));
-        CurrentState.Focus.Rotate(Vector3.up, RotationSpeed * Time.deltaTime, Space.Self);
+        CameraController.CurrentState.Focus.Rotate(Vector3.up, RotationSpeed * Time.deltaTime, Space.Self);
 
         CameraUtils.SetEntityOutline(FocusedEntity, true);
     }
 
     public CameraState GetTargetState(Entity focusedEntity)
     {
+        var currentState = CameraController.CurrentState;
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         var bounds = CameraUtils.EncapsulateChildren(focusedEntity);
         var plantCoord = em.GetComponentData<Coordinate>(focusedEntity);
-        var backCoord = new Coordinate(CurrentState.Camera.transform.position, Planet.LocalToWorld);
+        var backCoord = new Coordinate(currentState.Camera.transform.position, Planet.LocalToWorld);
         var focusCoord = new Coordinate(bounds.center, Planet.LocalToWorld);
         backCoord.Altitude = plantCoord.Altitude;
         var distance = math.max(CameraUtils.GetDistanceToIncludeBounds(bounds, Fov), 2);
@@ -47,15 +48,15 @@ public class CirclingCamera : CameraPerspective
         var cameraCoord = new Coordinate(focusCoord.LocalPlanet + ((Quaternion) focusRot * cameraPos).ToFloat3());
         cameraPos +=  Vector3.up * (CameraUtils.ClampAboveTerrain(cameraCoord).Altitude - cameraCoord.Altitude);
 
-        var targetState = new CameraState(CurrentState.Camera, CurrentState.Focus)
+        var targetState = new CameraState(currentState.Camera, currentState.Focus)
         {
             CameraLocalPosition = IsActive 
-                ? Vector3.Lerp(CurrentState.Camera.transform.localPosition, cameraPos, LerpSpeed * Time.deltaTime)
+                ? Vector3.Lerp(currentState.Camera.transform.localPosition, cameraPos, LerpSpeed * Time.deltaTime)
                 : cameraPos,
             CameraLocalRotation = quaternion.LookRotation(math.normalize(-cameraPos), Vector3.up),
-            CameraParent = CurrentState.Focus,
+            CameraParent = currentState.Focus,
             FocusLocalPosition = IsActive
-                ? Vector3.Lerp(CurrentState.Focus.localPosition, focusCoord.LocalPlanet, LerpSpeed * Time.deltaTime)
+                ? Vector3.Lerp(currentState.Focus.localPosition, focusCoord.LocalPlanet, LerpSpeed * Time.deltaTime)
                 : (Vector3)focusCoord.LocalPlanet,
             FocusLocalRotation = focusRot,
             FocusParent = Planet.Transform,

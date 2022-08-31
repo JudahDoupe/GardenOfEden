@@ -55,8 +55,9 @@ public class SatelliteCamera : CameraPerspective
 
     private CameraState GetTargetState(bool lerp)
     {
-        _coord = IsActive ? _coord : new Coordinate(CurrentState.Camera.transform.position, Planet.LocalToWorld);
-        var cameraPosition = CurrentState.Camera.transform.localPosition;
+        var currentState = CameraController.CurrentState;
+        _coord = IsActive ? _coord : new Coordinate(currentState.Camera.transform.position, Planet.LocalToWorld);
+        var cameraPosition = currentState.Camera.transform.localPosition;
         var t = Ease.Out((MinAltitude - _coord.Altitude) / (MinAltitude - MaxAltitude));
         var translation = Vector3.zero;
         if (IsActive)
@@ -77,7 +78,7 @@ public class SatelliteCamera : CameraPerspective
         cameraPosition = lerp ? Vector3.Lerp(cameraPosition, _coord.LocalPlanet, Time.deltaTime * LerpSpeed) : (Vector3)_coord.LocalPlanet;
         t = Ease.Out((MinAltitude - cameraPosition.magnitude) / (MinAltitude - MaxAltitude));
         var height = Planet.Data.PlateTectonics.LandHeightMap.Sample(_coord).r;
-        return new CameraState(CurrentState.Camera, CurrentState.Focus)
+        return new CameraState(currentState.Camera, currentState.Focus)
         {
             CameraParent = Planet.Transform,
             CameraLocalPosition = cameraPosition,

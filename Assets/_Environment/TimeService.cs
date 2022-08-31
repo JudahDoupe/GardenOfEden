@@ -11,7 +11,7 @@ public class TimeService : MonoBehaviour
 
     public void Start()
     {
-        Singleton.LoadBalancer.RegisterEndSimulationAction(IncrementDay);
+        Singletons.LoadBalancer.RegisterEndSimulationAction(IncrementDay);
     }
 
     private void IncrementDay()

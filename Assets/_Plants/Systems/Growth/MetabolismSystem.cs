@@ -20,7 +20,7 @@ namespace Assets.Scripts.Plants.Growth
         protected override void OnUpdate()
         {
             Entities
-                .WithSharedComponentFilter(Singleton.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach((ref EnergyStore energyStore, ref Health health, in Metabolism metabolism, in Entity entity) =>
                 {

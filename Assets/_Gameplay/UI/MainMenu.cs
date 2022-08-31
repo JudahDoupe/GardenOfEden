@@ -18,7 +18,7 @@ public class MainMenu : MenuUi
         var home = transform.Find("Home");
         home.gameObject.SetActive(true);
         home.AnimatePosition(0.3f, new Vector3(350, 0, 0));
-        Singleton.PerspectiveController.SetPerspective(FindObjectOfType<MainMenuCamera>(), CameraTransition.Smooth);
+        CameraController.SetPerspective(FindObjectOfType<MainMenuCamera>(), CameraTransition.Smooth);
         _systemsContoller.EnableGlobe();
     }
     public override void Disable()

@@ -55,9 +55,9 @@ public class PlateTectonicsToolbar : MenuUi
         enabled => 
         {
             if (enabled)
-                Singleton.PerspectiveController.SetPerspective(FindObjectOfType<LandscapeCamera2>(), CameraTransition.Instant);
+                CameraController.SetPerspective(FindObjectOfType<LandscapeCamera>(), CameraTransition.Instant);
             else
-                Singleton.PerspectiveController.SetPerspectives((FindObjectOfType<SatelliteCamera>(), CameraTransition.Smooth), (FindObjectOfType<LandscapeCamera>(), CameraTransition.Smooth));
+                CameraController.SetPerspective(FindObjectOfType<SatelliteCamera>(), CameraTransition.Smooth);
         }));
 
     public void MovePlates() => _stateMachine.SetState(new ButtonState(this, "Move",
