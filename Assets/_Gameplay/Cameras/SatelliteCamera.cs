@@ -33,8 +33,8 @@ public class SatelliteCamera : CameraPerspective
     {
         _controls = new Controls();
         _controls.SateliteCamera.Enable();
-        _controls.SateliteCamera.Click.started += context => _isDragging = true;
-        _controls.SateliteCamera.Click.canceled += context => _isDragging = false;
+        _controls.SateliteCamera.Click.started += _ => _isDragging = true;
+        _controls.SateliteCamera.Click.canceled += _ => _isDragging = false;
         Cursor.SetCursor(CursorTexture, new Vector2(CursorTexture.width / 2f, CursorTexture.height / 2f), CursorMode.Auto);
         IsActive = true;
     }
@@ -75,7 +75,7 @@ public class SatelliteCamera : CameraPerspective
         _coord.Lat = math.clamp(_coord.Lat + translation.y, PoleBuffer, 180 - PoleBuffer);
         _coord.Lon += translation.x;
 
-        cameraPosition = lerp ? Vector3.Lerp(cameraPosition, _coord.LocalPlanet, Time.deltaTime * LerpSpeed) : (Vector3)_coord.LocalPlanet;
+        cameraPosition = lerp ? Vector3.Lerp(cameraPosition, _coord.LocalPlanet, Time.deltaTime * LerpSpeed) : _coord.LocalPlanet;
         t = Ease.Out((MinAltitude - cameraPosition.magnitude) / (MinAltitude - MaxAltitude));
         var height = Planet.Data.PlateTectonics.LandHeightMap.Sample(_coord).r;
         return new CameraState(currentState.Camera, currentState.Focus)

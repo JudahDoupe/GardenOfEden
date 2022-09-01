@@ -3,9 +3,11 @@ using System.Linq;
 using Assets.GamePlay.Cameras;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class LandscapeCamera : CameraPerspective
-{    [Serializable]
+{    
+    [Serializable]
     private struct Settings
     {
         public float Distance;
@@ -14,21 +16,27 @@ public class LandscapeCamera : CameraPerspective
         public float Fov;
     }
     
+    public Texture2D CursorTexture;
+    
     public float LerpSpeed;
     public float SmoothTime;
     public float RotationSpeed;
     public float PitchSpeed;
+    public Vector2 DragSpeed;
     [Range(0, 1)]
     public float PitchRange;
     [SerializeField]
     private Settings Near; 
     [SerializeField]
-    private Settings Far; 
-    
+    private Settings Far;
+
+    private bool _isDragging;
     private float _cameraAltitude;
     private float _cameraDistance;
     private float _cameraSetbackT;
     private Controls _controls;
+    
+#region Transition
 
     private void Start()
     {
@@ -80,49 +88,33 @@ public class LandscapeCamera : CameraPerspective
 
         CameraUtils.SetState(new CameraState(currentState.Camera, currentState.Focus));
         _controls.LandscapeCamera.Enable();
+        _controls.LandscapeCamera.Click.started += c =>
+        {
+            var sign = (Mouse.current.position.y.ReadValue() / Screen.height) < 0.5 ? 1 : -1;
+            DragSpeed.x = math.abs(DragSpeed.x) * sign;
+            _isDragging = true;
+        };
+        _controls.LandscapeCamera.Click.canceled += _ => _isDragging = false;
+        
+        Cursor.SetCursor(CursorTexture, new Vector2(CursorTexture.width / 2f, CursorTexture.height / 2f), CursorMode.Auto);
 
     }
     public override void Disable()
     {
         IsActive = false;
         _controls.LandscapeCamera.Disable();
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
     }
-
+    
+#endregion
+    
+#region Update
+    
     private void LateUpdate()
     {
         if (!IsActive) return;
 
         CameraUtils.SetState(GetTargetState(true));
-    }
-
-    private struct InputData 
-    {
-        public Vector2 Strafe;
-        public float Rotation;
-        public float Pitch;
-        public float Zoom;
-    };
-    private InputData _lastInput;
-    private InputData _velocity;
-    private InputData GetInput()
-    {
-
-        //TODO: click and drag
-
-        var t = Ease.Out((MinAltitude - _cameraAltitude) / (MinAltitude - MaxAltitude));
-        var zoom = math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * _controls.LandscapeCamera.Zoom.ReadValue<float>() * Time.deltaTime;
-        var strafe = math.lerp(Near.StrafeSpeed, Far.StrafeSpeed, t) * _controls.LandscapeCamera.Strafe.ReadValue<Vector2>() * Time.deltaTime;
-        var rotation = RotationSpeed * _controls.LandscapeCamera.Rotate.ReadValue<float>() * Time.deltaTime;
-        var pitch = PitchSpeed * _controls.LandscapeCamera.Pitch.ReadValue<float>() * Time.deltaTime;
-
-        _lastInput = new InputData
-        {
-            Strafe = Vector2.SmoothDamp(_lastInput.Strafe, strafe, ref _velocity.Strafe, SmoothTime),
-            Rotation = Mathf.SmoothDamp(_lastInput.Rotation, rotation, ref _velocity.Rotation, SmoothTime),
-            Pitch = Mathf.SmoothDamp(_lastInput.Pitch, pitch, ref _velocity.Pitch, SmoothTime),
-            Zoom = Mathf.SmoothDamp(_lastInput.Zoom, zoom, ref _velocity.Zoom, SmoothTime),
-        };
-        return _lastInput;
     }
 
     private CameraState GetTargetState(bool lerp)
@@ -178,4 +170,38 @@ public class LandscapeCamera : CameraPerspective
     }
 
     float TerrainAltitude(Coordinate coord) => math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r, Planet.Data.Water.WaterMap.Sample(coord).a);
+    
+#endregion
+    
+#region Input
+
+    private struct InputData 
+    {
+        public Vector2 Strafe;
+        public float Rotation;
+        public float Pitch;
+        public float Zoom;
+    };
+    private InputData _lastInput;
+    private InputData _velocity;
+    private InputData GetInput()
+    {
+        var t = Ease.Out((MinAltitude - _cameraAltitude) / (MinAltitude - MaxAltitude));
+        var drag = Mouse.current.delta.ReadValue() * DragSpeed * Convert.ToInt16(_isDragging);
+        var zoom = math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * _controls.LandscapeCamera.Zoom.ReadValue<float>() * Time.deltaTime;
+        var strafe = math.lerp(Near.StrafeSpeed, Far.StrafeSpeed, t) * _controls.LandscapeCamera.Strafe.ReadValue<Vector2>() * Time.deltaTime;
+        var rotation = RotationSpeed * (drag.x + _controls.LandscapeCamera.Rotate.ReadValue<float>()) * Time.deltaTime;
+        var pitch = PitchSpeed * (drag.y + _controls.LandscapeCamera.Pitch.ReadValue<float>()) * Time.deltaTime;
+
+        _lastInput = new InputData
+        {
+            Strafe = Vector2.SmoothDamp(_lastInput.Strafe, strafe, ref _velocity.Strafe, SmoothTime),
+            Rotation = Mathf.SmoothDamp(_lastInput.Rotation, rotation, ref _velocity.Rotation, SmoothTime),
+            Pitch = Mathf.SmoothDamp(_lastInput.Pitch, pitch, ref _velocity.Pitch, SmoothTime),
+            Zoom = Mathf.SmoothDamp(_lastInput.Zoom, zoom, ref _velocity.Zoom, SmoothTime),
+        };
+        return _lastInput;
+    }
+
+#endregion
 }
