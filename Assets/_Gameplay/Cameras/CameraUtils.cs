@@ -117,7 +117,7 @@ public class CameraUtils : MonoBehaviour
             GetTransitionTime(start.FieldOfView, end.FieldOfView, transition.Speed),
         };
 
-        Singletons.Instance.StartCoroutine(AnimateTransition(speeds.Max(), start, end, callback, transition.Ease));
+        CameraController.Instance.StartCoroutine(AnimateTransition(speeds.Max(), start, end, callback, transition.Ease));
     }
     private static IEnumerator AnimateTransition(float seconds, CameraState start, CameraState end, Action callback, EaseType ease)
     {

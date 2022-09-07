@@ -33,7 +33,7 @@ namespace Assets.Scripts.Plants.Growth
             var planet = Planet.Entity;
 
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
                     (ref EnergyStore energyStore, ref Node node, ref Translation translation, ref Health health, in PrimaryGrowth growth, in Parent parent) =>

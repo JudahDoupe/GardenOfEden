@@ -4,11 +4,10 @@ using Assets.Plants.Systems.Cleanup;
 using Unity.Entities;
 using Unity.Rendering;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Assets.Scripts.Utils
 {
-    public class RenderMeshLibrary : MonoBehaviour
+    public class RenderMeshLibrary : Singleton<RenderMeshLibrary>
     {
         public List<MeshContainer> Meshes = new List<MeshContainer>();
         public Dictionary<string, MeshContainer> Library = new Dictionary<string, MeshContainer>();

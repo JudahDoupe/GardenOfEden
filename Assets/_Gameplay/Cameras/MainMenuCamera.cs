@@ -5,9 +5,7 @@ public class MainMenuCamera : CameraPerspective
 {
     public float Fov = 30f;
 
-    public override CameraState TransitionToState() => GetTargetState();
-
-    public CameraState GetTargetState()
+    public override CameraState StartTransitionTo()
     {
         var currentState = CameraController.CurrentState;
         var rotation = Quaternion.LookRotation(currentState.Camera.transform.forward, Vector3.up);

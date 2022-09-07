@@ -10,41 +10,41 @@ namespace Assets.Scripts.Utils
     {
         public static void AnimateTransform(this Transform transform, float seconds, Vector3 localPosition, Vector3 localScale, bool isActive = true)
         {
-            Singletons.Instance.StartCoroutine(AnimateVector3(seconds, transform.localPosition, localPosition, pos => transform.localPosition = pos));
-            Singletons.Instance.StartCoroutine(AnimateVector3(seconds, transform.localScale, localScale, pos => transform.localScale = pos));
-            Singletons.Instance.StartCoroutine(AnimateBool(seconds, isActive, active => transform.gameObject.SetActive(active)));
+            CameraController.Instance.StartCoroutine(AnimateVector3(seconds, transform.localPosition, localPosition, pos => transform.localPosition = pos));
+            CameraController.Instance.StartCoroutine(AnimateVector3(seconds, transform.localScale, localScale, pos => transform.localScale = pos));
+            CameraController.Instance.StartCoroutine(AnimateBool(seconds, isActive, active => transform.gameObject.SetActive(active)));
         }
 
         public static void AnimatePosition(this Transform transform, float seconds, Vector3 localPosition, Action callback = null, EaseType ease = EaseType.Linear)
         {
-            Singletons.Instance.StartCoroutine(AnimateVector3(seconds, transform.localPosition, localPosition, pos => transform.localPosition = pos, callback, ease));
+            CameraController.Instance.StartCoroutine(AnimateVector3(seconds, transform.localPosition, localPosition, pos => transform.localPosition = pos, callback, ease));
         }
         public static void AnimateScale(this Transform transform, float seconds, Vector3 localScale, Action callback = null, EaseType ease = EaseType.Linear)
         {
-            Singletons.Instance.StartCoroutine(AnimateVector3(seconds, transform.localScale, localScale, scale => transform.localScale = scale, callback, ease));
+            CameraController.Instance.StartCoroutine(AnimateVector3(seconds, transform.localScale, localScale, scale => transform.localScale = scale, callback, ease));
         }
         public static void AnimateRotation(this Transform transform, float seconds, Quaternion localRotation, Action callback = null, EaseType ease = EaseType.Linear)
         {
-            Singletons.Instance.StartCoroutine(AnimateQuaternion(seconds, transform.localRotation, localRotation, rot => transform.localRotation = rot, callback, ease));
+            CameraController.Instance.StartCoroutine(AnimateQuaternion(seconds, transform.localRotation, localRotation, rot => transform.localRotation = rot, callback, ease));
         }
         public static void AnimateFov(this Camera camera, float seconds, float fov, Action callback = null, EaseType ease = EaseType.Linear)
         {
-            Singletons.Instance.StartCoroutine(AnimateFloat(seconds, camera.fieldOfView, fov, f => camera.fieldOfView = f, callback, ease));
+            CameraController.Instance.StartCoroutine(AnimateFloat(seconds, camera.fieldOfView, fov, f => camera.fieldOfView = f, callback, ease));
         }
         public static void AnimateOpacity(this Transform transform, float seconds, float alpha, EaseType ease = EaseType.Linear)
         {
             var material = transform.GetComponent<Renderer>().material;
-            Singletons.Instance.StartCoroutine(AnimateFloat(seconds, material.color.a, alpha, a => material.color = new Color(material.color.r, material.color.g, material.color.b, a), ease: ease));
+            CameraController.Instance.StartCoroutine(AnimateFloat(seconds, material.color.a, alpha, a => material.color = new Color(material.color.r, material.color.g, material.color.b, a), ease: ease));
         }
         public static void AnimateUiOpacity(this Transform transform, float seconds, float alpha, EaseType ease = EaseType.Linear)
         {
             foreach (var image in transform.GetComponentsInChildren<Image>())
             {
-                Singletons.Instance.StartCoroutine(AnimateFloat(seconds, image.color.a, alpha, a => image.color = new Color(image.color.r, image.color.g, image.color.b, a), ease: ease));
+                CameraController.Instance.StartCoroutine(AnimateFloat(seconds, image.color.a, alpha, a => image.color = new Color(image.color.r, image.color.g, image.color.b, a), ease: ease));
             }
             foreach (var text in transform.GetComponentsInChildren<Text>())
             {
-                Singletons.Instance.StartCoroutine(AnimateFloat(seconds, text.color.a, alpha, a => text.color = new Color(text.color.r, text.color.g, text.color.b, a), ease: ease));
+                CameraController.Instance.StartCoroutine(AnimateFloat(seconds, text.color.a, alpha, a => text.color = new Color(text.color.r, text.color.g, text.color.b, a), ease: ease));
             }
         }
 

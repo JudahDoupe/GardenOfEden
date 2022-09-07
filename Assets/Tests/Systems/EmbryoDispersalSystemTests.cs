@@ -30,7 +30,7 @@ namespace Tests
             m_Manager.AddComponentData(entity, new Rotation());
             m_Manager.AddComponentData(entity, new LocalToWorld());
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 1, Quantity = 1 });
-            m_Manager.AddSharedComponentData(entity, Singletons.LoadBalancer.CurrentChunk);
+            m_Manager.AddSharedComponentData(entity, LoadBalancer.CurrentChunk);
             return entity;
         }
 
@@ -45,7 +45,7 @@ namespace Tests
             m_Manager.AddComponentData(entity, new LocalToParent());
             m_Manager.AddComponentData(entity, new LocalToWorld());
             m_Manager.AddComponentData(entity, new EnergyStore { Capacity = 1, Quantity = energyQuantity });
-            m_Manager.AddSharedComponentData(entity, Singletons.LoadBalancer.CurrentChunk);
+            m_Manager.AddSharedComponentData(entity, LoadBalancer.CurrentChunk);
             return entity;
         }
     }

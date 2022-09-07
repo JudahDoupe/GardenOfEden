@@ -34,7 +34,7 @@ namespace Assets.Scripts.Plants.Growth
         protected override void OnUpdate()
         {
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach((ref NodeDivision nodeDivision, in DeterministicLifeStageTrigger trigger) =>
                 {
@@ -46,9 +46,9 @@ namespace Assets.Scripts.Plants.Growth
                 })
                 .ScheduleParallel();
 
-            var monthOfTheYear = Singletons.TimeService.MonthOfTheYear;
+            var monthOfTheYear = TimeService.MonthOfTheYear;
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach((ref NodeDivision nodeDivision, in AnnualLifeStageTrigger trigger) =>
                 {
@@ -60,7 +60,7 @@ namespace Assets.Scripts.Plants.Growth
                 .ScheduleParallel();
 
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach((ref NodeDivision nodeDivision, ref TimeDelayedLifeStageTrigger trigger) =>
                 {
@@ -74,7 +74,7 @@ namespace Assets.Scripts.Plants.Growth
 
             var planet = Planet.Entity;
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach((ref NodeDivision nodeDivision, in Parent parent, in ParentLifeStageTrigger trigger, in Entity e) =>
                 {

@@ -28,7 +28,7 @@ public class ObservationCamera : CameraPerspective
         _height = math.min(_cameraCoord.Altitude - Planet.Data.PlateTectonics.LandHeightMap.Sample(_cameraCoord).r, MaxHeight -1);
     }
 
-    public override CameraState TransitionToState() => GetTargetState(false);
+    public override CameraState StartTransitionTo() => GetTargetState(false);
 
     private void LateUpdate()
     {

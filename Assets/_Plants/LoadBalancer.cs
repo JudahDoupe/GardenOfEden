@@ -5,20 +5,20 @@ using Assets.Scripts.Plants.Setup;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class ProximityLoadBalancer : MonoBehaviour, ILoadBalancer
+public class LoadBalancer : Singleton<LoadBalancer>
 {
     [Range(10,60)]
     public int TargetFps = 20;
 
-    public UpdateChunk CurrentChunk { get; private set; }
-    public UpdateChunk EnvironmentalChunk { get; private set; }
-    public UpdateChunk ActiveEntityChunk { get; private set; }
-    public UpdateChunk InactiveEntityChunk { get; private set; }
-    public float3 Position => Singletons.PerspectiveController.Focus.position;
-    public float Radius { get; private set; }
+    public static UpdateChunk CurrentChunk { get; private set; }
+    public static UpdateChunk EnvironmentalChunk { get; private set; }
+    public static UpdateChunk ActiveEntityChunk { get; private set; }
+    public static UpdateChunk InactiveEntityChunk { get; private set; }
+    public static float3 Position => CameraController.Instance.Focus.position;
+    public static float Radius { get; private set; }
 
-    private List<Action> _environmentalSystems = new List<Action>();
-    private float[] _deltaTimes = new float[7];
+    private static List<Action> _environmentalSystems = new List<Action>();
+    private static float[] _deltaTimes = new float[7];
 
     public void Start()
     {
@@ -40,7 +40,7 @@ public class ProximityLoadBalancer : MonoBehaviour, ILoadBalancer
         }
         else
         {
-            _deltaTimes[Singletons.TimeService.DayOfTheWeek] = Time.deltaTime;
+            _deltaTimes[TimeService.DayOfTheWeek] = Time.deltaTime;
             var averageDeltaTime = _deltaTimes.Average();
             var targetDeltaTime = 1f / TargetFps;
             var surfaceArea = math.PI * math.pow(Radius, 2);
@@ -52,7 +52,7 @@ public class ProximityLoadBalancer : MonoBehaviour, ILoadBalancer
         CurrentChunk = CurrentChunk.IsEnvironmental ? ActiveEntityChunk : EnvironmentalChunk;
     }
 
-    public void RegisterEndSimulationAction(Action action)
+    public static void RegisterEndSimulationAction(Action action)
     {
         _environmentalSystems.Add(action);
     }

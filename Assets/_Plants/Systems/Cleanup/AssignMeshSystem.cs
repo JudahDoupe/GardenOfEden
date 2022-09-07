@@ -40,7 +40,7 @@ partial     class AssignMeshSystem : SystemBase
             var trashEcb = _trashEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .WithNone<Dormant>()
                 .ForEach(
                     (ref NodeMeshReference meshReference, in AssignNodeMesh assignMesh, in Parent parent, in Entity entity, in int entityInQueryIndex) =>

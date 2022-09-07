@@ -35,10 +35,10 @@ partial     class UpdateChunkSystem : SystemBase
         protected override void OnUpdate()
         {
             var planet = Planet.Entity;
-            var position = Singletons.LoadBalancer.Position;
-            var radius = Singletons.LoadBalancer.Radius;
-            var activeChunk = Singletons.LoadBalancer.ActiveEntityChunk;
-            var inactiveChunk = Singletons.LoadBalancer.InactiveEntityChunk;
+            var position = LoadBalancer.Position;
+            var radius = LoadBalancer.Radius;
+            var activeChunk = LoadBalancer.ActiveEntityChunk;
+            var inactiveChunk = LoadBalancer.InactiveEntityChunk;
 
             var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
             Entities

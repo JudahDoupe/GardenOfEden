@@ -25,7 +25,7 @@ namespace Assets.Scripts.Plants.Growth
             var planet = Planet.Entity;
 
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .ForEach(
                     (ref GrowthHormoneFlow hormoneFlow, in GrowthHormoneStore hormoneStore, in Entity entity, in Parent parent) =>
                     {
@@ -64,7 +64,7 @@ namespace Assets.Scripts.Plants.Growth
                 .ScheduleParallel();
 
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .ForEach(
                     (ref GrowthHormoneStore hormoneStore, in Entity entity) =>
                     {

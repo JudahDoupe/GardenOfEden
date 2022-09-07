@@ -3,6 +3,7 @@ using System.Linq;
 using Assets.Plants.Systems.Cleanup;
 using Assets.Scripts.Plants.Environment;
 using Assets.Scripts.Plants.Growth;
+using Assets.Scripts.Utils;
 using QuikGraph;
 using Unity.Mathematics;
 using UnityEngine;
@@ -81,7 +82,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithName("Stem")
                 .WithComponent(new LightAbsorber())
                 .WithComponent(new Photosynthesis { Efficiency = 1 })
-                .WithComponent(new AssignNodeMesh { Internode = Singletons.RenderMeshLibrary.Library["GreenStem"].Entity })
+                .WithComponent(new AssignNodeMesh { Internode = RenderMeshLibrary.Instance.Library["GreenStem"].Entity })
                 .WithComponent(new PrimaryGrowth { DaysToMature = 3, InternodeLength = 0.5f, InternodeRadius = 0.1f })
                 .WithComponent(new Metabolism { Resting = 0.1f })
                 .Gene
@@ -103,7 +104,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithName("Stem")
                 .WithComponent(new LightAbsorber())
                 .WithComponent(new Photosynthesis { Efficiency = 1 })
-                .WithComponent(new AssignNodeMesh { Internode = Singletons.RenderMeshLibrary.Library["GreenStem"].Entity })
+                .WithComponent(new AssignNodeMesh { Internode = RenderMeshLibrary.Instance.Library["GreenStem"].Entity })
                 .WithComponent(new PrimaryGrowth { DaysToMature = 3, InternodeLength = 1, InternodeRadius = 0.1f })
                 .WithComponent(new Metabolism { Resting = 0.1f })
                 .Gene.ModifiesNode(NodeType.Bud)
@@ -164,7 +165,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithName("Leaf")
                 .WithComponent(new LightAbsorber())
                 .WithComponent(new Photosynthesis { Efficiency = 1 })
-                .WithComponent(new AssignNodeMesh { Node = Singletons.RenderMeshLibrary.Library["Leaf"].Entity })
+                .WithComponent(new AssignNodeMesh { Node = RenderMeshLibrary.Instance.Library["Leaf"].Entity })
                 .WithComponent(new PrimaryGrowth { DaysToMature = 4, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = new float3(0.3f, 0.1f, 1) })
                 .WithComponent(new Metabolism { Resting = 0.025f })
                 .Gene);
@@ -173,7 +174,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithName("Leaf")
                 .WithComponent(new LightAbsorber())
                 .WithComponent(new Photosynthesis { Efficiency = 1 })
-                .WithComponent(new AssignNodeMesh { Node = Singletons.RenderMeshLibrary.Library["Leaf"].Entity })
+                .WithComponent(new AssignNodeMesh { Node = RenderMeshLibrary.Instance.Library["Leaf"].Entity })
                 .WithComponent(new PrimaryGrowth { DaysToMature = 4, InternodeLength = 0.1f, InternodeRadius = 0.1f, NodeSize = new float3(1, 0.1f, 1) })
                 .WithComponent(new Metabolism { Resting = 0.025f })
                 .Gene);
@@ -182,7 +183,7 @@ namespace Assets.Scripts.Plants.Dna
                 .WithDependency(GeneCategory.Reproduction, GeneType.VegetationTrigger)
                 .ModifiesNode(NodeType.Reproduction)
                 .WithName("Sporangia")
-                .WithComponent(new AssignNodeMesh { Internode = Singletons.RenderMeshLibrary.Library["GreenStem"].Entity, Node = Singletons.RenderMeshLibrary.Library["Sporangia"].Entity })
+                .WithComponent(new AssignNodeMesh { Internode = RenderMeshLibrary.Instance.Library["GreenStem"].Entity, Node = RenderMeshLibrary.Instance.Library["Sporangia"].Entity })
                 .WithComponent(new PrimaryGrowth { DaysToMature = 8, NodeSize = 0.5f, InternodeLength = 0.2f, InternodeRadius = 0.07f})
                 .WithComponent(new NodeDivision { Stage = LifeStage.Reproduction, RemainingDivisions = 5, MinEnergyPressure = 0.8f })
                 .WithComponent(new Metabolism { Resting = 0.1f })

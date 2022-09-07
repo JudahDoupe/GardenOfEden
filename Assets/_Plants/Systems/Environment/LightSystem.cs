@@ -34,7 +34,7 @@ namespace Assets.Scripts.Plants.Environment
             var lightCellsWriter = lightCells.AsParallelWriter();
 
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .ForEach((ref LightBlocker blocker, in Entity entity, in LocalToWorld l2w) =>
                 {
                     var nodeQuery = GetComponentDataFromEntity<Node>(true);
@@ -58,7 +58,7 @@ namespace Assets.Scripts.Plants.Environment
                 .Run();
 
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .WithNativeDisableParallelForRestriction(lightCells)
                 .ForEach((ref LightAbsorber absorber, in LightBlocker blocker, in LocalToWorld l2w) =>
                 {

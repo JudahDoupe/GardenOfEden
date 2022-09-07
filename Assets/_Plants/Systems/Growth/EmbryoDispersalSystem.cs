@@ -36,7 +36,7 @@ namespace Assets.Scripts.Plants.Growth
             var landMaps5 = landMaps[5];
 
             Entities
-                .WithSharedComponentFilter(Singletons.LoadBalancer.CurrentChunk)
+                .WithSharedComponentFilter(LoadBalancer.CurrentChunk)
                 .WithAll<WindDispersal, Parent, LocalToParent>()
                 .WithAll<Translation, Rotation>()
                 .WithNativeDisableParallelForRestriction(landMaps0)

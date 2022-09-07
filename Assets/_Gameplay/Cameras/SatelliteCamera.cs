@@ -27,7 +27,10 @@ public class SatelliteCamera : CameraPerspective
     private Controls _controls;
     private bool _isDragging;
 
-    public override CameraState TransitionToState() => GetTargetState(false);
+    #region Transition
+    #endregion
+
+    public override CameraState StartTransitionTo() => GetTargetState(false);
 
     public override void Enable()
     {

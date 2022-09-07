@@ -25,7 +25,7 @@ public class CameraController : Singleton<CameraController>
             _stateMachine.State.Disable();
         }
 
-        CameraUtils.TransitionState(perspective.TransitionToState(), transition, () => {
+        CameraUtils.TransitionState(perspective.StartTransitionTo(), transition, () => {
             _stateMachine.SetState(perspective);
         });
     }

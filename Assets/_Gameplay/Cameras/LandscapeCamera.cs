@@ -36,7 +36,7 @@ public class LandscapeCamera : CameraPerspective
     private float _cameraSetbackT;
     private Controls _controls;
     
-#region Transition
+#region Transitions
 
     private void Start()
     {
@@ -57,11 +57,50 @@ public class LandscapeCamera : CameraPerspective
         };
     }
 
+    public override CameraState StartTransitionTo()
+    {
+        //TODO: Fix this
+        var currentState = CameraController.CurrentState;
+        var cameraTransform = currentState.Camera.transform;
+        var cameraPosition = cameraTransform.position;
+        var focusPosition = currentState.Focus.position;
+        var focusCoord = new Coordinate(focusPosition, Planet.LocalToWorld);
+        focusCoord.Altitude = TerrainAltitude(focusCoord);
+
+        IsActive = true;
+
+        var up = Vector3.Normalize(focusPosition);
+        var right = cameraTransform.right;
+        var forward = Quaternion.AngleAxis(90, right) * up;
+
+        currentState.Focus.rotation = Quaternion.LookRotation(forward, up);
+        currentState.Focus.parent = Planet.Transform;
+        currentState.Focus.localPosition = focusCoord.LocalPlanet;
+
+        cameraTransform.parent = currentState.Focus;
+
+        _cameraAltitude = cameraPosition.magnitude;
+        _cameraDistance = cameraTransform.localPosition.magnitude;
+        _cameraSetbackT = 0;
+        cameraTransform.LookAt(focusCoord.Global(Planet.LocalToWorld), forward);
+
+        CameraUtils.SetState(new CameraState(currentState.Camera, currentState.Focus));
+        _controls.LandscapeCamera.Enable();
+        _controls.LandscapeCamera.Click.started += c =>
+        {
+            var sign = (Mouse.current.position.y.ReadValue() / Screen.height) < 0.5 ? 1 : -1;
+            DragSpeed.x = math.abs(DragSpeed.x) * sign;
+            _isDragging = true;
+        };
+        _controls.LandscapeCamera.Click.canceled += _ => _isDragging = false;
+
+        Cursor.SetCursor(CursorTexture, new Vector2(CursorTexture.width / 2f, CursorTexture.height / 2f), CursorMode.Auto);
+
+        return currentState;
+    }
+
     public override void Enable()
     {
-
-        //TODO: Better transition
-
         var currentState = CameraController.CurrentState;
         var cameraTransform = currentState.Camera.transform;
         var cameraPosition = cameraTransform.position;

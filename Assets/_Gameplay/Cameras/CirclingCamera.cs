@@ -16,7 +16,7 @@ public class CirclingCamera : CameraPerspective
         CameraUtils.SetEntityOutline(FocusedEntity, false);
         IsActive = false;
     }
-    public override CameraState TransitionToState() => GetTargetState(FocusedEntity);
+    public override CameraState StartTransitionTo() => GetTargetState(FocusedEntity);
 
     private void LateUpdate()
     {

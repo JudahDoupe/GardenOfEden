@@ -1,20 +1,20 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-public class TimeService : MonoBehaviour
+public class TimeService : Singleton<TimeService>
 {
-    public int DayOfTheWeek { get; private set; } = 0;
-    public int DayOfTheMonth { get; private set; } = 0;
-    public int DayOfTheYear { get; private set; } = 0;
-    public int MonthOfTheYear { get; private set; } = 0;
-    public int Year { get; private set; } = 0;
+    public static int DayOfTheWeek { get; private set; } = 0;
+    public static int DayOfTheMonth { get; private set; } = 0;
+    public static int DayOfTheYear { get; private set; } = 0;
+    public static int MonthOfTheYear { get; private set; } = 0;
+    public static int Year { get; private set; } = 0;
 
     public void Start()
     {
-        Singletons.LoadBalancer.RegisterEndSimulationAction(IncrementDay);
+        LoadBalancer.RegisterEndSimulationAction(IncrementDay);
     }
 
-    private void IncrementDay()
+    private static void IncrementDay()
     {
         DayOfTheWeek = (DayOfTheWeek + 1) % 7;
         DayOfTheMonth  = (DayOfTheMonth + 1) % 30;
@@ -30,10 +30,8 @@ public class TimeServiceEditor : UnityEditor.Editor
 {
     public override void OnInspectorGUI()
     {
-        var service = (TimeService)target;
-
         EditorGUILayout.Space(5);
-        EditorGUILayout.LabelField($"Day {service.DayOfTheYear}   |   Month {service.MonthOfTheYear}   |   Year {service.Year}");
+        EditorGUILayout.LabelField($"Day {TimeService.DayOfTheYear}   |   Month {TimeService.MonthOfTheYear}   |   Year {TimeService.Year}");
         EditorGUILayout.Space(5);
     }
 }
