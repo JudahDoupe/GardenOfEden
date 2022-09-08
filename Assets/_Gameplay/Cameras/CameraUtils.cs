@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Linq;
 using Assets.GamePlay.Cameras;
-using Assets.Scripts.Plants.Setup;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -104,20 +103,28 @@ public class CameraUtils : MonoBehaviour
     }
     public static void TransitionState(CameraState end, CameraTransition transition, Action callback = null)
     {
-        end.Camera.transform.parent = end.CameraParent;
-        end.Focus.parent = end.FocusParent;
-        Cursor.lockState = end.Cursor;
-        var start = new CameraState(end.Camera, end.Focus);
-        var speeds = new []
+        if (transition.Speed <= 0)
         {
-            GetTransitionTime(start.CameraLocalPosition, end.CameraLocalPosition, transition.Speed), 
-            GetTransitionTime(start.CameraLocalRotation, end.CameraLocalRotation, transition.Speed),
-            GetTransitionTime(start.FocusLocalPosition, end.FocusLocalPosition, transition.Speed),
-            GetTransitionTime(start.FocusLocalRotation, end.FocusLocalRotation, transition.Speed),
-            GetTransitionTime(start.FieldOfView, end.FieldOfView, transition.Speed),
-        };
+            SetState(end);
+            callback();
+        }
+        else
+        {
+            end.Camera.transform.parent = end.CameraParent;
+            end.Focus.parent = end.FocusParent;
+            Cursor.lockState = end.Cursor;
+            var start = new CameraState(end.Camera, end.Focus);
 
-        CameraController.Instance.StartCoroutine(AnimateTransition(speeds.Max(), start, end, callback, transition.Ease));
+            var speeds = new []
+            {
+                GetTransitionTime(start.CameraLocalPosition, end.CameraLocalPosition, transition.Speed), 
+                GetTransitionTime(start.CameraLocalRotation, end.CameraLocalRotation, transition.Speed),
+                GetTransitionTime(start.FocusLocalPosition, end.FocusLocalPosition, transition.Speed),
+                GetTransitionTime(start.FocusLocalRotation, end.FocusLocalRotation, transition.Speed),
+                GetTransitionTime(start.FieldOfView, end.FieldOfView, transition.Speed),
+            };
+            CameraController.Instance.StartCoroutine(AnimateTransition(speeds.Max(), start, end, callback, transition.Ease));
+        }
     }
     private static IEnumerator AnimateTransition(float seconds, CameraState start, CameraState end, Action callback, EaseType ease)
     {
