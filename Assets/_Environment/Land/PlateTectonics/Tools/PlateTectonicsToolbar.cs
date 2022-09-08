@@ -55,7 +55,7 @@ public class PlateTectonicsToolbar : MenuUi
         enabled => 
         {
             if (enabled)
-                CameraController.SetPerspective(FindObjectOfType<LandscapeCamera>(), CameraTransition.Instant);
+                CameraController.SetPerspective(FindObjectOfType<LandscapeCamera>(), CameraTransition.SmoothFast);
             else
                 CameraController.SetPerspective(FindObjectOfType<SatelliteCamera>(), CameraTransition.Smooth);
         }));

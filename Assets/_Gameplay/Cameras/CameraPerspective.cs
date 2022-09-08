@@ -25,6 +25,7 @@ namespace Assets.GamePlay.Cameras
         public EaseType Ease;
         public static CameraTransition Instant => new CameraTransition(0, EaseType.Linear);
         public static CameraTransition Smooth => new CameraTransition(1, EaseType.InOut);
+        public static CameraTransition SmoothFast => new CameraTransition(2f, EaseType.InOut);
     }
 
     public struct CameraState
