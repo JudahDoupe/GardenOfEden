@@ -4,7 +4,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(PlateTectonicsSimulation))]
-public class PateTectonicsGenerator : MonoBehaviour
+public class PateTectonicsGenerator : Singleton<PateTectonicsGenerator>
 {
     public ComputeShader LandGenerationShader;
     [Range(1, 30)]
@@ -14,31 +14,20 @@ public class PateTectonicsGenerator : MonoBehaviour
     [Range(0, 100)]
     public float FaultLineNoise = 0.25f;
 
-    private static PateTectonicsGenerator _instance;
-    private void Start()
-    {
-        _instance = this;
-    }
-
     public static PlateTectonicsData Generate(string planetName)
     {
         var data = new PlateTectonicsData(planetName)
         {
-            MantleHeight = _instance.MantleHeight
+            MantleHeight = Instance.MantleHeight
         };
 
-        foreach (var plate in data.Plates.ToArray())
-        {
-            data.RemovePlate(plate.Id);
-        }
-
-        for (int p = 0; p < _instance.NumPlates; p++)
+        for (int p = data.Plates.Count; p < Instance.NumPlates; p++)
         {
             var plate = data.AddPlate(p + 1.0001f);
             plate.Rotation = Random.rotation;
         }
 
-        _instance.RunTectonicKernel(data, "ResetMaps");
+        Instance.RunTectonicKernel(data, "ResetMaps");
         data.ContinentalIdMap.RefreshCache();
         data.LandHeightMap.RefreshCache();
 

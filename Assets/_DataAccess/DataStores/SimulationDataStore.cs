@@ -11,7 +11,6 @@ public static class SimulationDataStore
     {
         using var db = new LiteDatabase(ConnectionString);
         var collection = db.GetCollection<PlateTectonicsDbData>("PlateTectonics");
-        collection.EnsureIndex(x => x.PlanetName);
         var dbData = collection.FindOne(x => x.PlanetName.Equals(planetName));
 
         if (dbData != null)
@@ -33,8 +32,12 @@ public static class SimulationDataStore
 
         using var db = new LiteDatabase(ConnectionString);
         var collection = db.GetCollection<PlateTectonicsDbData>("PlateTectonics");
-        collection.EnsureIndex(x => x.PlanetName);
-        collection.Insert(data.ToDbData());
+
+        var dbData = data.ToDbData();
+        if (!collection.Update(dbData.PlanetName, dbData))
+        {
+            collection.Insert(dbData.PlanetName, dbData);
+        }
     }
 
     #endregion
@@ -64,7 +67,12 @@ public static class SimulationDataStore
 
         using var db = new LiteDatabase(ConnectionString);
         var collection = db.GetCollection<WaterDbData>("Water");
-        collection.Insert(data.ToDbData());
+        var dbData = data.ToDbData();
+        if (!collection.Update(dbData.PlanetName, dbData))
+        {
+            collection.Insert(dbData.PlanetName, dbData);
+        }
+
     }
 
     #endregion

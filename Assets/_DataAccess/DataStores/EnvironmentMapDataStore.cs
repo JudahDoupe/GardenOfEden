@@ -48,7 +48,11 @@ public static class EnvironmentMapDataStore
         map.RefreshCache(() =>
         {
             var folderPath = $"{Application.persistentDataPath}/{map.PlanetName}/{map.Name}";
-            Directory.CreateDirectory(folderPath);
+            var dir = Directory.CreateDirectory(folderPath);
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                file.Delete();
+            }
             foreach (var (tex, i) in map.CachedTextures.WithIndex())
             {
                 byte[] data = tex.GetRawTextureData();

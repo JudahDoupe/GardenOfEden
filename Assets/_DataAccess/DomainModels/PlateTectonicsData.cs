@@ -64,7 +64,7 @@ public class PlateTectonicsData
     {
         PlanetName = planetName;
         MantleHeight = 900;
-        Plates = new List<PlateData> { new PlateData(0, 0) };
+        Plates = new List<PlateData> { new PlateData(1.0001f, 0, UnityEngine.Random.rotation) };
         LandHeightMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "LandHeightMap"));
         ContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "ContinentalIdMap"));
         PlateThicknessMaps = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "PlateThicknessMaps"));
