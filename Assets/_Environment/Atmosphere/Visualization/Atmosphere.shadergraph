@@ -535,20 +535,6 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
-                    "m_Id": "98908583af6b462592957b8922aac03f"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "e0a900b5638d4529b51bb70a41f0701d"
-                },
-                "m_SlotId": 1129873660
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
                     "m_Id": "9fe4bd9b9b644d1a9648caef32e7c2e8"
                 },
                 "m_SlotId": 2
@@ -1388,21 +1374,6 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "blueNoise",
     "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "33be28fee9ac461bb3acb1eb8339d7e8",
-    "m_Id": 1129873660,
-    "m_DisplayName": "SeaLevel",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "_SeaLevel",
-    "m_StageCapability": 2,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
@@ -4658,9 +4629,6 @@
     "m_Slots": [
         {
             "m_Id": "4b0bafda2a024f1aa73fcc515f39e16a"
-        },
-        {
-            "m_Id": "33be28fee9ac461bb3acb1eb8339d7e8"
         },
         {
             "m_Id": "dc5905a8f169439caff794468681f377"
