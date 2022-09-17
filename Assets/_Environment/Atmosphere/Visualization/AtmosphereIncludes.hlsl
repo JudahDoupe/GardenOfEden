@@ -1,8 +1,6 @@
 #ifndef RAYSPHERE_INCLUDED
 #define RAYSPHERE_INCLUDED
 
-
-
 inline float2 RaySphere(float3 sphereCenter, float sphereRadius, float3 rayOrigin, float3 rayDir)
 {
 	float3 offset = rayOrigin - sphereCenter;
@@ -81,44 +79,6 @@ float opticalDepthBaked2(float3 rayOrigin, float3 rayDir, float rayLength, float
 	return opticalDepth;
 }
 
-inline void InScatteredLight_float(float3 planetCenter,
-							 float seaLevel,
-							 float atmosphereRadius,
-							 float3 scatteringCoefficients,
-							 float intensity,
-							 float densityFalloff,
-							 float numInScatteringPoints,
-							 float ditherStrength,
-							 float rayLength,
-							 float3 rayOrigin,
-							 float3 rayDir,
-							 float3 sunDir,
-							 float blueNoise,
-							 UnityTexture2D  BakedOpticalDepth,
-							 out float3 atmosphereColor,
-							 out float alpha)
-{
-	float3 inScatterPoint = rayOrigin;
-	float stepSize = rayLength / (numInScatteringPoints - 1);
-	float3 inScatteredLight = float3(0,0,0);
-	float viewRayOpticalDepth = 0;
-
-	for (int i = 0; i < numInScatteringPoints; i ++) {
-		float sunRayOpticalDepth = opticalDepthBaked(inScatterPoint + sunDir * ditherStrength, sunDir, planetCenter, seaLevel, atmosphereRadius, BakedOpticalDepth);
-		float localDensity = densityAtPoint(planetCenter, seaLevel, atmosphereRadius, inScatterPoint, densityFalloff);
-		viewRayOpticalDepth = opticalDepthBaked2(rayOrigin, rayDir, stepSize * i, planetCenter, seaLevel, atmosphereRadius, BakedOpticalDepth);
-		float3 transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth) * scatteringCoefficients);
-	
-		inScatteredLight += localDensity * transmittance;
-		inScatterPoint += rayDir * stepSize;
-	}
-	inScatteredLight *= scatteringCoefficients * intensity * stepSize / seaLevel;
-	inScatteredLight += blueNoise * 0.01;
-
-	atmosphereColor = inScatteredLight;
-	alpha = saturate(length(atmosphereColor));
-}
-
 inline void InScatteredLight2_float(float3 planetCenter,
 							        float seaLevel,
 							        float atmosphereRadius,
@@ -129,6 +89,8 @@ inline void InScatteredLight2_float(float3 planetCenter,
 							        float3 rayDir,
 							        float3 sunDir,
 							        float3 scatteringCoefficients,
+							        float blueNoise,
+							        UnityTexture2D BakedOpticalDepth,
 							        out float3 color,
 							        out float alpha)
 {
@@ -137,13 +99,13 @@ inline void InScatteredLight2_float(float3 planetCenter,
 	float3 inScatteredLight = 0;
 
 	for (int i = 0; i < numInScatteringPoints; i ++) {
-		float sunRayLength = RaySphere(planetCenter, atmosphereRadius, inScatterPoint, sunDir).y;
-		float sunRayOpticalDepth = opticalDepth(inScatterPoint, sunDir, sunRayLength, planetCenter, seaLevel, atmosphereRadius, densityFalloff, 7);
-		float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDir, stepSize * i, planetCenter, seaLevel, atmosphereRadius, densityFalloff, 7);
+		float sunRayOpticalDepth = opticalDepthBaked(inScatterPoint, sunDir, planetCenter, seaLevel, atmosphereRadius, BakedOpticalDepth);
+		float viewRayOpticalDepth = opticalDepthBaked2(inScatterPoint, -rayDir, stepSize * i, planetCenter, seaLevel, atmosphereRadius, BakedOpticalDepth);
 		float3 transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth) * scatteringCoefficients);
 		float localDensity = densityAtPoint(planetCenter, seaLevel, atmosphereRadius, inScatterPoint, densityFalloff);
 	
 		inScatteredLight += transmittance * localDensity * scatteringCoefficients * stepSize;
+		inScatteredLight += blueNoise * 0.001;
 		inScatterPoint += rayDir * stepSize;
 	}
 
