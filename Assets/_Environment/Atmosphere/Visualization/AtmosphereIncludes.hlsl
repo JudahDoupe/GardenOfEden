@@ -1,6 +1,8 @@
 #ifndef RAYSPHERE_INCLUDED
 #define RAYSPHERE_INCLUDED
 
+
+
 inline float2 RaySphere(float3 sphereCenter, float sphereRadius, float3 rayOrigin, float3 rayDir)
 {
 	float3 offset = rayOrigin - sphereCenter;
@@ -36,20 +38,20 @@ inline void RaySphere_half(float3 sphereCenter, float sphereRadius, float3 rayOr
 	distanceThroughSphere = result.y;
 }
 
-float densityAtPoint(float3 planetCenter, float planetRadius, float atmosphereRadius, float3 densitySamplePoint, float densityFalloff) {
-	float heightAboveSurface = length(densitySamplePoint - planetCenter) - planetRadius;
-	float height01 = heightAboveSurface / (atmosphereRadius - planetRadius);
-	float localDensity = exp(-height01 * densityFalloff) * (1 - height01);
-	return localDensity;
+float densityAtPoint(float3 planetCenter, float atmosphereRadius, float3 densitySamplePoint, float densityFalloff) {
+	float altitude = length(densitySamplePoint - planetCenter);
+	float altitude01 = altitude / atmosphereRadius;
+	float localDensity = exp(-altitude01 * densityFalloff) * (1 - altitude01);
+	return saturate(localDensity);
 }
 			
-float opticalDepth(float3 rayOrigin, float3 rayDir, float rayLength, float3 planetCenter, float planetRadius, float atmosphereRadius, float densityFalloff, float numOpticalDepthPoints) {
+float opticalDepth(float3 rayOrigin, float3 rayDir, float rayLength, float3 planetCenter, float atmosphereRadius, float densityFalloff, float numOpticalDepthPoints) {
 	float3 densitySamplePoint = rayOrigin;
-	float stepSize = rayLength / (numOpticalDepthPoints - 1);
+	float stepSize = rayLength / numOpticalDepthPoints;
 	float opticalDepth = 0;
 
 	for (int i = 0; i < numOpticalDepthPoints; i ++) {
-		float localDensity = densityAtPoint(planetCenter, planetRadius, atmosphereRadius, densitySamplePoint, densityFalloff);
+		float localDensity = densityAtPoint(planetCenter, atmosphereRadius, densitySamplePoint, densityFalloff);
 		opticalDepth += localDensity * stepSize;
 		densitySamplePoint += rayDir * stepSize;
 	}
@@ -103,7 +105,7 @@ inline void InScatteredLight_float(float3 planetCenter,
 
 	for (int i = 0; i < numInScatteringPoints; i ++) {
 		float sunRayOpticalDepth = opticalDepthBaked(inScatterPoint + sunDir * ditherStrength, sunDir, planetCenter, seaLevel, atmosphereRadius, BakedOpticalDepth);
-		float localDensity = densityAtPoint(planetCenter, seaLevel, atmosphereRadius, inScatterPoint, densityFalloff);
+		float localDensity = densityAtPoint(planetCenter, atmosphereRadius, inScatterPoint, densityFalloff);
 		viewRayOpticalDepth = opticalDepthBaked2(rayOrigin, rayDir, stepSize * i, planetCenter, seaLevel, atmosphereRadius, BakedOpticalDepth);
 		float3 transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth) * scatteringCoefficients);
 	
@@ -115,6 +117,34 @@ inline void InScatteredLight_float(float3 planetCenter,
 
 	atmosphereColor = inScatteredLight;
 	alpha = saturate(length(atmosphereColor));
+}
+
+inline void InScatteredLight2_float(float3 planetCenter,
+							        float atmosphereRadius,
+							        float densityFalloff,
+							        float numInScatteringPoints,
+							        float distanceThroughAtmosphere,
+							        float3 rayOrigin,
+							        float3 rayDir,
+							        float3 sunDir,
+							        out float alpha)
+{
+	float3 inScatterPoint = rayOrigin;
+	float stepSize = distanceThroughAtmosphere / numInScatteringPoints;
+	float inScatteredLight = 0;
+
+	for (int i = 0; i < numInScatteringPoints; i ++) {
+		float sunRayLength = RaySphere(planetCenter, atmosphereRadius, inScatterPoint, sunDir).y;
+		float sunRayOpticalDepth = opticalDepth(inScatterPoint, sunDir, sunRayLength, planetCenter, atmosphereRadius, densityFalloff, 7);
+		float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDir, stepSize * i, planetCenter, atmosphereRadius, densityFalloff, 7);
+		float transmittance = exp(-(viewRayOpticalDepth + sunRayOpticalDepth));
+		float localDensity = densityAtPoint(planetCenter, atmosphereRadius, inScatterPoint, densityFalloff);
+	
+		inScatteredLight += transmittance * localDensity * stepSize;
+		inScatterPoint += rayDir * stepSize;
+	}
+
+	alpha = inScatteredLight;
 }
 
 #endif

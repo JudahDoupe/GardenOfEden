@@ -1205,6 +1205,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "29dbaf0824814a2c95a3efca0feeaf52",
+    "m_Id": 3,
+    "m_DisplayName": "RayOrigin",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "RayOrigin",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicValueMaterialSlot",
     "m_ObjectId": "2b38800e9d704879a6e0f1f25d6a4e83",
     "m_Id": 1,
@@ -3761,6 +3784,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "9d2914d559564ce2a3060d22dafd3e3f",
+    "m_Id": 4,
+    "m_DisplayName": "RayDirection",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "RayDirection",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.GroupData",
     "m_ObjectId": "9f37c58e90704e3d8bc4237c62a12590",
     "m_Title": "BlueNoise",
@@ -4635,6 +4681,12 @@
         },
         {
             "m_Id": "5f8d53f2791148ef85e1345012dc518c"
+        },
+        {
+            "m_Id": "29dbaf0824814a2c95a3efca0feeaf52"
+        },
+        {
+            "m_Id": "9d2914d559564ce2a3060d22dafd3e3f"
         }
     ],
     "synonyms": [],
