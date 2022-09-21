@@ -17,13 +17,16 @@ public class Planet : MonoBehaviour
     [ContextMenu("Reset")]
     public void ResetPlanet()
     {
-        Initialize(PlanetDataStore.Create(Name));
+        var data = PlanetDataStore.Create(Name);
+        Initialize(data);
+        PlanetDataStore.Update(data);
     }
 
     public void Initialize(PlanetData data)
     {
         Data = data;
         FindObjectOfType<SystemsController>().InitializeAllSystems(data);
+        FindObjectOfType<SystemsController>().EnableGlobe();
     }
 
     void Start()

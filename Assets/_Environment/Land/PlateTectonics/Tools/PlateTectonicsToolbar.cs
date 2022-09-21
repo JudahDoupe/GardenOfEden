@@ -41,15 +41,6 @@ public class PlateTectonicsToolbar : MenuUi
         _stateMachine.State.Disable();
         IsActive = false;
     }
-
-    public void Pause() => _stateMachine.SetState(new ButtonState(this, "Pause",
-        enabled => 
-        {
-            if (enabled)
-                _simulation.Enable();
-            else
-                _simulation.Disable();
-        }));
     
     public void Camera() => _stateMachine.SetState(new ButtonState(this, "Camera",
         enabled => 
