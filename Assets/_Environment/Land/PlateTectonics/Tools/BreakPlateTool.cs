@@ -1,5 +1,6 @@
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class BreakPlateTool : MonoBehaviour, ITool
 {
@@ -37,6 +38,24 @@ public class BreakPlateTool : MonoBehaviour, ITool
         _baker.Disable();
         _break = ResetTool(null);
         IsActive = true;
+
+        InputAdapter.Click.Subscribe(this, () =>
+        {
+            var breakCoord = GetMouseCoord();
+            if (!breakCoord.HasValue) 
+                return;
+            if (_break.HasValue)
+                _break = BreakPlate(_break.Value);
+            else
+                _break = StartBreak(breakCoord.Value);
+        });
+        InputAdapter.Cancel.Subscribe(this, () =>
+        {
+            if (_break.HasValue)
+                _break = ResetTool(_break);
+            else
+                FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
+        });
     }
     public void Disable()
     {
@@ -55,33 +74,17 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
             var breakpoint = GetMouseCoord();
             _break = PreviewNewPlate(_break.Value, breakpoint);
-
-            if (Input.GetMouseButtonDown(0) && breakpoint != null)
-            {
-                _break = BreakPlate(_break.Value);
-                FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
-            }
         }
-
-        else if (GetMouseCoord() is { } breakpoint)
+        else if (GetMouseCoord() is { } mousePos)
         {
-            var plate = _data.GetPlate(_data.ContinentalIdMap.SamplePoint(breakpoint).r);
+            var plate = _data.GetPlate(_data.ContinentalIdMap.SamplePoint(mousePos).r);
             _visualization.HighlightPlate(plate.Id);
-
-            if (Input.GetMouseButtonDown(0))
-            {
-                _break = StartBreak(breakpoint, plate);
-            }
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            _break = ResetTool(_break);
         }
     }
 
-    private Break StartBreak(Coordinate start, PlateData originalPlate)
+    private Break StartBreak(Coordinate start)
     {
+        var originalPlate = _data.GetPlate(_data.ContinentalIdMap.SamplePoint(start).r);
         return new Break
         {
             StartCoord = start,
@@ -89,6 +92,22 @@ public class BreakPlateTool : MonoBehaviour, ITool
             OriginalPlateIdx = originalPlate.Idx,
             NewTmpPlateId = originalPlate.Id + 0.5f,
         };
+    }
+    private Break? BreakPlate(Break @break)
+    {
+        var oldPlate = _data.GetPlate(@break.OriginalPlateId.Value);
+        var plate = _data.AddPlate();
+        @break.NewPlateId = plate.Id;
+        plate.Rotation = oldPlate.Rotation;
+        plate.Velocity = oldPlate.Velocity;
+        plate.TargetVelocity = oldPlate.TargetVelocity;
+        @break.NewPlateIdx = plate.Idx;
+
+        RunKernel("UpdatePlateId", new Break { OriginalPlateId = @break.NewTmpPlateId, NewPlateId = @break.NewPlateId });
+        RunKernel("BreakPlate", @break);
+
+        _data.ContinentalIdMap.RefreshCache();
+        return null;
     }
 
     private Break PreviewNewPlate(Break b, Coordinate? end)
@@ -113,29 +132,11 @@ public class BreakPlateTool : MonoBehaviour, ITool
         return b;
     }
 
-    private Break? BreakPlate(Break b)
-    {
-        var oldPlate = _data.GetPlate(b.OriginalPlateId.Value);
-        var plate = _data.AddPlate();
-        b.NewPlateId = plate.Id;
-        plate.Rotation = oldPlate.Rotation;
-        plate.Velocity = oldPlate.Velocity;
-        plate.TargetVelocity = oldPlate.TargetVelocity;
-        b.NewPlateIdx = plate.Idx;
-
-        RunKernel("UpdatePlateId", new Break {OriginalPlateId = b.NewTmpPlateId, NewPlateId = b.NewPlateId});
-        RunKernel("BreakPlate", b);
-
-        _data.ContinentalIdMap.RefreshCache();
-        return null;
-    }
-
     private Break? ResetTool(Break? b)
     {
         if (b.HasValue)
         {
-            RunKernel("UpdatePlateId",
-                new Break {OriginalPlateId = b.Value.NewTmpPlateId, NewPlateId = b.Value.OriginalPlateId});
+            RunKernel("UpdatePlateId", new Break {OriginalPlateId = b.Value.NewTmpPlateId, NewPlateId = b.Value.OriginalPlateId});
         }
 
         _visualization.ShowFaultLines(false);
@@ -146,7 +147,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
     private Coordinate? GetMouseCoord()
     {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
-        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         if (Physics.Raycast(ray, out var hit, distance))
         {
             return new Coordinate(hit.point, Planet.LocalToWorld);

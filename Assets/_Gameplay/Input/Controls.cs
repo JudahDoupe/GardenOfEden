@@ -572,6 +572,15 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""RightClick"",
+                    ""type"": ""Button"",
+                    ""id"": ""af5eda91-c540-4225-b9b8-20ad9aac55e9"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -728,6 +737,17 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""action"": ""Cancel"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8b859901-d7d2-4e62-b73d-8acb05e891b9"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RightClick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -768,6 +788,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         m_Standard_RightMove = m_Standard.FindAction("RightMove", throwIfNotFound: true);
         m_Standard_Confirm = m_Standard.FindAction("Confirm", throwIfNotFound: true);
         m_Standard_Cancel = m_Standard.FindAction("Cancel", throwIfNotFound: true);
+        m_Standard_RightClick = m_Standard.FindAction("RightClick", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -1029,6 +1050,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     private readonly InputAction m_Standard_RightMove;
     private readonly InputAction m_Standard_Confirm;
     private readonly InputAction m_Standard_Cancel;
+    private readonly InputAction m_Standard_RightClick;
     public struct StandardActions
     {
         private @Controls m_Wrapper;
@@ -1039,6 +1061,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         public InputAction @RightMove => m_Wrapper.m_Standard_RightMove;
         public InputAction @Confirm => m_Wrapper.m_Standard_Confirm;
         public InputAction @Cancel => m_Wrapper.m_Standard_Cancel;
+        public InputAction @RightClick => m_Wrapper.m_Standard_RightClick;
         public InputActionMap Get() { return m_Wrapper.m_Standard; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1066,6 +1089,9 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 @Cancel.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnCancel;
                 @Cancel.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnCancel;
                 @Cancel.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnCancel;
+                @RightClick.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnRightClick;
+                @RightClick.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnRightClick;
+                @RightClick.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnRightClick;
             }
             m_Wrapper.m_StandardActionsCallbackInterface = instance;
             if (instance != null)
@@ -1088,6 +1114,9 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 @Cancel.started += instance.OnCancel;
                 @Cancel.performed += instance.OnCancel;
                 @Cancel.canceled += instance.OnCancel;
+                @RightClick.started += instance.OnRightClick;
+                @RightClick.performed += instance.OnRightClick;
+                @RightClick.canceled += instance.OnRightClick;
             }
         }
     }
@@ -1133,5 +1162,6 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         void OnRightMove(InputAction.CallbackContext context);
         void OnConfirm(InputAction.CallbackContext context);
         void OnCancel(InputAction.CallbackContext context);
+        void OnRightClick(InputAction.CallbackContext context);
     }
 }
