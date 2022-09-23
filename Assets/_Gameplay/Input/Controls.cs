@@ -514,6 +514,222 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Standard"",
+            ""id"": ""c2c66244-830c-486a-b079-6c4a4cc20d1c"",
+            ""actions"": [
+                {
+                    ""name"": ""Click"",
+                    ""type"": ""Button"",
+                    ""id"": ""f2dcf9e0-0172-4dd0-a922-74918963f452"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Drag"",
+                    ""type"": ""Value"",
+                    ""id"": ""c1fd6537-cf35-4766-9d47-d8137945e846"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": ""Hold(duration=0.01)"",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""LeftMove"",
+                    ""type"": ""Value"",
+                    ""id"": ""c3026d38-d552-4201-b9c8-b16153b098b8"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""RightMove"",
+                    ""type"": ""Value"",
+                    ""id"": ""23d25871-427a-41d7-9ac7-52807bc737df"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Confirm"",
+                    ""type"": ""Button"",
+                    ""id"": ""a07dbf1c-7948-4be5-b48b-678db6f9ecd9"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Cancel"",
+                    ""type"": ""Button"",
+                    ""id"": ""d83aa807-b7b7-4cef-81c7-2f90b2f71c85"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""433d544f-e85b-4576-aac1-edd097450782"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Click"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5935ec2a-16d0-457e-80dc-ce8e551484dd"",
+                    ""path"": ""<Mouse>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Drag"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Keys"",
+                    ""id"": ""aa545f30-c848-451f-8fa0-6444ef9086fd"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LeftMove"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""a9d3a05f-a216-425f-8c01-2fdcf5a4307d"",
+                    ""path"": ""<Keyboard>/w"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LeftMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""73e36077-55b5-44e1-8169-83efad0b9e17"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LeftMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""a14d5fa5-01e5-44fa-afcf-153ae3f036d0"",
+                    ""path"": ""<Keyboard>/a"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LeftMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""ffca0aff-7abb-45d1-9f19-bc1e7aea8859"",
+                    ""path"": ""<Keyboard>/d"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LeftMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Keys"",
+                    ""id"": ""41ae86d6-a732-4afb-8c4d-ed164227ae50"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RightMove"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""984026ec-b205-4828-89cf-692a8da265cc"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RightMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""096b4f02-f449-4189-a303-1bb5a1c0ccd7"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RightMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""88eed4c0-26da-41ca-b582-f1f76d19a3a3"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RightMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""6f909522-8ad1-4adb-8a20-e00188f875f2"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RightMove"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2cf33b1c-0b4d-4c23-bfcc-758ca3f43977"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Confirm"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e3baaa16-fec1-4613-a7e2-8c3ef5a9d7c0"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Cancel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -544,6 +760,14 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         m_Exhibit = asset.FindActionMap("Exhibit", throwIfNotFound: true);
         m_Exhibit_Forward = m_Exhibit.FindAction("Forward", throwIfNotFound: true);
         m_Exhibit_Back = m_Exhibit.FindAction("Back", throwIfNotFound: true);
+        // Standard
+        m_Standard = asset.FindActionMap("Standard", throwIfNotFound: true);
+        m_Standard_Click = m_Standard.FindAction("Click", throwIfNotFound: true);
+        m_Standard_Drag = m_Standard.FindAction("Drag", throwIfNotFound: true);
+        m_Standard_LeftMove = m_Standard.FindAction("LeftMove", throwIfNotFound: true);
+        m_Standard_RightMove = m_Standard.FindAction("RightMove", throwIfNotFound: true);
+        m_Standard_Confirm = m_Standard.FindAction("Confirm", throwIfNotFound: true);
+        m_Standard_Cancel = m_Standard.FindAction("Cancel", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -795,6 +1019,79 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         }
     }
     public ExhibitActions @Exhibit => new ExhibitActions(this);
+
+    // Standard
+    private readonly InputActionMap m_Standard;
+    private IStandardActions m_StandardActionsCallbackInterface;
+    private readonly InputAction m_Standard_Click;
+    private readonly InputAction m_Standard_Drag;
+    private readonly InputAction m_Standard_LeftMove;
+    private readonly InputAction m_Standard_RightMove;
+    private readonly InputAction m_Standard_Confirm;
+    private readonly InputAction m_Standard_Cancel;
+    public struct StandardActions
+    {
+        private @Controls m_Wrapper;
+        public StandardActions(@Controls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Click => m_Wrapper.m_Standard_Click;
+        public InputAction @Drag => m_Wrapper.m_Standard_Drag;
+        public InputAction @LeftMove => m_Wrapper.m_Standard_LeftMove;
+        public InputAction @RightMove => m_Wrapper.m_Standard_RightMove;
+        public InputAction @Confirm => m_Wrapper.m_Standard_Confirm;
+        public InputAction @Cancel => m_Wrapper.m_Standard_Cancel;
+        public InputActionMap Get() { return m_Wrapper.m_Standard; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(StandardActions set) { return set.Get(); }
+        public void SetCallbacks(IStandardActions instance)
+        {
+            if (m_Wrapper.m_StandardActionsCallbackInterface != null)
+            {
+                @Click.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnClick;
+                @Click.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnClick;
+                @Click.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnClick;
+                @Drag.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnDrag;
+                @Drag.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnDrag;
+                @Drag.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnDrag;
+                @LeftMove.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnLeftMove;
+                @LeftMove.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnLeftMove;
+                @LeftMove.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnLeftMove;
+                @RightMove.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnRightMove;
+                @RightMove.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnRightMove;
+                @RightMove.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnRightMove;
+                @Confirm.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnConfirm;
+                @Confirm.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnConfirm;
+                @Confirm.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnConfirm;
+                @Cancel.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnCancel;
+                @Cancel.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnCancel;
+                @Cancel.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnCancel;
+            }
+            m_Wrapper.m_StandardActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Click.started += instance.OnClick;
+                @Click.performed += instance.OnClick;
+                @Click.canceled += instance.OnClick;
+                @Drag.started += instance.OnDrag;
+                @Drag.performed += instance.OnDrag;
+                @Drag.canceled += instance.OnDrag;
+                @LeftMove.started += instance.OnLeftMove;
+                @LeftMove.performed += instance.OnLeftMove;
+                @LeftMove.canceled += instance.OnLeftMove;
+                @RightMove.started += instance.OnRightMove;
+                @RightMove.performed += instance.OnRightMove;
+                @RightMove.canceled += instance.OnRightMove;
+                @Confirm.started += instance.OnConfirm;
+                @Confirm.performed += instance.OnConfirm;
+                @Confirm.canceled += instance.OnConfirm;
+                @Cancel.started += instance.OnCancel;
+                @Cancel.performed += instance.OnCancel;
+                @Cancel.canceled += instance.OnCancel;
+            }
+        }
+    }
+    public StandardActions @Standard => new StandardActions(this);
     private int m_KeyboardMouseSchemeIndex = -1;
     public InputControlScheme KeyboardMouseScheme
     {
@@ -827,5 +1124,14 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     {
         void OnForward(InputAction.CallbackContext context);
         void OnBack(InputAction.CallbackContext context);
+    }
+    public interface IStandardActions
+    {
+        void OnClick(InputAction.CallbackContext context);
+        void OnDrag(InputAction.CallbackContext context);
+        void OnLeftMove(InputAction.CallbackContext context);
+        void OnRightMove(InputAction.CallbackContext context);
+        void OnConfirm(InputAction.CallbackContext context);
+        void OnCancel(InputAction.CallbackContext context);
     }
 }
