@@ -4,96 +4,109 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class InputAdapter
+public class InputAdapter : Singleton<InputAdapter>
 {
     /// <summary>
     /// Returns the normalized position of the mouse
     /// </summary>
-    public static ButtonAction Click = new ButtonAction(_controls.Standard.Click);
+    public static PriorityAction Click { get; private set; }
     /// <summary>
     /// Returns the normalized position of the mouse
     /// </summary>
-    public static ButtonAction RightClick = new ButtonAction(_controls.Standard.RightClick);
+    public static PriorityAction RightClick { get; private set; }
     /// <summary>
     /// Returns the normalized mopusee delta
     /// </summary>
-    public static Vector2Action Drag = new Vector2Action(_controls.Standard.Drag);
+    public static PriorityAction<Vector2> Drag { get; private set; }
     /// <summary>
     /// Returns the normalizeed movement vector
     /// </summary>
-    public static Vector2Action LeftMove = new Vector2Action(_controls.Standard.LeftMove);
+    public static PriorityAction<Vector2> LeftMove { get; private set; }
     /// <summary>
     /// returns the normalized rotation vector
     /// </summary>
-    public static Vector2Action RightMove = new Vector2Action(_controls.Standard.RightMove);
+    public static PriorityAction<Vector2> RightMove { get; private set; }
     /// <summary>
     /// Triggers when the confim button is pressed
     /// </summary>
-    public static ButtonAction Confirm = new ButtonAction(_controls.Standard.Confirm);
+    public static PriorityAction Confirm { get; private set; }
     /// <summary>
     /// Triggers when the cancel button is pressed
     /// </summary>
-    public static ButtonAction Cancel = new ButtonAction(_controls.Standard.Cancel);
+    public static PriorityAction Cancel { get; private set; }
 
+    private static Controls _controls;
 
-    private static Controls _controls = new Controls();
+    private void Start()
+    {
+        _controls = new Controls();
+        _controls.Standard.Enable();
+        Click = new PriorityAction(_controls.Standard.Click);
+        RightClick = new PriorityAction(_controls.Standard.RightClick);
+        Drag = new PriorityAction<Vector2>(_controls.Standard.Drag);
+        LeftMove = new PriorityAction<Vector2>(_controls.Standard.LeftMove);
+        RightMove = new PriorityAction<Vector2>(_controls.Standard.RightMove);
+        Confirm = new PriorityAction(_controls.Standard.Confirm);
+        Cancel = new PriorityAction(_controls.Standard.Cancel);
+    }
 }
 
-public class Vector2Action
+
+public class PriorityAction
 {
-    private readonly InputAction _input;
-    private readonly List<Subscriber> _subscribers;
-    private Subscriber _activeSubScriber => _subscribers.OrderBy(x => x.Priority).Last();
-    private struct Subscriber
-    {
-        public object Id;
-        public InputPriority Priority;
-        public Action<Vector2> callback;
-    }
-
-    public Vector2Action(InputAction input)
-    {
-        _input = input;
-        _subscribers = new List<Subscriber>();
-        input.performed += context => Publish(context.ReadValue<Vector2>());
-    }
-
-    public void Subscribe(object subscriber, Action<Vector2> callback, InputPriority priority = InputPriority.Low) => _subscribers.Add(new Subscriber
-    {
-        Id = subscriber,
-        Priority = priority,
-        callback = callback,
-    });
-    public void Unubscribe(object subscriber) => _subscribers.RemoveAll(x => x.Id == subscriber);
-    public Vector2 Read(object subscriber) => _activeSubScriber.Id.Equals(subscriber) ? _input.ReadValue<Vector2>() : Vector2.zero;
-    private void Publish(Vector2 value) => _activeSubScriber.callback(value);
-}
-
-public class ButtonAction
-{
-    private readonly List<Subscriber> _subscribers;
-    private Subscriber _activeSubScriber => _subscribers.OrderBy(x => x.Priority).Last();
-    private struct Subscriber
+    private class Subscriber
     {
         public object Id;
         public InputPriority Priority;
         public Action callback;
     }
+    private readonly List<Subscriber> _subscribers;
+    private Subscriber _activeSubScriber => _subscribers.OrderBy(x => x.Priority).LastOrDefault();
 
-    public ButtonAction(InputAction input)
+    public PriorityAction(InputAction input)
     {
         _subscribers = new List<Subscriber>();
-        input.performed += context => Publish();
+        input.performed += Publish;
     }
 
-    public void Subscribe(object subscriber, Action callback, InputPriority priority = InputPriority.Low) => _subscribers.Add(new Subscriber
+    public void Subscribe(object subscriber, Action callback, InputPriority priority = InputPriority.Medium) => _subscribers.Add(new Subscriber
     {
         Id = subscriber,
         Priority = priority,
         callback = callback,
     });
     public void Unubscribe(object subscriber) => _subscribers.RemoveAll(x => x.Id == subscriber);
-    private void Publish() => _activeSubScriber.callback();
+    public void Publish(InputAction.CallbackContext context) => _activeSubScriber?.callback();
+}
+
+public class PriorityAction<T> where T : struct
+{
+    private class Subscriber
+    {
+        public object Id;
+        public InputPriority Priority;
+        public Action<T> callback;
+    }
+    private readonly InputAction _input;
+    private readonly List<Subscriber> _subscribers;
+    private Subscriber _activeSubScriber => _subscribers.OrderBy(x => x.Priority).LastOrDefault();
+
+    public PriorityAction(InputAction input)
+    {
+        _input = input;
+        _subscribers = new List<Subscriber>();
+        input.performed += Publish;
+    }
+
+    public void Subscribe(object subscriber, Action<T> callback, InputPriority priority = InputPriority.Medium) => _subscribers.Add(new Subscriber
+    {
+        Id = subscriber,
+        Priority = priority,
+        callback = callback,
+    });
+    public void Unubscribe(object subscriber) => _subscribers.RemoveAll(x => x.Id == subscriber);
+    public T Read(object subscriber) => _activeSubScriber?.Id == subscriber ? _input.ReadValue<T>() : default;
+    public void Publish(InputAction.CallbackContext context) => _activeSubScriber?.callback(context.ReadValue<T>());
 }
 
 public enum InputPriority
