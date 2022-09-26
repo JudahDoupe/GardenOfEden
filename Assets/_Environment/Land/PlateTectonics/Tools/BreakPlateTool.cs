@@ -61,6 +61,8 @@ public class BreakPlateTool : MonoBehaviour, ITool
     {
         _break = ResetTool(null);
         _visualization.HighlightPlate(0);
+        InputAdapter.Click.Unubscribe(this);
+        InputAdapter.Cancel.Unubscribe(this);
         IsActive = false;
     }
 

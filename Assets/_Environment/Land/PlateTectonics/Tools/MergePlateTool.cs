@@ -10,8 +10,8 @@ public class MergePlateTool : MonoBehaviour, ITool
     private PlateTectonicsData _data;
     private PlateTectonicsVisualization _visualization;
     private PlateTectonicsSimulation _simulation;
-    private PlateData oldPlate;
-    private float? oldPlateId;
+    private PlateData selectedPlate;
+    private float? selectedPlateTempId;
 
     public void Initialize(PlateTectonicsData data,
         PlateTectonicsSimulation simulation,
@@ -27,13 +27,35 @@ public class MergePlateTool : MonoBehaviour, ITool
         if (!IsInitialized)
             return;
 
-        ResetTool();
+        Clear();
         _simulation.Disable();
         IsActive = true;
+        InputAdapter.Click.Subscribe(this, () =>
+        {
+            if (selectedPlateTempId.HasValue)
+                MergePlates();
+            else
+                StartMerge();
+        });
+        InputAdapter.RightClick.Subscribe(this, () =>
+        {
+            if (selectedPlateTempId.HasValue)
+                Clear();
+        });
+        InputAdapter.Cancel.Subscribe(this, () =>
+        {
+            if (selectedPlateTempId.HasValue)
+                Clear();
+            else
+                FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
+        });
     }
     public void Disable()
     {
-        ResetTool();
+        Clear();
+        InputAdapter.Click.Unubscribe(this);
+        InputAdapter.RightClick.Unubscribe(this);
+        InputAdapter.Cancel.Unubscribe(this);
         _visualization.HighlightPlate(0);
         IsActive = false;
     }
@@ -47,64 +69,75 @@ public class MergePlateTool : MonoBehaviour, ITool
     {
         if (!IsActive) return;
 
-        if (oldPlate != null)
+        _visualization.HighlightPlate(selectedPlateTempId.HasValue ? selectedPlateTempId.Value : 0);
+
+        var mouseCoord = GetMouseCoord();
+        if (mouseCoord is null) return;
+        var hoveredPlateId = _data.ContinentalIdMap.SamplePoint(mouseCoord.Value).r;
+
+        if (selectedPlateTempId.HasValue)
         {
-            _visualization.HighlightPlate(oldPlate.Id);
+            var newTmpId = hoveredPlateId == selectedPlateTempId.Value
+                ? hoveredPlateId
+                : hoveredPlateId + 0.5f;
 
-            if (GetMouseCoord() is { } coord)
-            {
-                var newPlateId = _data.ContinentalIdMap.SamplePoint(coord).r;
-                _visualization.HighlightPlate(newPlateId);
-
-                if (newPlateId == oldPlateId.Value)
-                {
-                    UpdatePlateId(oldPlateId.Value, oldPlate.Id);
-                    oldPlateId = oldPlate.Id;
-                }
-                else
-                {
-                    UpdatePlateId(oldPlateId.Value, newPlateId + 0.5f);
-                    oldPlateId = newPlateId + 0.5f;
-
-                    if (Input.GetMouseButtonDown(0))
-                    {
-                        var newPlate = _data.GetPlate(newPlateId);
-                        MergePlates(oldPlateId.Value, newPlateId, oldPlate, newPlate);
-                        UpdatePlateId(oldPlateId.Value, newPlateId);
-                        _data.RemovePlate(oldPlate.Id);
-                        ResetTool();
-                        FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
-                    }
-                }
-            }
-
+            UpdatePlateId(selectedPlateTempId.Value, newTmpId);
+            selectedPlateTempId = newTmpId;
+            _visualization.HighlightPlate(selectedPlateTempId.Value);
         }
-        else if (GetMouseCoord() is { } coord)
+        else
         {
-            var plate = _data.GetPlate(_data.ContinentalIdMap.SamplePoint(coord).r);
-            _visualization.HighlightPlate(plate.Id);
-
-            if (Input.GetMouseButtonDown(0))
-            {
-                oldPlate = plate;
-                oldPlateId = plate.Id;
-            }
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            ResetTool();
+            _visualization.HighlightPlate(hoveredPlateId);
         }
     }
 
-    private void ResetTool()
+    private void StartMerge()
     {
-        if (oldPlate != null)
+        var mouseCoord = GetMouseCoord();
+        if (mouseCoord is null) return;
+        var plate = _data.GetPlate(_data.ContinentalIdMap.SamplePoint(mouseCoord.Value).r);
+        selectedPlate = plate;
+        selectedPlateTempId = plate.Id;
+    }
+    private void MergePlates()
+    {
+        var mouseCoord = GetMouseCoord();
+        if (mouseCoord is null) return;
+
+        var hoveredPlateId = _data.ContinentalIdMap.SamplePoint(mouseCoord.Value).r;
+        if (hoveredPlateId == selectedPlateTempId.Value) return;
+
+        var hoveredPlate = _data.GetPlate(hoveredPlateId);
+
+        MergePlatesOnGpu(selectedPlateTempId.Value, hoveredPlate.Id, selectedPlate, hoveredPlate);
+        UpdatePlateId(selectedPlateTempId.Value, hoveredPlate.Id);
+        _data.RemovePlate(selectedPlate.Id);
+        
+        Clear();
+
+        void MergePlatesOnGpu(float oldId, float newId, PlateData oldPlate, PlateData newPlate)
         {
-            UpdatePlateId(oldPlateId.Value, oldPlate.Id);
+            int kernel = MergePlateShader.FindKernel("MergePlates");
+            MergePlateShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
+            MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
+            MergePlateShader.SetFloat("OldPlateId", oldId);
+            MergePlateShader.SetFloat("NewPlateId", newId);
+            MergePlateShader.SetFloat("OldPlateIdx", oldPlate.Idx);
+            MergePlateShader.SetFloat("NewPlateIdx", newPlate.Idx);
+            MergePlateShader.SetFloats("OldPlateRotation", oldPlate.Rotation[0], oldPlate.Rotation[1], oldPlate.Rotation[2], oldPlate.Rotation[3]);
+            MergePlateShader.SetFloats("NewPlateRotation", newPlate.Rotation[0], newPlate.Rotation[1], newPlate.Rotation[2], newPlate.Rotation[3]);
+            MergePlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
         }
-        oldPlate = null;
-        oldPlateId = null;
+    }
+
+    private void Clear()
+    {
+        if (selectedPlate != null)
+        {
+            UpdatePlateId(selectedPlateTempId.Value, selectedPlate.Id);
+        }
+        selectedPlate = null;
+        selectedPlateTempId = null;
     }
 
     private Coordinate? GetMouseCoord()
@@ -125,19 +158,6 @@ public class MergePlateTool : MonoBehaviour, ITool
         MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
         MergePlateShader.SetFloat("OldPlateId", oldId);
         MergePlateShader.SetFloat("NewPlateId", newId);
-        MergePlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
-    }
-    private void MergePlates(float oldId, float newId, PlateData oldPlate, PlateData newPlate)
-    {
-        int kernel = MergePlateShader.FindKernel("MergePlates");
-        MergePlateShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
-        MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
-        MergePlateShader.SetFloat("OldPlateId", oldId);
-        MergePlateShader.SetFloat("NewPlateId", newId);
-        MergePlateShader.SetFloat("OldPlateIdx", oldPlate.Idx);
-        MergePlateShader.SetFloat("NewPlateIdx", newPlate.Idx);
-        MergePlateShader.SetFloats("OldPlateRotation", oldPlate.Rotation[0], oldPlate.Rotation[1], oldPlate.Rotation[2], oldPlate.Rotation[3]);
-        MergePlateShader.SetFloats("NewPlateRotation", newPlate.Rotation[0], newPlate.Rotation[1], newPlate.Rotation[2], newPlate.Rotation[3]);
         MergePlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 }
