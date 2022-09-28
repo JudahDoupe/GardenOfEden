@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class MovePlateTool : MonoBehaviour, ITool
 {
@@ -36,27 +37,36 @@ public class MovePlateTool : MonoBehaviour, ITool
         _simulation.Enable();
         _visualization.ShowFaultLines(true);
         IsActive = true;
+
+        //TODO: this is totally broken
+
+        InputAdapter.Drag.Subscribe(this,
+            startCallback: _ =>
+            {
+                StartMoving();
+            }, 
+            callback: _ =>
+            {
+                if (_currentPlateId > 0) Move();
+            },
+            finishCallback: _ =>
+            {
+                Clear();
+            });
     }
     public void Disable()
     {
         Clear();
         _visualization.ShowFaultLines(false);
-        IsActive = false;
+        IsActive = false; 
+        InputAdapter.Drag.Unubscribe(this);
     }
 
-    void Update()
-    {
-        if (!IsActive) return;
-
-        if (Input.GetMouseButtonDown(0)) StartMoving();
-        if (Input.GetMouseButton(0) && _currentPlateId > 0) Move();
-        if (Input.GetMouseButtonUp(0) && _currentPlateId > 0) Clear();
-    }
 
     private void StartMoving()
     {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
-        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         if (Physics.Raycast(ray, out var hit, distance))
         {
             var coord = new Coordinate(hit.point, Planet.LocalToWorld)
@@ -77,7 +87,7 @@ public class MovePlateTool : MonoBehaviour, ITool
     private void Move()
     {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
-        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         var targetPos = Physics.Raycast(ray, out var hit, distance) ? hit.point : Camera.main.transform.position + ray.direction * distance;
         targetPos = new Coordinate(targetPos, Planet.LocalToWorld).LocalPlanet;
         var plate = _data.GetPlate(_currentPlateId);

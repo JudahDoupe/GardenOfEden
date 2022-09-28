@@ -58,7 +58,9 @@ public class PriorityAction
     {
         public object Id;
         public InputPriority Priority;
+        public Action startCallback;
         public Action callback;
+        public Action finishCallback;
     }
     private readonly List<Subscriber> _subscribers;
     private Subscriber _activeSubScriber => _subscribers.OrderBy(x => x.Priority).LastOrDefault();
@@ -66,17 +68,33 @@ public class PriorityAction
     public PriorityAction(InputAction input)
     {
         _subscribers = new List<Subscriber>();
-        input.performed += Publish;
+        input.started += _ => _activeSubScriber?.startCallback?.Invoke();
+        input.performed += _ => _activeSubScriber?.callback?.Invoke();
+        input.canceled += _ => _activeSubScriber?.finishCallback?.Invoke();
     }
 
-    public void Subscribe(object subscriber, Action callback, InputPriority priority = InputPriority.Medium) => _subscribers.Add(new Subscriber
+    public void Subscribe(object subscriber,
+                          Action callback = null,
+                          Action startCallback = null,
+                          Action finishCallback = null,
+                          InputPriority priority = InputPriority.Medium)
     {
-        Id = subscriber,
-        Priority = priority,
-        callback = callback,
-    });
-    public void Unubscribe(object subscriber) => _subscribers.RemoveAll(x => x.Id == subscriber);
-    public void Publish(InputAction.CallbackContext context) => _activeSubScriber?.callback();
+        _subscribers.Add(new Subscriber
+        {
+            Id = subscriber,
+            Priority = priority,
+            startCallback = startCallback,
+            callback = callback,
+            finishCallback = finishCallback,
+        });
+    }
+
+    public void Unubscribe(object subscriber)
+    {
+        _subscribers.RemoveAll(x => x.Id == subscriber);
+        _subscribers.RemoveAll(x => x.Id == subscriber);
+        _subscribers.RemoveAll(x => x.Id == subscriber);
+    }
 }
 
 public class PriorityAction<T> where T : struct
@@ -85,7 +103,9 @@ public class PriorityAction<T> where T : struct
     {
         public object Id;
         public InputPriority Priority;
+        public Action<T> startCallback;
         public Action<T> callback;
+        public Action<T> finishCallback;
     }
     private readonly InputAction _input;
     private readonly List<Subscriber> _subscribers;
@@ -95,18 +115,25 @@ public class PriorityAction<T> where T : struct
     {
         _input = input;
         _subscribers = new List<Subscriber>();
-        input.performed += Publish;
+        input.started += context => _activeSubScriber?.startCallback?.Invoke(context.ReadValue<T>());
+        input.performed += context => _activeSubScriber?.callback?.Invoke(context.ReadValue<T>());
+        input.canceled += context => _activeSubScriber?.finishCallback?.Invoke(context.ReadValue<T>());
     }
 
-    public void Subscribe(object subscriber, Action<T> callback, InputPriority priority = InputPriority.Medium) => _subscribers.Add(new Subscriber
+    public void Subscribe(object subscriber, 
+                          Action<T> callback = null, 
+                          Action<T> startCallback = null, 
+                          Action<T> finishCallback = null, 
+                          InputPriority priority = InputPriority.Medium) => _subscribers.Add(new Subscriber
     {
         Id = subscriber,
         Priority = priority,
+        startCallback = startCallback,
         callback = callback,
+        finishCallback = finishCallback,
     });
     public void Unubscribe(object subscriber) => _subscribers.RemoveAll(x => x.Id == subscriber);
     public T Read(object subscriber) => _activeSubScriber?.Id == subscriber ? _input.ReadValue<T>() : default;
-    public void Publish(InputAction.CallbackContext context) => _activeSubScriber?.callback(context.ReadValue<T>());
 }
 
 public enum InputPriority

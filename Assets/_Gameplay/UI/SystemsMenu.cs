@@ -12,19 +12,17 @@ public class SystemsMenu : MenuUi
         SetAllButtonsActive(false);
         _systemsContoller = FindObjectOfType<SystemsController>();
     }
-    private void Update()
-    {
-        if (IsActive && Input.GetKeyDown(KeyCode.Escape))
-        {
-            Disable();
-            FindObjectOfType<MainMenu>().Enable();
-        }
-    }
 
     public override void Enable()
     {
         SlideToPosition(0);
         IsActive = true;
+        InputAdapter.Cancel.Subscribe(this, () =>
+            {
+                Disable();
+                FindObjectOfType<MainMenu>().Enable();
+            }, 
+            priority: InputPriority.Low);
         Globe();
     }
     public override void Disable()
@@ -32,6 +30,7 @@ public class SystemsMenu : MenuUi
         SlideToPosition(-70);
         IsActive = false;
         _stateMachine.State.Disable();
+        InputAdapter.Cancel.Unubscribe(this);
     }
 
     public void Globe()

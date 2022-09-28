@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class MergePlateTool : MonoBehaviour, ITool
 {
@@ -143,7 +144,7 @@ public class MergePlateTool : MonoBehaviour, ITool
     private Coordinate? GetMouseCoord()
     {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
-        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         if (Physics.Raycast(ray, out var hit, distance))
         {
             return new Coordinate(hit.point, Planet.LocalToWorld);
