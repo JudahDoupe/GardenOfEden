@@ -24,439 +24,6 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     ""name"": ""Controls"",
     ""maps"": [
         {
-            ""name"": ""SateliteCamera"",
-            ""id"": ""5915be24-a1fc-4c93-9339-b601a8e434f0"",
-            ""actions"": [
-                {
-                    ""name"": ""Rotate"",
-                    ""type"": ""Value"",
-                    ""id"": ""696672a2-189d-4ffb-aaf3-497f25e0ccee"",
-                    ""expectedControlType"": ""Vector2"",
-                    ""processors"": """",
-                    ""interactions"": ""Press"",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""Zoom"",
-                    ""type"": ""Value"",
-                    ""id"": ""1629ff1b-a517-45be-8b90-3de49c0a6264"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": ""Press"",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""Click"",
-                    ""type"": ""Button"",
-                    ""id"": ""99052eed-8408-496b-973a-fd4ec4f001e8"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": ""Press(behavior=2)"",
-                    ""initialStateCheck"": false
-                }
-            ],
-            ""bindings"": [
-                {
-                    ""name"": ""2D Vector"",
-                    ""id"": ""0c37fb4a-c20b-40c6-9957-176043f9e478"",
-                    ""path"": ""2DVector"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""up"",
-                    ""id"": ""7fc6ee53-4c3e-43b8-b91d-82793c27f5db"",
-                    ""path"": ""<Keyboard>/w"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""up"",
-                    ""id"": ""a4bc43b0-c703-4c89-992d-92a7c1c63b40"",
-                    ""path"": ""<Keyboard>/upArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""down"",
-                    ""id"": ""32a3ca41-4317-4d0d-9d2a-ffe335fbb8e5"",
-                    ""path"": ""<Keyboard>/s"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""down"",
-                    ""id"": ""e1457e3e-534a-407b-b67b-b83f7baed3fd"",
-                    ""path"": ""<Keyboard>/downArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""left"",
-                    ""id"": ""347a38d0-6a75-4d05-8c6b-5c5eef8c0268"",
-                    ""path"": ""<Keyboard>/a"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""left"",
-                    ""id"": ""b9a67872-cb82-427c-8291-5e90f7e2bb83"",
-                    ""path"": ""<Keyboard>/leftArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""right"",
-                    ""id"": ""b8e66b84-3078-4017-b466-c8fa0070d1af"",
-                    ""path"": ""<Keyboard>/d"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""right"",
-                    ""id"": ""4761b69f-ef2a-4fa1-a136-ba8010eb1247"",
-                    ""path"": ""<Keyboard>/rightArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""b64aa84e-9f9d-4c67-b68a-369c94f6b644"",
-                    ""path"": ""<Mouse>/scroll/y"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Zoom"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""46113999-0d44-4446-bbe2-13df26fe6c9c"",
-                    ""path"": ""<Mouse>/leftButton"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Click"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                }
-            ]
-        },
-        {
-            ""name"": ""LandscapeCamera"",
-            ""id"": ""5dc78f5f-bbea-4eb7-88a1-19d9d7416e91"",
-            ""actions"": [
-                {
-                    ""name"": ""Strafe"",
-                    ""type"": ""Value"",
-                    ""id"": ""3f530a0b-bd79-408d-8c4f-529d305aa3a1"",
-                    ""expectedControlType"": ""Vector2"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""Click"",
-                    ""type"": ""Button"",
-                    ""id"": ""242d7fe2-acbd-4628-80e4-3f5b10e3bcab"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": ""Press(behavior=2)"",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Zoom"",
-                    ""type"": ""Value"",
-                    ""id"": ""a27dddcb-d360-4ccd-a5e8-c318cbf125ab"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": ""Press"",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""Rotate"",
-                    ""type"": ""Value"",
-                    ""id"": ""2f64433c-5696-42fa-8009-df9e44d13e4f"",
-                    ""expectedControlType"": """",
-                    ""processors"": ""Invert"",
-                    ""interactions"": ""Press"",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""Pitch"",
-                    ""type"": ""Value"",
-                    ""id"": ""6d47f322-9489-4639-a85c-eb1eb6257e81"",
-                    ""expectedControlType"": """",
-                    ""processors"": ""Invert"",
-                    ""interactions"": ""Press"",
-                    ""initialStateCheck"": true
-                }
-            ],
-            ""bindings"": [
-                {
-                    ""name"": ""Keys"",
-                    ""id"": ""673bc291-8229-41ea-b994-d73ebc7bb5a6"",
-                    ""path"": ""1DAxis"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""negative"",
-                    ""id"": ""6134e23d-21a4-4c08-b8f0-e951b533f9d3"",
-                    ""path"": ""<Keyboard>/leftArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""positive"",
-                    ""id"": ""8c1c1cbe-2ed0-418b-bc69-ad1130792770"",
-                    ""path"": ""<Keyboard>/rightArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Rotate"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""a1d1a219-474d-4303-9c32-df01cf8805bb"",
-                    ""path"": ""<Mouse>/scroll/y"",
-                    ""interactions"": """",
-                    ""processors"": ""Invert"",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Zoom"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""Keys"",
-                    ""id"": ""45daa9b2-e16a-4e17-8306-d3dd9dc6637e"",
-                    ""path"": ""1DAxis"",
-                    ""interactions"": """",
-                    ""processors"": ""Scale(factor=10)"",
-                    ""groups"": """",
-                    ""action"": ""Zoom"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""negative"",
-                    ""id"": ""982b9b24-a407-4b73-8ef3-35bb6a1cf409"",
-                    ""path"": ""<Keyboard>/shift"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Zoom"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""positive"",
-                    ""id"": ""88d368f0-89f8-4742-93b8-cabc4927e57e"",
-                    ""path"": ""<Keyboard>/space"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Zoom"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""ce3f7aa2-2086-4d28-a172-d235887370c5"",
-                    ""path"": ""<Mouse>/leftButton"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Click"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""Keys"",
-                    ""id"": ""5730a745-5830-46ff-9e96-d43251cac8ee"",
-                    ""path"": ""2DVector"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Strafe"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""up"",
-                    ""id"": ""6605046a-7b1a-44d7-ad01-bca96be8b115"",
-                    ""path"": ""<Keyboard>/w"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Strafe"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""down"",
-                    ""id"": ""a1a0219a-cbf7-47c2-9ff4-3dff5c5688b0"",
-                    ""path"": ""<Keyboard>/s"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Strafe"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""left"",
-                    ""id"": ""f0a282ea-3923-4627-baef-062cc7e447b6"",
-                    ""path"": ""<Keyboard>/a"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Strafe"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""right"",
-                    ""id"": ""65088863-d28a-40d6-b1f9-b22369c3dc0a"",
-                    ""path"": ""<Keyboard>/d"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Strafe"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""Keys"",
-                    ""id"": ""f764606b-c532-4df1-9d96-20245b3897be"",
-                    ""path"": ""1DAxis"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Pitch"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""Negative"",
-                    ""id"": ""279e6033-a660-4b8e-aff2-226923af4b94"",
-                    ""path"": ""<Keyboard>/downArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Pitch"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""Positive"",
-                    ""id"": ""56cc3c3a-ed77-4c08-864f-8ae4c8f241bf"",
-                    ""path"": ""<Keyboard>/upArrow"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Pitch"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                }
-            ]
-        },
-        {
-            ""name"": ""UI"",
-            ""id"": ""a7c64916-9ad1-4d91-907a-aca96cbf53ca"",
-            ""actions"": [
-                {
-                    ""name"": ""Click"",
-                    ""type"": ""Button"",
-                    ""id"": ""b40095ed-417f-485f-9f4d-8ce1ba7106d4"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Cancel"",
-                    ""type"": ""Button"",
-                    ""id"": ""16a4697b-1dab-4aea-91e2-02a2ab0789ef"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                }
-            ],
-            ""bindings"": [
-                {
-                    ""name"": """",
-                    ""id"": ""7e568b05-c308-44cb-8e92-61ec8c92a364"",
-                    ""path"": ""<Mouse>/leftButton"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Click"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""daae5c34-3d66-4e91-8980-7aacd23c480f"",
-                    ""path"": ""<Keyboard>/escape"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard/Mouse"",
-                    ""action"": ""Cancel"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                }
-            ]
-        },
-        {
             ""name"": ""Exhibit"",
             ""id"": ""6e55ae37-b0c3-49e7-947a-14d650e4cbde"",
             ""actions"": [
@@ -534,7 +101,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""id"": ""c1fd6537-cf35-4766-9d47-d8137945e846"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
-                    ""interactions"": ""Hold(duration=0.01)"",
+                    ""interactions"": """",
                     ""initialStateCheck"": true
                 },
                 {
@@ -581,6 +148,15 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Scroll"",
+                    ""type"": ""Value"",
+                    ""id"": ""83e98059-95f2-4da4-b705-9f132d1b327a"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": ""Invert"",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -748,6 +324,17 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""action"": ""RightClick"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2c883648-2abe-4e62-bb54-7977ac2ccc55"",
+                    ""path"": ""<Mouse>/scroll/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Scroll"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -760,22 +347,6 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         }
     ]
 }");
-        // SateliteCamera
-        m_SateliteCamera = asset.FindActionMap("SateliteCamera", throwIfNotFound: true);
-        m_SateliteCamera_Rotate = m_SateliteCamera.FindAction("Rotate", throwIfNotFound: true);
-        m_SateliteCamera_Zoom = m_SateliteCamera.FindAction("Zoom", throwIfNotFound: true);
-        m_SateliteCamera_Click = m_SateliteCamera.FindAction("Click", throwIfNotFound: true);
-        // LandscapeCamera
-        m_LandscapeCamera = asset.FindActionMap("LandscapeCamera", throwIfNotFound: true);
-        m_LandscapeCamera_Strafe = m_LandscapeCamera.FindAction("Strafe", throwIfNotFound: true);
-        m_LandscapeCamera_Click = m_LandscapeCamera.FindAction("Click", throwIfNotFound: true);
-        m_LandscapeCamera_Zoom = m_LandscapeCamera.FindAction("Zoom", throwIfNotFound: true);
-        m_LandscapeCamera_Rotate = m_LandscapeCamera.FindAction("Rotate", throwIfNotFound: true);
-        m_LandscapeCamera_Pitch = m_LandscapeCamera.FindAction("Pitch", throwIfNotFound: true);
-        // UI
-        m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
-        m_UI_Click = m_UI.FindAction("Click", throwIfNotFound: true);
-        m_UI_Cancel = m_UI.FindAction("Cancel", throwIfNotFound: true);
         // Exhibit
         m_Exhibit = asset.FindActionMap("Exhibit", throwIfNotFound: true);
         m_Exhibit_Forward = m_Exhibit.FindAction("Forward", throwIfNotFound: true);
@@ -789,6 +360,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         m_Standard_Confirm = m_Standard.FindAction("Confirm", throwIfNotFound: true);
         m_Standard_Cancel = m_Standard.FindAction("Cancel", throwIfNotFound: true);
         m_Standard_RightClick = m_Standard.FindAction("RightClick", throwIfNotFound: true);
+        m_Standard_Scroll = m_Standard.FindAction("Scroll", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -845,161 +417,6 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         return asset.FindBinding(bindingMask, out action);
     }
 
-    // SateliteCamera
-    private readonly InputActionMap m_SateliteCamera;
-    private ISateliteCameraActions m_SateliteCameraActionsCallbackInterface;
-    private readonly InputAction m_SateliteCamera_Rotate;
-    private readonly InputAction m_SateliteCamera_Zoom;
-    private readonly InputAction m_SateliteCamera_Click;
-    public struct SateliteCameraActions
-    {
-        private @Controls m_Wrapper;
-        public SateliteCameraActions(@Controls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Rotate => m_Wrapper.m_SateliteCamera_Rotate;
-        public InputAction @Zoom => m_Wrapper.m_SateliteCamera_Zoom;
-        public InputAction @Click => m_Wrapper.m_SateliteCamera_Click;
-        public InputActionMap Get() { return m_Wrapper.m_SateliteCamera; }
-        public void Enable() { Get().Enable(); }
-        public void Disable() { Get().Disable(); }
-        public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(SateliteCameraActions set) { return set.Get(); }
-        public void SetCallbacks(ISateliteCameraActions instance)
-        {
-            if (m_Wrapper.m_SateliteCameraActionsCallbackInterface != null)
-            {
-                @Rotate.started -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnRotate;
-                @Rotate.performed -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnRotate;
-                @Rotate.canceled -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnRotate;
-                @Zoom.started -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnZoom;
-                @Zoom.performed -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnZoom;
-                @Zoom.canceled -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnZoom;
-                @Click.started -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnClick;
-                @Click.performed -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnClick;
-                @Click.canceled -= m_Wrapper.m_SateliteCameraActionsCallbackInterface.OnClick;
-            }
-            m_Wrapper.m_SateliteCameraActionsCallbackInterface = instance;
-            if (instance != null)
-            {
-                @Rotate.started += instance.OnRotate;
-                @Rotate.performed += instance.OnRotate;
-                @Rotate.canceled += instance.OnRotate;
-                @Zoom.started += instance.OnZoom;
-                @Zoom.performed += instance.OnZoom;
-                @Zoom.canceled += instance.OnZoom;
-                @Click.started += instance.OnClick;
-                @Click.performed += instance.OnClick;
-                @Click.canceled += instance.OnClick;
-            }
-        }
-    }
-    public SateliteCameraActions @SateliteCamera => new SateliteCameraActions(this);
-
-    // LandscapeCamera
-    private readonly InputActionMap m_LandscapeCamera;
-    private ILandscapeCameraActions m_LandscapeCameraActionsCallbackInterface;
-    private readonly InputAction m_LandscapeCamera_Strafe;
-    private readonly InputAction m_LandscapeCamera_Click;
-    private readonly InputAction m_LandscapeCamera_Zoom;
-    private readonly InputAction m_LandscapeCamera_Rotate;
-    private readonly InputAction m_LandscapeCamera_Pitch;
-    public struct LandscapeCameraActions
-    {
-        private @Controls m_Wrapper;
-        public LandscapeCameraActions(@Controls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Strafe => m_Wrapper.m_LandscapeCamera_Strafe;
-        public InputAction @Click => m_Wrapper.m_LandscapeCamera_Click;
-        public InputAction @Zoom => m_Wrapper.m_LandscapeCamera_Zoom;
-        public InputAction @Rotate => m_Wrapper.m_LandscapeCamera_Rotate;
-        public InputAction @Pitch => m_Wrapper.m_LandscapeCamera_Pitch;
-        public InputActionMap Get() { return m_Wrapper.m_LandscapeCamera; }
-        public void Enable() { Get().Enable(); }
-        public void Disable() { Get().Disable(); }
-        public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(LandscapeCameraActions set) { return set.Get(); }
-        public void SetCallbacks(ILandscapeCameraActions instance)
-        {
-            if (m_Wrapper.m_LandscapeCameraActionsCallbackInterface != null)
-            {
-                @Strafe.started -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnStrafe;
-                @Strafe.performed -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnStrafe;
-                @Strafe.canceled -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnStrafe;
-                @Click.started -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnClick;
-                @Click.performed -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnClick;
-                @Click.canceled -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnClick;
-                @Zoom.started -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnZoom;
-                @Zoom.performed -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnZoom;
-                @Zoom.canceled -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnZoom;
-                @Rotate.started -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnRotate;
-                @Rotate.performed -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnRotate;
-                @Rotate.canceled -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnRotate;
-                @Pitch.started -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnPitch;
-                @Pitch.performed -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnPitch;
-                @Pitch.canceled -= m_Wrapper.m_LandscapeCameraActionsCallbackInterface.OnPitch;
-            }
-            m_Wrapper.m_LandscapeCameraActionsCallbackInterface = instance;
-            if (instance != null)
-            {
-                @Strafe.started += instance.OnStrafe;
-                @Strafe.performed += instance.OnStrafe;
-                @Strafe.canceled += instance.OnStrafe;
-                @Click.started += instance.OnClick;
-                @Click.performed += instance.OnClick;
-                @Click.canceled += instance.OnClick;
-                @Zoom.started += instance.OnZoom;
-                @Zoom.performed += instance.OnZoom;
-                @Zoom.canceled += instance.OnZoom;
-                @Rotate.started += instance.OnRotate;
-                @Rotate.performed += instance.OnRotate;
-                @Rotate.canceled += instance.OnRotate;
-                @Pitch.started += instance.OnPitch;
-                @Pitch.performed += instance.OnPitch;
-                @Pitch.canceled += instance.OnPitch;
-            }
-        }
-    }
-    public LandscapeCameraActions @LandscapeCamera => new LandscapeCameraActions(this);
-
-    // UI
-    private readonly InputActionMap m_UI;
-    private IUIActions m_UIActionsCallbackInterface;
-    private readonly InputAction m_UI_Click;
-    private readonly InputAction m_UI_Cancel;
-    public struct UIActions
-    {
-        private @Controls m_Wrapper;
-        public UIActions(@Controls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Click => m_Wrapper.m_UI_Click;
-        public InputAction @Cancel => m_Wrapper.m_UI_Cancel;
-        public InputActionMap Get() { return m_Wrapper.m_UI; }
-        public void Enable() { Get().Enable(); }
-        public void Disable() { Get().Disable(); }
-        public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(UIActions set) { return set.Get(); }
-        public void SetCallbacks(IUIActions instance)
-        {
-            if (m_Wrapper.m_UIActionsCallbackInterface != null)
-            {
-                @Click.started -= m_Wrapper.m_UIActionsCallbackInterface.OnClick;
-                @Click.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnClick;
-                @Click.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnClick;
-                @Cancel.started -= m_Wrapper.m_UIActionsCallbackInterface.OnCancel;
-                @Cancel.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnCancel;
-                @Cancel.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnCancel;
-            }
-            m_Wrapper.m_UIActionsCallbackInterface = instance;
-            if (instance != null)
-            {
-                @Click.started += instance.OnClick;
-                @Click.performed += instance.OnClick;
-                @Click.canceled += instance.OnClick;
-                @Cancel.started += instance.OnCancel;
-                @Cancel.performed += instance.OnCancel;
-                @Cancel.canceled += instance.OnCancel;
-            }
-        }
-    }
-    public UIActions @UI => new UIActions(this);
-
     // Exhibit
     private readonly InputActionMap m_Exhibit;
     private IExhibitActions m_ExhibitActionsCallbackInterface;
@@ -1051,6 +468,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     private readonly InputAction m_Standard_Confirm;
     private readonly InputAction m_Standard_Cancel;
     private readonly InputAction m_Standard_RightClick;
+    private readonly InputAction m_Standard_Scroll;
     public struct StandardActions
     {
         private @Controls m_Wrapper;
@@ -1062,6 +480,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         public InputAction @Confirm => m_Wrapper.m_Standard_Confirm;
         public InputAction @Cancel => m_Wrapper.m_Standard_Cancel;
         public InputAction @RightClick => m_Wrapper.m_Standard_RightClick;
+        public InputAction @Scroll => m_Wrapper.m_Standard_Scroll;
         public InputActionMap Get() { return m_Wrapper.m_Standard; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1092,6 +511,9 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 @RightClick.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnRightClick;
                 @RightClick.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnRightClick;
                 @RightClick.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnRightClick;
+                @Scroll.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnScroll;
+                @Scroll.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnScroll;
+                @Scroll.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnScroll;
             }
             m_Wrapper.m_StandardActionsCallbackInterface = instance;
             if (instance != null)
@@ -1117,6 +539,9 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 @RightClick.started += instance.OnRightClick;
                 @RightClick.performed += instance.OnRightClick;
                 @RightClick.canceled += instance.OnRightClick;
+                @Scroll.started += instance.OnScroll;
+                @Scroll.performed += instance.OnScroll;
+                @Scroll.canceled += instance.OnScroll;
             }
         }
     }
@@ -1129,25 +554,6 @@ public partial class @Controls : IInputActionCollection2, IDisposable
             if (m_KeyboardMouseSchemeIndex == -1) m_KeyboardMouseSchemeIndex = asset.FindControlSchemeIndex("Keyboard/Mouse");
             return asset.controlSchemes[m_KeyboardMouseSchemeIndex];
         }
-    }
-    public interface ISateliteCameraActions
-    {
-        void OnRotate(InputAction.CallbackContext context);
-        void OnZoom(InputAction.CallbackContext context);
-        void OnClick(InputAction.CallbackContext context);
-    }
-    public interface ILandscapeCameraActions
-    {
-        void OnStrafe(InputAction.CallbackContext context);
-        void OnClick(InputAction.CallbackContext context);
-        void OnZoom(InputAction.CallbackContext context);
-        void OnRotate(InputAction.CallbackContext context);
-        void OnPitch(InputAction.CallbackContext context);
-    }
-    public interface IUIActions
-    {
-        void OnClick(InputAction.CallbackContext context);
-        void OnCancel(InputAction.CallbackContext context);
     }
     public interface IExhibitActions
     {
@@ -1163,5 +569,6 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         void OnConfirm(InputAction.CallbackContext context);
         void OnCancel(InputAction.CallbackContext context);
         void OnRightClick(InputAction.CallbackContext context);
+        void OnScroll(InputAction.CallbackContext context);
     }
 }

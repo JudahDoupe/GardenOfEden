@@ -8,6 +8,7 @@ using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CameraUtils : MonoBehaviour
 {
@@ -156,10 +157,10 @@ public class CameraUtils : MonoBehaviour
     public static float GetTransitionTime(Quaternion start, Quaternion end, float transitionSpeed = 1) => math.sqrt(Quaternion.Angle(start, end)) * 0.05f / transitionSpeed;
     public static float GetTransitionTime(float start, float end, float transitionSpeed = 1) => math.sqrt(math.abs(start - end)) * 0.05f / transitionSpeed;
 
-    public static float GetScreenDepthAtCursor(float maxDepth = 10000) => math.min(DepthTexture.Sample(Input.mousePosition.x / Screen.width, Input.mousePosition.y / Screen.height).r, maxDepth);
+    public static float GetScreenDepthAtCursor(float maxDepth = 10000) => math.min(DepthTexture.Sample(Mouse.current.position.ReadValue().x / Screen.width, Mouse.current.position.ReadValue().y / Screen.height).r, maxDepth);
     public static Vector3 GetCursorWorldPosition(float maxDepth = 10000) => 
         Camera.main.transform.position 
-        + Camera.main.ScreenPointToRay(Input.mousePosition).direction 
+        + Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue()).direction 
         * GetScreenDepthAtCursor(maxDepth);
 
     public static void SetOutline(GameObject gameObject, bool active)

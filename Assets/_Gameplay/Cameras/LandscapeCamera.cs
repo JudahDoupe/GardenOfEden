@@ -34,13 +34,11 @@ public class LandscapeCamera : CameraPerspective
     private float _cameraAltitude;
     private float _cameraDistance;
     private float _cameraSetbackT;
-    private Controls _controls;
     
 #region Transitions
 
     private void Start()
     {
-        _controls = new Controls();
         _lastInput = new InputData()
         {
             Strafe = Vector2.zero,
@@ -108,21 +106,23 @@ public class LandscapeCamera : CameraPerspective
         _cameraDistance = math.clamp(Vector3.Distance(currentState.Focus.position, currentState.Camera.transform.position), Near.Distance, Far.Distance);
         _cameraSetbackT = 0;
 
-        _controls.LandscapeCamera.Enable();
-        _controls.LandscapeCamera.Click.started += c =>
-        {
-            var sign = (Mouse.current.position.y.ReadValue() / Screen.height) < 0.5 ? 1 : -1;
-            DragSpeed.x = math.abs(DragSpeed.x) * sign;
-            _isDragging = true;
-        };
-        _controls.LandscapeCamera.Click.canceled += _ => _isDragging = false;
+        InputAdapter.LeftMove.Subscribe(this);
+        InputAdapter.Scroll.Subscribe(this);
+        InputAdapter.Click.Subscribe(this,
+            startCallback: () => _isDragging = true,
+            finishCallback: () => _isDragging = false,
+            priority: InputPriority.Low);
+        InputAdapter.Drag.Subscribe(this, priority: InputPriority.Low);
     }
     
     public override void Disable()
     {
         IsActive = false;
-        _controls.LandscapeCamera.Disable();
         Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+        InputAdapter.LeftMove.Unubscribe(this);
+        InputAdapter.Scroll.Unubscribe(this);
+        InputAdapter.Click.Unubscribe(this);
+        InputAdapter.Drag.Unubscribe(this);
     }
     
 #endregion
@@ -208,10 +208,10 @@ public class LandscapeCamera : CameraPerspective
     {
         var t = Ease.Out((MinAltitude - _cameraAltitude) / (MinAltitude - MaxAltitude));
         var drag = Mouse.current.delta.ReadValue() * DragSpeed * Convert.ToInt16(_isDragging);
-        var zoom = math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * _controls.LandscapeCamera.Zoom.ReadValue<float>() * Time.deltaTime;
-        var strafe = math.lerp(Near.StrafeSpeed, Far.StrafeSpeed, t) * _controls.LandscapeCamera.Strafe.ReadValue<Vector2>() * Time.deltaTime;
-        var rotation = RotationSpeed * (drag.x + _controls.LandscapeCamera.Rotate.ReadValue<float>()) * Time.deltaTime;
-        var pitch = PitchSpeed * (drag.y + _controls.LandscapeCamera.Pitch.ReadValue<float>()) * Time.deltaTime;
+        var zoom = math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * InputAdapter.Scroll.Read(this) * Time.deltaTime;
+        var strafe = math.lerp(Near.StrafeSpeed, Far.StrafeSpeed, t) * InputAdapter.LeftMove.Read(this) * Time.deltaTime;
+        var rotation = RotationSpeed * (drag.x + InputAdapter.LeftMove.Read(this).x) * Time.deltaTime;
+        var pitch = PitchSpeed * (drag.y + InputAdapter.RightMove.Read(this).y) * Time.deltaTime;
 
         _lastInput = new InputData
         {

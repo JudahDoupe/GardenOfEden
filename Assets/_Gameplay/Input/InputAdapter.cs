@@ -15,9 +15,13 @@ public class InputAdapter : Singleton<InputAdapter>
     /// </summary>
     public static PriorityAction RightClick { get; private set; }
     /// <summary>
-    /// Returns the normalized mopusee delta
+    /// Returns the normalized mouse delta
     /// </summary>
     public static PriorityAction<Vector2> Drag { get; private set; }
+    /// <summary>
+    /// Returns scroll delta
+    /// </summary>
+    public static PriorityAction<float> Scroll { get; private set; }
     /// <summary>
     /// Returns the normalizeed movement vector
     /// </summary>
@@ -44,6 +48,7 @@ public class InputAdapter : Singleton<InputAdapter>
         Click = new PriorityAction(_controls.Standard.Click);
         RightClick = new PriorityAction(_controls.Standard.RightClick);
         Drag = new PriorityAction<Vector2>(_controls.Standard.Drag);
+        Scroll = new PriorityAction<float>(_controls.Standard.Scroll);
         LeftMove = new PriorityAction<Vector2>(_controls.Standard.LeftMove);
         RightMove = new PriorityAction<Vector2>(_controls.Standard.RightMove);
         Confirm = new PriorityAction(_controls.Standard.Confirm);

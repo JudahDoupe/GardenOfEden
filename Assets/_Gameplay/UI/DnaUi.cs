@@ -53,9 +53,6 @@ public class DnaUi : MonoBehaviour
     private IEnumerator Exit()
     {
         yield return new WaitForEndOfFrame();
-
-        var perspective = FindObjectOfType<ObservationCamera>();
-        CameraController.SetPerspective(perspective, CameraTransition.Instant);
     }
 
     private void Start()

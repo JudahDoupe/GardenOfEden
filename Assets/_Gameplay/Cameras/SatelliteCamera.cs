@@ -16,36 +16,51 @@ public class SatelliteCamera : CameraPerspective
     public float DragSpeed = 0.25f;
     public float LerpSpeed = 5f;
     public float PoleBuffer = 30;
-    public bool IsDragEnabled = true;
     public Texture2D CursorTexture;
     [SerializeField]
     private Settings Near; 
     [SerializeField]
     private Settings Far; 
 
-    private Coordinate _coord;
-    private Controls _controls;
+    private Coordinate _targetCoord;
     private bool _isDragging;
 
-    #region Transition
-    #endregion
-
-    public override CameraState StartTransitionTo() => GetTargetState(false);
+    public override CameraState StartTransitionTo()
+    {
+        var target = new Coordinate(CameraController.CurrentState.Camera.transform.position, Planet.LocalToWorld);
+        _targetCoord.Lat = math.clamp(_targetCoord.Lat, PoleBuffer, 180 - PoleBuffer);
+        _targetCoord.Lat = math.clamp(_targetCoord.Lat, PoleBuffer, 180 - PoleBuffer);
+        _targetCoord.Altitude = math.clamp(_targetCoord.Altitude, MinAltitude, MaxAltitude);
+        return GetTargetState(target);
+    }
 
     public override void Enable()
     {
-        _controls = new Controls();
-        _controls.SateliteCamera.Enable();
-        _controls.SateliteCamera.Click.started += _ => _isDragging = true;
-        _controls.SateliteCamera.Click.canceled += _ => _isDragging = false;
+        InputAdapter.LeftMove.Subscribe(this);
+        InputAdapter.Scroll.Subscribe(this, callback: Zoom);
+        InputAdapter.Click.Subscribe(this,
+            startCallback: () => _isDragging = true,
+            finishCallback: () => _isDragging = false,
+            priority: InputPriority.Low);
+        InputAdapter.Drag.Subscribe(this, 
+            callback: delta =>
+            {
+                if (_isDragging) 
+                    Move(-DragSpeed * delta); 
+            },
+            priority: InputPriority.Low);
         Cursor.SetCursor(CursorTexture, new Vector2(CursorTexture.width / 2f, CursorTexture.height / 2f), CursorMode.Auto);
+
+        _targetCoord = new Coordinate(CameraController.CurrentState.Camera.transform.position, Planet.LocalToWorld);
         IsActive = true;
     }
     public override void Disable()
     {
-        _controls.SateliteCamera.Disable();
-        _controls.Dispose();
         Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+        InputAdapter.LeftMove.Unubscribe(this);
+        InputAdapter.Scroll.Unubscribe(this);
+        InputAdapter.Click.Unubscribe(this);
+        InputAdapter.Drag.Unubscribe(this);
         IsActive = false;
     }
 
@@ -53,34 +68,18 @@ public class SatelliteCamera : CameraPerspective
     {
         if (!IsActive) return;
 
-        CameraUtils.SetState(GetTargetState(true));
+        Move(InputAdapter.LeftMove.Read(this));
+        CameraUtils.SetState(GetTargetState(_targetCoord, true));
     }
 
-    private CameraState GetTargetState(bool lerp)
+    private CameraState GetTargetState(Coordinate coord, bool lerp = false)
     {
         var currentState = CameraController.CurrentState;
-        _coord = IsActive ? _coord : new Coordinate(currentState.Camera.transform.position, Planet.LocalToWorld);
-        var cameraPosition = currentState.Camera.transform.localPosition;
-        var t = Ease.Out((MinAltitude - _coord.Altitude) / (MinAltitude - MaxAltitude));
-        var translation = Vector3.zero;
-        if (IsActive)
-        {
-            var z =  math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * Coordinate.PlanetRadius;
-            var m = math.lerp(Near.MovementSpeed, Far.MovementSpeed, t) * Time.deltaTime;
-            var movement = _isDragging && IsDragEnabled 
-                ? Mouse.current.delta.ReadValue() * -DragSpeed
-                : _controls.SateliteCamera.Rotate.ReadValue<Vector2>();
-            var zoom = _controls.SateliteCamera.Zoom.ReadValue<float>();
-            translation = new Vector3(movement.x * m, movement.y * -m, -zoom * z);
-        }
-
-        _coord.Altitude = math.clamp(_coord.Altitude + translation.z, MinAltitude + (IsActive ? -10 : 10), MaxAltitude - (IsActive ? -10 : 10));
-        _coord.Lat = math.clamp(_coord.Lat + translation.y, PoleBuffer, 180 - PoleBuffer);
-        _coord.Lon += translation.x;
-
-        cameraPosition = lerp ? Vector3.Lerp(cameraPosition, _coord.LocalPlanet, Time.deltaTime * LerpSpeed) : _coord.LocalPlanet;
-        t = Ease.Out((MinAltitude - cameraPosition.magnitude) / (MinAltitude - MaxAltitude));
-        var height = Planet.Data.PlateTectonics.LandHeightMap.Sample(_coord).r;
+        var cameraPosition = lerp 
+            ? Vector3.Lerp(currentState.Camera.transform.localPosition, coord.LocalPlanet, Time.deltaTime * LerpSpeed) 
+            : coord.LocalPlanet.ToVector3();
+        var t = Ease.Out((MinAltitude - cameraPosition.magnitude) / (MinAltitude - MaxAltitude));
+        var height = Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r;
         return new CameraState(currentState.Camera, currentState.Focus)
         {
             CameraParent = Planet.Transform,
@@ -93,5 +92,20 @@ public class SatelliteCamera : CameraPerspective
             NearClip = 10,
             FarClip = MaxAltitude + Coordinate.PlanetRadius,
         };
+    }
+
+    private void Zoom(float delta)
+    {
+        var t = Ease.Out((MinAltitude - _targetCoord.Altitude) / (MinAltitude - MaxAltitude));
+        var z = math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * Coordinate.PlanetRadius;
+        _targetCoord.Altitude = math.clamp(_targetCoord.Altitude + delta * z, MinAltitude, MaxAltitude);
+    }
+
+    private void Move(Vector2 delta)
+    {
+        var t = Ease.Out((MinAltitude - _targetCoord.Altitude) / (MinAltitude - MaxAltitude));
+        var m = math.lerp(Near.MovementSpeed, Far.MovementSpeed, t) * Time.deltaTime;
+        _targetCoord.Lat = math.clamp(_targetCoord.Lat + (delta.y * -m), PoleBuffer, 180 - PoleBuffer);
+        _targetCoord.Lon += delta.x * m;
     }
 }

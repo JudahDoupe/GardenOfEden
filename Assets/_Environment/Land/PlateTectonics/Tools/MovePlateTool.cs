@@ -38,18 +38,12 @@ public class MovePlateTool : MonoBehaviour, ITool
         _visualization.ShowFaultLines(true);
         IsActive = true;
 
-        //TODO: this is totally broken
-
-        InputAdapter.Drag.Subscribe(this,
-            startCallback: _ =>
+        InputAdapter.Click.Subscribe(this,
+            startCallback: () =>
             {
                 StartMoving();
-            }, 
-            callback: _ =>
-            {
-                if (_currentPlateId > 0) Move();
             },
-            finishCallback: _ =>
+            finishCallback: () =>
             {
                 Clear();
             });
@@ -59,9 +53,14 @@ public class MovePlateTool : MonoBehaviour, ITool
         Clear();
         _visualization.ShowFaultLines(false);
         IsActive = false; 
-        InputAdapter.Drag.Unubscribe(this);
+        InputAdapter.Click.Unubscribe(this);
     }
 
+    private void Update()
+    {
+
+        if (IsActive && _currentPlateId > 0) Move();
+    }
 
     private void StartMoving()
     {
@@ -91,7 +90,6 @@ public class MovePlateTool : MonoBehaviour, ITool
         var targetPos = Physics.Raycast(ray, out var hit, distance) ? hit.point : Camera.main.transform.position + ray.direction * distance;
         targetPos = new Coordinate(targetPos, Planet.LocalToWorld).LocalPlanet;
         var plate = _data.GetPlate(_currentPlateId);
-
 
         var currentPos = plate.Rotation * _startingPosition;
         var motionVector = Vector3.ClampMagnitude(targetPos - currentPos, MaxVelocity);
