@@ -1,9 +1,9 @@
-#pragma kernel UpdatePlateId
-#pragma kernel UpdateBreakLine
+#pragma kernel VisualizeBreakLine
 #pragma kernel BreakPlate
 
 #include "../PlateTectonicsInclude.hlsl"
 
+RWTexture2DArray<float> VisualizedContinentalIdMap; 
 RWTexture2DArray<float> ContinentalIdMap; 
 RWTexture2DArray<float> PlateThicknessMaps;
 
@@ -15,16 +15,9 @@ float NewPlateIdx;
 float3 OldPlateCenter;
 float3 NewPlateCenter;
 
-[numthreads(8, 8, 6)]
-void UpdatePlateId(uint3 id : SV_DispatchThreadID)
-{
-    float oldId = ContinentalIdMap[id] * (ContinentalIdMap[id] != OldPlateId);
-    float newId = NewPlateId * (ContinentalIdMap[id] == OldPlateId);
-    ContinentalIdMap[id] = oldId + newId;
-}
 
 [numthreads(8, 8, 6)]
-void UpdateBreakLine(uint3 id : SV_DispatchThreadID)
+void VisualizeBreakLine(uint3 id : SV_DispatchThreadID)
 {
     float3 xyz = xyw_to_xyz(id, MantleHeight);
     xyz = xyz + noise3d(xyz, FaultLineNoise);
@@ -34,10 +27,10 @@ void UpdateBreakLine(uint3 id : SV_DispatchThreadID)
     float oldDist = distance(xyz, OldPlateCenter);
     float newDist = distance(xyz, NewPlateCenter);
 
-    bool shouldUpdate = ContinentalIdMap[id] == OldPlateId || ContinentalIdMap[id] == NewPlateId;
-    ContinentalIdMap[id] = ContinentalIdMap[id] * !shouldUpdate
-    + OldPlateId * (shouldUpdate && oldDist < newDist)
-    + NewPlateId * (shouldUpdate && oldDist >= newDist);
+    bool isNewPlate = oldDist >= newDist && VisualizedContinentalIdMap[id] != 0;
+    
+    VisualizedContinentalIdMap[id] = !isNewPlate * VisualizedContinentalIdMap[id]
+                                   + isNewPlate * NewPlateId;
 }
 
 [numthreads(8, 8, 6)]
@@ -58,5 +51,9 @@ void BreakPlate(uint3 id : SV_DispatchThreadID)
         
         PlateThicknessMaps[newXyp] = PlateThicknessMaps[oldXyp];
         PlateThicknessMaps[oldXyp] = 0;
+
+        int isOldPlate = ContinentalIdMap[id] == OldPlateId;
+        ContinentalIdMap[id] = !isOldPlate * ContinentalIdMap[id]
+                             + isOldPlate * NewPlateId;
     }
 }

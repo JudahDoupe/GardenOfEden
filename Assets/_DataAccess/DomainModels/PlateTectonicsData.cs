@@ -11,6 +11,7 @@ public class PlateTectonicsData
     public List<PlateData> Plates { get; }
     public EnvironmentMap LandHeightMap { get; }
     public EnvironmentMap ContinentalIdMap { get; }
+    public EnvironmentMap VisualizedContinentalIdMap { get; }
     public EnvironmentMap PlateThicknessMaps { get; }
     public EnvironmentMap TmpPlateThicknessMaps { get; }
 
@@ -67,6 +68,7 @@ public class PlateTectonicsData
         Plates = new List<PlateData> { new PlateData(1.0001f, 0, UnityEngine.Random.rotation) };
         LandHeightMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "LandHeightMap"));
         ContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "ContinentalIdMap"));
+        VisualizedContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "VisualizedContinentalIdMap"));
         PlateThicknessMaps = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "PlateThicknessMaps"));
         TmpPlateThicknessMaps = new EnvironmentMap(planetName, "TmpPlateThicknessMaps");
     }
@@ -77,6 +79,7 @@ public class PlateTectonicsData
         Plates = dbData.Plates.Select(plateData => new PlateData(plateData)).ToList();
         LandHeightMap = EnvironmentMapDataStore.GetOrCreate(dbData.LandHeightMap);
         ContinentalIdMap = EnvironmentMapDataStore.GetOrCreate(dbData.ContinentalIdMap);
+        VisualizedContinentalIdMap = new EnvironmentMap(PlanetName, "VisualizedContinentalIdMap", ContinentalIdMap.Layers, ContinentalIdMap.Channels);
         PlateThicknessMaps = EnvironmentMapDataStore.GetOrCreate(dbData.PlateThicknessMaps);
         TmpPlateThicknessMaps = new EnvironmentMap(PlanetName, "TmpPlateThicknessMaps", PlateThicknessMaps.Layers, PlateThicknessMaps.Channels);
     }

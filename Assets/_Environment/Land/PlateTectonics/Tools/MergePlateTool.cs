@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -12,7 +14,6 @@ public class MergePlateTool : MonoBehaviour, ITool
     private PlateTectonicsVisualization _visualization;
     private PlateTectonicsSimulation _simulation;
     private PlateData selectedPlate;
-    private float? selectedPlateTempId;
 
     public void Initialize(PlateTectonicsData data,
         PlateTectonicsSimulation simulation,
@@ -28,36 +29,36 @@ public class MergePlateTool : MonoBehaviour, ITool
         if (!IsInitialized)
             return;
 
-        Clear();
+        selectedPlate = null;
         _simulation.Disable();
         IsActive = true;
         InputAdapter.Click.Subscribe(this, () =>
         {
-            if (selectedPlateTempId.HasValue)
+            if (selectedPlate is not null)
                 MergePlates();
             else
                 StartMerge();
         });
         InputAdapter.RightClick.Subscribe(this, () =>
         {
-            if (selectedPlateTempId.HasValue)
-                Clear();
+            if (selectedPlate is not null)
+                selectedPlate = null;
         });
         InputAdapter.Cancel.Subscribe(this, () =>
         {
-            if (selectedPlateTempId.HasValue)
-                Clear();
+            if (selectedPlate is not null)
+                selectedPlate = null;
             else
                 FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
         });
     }
     public void Disable()
     {
-        Clear();
+        selectedPlate = null;
         InputAdapter.Click.Unubscribe(this);
         InputAdapter.RightClick.Unubscribe(this);
         InputAdapter.Cancel.Unubscribe(this);
-        _visualization.HighlightPlate(0);
+        _visualization.HideOutlines();
         IsActive = false;
     }
 
@@ -70,26 +71,19 @@ public class MergePlateTool : MonoBehaviour, ITool
     {
         if (!IsActive) return;
 
-        _visualization.HighlightPlate(selectedPlateTempId.HasValue ? selectedPlateTempId.Value : 0);
+        var outlinedPlates = new List<float>();
 
         var mouseCoord = GetMouseCoord();
-        if (mouseCoord is null) return;
-        var hoveredPlateId = _data.ContinentalIdMap.SamplePoint(mouseCoord.Value).r;
-
-        if (selectedPlateTempId.HasValue)
+        if (mouseCoord is not null)
         {
-            var newTmpId = hoveredPlateId == selectedPlateTempId.Value
-                ? hoveredPlateId
-                : hoveredPlateId + 0.5f;
-
-            UpdatePlateId(selectedPlateTempId.Value, newTmpId);
-            selectedPlateTempId = newTmpId;
-            _visualization.HighlightPlate(selectedPlateTempId.Value);
+            outlinedPlates.Add(_data.ContinentalIdMap.SamplePoint(mouseCoord.Value).r);
         }
-        else
+        if (selectedPlate is not null)
         {
-            _visualization.HighlightPlate(hoveredPlateId);
+            outlinedPlates.Add(selectedPlate.Id);
         }
+
+        _visualization.OutlinePlates(outlinedPlates.Distinct().ToArray());
     }
 
     private void StartMerge()
@@ -98,7 +92,6 @@ public class MergePlateTool : MonoBehaviour, ITool
         if (mouseCoord is null) return;
         var plate = _data.GetPlate(_data.ContinentalIdMap.SamplePoint(mouseCoord.Value).r);
         selectedPlate = plate;
-        selectedPlateTempId = plate.Id;
     }
     private void MergePlates()
     {
@@ -106,15 +99,14 @@ public class MergePlateTool : MonoBehaviour, ITool
         if (mouseCoord is null) return;
 
         var hoveredPlateId = _data.ContinentalIdMap.SamplePoint(mouseCoord.Value).r;
-        if (hoveredPlateId == selectedPlateTempId.Value) return;
+        if (hoveredPlateId == selectedPlate.Id) return;
 
         var hoveredPlate = _data.GetPlate(hoveredPlateId);
 
-        MergePlatesOnGpu(selectedPlateTempId.Value, hoveredPlate.Id, selectedPlate, hoveredPlate);
-        UpdatePlateId(selectedPlateTempId.Value, hoveredPlate.Id);
+        MergePlatesOnGpu(selectedPlate.Id, hoveredPlate.Id, selectedPlate, hoveredPlate);
         _data.RemovePlate(selectedPlate.Id);
-        
-        Clear();
+        _data.ContinentalIdMap.RefreshCache();
+        selectedPlate = null;
 
         void MergePlatesOnGpu(float oldId, float newId, PlateData oldPlate, PlateData newPlate)
         {
@@ -131,16 +123,6 @@ public class MergePlateTool : MonoBehaviour, ITool
         }
     }
 
-    private void Clear()
-    {
-        if (selectedPlate != null)
-        {
-            UpdatePlateId(selectedPlateTempId.Value, selectedPlate.Id);
-        }
-        selectedPlate = null;
-        selectedPlateTempId = null;
-    }
-
     private Coordinate? GetMouseCoord()
     {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
@@ -150,15 +132,5 @@ public class MergePlateTool : MonoBehaviour, ITool
             return new Coordinate(hit.point, Planet.LocalToWorld);
         }
         return null;
-    }
-
-    private void UpdatePlateId(float oldId, float newId)
-    {
-        int kernel = MergePlateShader.FindKernel("UpdatePlateId");
-        MergePlateShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
-        MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
-        MergePlateShader.SetFloat("OldPlateId", oldId);
-        MergePlateShader.SetFloat("NewPlateId", newId);
-        MergePlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 }

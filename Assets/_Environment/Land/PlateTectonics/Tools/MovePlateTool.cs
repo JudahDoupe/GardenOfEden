@@ -35,7 +35,6 @@ public class MovePlateTool : MonoBehaviour, ITool
 
         Clear();
         _simulation.Enable();
-        _visualization.ShowFaultLines(true);
         IsActive = true;
 
         InputAdapter.Click.Subscribe(this,
@@ -51,15 +50,23 @@ public class MovePlateTool : MonoBehaviour, ITool
     public void Disable()
     {
         Clear();
-        _visualization.ShowFaultLines(false);
-        IsActive = false; 
         InputAdapter.Click.Unubscribe(this);
+        _visualization.HideOutlines();
+        IsActive = false; 
     }
 
     private void Update()
     {
 
-        if (IsActive && _currentPlateId > 0) Move();
+        if (IsActive)
+        {
+            _visualization.OutlinePlates();
+            
+            if(_currentPlateId > 0)
+            {
+                Move();
+            }
+        }
     }
 
     private void StartMoving()

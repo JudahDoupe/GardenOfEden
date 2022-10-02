@@ -1,9 +1,12 @@
-using Assets.Scripts.Utils;
+using System.Linq;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 [RequireComponent(typeof(PlateTectonicsSimulation))]
 public class PlateTectonicsVisualization : MonoBehaviour
 {
+    public ComputeShader ComputeShader;
+
     [Header("Materials")]
     public Material OutlineReplacementMaterial;
     public Material FaultLineMaterial;
@@ -34,8 +37,8 @@ public class PlateTectonicsVisualization : MonoBehaviour
 
     public void Initialize(PlateTectonicsData data)
     {
-        _data = data; 
-        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
+        _data = data;
+        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", _data.VisualizedContinentalIdMap.RenderTexture);
         OutlineReplacementMaterial.SetTexture("HeightMap", _data.LandHeightMap.RenderTexture);
         SetLandMaterialValues();
         Disable();
@@ -47,23 +50,34 @@ public class PlateTectonicsVisualization : MonoBehaviour
     }
     public void Disable()
     {
-        ShowFaultLines(false);
+        HideOutlines();
         IsActive = false;
     }
 
-    public void ShowFaultLines(bool show)
+    public void OutlinePlates(params float[] outlinedPlateIds)
     {
-        if (show && !IsActive) return;
-        OutlineReplacementMaterial.SetFloat("PlateId", 0);
-        FaultLineMaterial.SetFloat("Transparency", show ? 0.3f : 0);
+        if (!IsActive) return;
+        UpdateVisualizationMap(outlinedPlateIds);
+        FaultLineMaterial.SetFloat("Transparency", outlinedPlateIds.Any() ? 0.6f : 0.3f);
     }
-    public void HighlightPlate(float plateId)
+    public void HideOutlines()
     {
-        if (plateId > 0 && !IsActive) return;
-        OutlineReplacementMaterial.SetFloat("PlateId", plateId);
-        FaultLineMaterial.SetFloat("Transparency", 0.6f);
+        FaultLineMaterial.SetFloat("Transparency", 0);
     }
-    
+
+
+    private void UpdateVisualizationMap(float[] outlinedPlates)
+    {
+        ComputeShader.SetInt("NumPlates", outlinedPlates.Length);
+        int kernel = ComputeShader.FindKernel(outlinedPlates.Any() ? "OutlinePlates" : "OutlineAllPlates");
+        using var buffer = new ComputeBuffer(outlinedPlates.Length + 1, Marshal.SizeOf(typeof(OutlinedPlate)));
+        buffer.SetData(outlinedPlates.Append(0).Select(x => new OutlinedPlate { PlateId = x}).ToArray());
+        ComputeShader.SetBuffer(kernel, "OutlinedPlates", buffer);
+        ComputeShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
+        ComputeShader.SetTexture(kernel, "VisualizedContinentalIdMap", _data.VisualizedContinentalIdMap.RenderTexture);
+        ComputeShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
+    }
+
     private void SetLandMaterialValues()
     {
         GetComponent<MeshFilter>().sharedMesh.bounds = new Bounds(Vector3.zero, new Vector3(1,1,1) * Coordinate.PlanetRadius * 2);
@@ -80,5 +94,9 @@ public class PlateTectonicsVisualization : MonoBehaviour
         landMaterial.SetFloat("NormalNoiseScale", NoiseScale);
         landMaterial.SetFloat("NormalNoiseStrength", NoiseStrength);
         landMaterial.SetInt("RenderPlate", ShowIndividualPlate);
+    }
+    private struct OutlinedPlate
+    {
+        public float PlateId;
     }
 }

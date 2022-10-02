@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -36,7 +38,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
         _simulation.Disable();
         _baker.Disable();
-        _break = ResetTool(null);
+        _break = null;
         IsActive = true;
 
         InputAdapter.Click.Subscribe(this, () =>
@@ -52,17 +54,17 @@ public class BreakPlateTool : MonoBehaviour, ITool
         InputAdapter.Cancel.Subscribe(this, () =>
         {
             if (_break.HasValue)
-                _break = ResetTool(_break);
+                _break = null;
             else
                 FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
         });
     }
     public void Disable()
     {
-        _break = ResetTool(null);
-        _visualization.HighlightPlate(0);
+        _break = null;
         InputAdapter.Click.Unubscribe(this);
         InputAdapter.Cancel.Unubscribe(this);
+        _visualization.HideOutlines();
         IsActive = false;
     }
 
@@ -72,15 +74,17 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
         if (_break.HasValue)
         {
-            _visualization.HighlightPlate(_break.Value.OriginalPlateId.Value);
-
             var breakpoint = GetMouseCoord();
             _break = PreviewNewPlate(_break.Value, breakpoint);
         }
         else if (GetMouseCoord() is { } mousePos)
         {
-            var plate = _data.GetPlate(_data.ContinentalIdMap.SamplePoint(mousePos).r);
-            _visualization.HighlightPlate(plate.Id);
+            var hoveredPlate = _data.GetPlate(_data.ContinentalIdMap.SamplePoint(mousePos).r);
+            _visualization.OutlinePlates(hoveredPlate.Id);
+        }
+        else
+        {
+            _visualization.OutlinePlates();
         }
     }
 
@@ -105,7 +109,6 @@ public class BreakPlateTool : MonoBehaviour, ITool
         plate.TargetVelocity = oldPlate.TargetVelocity;
         @break.NewPlateIdx = plate.Idx;
 
-        RunKernel("UpdatePlateId", new Break { OriginalPlateId = @break.NewTmpPlateId, NewPlateId = @break.NewPlateId });
         RunKernel("BreakPlate", @break);
 
         _data.ContinentalIdMap.RefreshCache();
@@ -114,6 +117,8 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
     private Break PreviewNewPlate(Break b, Coordinate? end)
     {
+        _visualization.OutlinePlates(b.OriginalPlateId.Value);
+
         if (end.HasValue)
         {
             var distance = Vector3.Distance(end.Value.LocalPlanet, b.StartCoord.Value.LocalPlanet);
@@ -122,28 +127,11 @@ public class BreakPlateTool : MonoBehaviour, ITool
                 end = new Coordinate(b.StartCoord.Value.LocalPlanet + new float3(0, 1, 0));
             }
 
-            b.EndCoord = new Coordinate(Vector3.Lerp(b.EndCoord?.LocalPlanet ?? end.Value.LocalPlanet,
-                end.Value.LocalPlanet, Time.deltaTime * LerpSpeed));
-            RunKernel("UpdateBreakLine", b);
-        }
-        else
-        {
-            RunKernel("UpdatePlateId", new Break {OriginalPlateId = b.NewTmpPlateId, NewPlateId = b.OriginalPlateId});
+            b.EndCoord = new Coordinate(Vector3.Lerp(b.EndCoord?.LocalPlanet ?? end.Value.LocalPlanet, end.Value.LocalPlanet, Time.deltaTime * LerpSpeed));
+            RunKernel("VisualizeBreakLine", b);
         }
 
         return b;
-    }
-
-    private Break? ResetTool(Break? b)
-    {
-        if (b.HasValue)
-        {
-            RunKernel("UpdatePlateId", new Break {OriginalPlateId = b.Value.NewTmpPlateId, NewPlateId = b.Value.OriginalPlateId});
-        }
-
-        _visualization.ShowFaultLines(false);
-
-        return null;
     }
 
     private Coordinate? GetMouseCoord()
@@ -162,6 +150,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
     {
         int kernel = BreakPlateShader.FindKernel(kernelName);
         BreakPlateShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
+        BreakPlateShader.SetTexture(kernel, "VisualizedContinentalIdMap", _data.VisualizedContinentalIdMap.RenderTexture);
         BreakPlateShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
         BreakPlateShader.SetFloat("FaultLineNoise", FaultLineNoise);
         BreakPlateShader.SetFloat("MantleHeight", _data.MantleHeight);
