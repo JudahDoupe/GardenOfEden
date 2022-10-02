@@ -34,6 +34,7 @@ public class AtmosphereVisualization : MonoBehaviour
         Atmospheere.SetFloat("_DensityFalloff", DencityFalloff);
         Atmospheere.SetFloat("_SeaLevel", SeaLevel);
         Atmospheere.SetFloat("_ScatteringStrength", ScatteringStrength);
+        Atmospheere.SetVector("_WaveLengths", WaveLengths);
         if (Planet.Transform != null)
         {
             Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
