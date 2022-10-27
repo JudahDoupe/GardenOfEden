@@ -1,17 +1,18 @@
-using LiteDB;
+using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public static class SimulationDataStore
 {
-    private static string ConnectionString => $@"{Application.persistentDataPath}\Simulations.db";
 
     #region PlateTectonics
 
+    private static string PlateTectonicsDataPath(string planetName) => $"{Application.persistentDataPath}/{planetName}/PlateTectonics.data";
+
     public static PlateTectonicsData GetOrCreatePlateTectonics(string planetName)
     {
-        using var db = new LiteDatabase(ConnectionString);
-        var collection = db.GetCollection<PlateTectonicsDbData>("PlateTectonics");
-        var dbData = collection.FindOne(x => x.PlanetName.Equals(planetName));
+        var json = LoadData(PlateTectonicsDataPath(planetName));
+        var dbData = JsonUtility.FromJson<PlateTectonicsDbData>(json);
 
         if (dbData != null)
             return new PlateTectonicsData(dbData);
@@ -21,7 +22,9 @@ public static class SimulationDataStore
 
     public static PlateTectonicsData CreatePlateTectonics(string planetName)
     {
-        return PateTectonicsGenerator.Generate(planetName);
+        var data = PateTectonicsGenerator.Generate(planetName);
+        UpdatePlateTectonics(data);
+        return data;
     }
 
     public static void UpdatePlateTectonics(PlateTectonicsData data)
@@ -30,25 +33,21 @@ public static class SimulationDataStore
         EnvironmentMapDataStore.Update(data.ContinentalIdMap);
         EnvironmentMapDataStore.Update(data.PlateThicknessMaps);
 
-        using var db = new LiteDatabase(ConnectionString);
-        var collection = db.GetCollection<PlateTectonicsDbData>("PlateTectonics");
-
         var dbData = data.ToDbData();
-        if (!collection.Update(dbData.PlanetName, dbData))
-        {
-            collection.Insert(dbData.PlanetName, dbData);
-        }
+        var json = JsonUtility.ToJson(dbData);
+        SaveData(PlateTectonicsDataPath(data.PlanetName), json);
     }
 
     #endregion
 
     #region Water
 
+    private static string WaterDataPath(string planetName) => $"{Application.persistentDataPath}/{planetName}/Water.data";
+
     public static WaterData GetOrCreateWater(string planetName)
     {
-        using var db = new LiteDatabase(ConnectionString);
-        var collection = db.GetCollection<WaterDbData>("Water");
-        var dbData = collection.FindOne(x => x.PlanetName.Equals(planetName));
+        var json = LoadData(WaterDataPath(planetName));
+        var dbData = JsonUtility.FromJson<WaterDbData>(json);
 
         if (dbData != null)
             return new WaterData(dbData);
@@ -58,24 +57,24 @@ public static class SimulationDataStore
 
     public static WaterData CreateWater(string planetName)
     {
-        return new WaterData(planetName) { NeedsRegeneration = true };
+        var data = new WaterData(planetName) { NeedsRegeneration = true };
+        UpdateWater(data);
+        return data;
     }
 
     public static void UpdateWater(WaterData data)
     {
         EnvironmentMapDataStore.Update(data.WaterMap);
 
-        using var db = new LiteDatabase(ConnectionString);
-        var collection = db.GetCollection<WaterDbData>("Water");
-        var dbData = data.ToDbData();
-        if (!collection.Update(dbData.PlanetName, dbData))
-        {
-            collection.Insert(dbData.PlanetName, dbData);
-        }
+        var json = JsonUtility.ToJson(data.ToDbData());
+        SaveData(WaterDataPath(data.PlanetName), json);
 
     }
 
     #endregion
-    
+
+
+    private static Task SaveData(string path, string json) => Task.Run(() => File.WriteAllText(path, json));
+    private static string LoadData(string path) => File.Exists(path) ? File.ReadAllText(path) : "";
 }
 

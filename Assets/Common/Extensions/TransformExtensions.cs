@@ -1,20 +1,9 @@
-﻿using LiteDB;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 public static class TransformExtensions
 {
-    public static TransformDbData ToDto(this Transform t)
-    {
-        return new TransformDbData
-        {
-            Position = new BsonArray(new BsonValue[] { t.position.x, t.position.y, t.position.z }),
-            Scale = new BsonArray(new BsonValue[] { t.localScale.x, t.localScale.y, t.localScale.z }),
-            Rotation = new BsonArray(new BsonValue[] { t.rotation.x, t.rotation.y, t.rotation.z , t.rotation.w }),
-        };
-    }
 
     public static Transform ParentWithComponent<T>(this Transform t)
     {

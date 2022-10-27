@@ -1,6 +1,8 @@
-﻿
+﻿using System;
+
+[Serializable]
 public class ParameterDbData
 {
-    public string Name { get; set; }
-    public string Value { get; set; }
+    public string Name;
+    public string Value;
 }

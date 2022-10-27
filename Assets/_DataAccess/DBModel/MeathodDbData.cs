@@ -1,6 +1,8 @@
-﻿
+﻿using System;
+
+[Serializable]
 public class MethodDbData
 {
-    public string Name { get; set; }
-    public ParameterDbData[] Parameters { get; set; }
+    public string Name;
+    public ParameterDbData[] Parameters;
 }

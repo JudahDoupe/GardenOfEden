@@ -1,8 +1,10 @@
-﻿
+﻿using System;
+
+[Serializable]
 public class WaterDbData
 {
-    public string PlanetName { get; set; }
-    public EnvironmentMapDbData WaterMap { get; set; }
-    public EnvironmentMapDbData WaterSourceMap { get; set; }
-    public EnvironmentMapDbData LandHeightMap { get; set; }
+    public string PlanetName;
+    public EnvironmentMapDbData WaterMap;
+    public EnvironmentMapDbData WaterSourceMap;
+    public EnvironmentMapDbData LandHeightMap;
 }
