@@ -1,23 +1,32 @@
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public static class PlanetDataStore
 {
-    public static PlanetData GetOrCreate(string planetName)
+    public static async Task<PlanetData> GetOrCreate(string planetName)
     {
         var folderPath = $"{Application.persistentDataPath}/{planetName}";
         if (!Directory.Exists(folderPath))
             Directory.CreateDirectory(folderPath);
 
-        return new PlanetData(new PlanetDbData{PlanetName = planetName});
+        return new PlanetData(new PlanetDbData{ PlanetName = planetName },
+            await SimulationDataStore.GetOrCreatePlateTectonics(planetName),
+            await SimulationDataStore.GetOrCreateWater(planetName));
     }
-    public static PlanetData Create(string planetName)
+    public static async Task<PlanetData> Create(string planetName)
     {
-        return new PlanetData(planetName);
+        var folderPath = $"{Application.persistentDataPath}/{planetName}";
+        if (!Directory.Exists(folderPath))
+            Directory.CreateDirectory(folderPath);
+
+        return new PlanetData(new PlanetDbData{ PlanetName = planetName },
+            await SimulationDataStore.CreatePlateTectonics(planetName),
+            await SimulationDataStore.CreateWater(planetName));
     }
-    public static void Update(PlanetData data)
+    public static async Task Update(PlanetData data)
     {
-        SimulationDataStore.UpdatePlateTectonics(data.PlateTectonics);
-        SimulationDataStore.UpdateWater(data.Water);
+        await SimulationDataStore.UpdatePlateTectonics(data.PlateTectonics);
+        await SimulationDataStore.UpdateWater(data.Water);
     }
 }

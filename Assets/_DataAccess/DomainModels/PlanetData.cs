@@ -1,17 +1,12 @@
 public class PlanetData
 {
-    public PlanetData(string planetName)
-    {
-        PlanetName = planetName;
-        PlateTectonics = SimulationDataStore.CreatePlateTectonics(planetName);
-        Water = SimulationDataStore.CreateWater(planetName);
-    }
-
-    public PlanetData(PlanetDbData dbData)
+    public PlanetData(PlanetDbData dbData,
+                      PlateTectonicsData plateTectonics,
+                      WaterData waterData)
     {
         PlanetName = dbData.PlanetName;
-        PlateTectonics = SimulationDataStore.GetOrCreatePlateTectonics(dbData.PlanetName);
-        Water = SimulationDataStore.GetOrCreateWater(dbData.PlanetName);
+        PlateTectonics = plateTectonics;
+        Water = waterData;
     }
 
     public string PlanetName { get; }

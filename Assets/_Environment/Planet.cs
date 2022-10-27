@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -13,13 +14,24 @@ public class Planet : MonoBehaviour
     public static PlanetData Data;
 
     [ContextMenu("Save")]
-    public static void Save() => PlanetDataStore.Update(Data);
-    [ContextMenu("Reset")]
-    public void ResetPlanet()
+    public static void Save() => PlanetDataStore.Update(Data).ConfigureAwait(false);
+    
+    [ContextMenu("Load")]
+    public void Load() => StartCoroutine(LoadAsync());
+    private IEnumerator LoadAsync()
     {
-        var data = PlanetDataStore.Create(Name);
-        Initialize(data);
-        PlanetDataStore.Update(data);
+        var dataTask = PlanetDataStore.GetOrCreate(Name);
+        yield return new WaitUntil(() => dataTask.IsCompleted);
+        Initialize(dataTask.Result);
+    }
+
+    [ContextMenu("Reset")]
+    public void ResetPlanet() => StartCoroutine(ResetPlanetAsync());
+    private IEnumerator ResetPlanetAsync()
+    {
+        var dataTask = PlanetDataStore.Create(Name);
+        yield return new WaitUntil(() => dataTask.IsCompleted);
+        Initialize(dataTask.Result);
     }
 
     public void Initialize(PlanetData data)
@@ -32,6 +44,7 @@ public class Planet : MonoBehaviour
     void Start()
     {
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+        Transform = transform;
         Entity = em.CreateEntity();
         em.AddComponent<Translation>(Entity);
         em.AddComponent<Rotation>(Entity);
@@ -40,9 +53,7 @@ public class Planet : MonoBehaviour
         em.SetName(Entity, "Planet");
 #endif
 
-        Transform = transform;
-
-        Initialize(PlanetDataStore.GetOrCreate(Name));
+        Load();
     }
 
     void Update()
@@ -51,4 +62,5 @@ public class Planet : MonoBehaviour
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         em.SetComponentData(Entity, new Rotation{ Value = transform.rotation });
     }
+
 }

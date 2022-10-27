@@ -9,25 +9,24 @@ public static class SimulationDataStore
 
     private static string PlateTectonicsDataPath(string planetName) => $"{Application.persistentDataPath}/{planetName}/PlateTectonics.data";
 
-    public static PlateTectonicsData GetOrCreatePlateTectonics(string planetName)
+    public static async Task<PlateTectonicsData> GetOrCreatePlateTectonics(string planetName)
     {
-        var json = LoadData(PlateTectonicsDataPath(planetName));
-        var dbData = JsonUtility.FromJson<PlateTectonicsDbData>(json);
+        var dbData = await LoadDataAsync<PlateTectonicsDbData>(PlateTectonicsDataPath(planetName));
 
         if (dbData != null)
             return new PlateTectonicsData(dbData);
         else
-            return CreatePlateTectonics(planetName);
+            return await CreatePlateTectonics(planetName);
     }
 
-    public static PlateTectonicsData CreatePlateTectonics(string planetName)
+    public static async Task<PlateTectonicsData> CreatePlateTectonics(string planetName)
     {
         var data = PateTectonicsGenerator.Generate(planetName);
-        UpdatePlateTectonics(data);
+        await UpdatePlateTectonics(data);
         return data;
     }
 
-    public static void UpdatePlateTectonics(PlateTectonicsData data)
+    public static async Task UpdatePlateTectonics(PlateTectonicsData data)
     {
         EnvironmentMapDataStore.Update(data.LandHeightMap);
         EnvironmentMapDataStore.Update(data.ContinentalIdMap);
@@ -35,7 +34,7 @@ public static class SimulationDataStore
 
         var dbData = data.ToDbData();
         var json = JsonUtility.ToJson(dbData);
-        SaveData(PlateTectonicsDataPath(data.PlanetName), json);
+        await SaveDataAsync(PlateTectonicsDataPath(data.PlanetName), json);
     }
 
     #endregion
@@ -44,37 +43,34 @@ public static class SimulationDataStore
 
     private static string WaterDataPath(string planetName) => $"{Application.persistentDataPath}/{planetName}/Water.data";
 
-    public static WaterData GetOrCreateWater(string planetName)
+    public static async Task<WaterData> GetOrCreateWater(string planetName)
     {
-        var json = LoadData(WaterDataPath(planetName));
-        var dbData = JsonUtility.FromJson<WaterDbData>(json);
+        var dbData = await LoadDataAsync<WaterDbData>(WaterDataPath(planetName));
 
         if (dbData != null)
             return new WaterData(dbData);
         else
-            return CreateWater(planetName);
+            return await CreateWater(planetName);
     }
 
-    public static WaterData CreateWater(string planetName)
+    public static async Task<WaterData> CreateWater(string planetName)
     {
         var data = new WaterData(planetName) { NeedsRegeneration = true };
-        UpdateWater(data);
+        await UpdateWater(data);
         return data;
     }
 
-    public static void UpdateWater(WaterData data)
+    public static async Task UpdateWater(WaterData data)
     {
         EnvironmentMapDataStore.Update(data.WaterMap);
 
-        var json = JsonUtility.ToJson(data.ToDbData());
-        SaveData(WaterDataPath(data.PlanetName), json);
-
+        await SaveDataAsync(WaterDataPath(data.PlanetName), data.ToDbData());
     }
 
     #endregion
 
 
-    private static Task SaveData(string path, string json) => Task.Run(() => File.WriteAllText(path, json));
-    private static string LoadData(string path) => File.Exists(path) ? File.ReadAllText(path) : "";
+    private static async Task SaveDataAsync<T>(string path, T dbData) => await Task.Run(() => File.WriteAllText(path,  JsonUtility.ToJson(dbData)));
+    private static async Task<T> LoadDataAsync<T>(string path) => JsonUtility.FromJson<T>(File.Exists(path) ? await File.ReadAllTextAsync(path) : "");
 }
 
