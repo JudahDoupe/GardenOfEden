@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -29,6 +30,8 @@ public class PlateBaker : MonoBehaviour
     public void Initialize(PlateTectonicsData data)
     {
         _data = data;
+        _tmpPlateThicknessMaps = new EnvironmentMap(_data.PlateThicknessMaps.ToDbData());
+        _tmpContinentalIdMap = new EnvironmentMap(_data.ContinentalIdMap.ToDbData());
     }
 
     public void Enable()
@@ -69,17 +72,16 @@ public class PlateBaker : MonoBehaviour
     public void BakePlates()
     {
         _cancelation = new CancellationTokenSource();
-        _data.ContinentalIdMap.RefreshCache(BakePlatesAsync);
+        _data.ContinentalIdMap.RefreshCache(() => StartCoroutine(BakePlatesAsync()));
     }
-    private async void BakePlatesAsync()
+    private IEnumerator BakePlatesAsync()
     {
         if (Debug) UnityEngine.Debug.Log("Starting Bake");
         var timer = new Stopwatch();
         timer.Start();
         _isBaking = true;
 
-        _tmpPlateThicknessMaps = new EnvironmentMap(_data.PlateThicknessMaps.ToDbData());
-        _tmpContinentalIdMap = new EnvironmentMap(_data.ContinentalIdMap.ToDbData());
+        _tmpPlateThicknessMaps.Layers = _data.PlateThicknessMaps.Layers;
 
         AlignPlates();
 
@@ -87,19 +89,22 @@ public class PlateBaker : MonoBehaviour
         {
             _isBaking = false;
             if (Debug) UnityEngine.Debug.Log("Canceled Bake");
-            return;
+            yield break;
         }
 
-        var continentIdMaps = _data.ContinentalIdMap.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray())
-            .ToArray();
-        var continents =
-            await Task.Run(() => CoalesceContinents(DetectContinents(continentIdMaps)), _cancelation.Token);
+        var continentIdMaps = _data.ContinentalIdMap.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
+        var continentsTask = Task.Run(() => CoalesceContinents(DetectContinents(continentIdMaps)), _cancelation.Token);
+        while (!continentsTask.IsCompleted)
+        {
+            yield return new WaitForEndOfFrame();
+        }
+        var continents = continentsTask.Result;
 
         if (_cancelation.IsCancellationRequested)
         {
             _isBaking = false;
             if (Debug) UnityEngine.Debug.Log("Canceled Bake");
-            return;
+            yield break;
         }
 
         UpdateContinentIds(continents);
