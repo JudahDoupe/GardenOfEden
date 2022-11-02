@@ -114,8 +114,7 @@ public class PlateBaker : MonoBehaviour
 
         if (Debug) UnityEngine.Debug.Log($"Finished Bake in {timer.ElapsedMilliseconds} ms");
 
-        SimulationDataStore.UpdatePlateTectonics(_data);
-        SimulationDataStore.UpdateWater(Planet.Data.Water);
+        Planet.Instance.Save();
 
         _isBaking = false;
     }

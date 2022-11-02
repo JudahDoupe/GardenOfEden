@@ -37,7 +37,7 @@ public class HeightMapVisualizer : MonoBehaviour
         Controls.Exhibit.Back.performed += Back;
 
 
-        var map = EnvironmentMapDataStore.GetOrCreate(new EnvironmentMapDbData(Planet, "LandHeightMap"));
+        var map = EnvironmentMapDataStore.GetOrCreate(new EnvironmentMapDbData(Planet, "LandHeightMap")).Result;
         for (int i = 0; i < 6; i++)
         {
             Planes[i].GetComponent<Renderer>().material.SetTexture("HeightMap", map.CachedTextures[i]);

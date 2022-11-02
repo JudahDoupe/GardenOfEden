@@ -32,13 +32,13 @@ public class SystemsController : MonoBehaviour
     }  
     public void DisablePlateTectonics()
     {
-        SimulationDataStore.UpdatePlateTectonics(Planet.Data.PlateTectonics);
         FindObjectOfType<PlateTectonicsSimulation>().Disable();
         FindObjectOfType<PlateTectonicsAudio>().Disable();
         FindObjectOfType<PlateTectonicsVisualization>().Disable();
         FindObjectOfType<PlateBaker>().Disable();
         FindObjectOfType<PlateBaker>().BakePlates();
         FindObjectOfType<WaterSimulation>().Disable();
+        SimulationDataStore.UpdatePlateTectonics(Planet.Data.PlateTectonics).ConfigureAwait(false);
     }
 
     public void EnableGlobe()

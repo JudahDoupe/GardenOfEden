@@ -72,15 +72,18 @@ public class PlateTectonicsData
         PlateThicknessMaps = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "PlateThicknessMaps"));
         TmpPlateThicknessMaps = new EnvironmentMap(planetName, "TmpPlateThicknessMaps");
     }
-    public PlateTectonicsData(PlateTectonicsDbData dbData)
+    public PlateTectonicsData(PlateTectonicsDbData dbData,
+                              EnvironmentMap landHeightMap,
+                              EnvironmentMap continentalIdMap,
+                              EnvironmentMap  plateThicknessMaps)
     {
         PlanetName = dbData.PlanetName;
         MantleHeight = dbData.MantleHeight;
         Plates = dbData.Plates.Select(plateData => new PlateData(plateData)).ToList();
-        LandHeightMap = EnvironmentMapDataStore.GetOrCreate(dbData.LandHeightMap);
-        ContinentalIdMap = EnvironmentMapDataStore.GetOrCreate(dbData.ContinentalIdMap);
+        LandHeightMap = landHeightMap;
+        ContinentalIdMap = continentalIdMap;
         VisualizedContinentalIdMap = new EnvironmentMap(PlanetName, "VisualizedContinentalIdMap", ContinentalIdMap.Layers, ContinentalIdMap.Channels);
-        PlateThicknessMaps = EnvironmentMapDataStore.GetOrCreate(dbData.PlateThicknessMaps);
+        PlateThicknessMaps = plateThicknessMaps;
         TmpPlateThicknessMaps = new EnvironmentMap(PlanetName, "TmpPlateThicknessMaps", PlateThicknessMaps.Layers, PlateThicknessMaps.Channels);
     }
 

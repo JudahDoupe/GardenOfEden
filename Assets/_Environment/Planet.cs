@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-public class Planet : MonoBehaviour
+public class Planet : Singleton<Planet>
 {
     public float RotationSpeed;
     public string Name = "New Planet";
@@ -14,14 +14,21 @@ public class Planet : MonoBehaviour
     public static PlanetData Data;
 
     [ContextMenu("Save")]
-    public static void Save() => PlanetDataStore.Update(Data).ConfigureAwait(false);
-    
+    public void Save() => StartCoroutine(SaveAsync());
+    private IEnumerator SaveAsync()
+    {
+        var dataTask = PlanetDataStore.Update(Data);
+        yield return new WaitUntil(() => dataTask.IsCompleted);
+        Debug.Log("Saved");
+    }
+
     [ContextMenu("Load")]
     public void Load() => StartCoroutine(LoadAsync());
     private IEnumerator LoadAsync()
     {
         var dataTask = PlanetDataStore.GetOrCreate(Name);
         yield return new WaitUntil(() => dataTask.IsCompleted);
+        Debug.Log("Loaded");
         Initialize(dataTask.Result);
     }
 
@@ -31,6 +38,7 @@ public class Planet : MonoBehaviour
     {
         var dataTask = PlanetDataStore.Create(Name);
         yield return new WaitUntil(() => dataTask.IsCompleted);
+        Debug.Log("Reset");
         Initialize(dataTask.Result);
     }
 

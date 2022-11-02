@@ -41,7 +41,7 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     }
     public void Disable()
     {
-        SimulationDataStore.UpdateWater(_data);
+        SimulationDataStore.UpdateWater(_data).ConfigureAwait(false);
         IsActive = false;
     }
     

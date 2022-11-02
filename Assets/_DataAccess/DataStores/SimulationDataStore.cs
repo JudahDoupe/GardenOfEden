@@ -14,7 +14,10 @@ public static class SimulationDataStore
         var dbData = await LoadDataAsync<PlateTectonicsDbData>(PlateTectonicsDataPath(planetName));
 
         if (dbData != null)
-            return new PlateTectonicsData(dbData);
+            return new PlateTectonicsData(dbData,
+                                          await EnvironmentMapDataStore.GetOrCreate(dbData.LandHeightMap),
+                                          await EnvironmentMapDataStore.GetOrCreate(dbData.ContinentalIdMap),
+                                          await EnvironmentMapDataStore.GetOrCreate(dbData.PlateThicknessMaps));
         else
             return await CreatePlateTectonics(planetName);
     }
@@ -28,13 +31,10 @@ public static class SimulationDataStore
 
     public static async Task UpdatePlateTectonics(PlateTectonicsData data)
     {
-        EnvironmentMapDataStore.Update(data.LandHeightMap);
-        EnvironmentMapDataStore.Update(data.ContinentalIdMap);
-        EnvironmentMapDataStore.Update(data.PlateThicknessMaps);
-
-        var dbData = data.ToDbData();
-        var json = JsonUtility.ToJson(dbData);
-        await SaveDataAsync(PlateTectonicsDataPath(data.PlanetName), json);
+        await EnvironmentMapDataStore.Update(data.LandHeightMap);
+        await EnvironmentMapDataStore.Update(data.ContinentalIdMap);
+        await EnvironmentMapDataStore.Update(data.PlateThicknessMaps);
+        await SaveDataAsync(PlateTectonicsDataPath(data.PlanetName), data.ToDbData());
     }
 
     #endregion
@@ -48,21 +48,25 @@ public static class SimulationDataStore
         var dbData = await LoadDataAsync<WaterDbData>(WaterDataPath(planetName));
 
         if (dbData != null)
-            return new WaterData(dbData);
+            return new WaterData(dbData,
+                                 await EnvironmentMapDataStore.GetOrCreate(dbData.WaterMap),
+                                 await EnvironmentMapDataStore.GetOrCreate(dbData.WaterSourceMap),
+                                 await EnvironmentMapDataStore.GetOrCreate(dbData.LandHeightMap));
         else
             return await CreateWater(planetName);
     }
 
     public static async Task<WaterData> CreateWater(string planetName)
     {
-        var data = new WaterData(planetName) { NeedsRegeneration = true };
+        var landMap = await EnvironmentMapDataStore.GetOrCreate(new EnvironmentMapDbData(planetName, "LandHeightMap"));
+        var data = new WaterData(planetName, landMap) { NeedsRegeneration = true };
         await UpdateWater(data);
         return data;
     }
 
     public static async Task UpdateWater(WaterData data)
     {
-        EnvironmentMapDataStore.Update(data.WaterMap);
+        await EnvironmentMapDataStore.Update(data.WaterMap);
 
         await SaveDataAsync(WaterDataPath(data.PlanetName), data.ToDbData());
     }
