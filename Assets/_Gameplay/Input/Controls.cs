@@ -157,6 +157,15 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""processors"": ""Invert"",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""MoveModifier"",
+                    ""type"": ""Value"",
+                    ""id"": ""85cd4c22-55a2-4f00-953e-32ea6bd7d599"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -335,6 +344,39 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                     ""action"": ""Scroll"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""1D Axis"",
+                    ""id"": ""67f8cf0d-a4ce-4d7c-b3d1-b94a9c4b93f3"",
+                    ""path"": ""1DAxis(minValue=-0.7,maxValue=1.5)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveModifier"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""negative"",
+                    ""id"": ""39a4de9c-8994-465e-81d1-bf82c0fe7318"",
+                    ""path"": ""<Keyboard>/ctrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveModifier"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""positive"",
+                    ""id"": ""ff9f47ae-3c88-4895-98bd-cb284389d2d5"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveModifier"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         }
@@ -361,6 +403,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         m_Standard_Cancel = m_Standard.FindAction("Cancel", throwIfNotFound: true);
         m_Standard_RightClick = m_Standard.FindAction("RightClick", throwIfNotFound: true);
         m_Standard_Scroll = m_Standard.FindAction("Scroll", throwIfNotFound: true);
+        m_Standard_MoveModifier = m_Standard.FindAction("MoveModifier", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -469,6 +512,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
     private readonly InputAction m_Standard_Cancel;
     private readonly InputAction m_Standard_RightClick;
     private readonly InputAction m_Standard_Scroll;
+    private readonly InputAction m_Standard_MoveModifier;
     public struct StandardActions
     {
         private @Controls m_Wrapper;
@@ -481,6 +525,7 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         public InputAction @Cancel => m_Wrapper.m_Standard_Cancel;
         public InputAction @RightClick => m_Wrapper.m_Standard_RightClick;
         public InputAction @Scroll => m_Wrapper.m_Standard_Scroll;
+        public InputAction @MoveModifier => m_Wrapper.m_Standard_MoveModifier;
         public InputActionMap Get() { return m_Wrapper.m_Standard; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -514,6 +559,9 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 @Scroll.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnScroll;
                 @Scroll.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnScroll;
                 @Scroll.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnScroll;
+                @MoveModifier.started -= m_Wrapper.m_StandardActionsCallbackInterface.OnMoveModifier;
+                @MoveModifier.performed -= m_Wrapper.m_StandardActionsCallbackInterface.OnMoveModifier;
+                @MoveModifier.canceled -= m_Wrapper.m_StandardActionsCallbackInterface.OnMoveModifier;
             }
             m_Wrapper.m_StandardActionsCallbackInterface = instance;
             if (instance != null)
@@ -542,6 +590,9 @@ public partial class @Controls : IInputActionCollection2, IDisposable
                 @Scroll.started += instance.OnScroll;
                 @Scroll.performed += instance.OnScroll;
                 @Scroll.canceled += instance.OnScroll;
+                @MoveModifier.started += instance.OnMoveModifier;
+                @MoveModifier.performed += instance.OnMoveModifier;
+                @MoveModifier.canceled += instance.OnMoveModifier;
             }
         }
     }
@@ -570,5 +621,6 @@ public partial class @Controls : IInputActionCollection2, IDisposable
         void OnCancel(InputAction.CallbackContext context);
         void OnRightClick(InputAction.CallbackContext context);
         void OnScroll(InputAction.CallbackContext context);
+        void OnMoveModifier(InputAction.CallbackContext context);
     }
 }

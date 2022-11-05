@@ -101,18 +101,30 @@ public class LandscapeCamera : CameraPerspective
 
         var currentState = CameraController.CurrentState;
         currentState.Camera.transform.parent = currentState.Focus;
-        
+
         _cameraAltitude = currentState.Camera.transform.position.magnitude;
         _cameraDistance = math.clamp(Vector3.Distance(currentState.Focus.position, currentState.Camera.transform.position), Near.Distance, Far.Distance);
         _cameraSetbackT = 0;
 
         InputAdapter.LeftMove.Subscribe(this);
         InputAdapter.Scroll.Subscribe(this);
+        InputAdapter.MoveModifier.Subscribe(this);
         InputAdapter.Click.Subscribe(this,
-            startCallback: () => _isDragging = true,
-            finishCallback: () => _isDragging = false,
+            startCallback: () =>
+            {
+                _horizontalDragDirection = Convert.ToInt32(Mouse.current.position.ReadValue().y < (Screen.height / 2)) * 2 - 1;
+                _isDragging = true;
+                Cursor.visible = false;
+            },
+            finishCallback: () =>
+            {
+                Cursor.visible = true;
+                _isDragging = false;
+            },
+
             priority: InputPriority.Low);
         InputAdapter.Drag.Subscribe(this, priority: InputPriority.Low);
+        InputAdapter.Cancel.Subscribe(this, () => FindObjectOfType<PlateTectonicsToolbar>().MovePlates());
     }
     
     public override void Disable()
@@ -121,8 +133,10 @@ public class LandscapeCamera : CameraPerspective
         Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
         InputAdapter.LeftMove.Unubscribe(this);
         InputAdapter.Scroll.Unubscribe(this);
+        InputAdapter.MoveModifier.Unubscribe(this);
         InputAdapter.Click.Unubscribe(this);
         InputAdapter.Drag.Unubscribe(this);
+        InputAdapter.Cancel.Unubscribe(this);
     }
     
 #endregion
@@ -203,13 +217,19 @@ public class LandscapeCamera : CameraPerspective
     };
     private InputData _lastInput;
     private InputData _velocity;
+    private int _horizontalDragDirection;
     
     private InputData GetInput()
     {
+        var horizontal = new Vector2(_horizontalDragDirection, 1);
         var t = Ease.Out((MinAltitude - _cameraAltitude) / (MinAltitude - MaxAltitude));
-        var drag = Mouse.current.delta.ReadValue() * DragSpeed * Convert.ToInt16(_isDragging);
-        var zoom = math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * InputAdapter.Scroll.Read(this) * Time.deltaTime;
-        var strafe = math.lerp(Near.StrafeSpeed, Far.StrafeSpeed, t) * InputAdapter.LeftMove.Read(this) * Time.deltaTime;
+
+        var speedMultiuplier = 1 + InputAdapter.MoveModifier.Read(this);
+        var strafe = InputAdapter.LeftMove.Read(this) * math.lerp(Near.StrafeSpeed, Far.StrafeSpeed, t) * Time.deltaTime * speedMultiuplier;
+
+        var zoom = InputAdapter.Scroll.Read(this) * math.exp(math.lerp(math.log(Near.ZoomSpeed), math.log(Far.ZoomSpeed), t)) * Time.deltaTime * speedMultiuplier;
+
+        var drag = Mouse.current.delta.ReadValue() * DragSpeed * Convert.ToInt16(_isDragging) * horizontal;
         var rotation = RotationSpeed * (drag.x + InputAdapter.LeftMove.Read(this).x) * Time.deltaTime;
         var pitch = PitchSpeed * (drag.y + InputAdapter.RightMove.Read(this).y) * Time.deltaTime;
 

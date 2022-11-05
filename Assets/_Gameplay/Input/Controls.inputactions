@@ -135,6 +135,15 @@
                     "processors": "Invert",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "MoveModifier",
+                    "type": "Value",
+                    "id": "85cd4c22-55a2-4f00-953e-32ea6bd7d599",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -313,6 +322,39 @@
                     "action": "Scroll",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "1D Axis",
+                    "id": "67f8cf0d-a4ce-4d7c-b3d1-b94a9c4b93f3",
+                    "path": "1DAxis(minValue=-0.7,maxValue=1.5)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveModifier",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "39a4de9c-8994-465e-81d1-bf82c0fe7318",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveModifier",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "ff9f47ae-3c88-4895-98bd-cb284389d2d5",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveModifier",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         }

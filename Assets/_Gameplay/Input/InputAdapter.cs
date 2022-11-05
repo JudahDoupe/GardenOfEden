@@ -23,6 +23,10 @@ public class InputAdapter : Singleton<InputAdapter>
     /// </summary>
     public static PriorityAction<float> Scroll { get; private set; }
     /// <summary>
+    /// Returns a speed modifier
+    /// </summary>
+    public static PriorityAction<float> MoveModifier { get; private set; }
+    /// <summary>
     /// Returns the normalizeed movement vector
     /// </summary>
     public static PriorityAction<Vector2> LeftMove { get; private set; }
@@ -49,6 +53,7 @@ public class InputAdapter : Singleton<InputAdapter>
         RightClick = new PriorityAction(_controls.Standard.RightClick);
         Drag = new PriorityAction<Vector2>(_controls.Standard.Drag);
         Scroll = new PriorityAction<float>(_controls.Standard.Scroll);
+        MoveModifier = new PriorityAction<float>(_controls.Standard.MoveModifier);
         LeftMove = new PriorityAction<Vector2>(_controls.Standard.LeftMove);
         RightMove = new PriorityAction<Vector2>(_controls.Standard.RightMove);
         Confirm = new PriorityAction(_controls.Standard.Confirm);
