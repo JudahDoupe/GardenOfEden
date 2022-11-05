@@ -20,22 +20,21 @@ public class PlateTectonicsData
     public PlateData AddPlate(float id)
     {
         var plate = new PlateData(id, Plates.Count);
-        var currentLayerCount = Plates.Count * 6;
-        var newLayerCount = (Plates.Count + 1) * 6;
 
-        if (Plates.Count > 0)
-        {
-            Graphics.CopyTexture(PlateThicknessMaps.RenderTexture, TmpPlateThicknessMaps.RenderTexture);
-        }
+        var oldLayerCount = Plates.Count * 6;
+        TmpPlateThicknessMaps.Layers = oldLayerCount;
+        Graphics.CopyTexture(PlateThicknessMaps.RenderTexture, TmpPlateThicknessMaps.RenderTexture);
 
+        Plates.Add(plate);
+
+        var newLayerCount = Plates.Count * 6;
         PlateThicknessMaps.Layers = newLayerCount;
-        for (var i = 0; i < currentLayerCount; i++)
+        for (var i = 0; i < oldLayerCount; i++)
         {
             Graphics.CopyTexture(TmpPlateThicknessMaps.RenderTexture, i, PlateThicknessMaps.RenderTexture, i);
         }
-        TmpPlateThicknessMaps.Layers = newLayerCount;
 
-        Plates.Add(plate);
+
         return plate;
     }
     public void RemovePlate(float id)
@@ -43,10 +42,13 @@ public class PlateTectonicsData
         var plate = GetPlate(id);
         if (plate == null) return;
 
-        Plates.Remove(plate);
-        var newLayerCount = Plates.Count * 6;
-
+        var oldLayerCount = Plates.Count * 6;
+        TmpPlateThicknessMaps.Layers = oldLayerCount;
         Graphics.CopyTexture(PlateThicknessMaps.RenderTexture, TmpPlateThicknessMaps.RenderTexture);
+
+        Plates.Remove(plate);
+
+        var newLayerCount = Plates.Count * 6;
         PlateThicknessMaps.Layers = newLayerCount;
         foreach (var p in Plates)
         {
@@ -57,7 +59,6 @@ public class PlateTectonicsData
             }
             p.Idx = newIdx;
         }
-        TmpPlateThicknessMaps.Layers = newLayerCount;
     }
 
 

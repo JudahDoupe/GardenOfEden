@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
@@ -12,7 +13,7 @@ public class EnvironmentMap
     public string PlanetName { get; }
     public string Name { get; }
     public int Channels { get; }
-    public int Layers { get => RenderTexture.volumeDepth; set => ResetTexture(value); }
+    public int Layers { get => RenderTexture.volumeDepth; set => SetLayers(value); }
     public RenderTextureFormat RenderTextureFormat => Channels switch
     {
         1 => RenderTextureFormat.RFloat,
@@ -129,7 +130,6 @@ public class EnvironmentMap
     public Color SamplePoint(Coordinate coord) => SamplePoint(coord.TextureXyw);
     public Color SamplePoint(int3 xyw) => CachedTextures[xyw.z].GetPixel(xyw.x, xyw.y);
 
-    public void ResetTexture() => ResetTexture(Layers);
     private void ResetTexture(int layers)
     {
         RenderTexture.Release();
@@ -145,6 +145,27 @@ public class EnvironmentMap
         for (var i = 0; i < layers; i++)
         {
             CachedTextures[i] = new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat, false);
+        }
+    }
+
+    private void SetLayers(int layers)
+    {
+        RenderTexture.Release();
+        RenderTexture.dimension = TextureDimension.Tex2DArray;
+        RenderTexture.volumeDepth = layers;
+        RenderTexture.wrapMode = TextureWrapMode.Clamp;
+        RenderTexture.filterMode = FilterMode.Bilinear;
+        RenderTexture.enableRandomWrite = true;
+        RenderTexture.isPowerOfTwo = true;
+        RenderTexture.Create();
+
+        var cacheQueue = new Queue<Texture2D>(CachedTextures);
+        CachedTextures = new Texture2D[layers];
+        for (var i = 0; i < layers; i++)
+        {
+            CachedTextures[i] = cacheQueue.TryDequeue(out var tex) 
+                ? tex 
+                : new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat, false);
         }
     }
 }
