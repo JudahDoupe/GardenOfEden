@@ -6,12 +6,11 @@ public class PlateTectonicsAudio : MonoBehaviour
 {
     [Range(0, 1)]
     public float AudioLerpSpeed = 1;
-    [Range(0, 2)]
-    public float RumbleThreshhold = 0.5f;
-    public AudioSource RumbleSound;
-    [Range(0, 2)]
-    public float BoulderThreshhold = 1;
-    public AudioSource BoulderSound;
+    public float MoveThreshhold = 2f;
+    public float PitchVariation = 0.5f;
+    public AudioSource MovePlateSound;
+    public AudioSource BreakPlateSound;
+    public AudioSource MergePlateSound;
 
     private PlateTectonicsData _data;
     public bool IsInitialized => _data != null;
@@ -24,23 +23,31 @@ public class PlateTectonicsAudio : MonoBehaviour
     public void Enable()
     {
         if (!IsInitialized) return;
-        RumbleSound.Play();
-        BoulderSound.Play();
+        MovePlateSound.Play();
         IsActive = true;
     }
     public void Disable()
     {
-        RumbleSound.Stop();
-        BoulderSound.Stop();
+        MovePlateSound.Stop();
         IsActive = false;
     }
 
-    public void Update()
+    public void BreakPlate()
+    {
+        BreakPlateSound.pitch = UnityEngine.Random.Range(1 - PitchVariation, 1 + PitchVariation);
+        BreakPlateSound.Play();
+    }
+    public void MergePlate()
+    {
+        MergePlateSound.pitch = UnityEngine.Random.Range(1 - PitchVariation, 1 + PitchVariation);
+        MergePlateSound.Play();
+    }
+
+    private void Update()
     {
         if (!IsActive) return;
         var velocity = _data.Plates.Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
-        RumbleSound.volume = GetVolume(RumbleSound.volume, velocity, RumbleThreshhold);
-        BoulderSound.volume = GetVolume(BoulderSound.volume, velocity, BoulderThreshhold);
+        MovePlateSound.volume = GetVolume(MovePlateSound.volume, velocity, MoveThreshhold);
     }
     private float GetVolume(float volume, float velocity, float threshold)
     {

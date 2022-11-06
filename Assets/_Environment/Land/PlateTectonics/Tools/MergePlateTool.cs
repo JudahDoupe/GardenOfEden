@@ -12,16 +12,19 @@ public class MergePlateTool : MonoBehaviour, ITool
 
     private PlateTectonicsData _data;
     private PlateTectonicsVisualization _visualization;
+    private PlateTectonicsAudio _audio;
     private PlateTectonicsSimulation _simulation;
     private PlateData selectedPlate;
 
     public void Initialize(PlateTectonicsData data,
         PlateTectonicsSimulation simulation,
-        PlateTectonicsVisualization visualization)
+        PlateTectonicsVisualization visualization,
+        PlateTectonicsAudio audio)
     {
         _data = data;
         _simulation = simulation;
         _visualization = visualization;
+        _audio = audio;
         IsInitialized = true;
     }
     public void Enable()
@@ -107,6 +110,7 @@ public class MergePlateTool : MonoBehaviour, ITool
         _data.RemovePlate(selectedPlate.Id);
         _data.ContinentalIdMap.RefreshCache();
         selectedPlate = null;
+        _audio.MergePlate();
 
         void MergePlatesOnGpu(float oldId, float newId, PlateData oldPlate, PlateData newPlate)
         {

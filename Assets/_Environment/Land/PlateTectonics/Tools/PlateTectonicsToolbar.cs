@@ -1,5 +1,4 @@
 using Assets.GamePlay.Cameras;
-using UnityEngine;
 using Assets.Scripts.Utils;
 
 public class PlateTectonicsToolbar : MenuUi
@@ -10,6 +9,7 @@ public class PlateTectonicsToolbar : MenuUi
     private MergePlateTool _mergePlateTool;
     private PlateTectonicsSimulation _simulation;
     private PlateTectonicsVisualization _visualization;
+    private PlateTectonicsAudio _audio;
     private PlateBaker _baker;
     private bool _isInitialized;
 
@@ -17,13 +17,14 @@ public class PlateTectonicsToolbar : MenuUi
     {
         _simulation = FindObjectOfType<PlateTectonicsSimulation>();
         _visualization = FindObjectOfType<PlateTectonicsVisualization>();
+        _audio = FindObjectOfType<PlateTectonicsAudio>();
         _baker = FindObjectOfType<PlateBaker>();
         _movePlateTool = FindObjectOfType<MovePlateTool>();
         _movePlateTool.Initialize(data, _simulation, _visualization, _baker);
         _breakPlateTool = FindObjectOfType<BreakPlateTool>();
-        _breakPlateTool.Initialize(data, _simulation, _visualization, _baker);
+        _breakPlateTool.Initialize(data, _simulation, _visualization, _audio, _baker);
         _mergePlateTool = FindObjectOfType<MergePlateTool>();
-        _mergePlateTool.Initialize(data, _simulation, _visualization);
+        _mergePlateTool.Initialize(data, _simulation, _visualization, _audio);
         _isInitialized = true;
     }
     public override void Enable()

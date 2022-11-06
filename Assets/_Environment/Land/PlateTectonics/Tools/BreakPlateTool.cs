@@ -16,6 +16,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
     private PlateTectonicsData _data;
     private PlateTectonicsVisualization _visualization;
+    private PlateTectonicsAudio _audio;
     private PlateTectonicsSimulation _simulation;
     private PlateBaker _baker;
     private Break? _break;
@@ -23,11 +24,13 @@ public class BreakPlateTool : MonoBehaviour, ITool
     public void Initialize(PlateTectonicsData data,
                            PlateTectonicsSimulation simulation,
                            PlateTectonicsVisualization visualization,
+                           PlateTectonicsAudio audio,
                            PlateBaker baker)
     {
         _data = data;
         _simulation = simulation;
         _visualization = visualization;
+        _audio = audio;
         _baker = baker;
         IsInitialized = true;
     }
@@ -110,6 +113,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
         @break.NewPlateIdx = plate.Idx;
 
         RunKernel("BreakPlate", @break);
+        _audio.BreakPlate();
 
         _data.ContinentalIdMap.RefreshCache();
         return null;
