@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public static class TransformExtensions
@@ -52,5 +55,27 @@ public static class TransformExtensions
         return options.Aggregate((curMin, x) =>
                 curMin == null ||
                 Vector3.Distance(x.transform.position, target) < Vector3.Distance(curMin.transform.position, target) ? x : curMin);
+    }
+
+    public static void RunTaskInCoroutine<T>(this MonoBehaviour transform, Task<T> task, Action<T> callback = null)
+    {
+        transform.StartCoroutine(Coroutine());
+
+        IEnumerator Coroutine()
+        {
+            yield return new WaitUntil(() => task.IsCompleted);
+            if (callback != null) callback(task.Result);
+        }
+    }
+
+    public static void RunTaskInCoroutine(this MonoBehaviour transform, Task task, Action callback = null)
+    {
+        transform.StartCoroutine(Coroutine());
+
+        IEnumerator Coroutine()
+        {
+            yield return new WaitUntil(() => task.IsCompleted);
+            if (callback != null) callback();
+        }
     }
 }

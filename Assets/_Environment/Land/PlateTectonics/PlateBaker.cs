@@ -119,8 +119,6 @@ public class PlateBaker : MonoBehaviour
 
         if (Debug) UnityEngine.Debug.Log($"Finished Bake in {timer.ElapsedMilliseconds} ms");
 
-        Planet.Instance.Save();
-
         _isBaking = false;
     }
 

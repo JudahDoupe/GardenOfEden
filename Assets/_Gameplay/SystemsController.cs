@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class SystemsController : MonoBehaviour
@@ -35,10 +37,15 @@ public class SystemsController : MonoBehaviour
         FindObjectOfType<PlateTectonicsSimulation>().Disable();
         FindObjectOfType<PlateTectonicsAudio>().Disable();
         FindObjectOfType<PlateTectonicsVisualization>().Disable();
+        FindObjectOfType<WaterSimulation>().Disable();
         FindObjectOfType<PlateBaker>().Disable();
         FindObjectOfType<PlateBaker>().BakePlates();
-        FindObjectOfType<WaterSimulation>().Disable();
-        SimulationDataStore.UpdatePlateTectonics(Planet.Data.PlateTectonics).ConfigureAwait(false);
+
+        Planet.Instance.RunTaskInCoroutine(Task.WhenAll(new List<Task>
+        {
+            SimulationDataStore.UpdatePlateTectonics(Planet.Data.PlateTectonics),
+            SimulationDataStore.UpdateWater(Planet.Data.Water),
+        }));
     }
 
     public void EnableGlobe()

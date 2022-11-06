@@ -50,7 +50,6 @@ public class WaterSimulation : MonoBehaviour, ISimulation
         if (IsActive)
         {
             RunKernel("Update");
-            _data.WaterMap.RefreshCache(); 
             UpdateVisualization();
         }
     }

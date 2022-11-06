@@ -81,7 +81,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public void UpdateContinentalIdMap()
     {
         RunTectonicKernel("UpdateContinentalIdMap");
-        _data.ContinentalIdMap.RefreshCache();
     }
     public void UpdatePlateThicknessMaps()
     {
@@ -91,7 +90,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     {
         RunTectonicKernel("UpdateHeightMap");
         RunTectonicKernel("SmoothPlates");
-        _data.LandHeightMap.RefreshCache();
     }
   
     private void RunTectonicKernel(string kernelName)

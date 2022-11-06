@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using System.IO;
 using System.Threading.Tasks;
+using System.Collections;
 
 public static class EnvironmentMapDataStore
 {
@@ -28,12 +29,7 @@ public static class EnvironmentMapDataStore
 
         map.RefreshCache(() =>
         {
-            var rawData = new List<(int, byte[])>();
-            foreach (var (tex, i) in map.CachedTextures.WithIndex())
-            {
-                rawData.Add((i, tex.GetRawTextureData()));
-            }
-            refreshTaskSource.TrySetResult(rawData);
+            Planet.Instance.StartCoroutine(ReadTextureData(map, refreshTaskSource));
         });
 
         var folderPath = $"{Application.persistentDataPath}/{map.PlanetName}/{map.Name}";
@@ -50,6 +46,17 @@ public static class EnvironmentMapDataStore
                 File.WriteAllBytes(filePath, data);
             }
         });
+    }
+
+    private static IEnumerator ReadTextureData(EnvironmentMap map, TaskCompletionSource<List<(int, byte[])>> refreshTaskSource)
+    {
+        var rawData = new List<(int, byte[])>();
+        foreach (var (tex, i) in map.CachedTextures.WithIndex())
+        {
+            rawData.Add((i, tex.GetRawTextureData()));
+            yield return new WaitForEndOfFrame();
+        }
+        refreshTaskSource.TrySetResult(rawData);
     }
 
     private static async Task<EnvironmentMap> LoadDataAsync(EnvironmentMapDbData dbData)
