@@ -123,6 +123,11 @@ public class EnvironmentMap
         Graphics.Blit(tex, RenderTexture);
         RefreshCache();
     }
+    public void SetTextures(EnvironmentMap map)
+    {
+        Graphics.Blit(map.RenderTexture, RenderTexture);
+        RefreshCache();
+    }
 
     public Color Sample(Coordinate coord) => Sample(coord.TextureUvw);
     public Color Sample(float3 uvw) => CachedTextures[(int)math.round(uvw.z)].GetPixelBilinear(uvw.x, uvw.y, 0);

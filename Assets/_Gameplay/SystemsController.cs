@@ -19,7 +19,9 @@ public class SystemsController : MonoBehaviour
         FindObjectOfType<PlateTectonicsAudio>().Initialize(data.PlateTectonics);
         FindObjectOfType<PlateTectonicsToolbar>().Initialize(data.PlateTectonics);
         FindObjectOfType<PlateBaker>().Initialize(data.PlateTectonics);
-        
+        FindObjectOfType<PlateBakerV2>().Initialize(data.PlateTectonics);
+
+
         FindObjectOfType<WaterSimulation>().Initialize(data.Water);
     }
 

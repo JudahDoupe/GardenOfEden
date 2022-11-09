@@ -1,6 +1,7 @@
-#pragma kernel StartAligningPlateThicknessMaps
-#pragma kernel FinishAligningPlateThicknessMaps
+#pragma kernel AlignPlateThicknessMaps
 #pragma kernel BakePlates
+#pragma kernel InitializeLabeling
+#pragma kernel RunLabelingItteration
 
 #include "PlateTectonicsInclude.hlsl"
 
@@ -9,8 +10,15 @@ RWTexture2DArray<float> TmpPlateThicknessMaps;
 RWTexture2DArray<float> ContinentalIdMap;
 RWTexture2DArray<float> TmpContinentalIdMap;
 
+struct LabelData
+{
+    int Changed;
+}; 
+RWStructuredBuffer<LabelData> Label;
+
+
 [numthreads(8, 8, 6)]
-void StartAligningPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
+void AlignPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 {
     float3 xyz = xyw_to_xyz(id, MantleHeight);
 	
@@ -23,15 +31,6 @@ void StartAligningPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
     }
 }
 
-[numthreads(8, 8, 6)]
-void FinishAligningPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
-{
-    for (uint p = 0; p < NumPlates; p++)
-    {
-        uint3 xyp = uint3(id.xy, id.z + p * 6);
-        PlateThicknessMaps[xyp] = TmpPlateThicknessMaps[xyp];
-    }
-}
 
 [numthreads(8, 8, 6)]
 void BakePlates(uint3 id : SV_DispatchThreadID)
@@ -48,4 +47,49 @@ void BakePlates(uint3 id : SV_DispatchThreadID)
     PlateThicknessMaps[oldXyp] = newThickness;
     PlateThicknessMaps[newXyp] = oldThickness;
     ContinentalIdMap[id] = newId;
+}
+
+int cantor(uint a, uint b) {
+   return (a + b + 1) * (a + b) / 2 + b;
+}
+int hash(uint3 id) {
+   return cantor(id.x, cantor(id.y, id.z));
+}
+
+[numthreads(8, 8, 6)]
+void InitializeLabeling(uint3 id : SV_DispatchThreadID)
+{
+    TmpContinentalIdMap[id] = hash(id);
+}
+
+int Changed = 1;
+
+[numthreads(8, 8, 6)]
+void RunLabelingItteration(uint3 id : SV_DispatchThreadID)
+{
+    uint3 center = get_source_xyw(id);
+    uint3 left = get_source_xyw(center + uint3(-1,0,0));
+    uint3 right = get_source_xyw(center + uint3(1,0,0));
+    uint3 up = get_source_xyw(center + uint3(0,1,0));
+    uint3 down = get_source_xyw(center + uint3(0,-1,0));
+
+    [allow_uav_condition] 
+    while(Label[0].Changed > 0){
+        Label[0].Changed = 0;
+
+        int upChanged = TmpContinentalIdMap[up] < TmpContinentalIdMap[id] && ContinentalIdMap[up] == ContinentalIdMap[center];
+        TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[up] * upChanged);
+
+        int rightChanged = TmpContinentalIdMap[right] < TmpContinentalIdMap[id] && ContinentalIdMap[right] == ContinentalIdMap[center];
+        TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[right] * rightChanged);
+        
+        int downChanged = TmpContinentalIdMap[down] < TmpContinentalIdMap[id] && ContinentalIdMap[down] == ContinentalIdMap[center];
+        TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[down] * downChanged);
+        
+        int leftChanged = TmpContinentalIdMap[left] < TmpContinentalIdMap[id] && ContinentalIdMap[left] == ContinentalIdMap[center];
+        TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[left] * leftChanged);
+        
+        Label[0].Changed = upChanged + rightChanged + downChanged + leftChanged;
+        AllMemoryBarrierWithGroupSync();
+    }
 }
