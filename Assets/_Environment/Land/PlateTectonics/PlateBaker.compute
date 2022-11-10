@@ -1,7 +1,7 @@
 #pragma kernel AlignPlateThicknessMaps
 #pragma kernel BakePlates
 #pragma kernel InitializeLabeling
-#pragma kernel RunLabelingItteration
+#pragma kernel RunLabelingIteration
 
 #include "PlateTectonicsInclude.hlsl"
 
@@ -62,34 +62,29 @@ void InitializeLabeling(uint3 id : SV_DispatchThreadID)
     TmpContinentalIdMap[id] = hash(id);
 }
 
-int Changed = 1;
-
 [numthreads(8, 8, 6)]
-void RunLabelingItteration(uint3 id : SV_DispatchThreadID)
+void RunLabelingIteration(uint3 id : SV_DispatchThreadID)
 {
     uint3 center = get_source_xyw(id);
     uint3 left = get_source_xyw(center + uint3(-1,0,0));
     uint3 right = get_source_xyw(center + uint3(1,0,0));
     uint3 up = get_source_xyw(center + uint3(0,1,0));
     uint3 down = get_source_xyw(center + uint3(0,-1,0));
+    
+    int upChanged = TmpContinentalIdMap[up] > TmpContinentalIdMap[id] && ContinentalIdMap[up] == ContinentalIdMap[center];
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[up] * upChanged);
 
-    [allow_uav_condition] 
-    while(Label[0].Changed > 0){
-        Label[0].Changed = 0;
+    int rightChanged = TmpContinentalIdMap[right] > TmpContinentalIdMap[id] && ContinentalIdMap[right] == ContinentalIdMap[center];
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[right] * rightChanged);
+    
+    int downChanged = TmpContinentalIdMap[down] > TmpContinentalIdMap[id] && ContinentalIdMap[down] == ContinentalIdMap[center];
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[down] * downChanged);
+    
+    int leftChanged = TmpContinentalIdMap[left] > TmpContinentalIdMap[id] && ContinentalIdMap[left] == ContinentalIdMap[center];
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[left] * leftChanged);
 
-        int upChanged = TmpContinentalIdMap[up] < TmpContinentalIdMap[id] && ContinentalIdMap[up] == ContinentalIdMap[center];
-        TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[up] * upChanged);
-
-        int rightChanged = TmpContinentalIdMap[right] < TmpContinentalIdMap[id] && ContinentalIdMap[right] == ContinentalIdMap[center];
-        TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[right] * rightChanged);
-        
-        int downChanged = TmpContinentalIdMap[down] < TmpContinentalIdMap[id] && ContinentalIdMap[down] == ContinentalIdMap[center];
-        TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[down] * downChanged);
-        
-        int leftChanged = TmpContinentalIdMap[left] < TmpContinentalIdMap[id] && ContinentalIdMap[left] == ContinentalIdMap[center];
-        TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[left] * leftChanged);
-        
-        Label[0].Changed = upChanged + rightChanged + downChanged + leftChanged;
-        AllMemoryBarrierWithGroupSync();
+    if (upChanged + rightChanged + downChanged + leftChanged > 0)
+    {
+        Label[0].Changed = 1;
     }
 }

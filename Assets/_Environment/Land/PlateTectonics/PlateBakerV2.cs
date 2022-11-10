@@ -9,6 +9,7 @@ public class PlateBakerV2 : MonoBehaviour
 {
     public ComputeShader BakePlatesShader;
     public int MinContinentSize = 2500;
+    public int MsBudget = 5;
 
     private EnvironmentMap _tmpPlateThicknessMaps;
     private EnvironmentMap _tmpContinentalIdMap;
@@ -40,8 +41,7 @@ public class PlateBakerV2 : MonoBehaviour
         AlignPlates();
         yield return new WaitForEndOfFrame();
 
-        LabelContinents();
-        yield return new WaitForEndOfFrame();
+        yield return LabelContinents();
 
         var relabels = IdentifyRelabels();
         yield return new WaitForEndOfFrame();
@@ -72,15 +72,32 @@ public class PlateBakerV2 : MonoBehaviour
         UnityEngine.Debug.Log($"Align Plates Time: {stopwatch.ElapsedMilliseconds}ms");
     }
 
-    private void LabelContinents()
+    private IEnumerator LabelContinents()
     {
-        var stopwatch = new Stopwatch();
-        stopwatch.Restart();
+        var totalStopwatch = new Stopwatch();
+        var fameStopwatch = new Stopwatch();
 
-        var itterations = 0;
+        fameStopwatch.Restart();
+        totalStopwatch.Restart();
+        
+        var iterations = 0;
+        var frames = 0;
+        
         RunTectonicKernel("InitializeLabeling");
-        RunTectonicKernel("RunLabelingItteration");
-        UnityEngine.Debug.Log($"Labeling Time: {stopwatch.ElapsedMilliseconds}ms");
+        while (RunTectonicKernel("RunLabelingIteration"))
+        {
+            iterations++;
+            if (fameStopwatch.ElapsedMilliseconds > MsBudget)
+            {
+                yield return new WaitForEndOfFrame();
+                fameStopwatch.Restart();
+                frames++;
+            } 
+        }
+        
+        UnityEngine.Debug.Log($"Labeling Time: {totalStopwatch.ElapsedMilliseconds}ms");
+        UnityEngine.Debug.Log($"Labeling Iterations: {iterations}");
+        UnityEngine.Debug.Log($"Labeling Frames: {frames}");
     }
 
     private Dictionary<float, float> IdentifyRelabels()
