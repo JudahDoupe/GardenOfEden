@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class PlateBakerV2 : MonoBehaviour
@@ -14,6 +15,7 @@ public class PlateBakerV2 : MonoBehaviour
     private EnvironmentMap _tmpPlateThicknessMaps;
     private EnvironmentMap _tmpContinentalIdMap;
     private PlateTectonicsData _data;
+    private Dictionary<float, float> _continentMerges;
 
     private void Update()
     {
@@ -25,6 +27,7 @@ public class PlateBakerV2 : MonoBehaviour
     {
         _data = data;
         _tmpContinentalIdMap = new EnvironmentMap(_data.ContinentalIdMap.ToDbData());
+        _tmpPlateThicknessMaps = new EnvironmentMap(_data.PlateThicknessMaps.ToDbData());
     }
 
     public void BakePlates()
@@ -38,29 +41,29 @@ public class PlateBakerV2 : MonoBehaviour
         var stopwatch = new Stopwatch();
         stopwatch.Restart();
 
-        AlignPlates();
-        yield return new WaitForEndOfFrame();
+        yield return AlignPlates();
 
         yield return LabelContinents();
 
-        var relabels = IdentifyRelabels();
-        yield return new WaitForEndOfFrame();
+        yield return IdentifyRelabels();
 
-        RelabelContinents(relabels);
-        yield return new WaitForEndOfFrame();
+        yield return RelabelContinents();
 
-        SyncCpuData(relabels.Values.Distinct().ToList());
-        SyncGpuData();
+        yield return SyncData();
 
         UnityEngine.Debug.Log($"Bake Time: {stopwatch.ElapsedMilliseconds}ms");
     }
 
-    private void AlignPlates()
+    #region Steps
+
+    private IEnumerator AlignPlates()
     {
         var stopwatch = new Stopwatch();
         stopwatch.Restart();
 
-        _tmpPlateThicknessMaps = new EnvironmentMap(_data.PlateThicknessMaps.ToDbData());
+        _tmpPlateThicknessMaps.Layers = _data.PlateThicknessMaps.Layers;
+        yield return new WaitForEndOfFrame();
+
         RunTectonicKernel("AlignPlateThicknessMaps");
         foreach (var plate in _data.Plates)
         {
@@ -69,7 +72,8 @@ public class PlateBakerV2 : MonoBehaviour
         }
         _data.PlateThicknessMaps.SetTextures(_tmpPlateThicknessMaps);
 
-        UnityEngine.Debug.Log($"Align Plates Time: {stopwatch.ElapsedMilliseconds}ms");
+        UnityEngine.Debug.Log($"Align Plates Time: {stopwatch.ElapsedMilliseconds}ms | Frames: {2}");
+        yield return new WaitForEndOfFrame();
     }
 
     private IEnumerator LabelContinents()
@@ -95,35 +99,126 @@ public class PlateBakerV2 : MonoBehaviour
             } 
         }
         
-        UnityEngine.Debug.Log($"Labeling Time: {totalStopwatch.ElapsedMilliseconds}ms");
-        UnityEngine.Debug.Log($"Labeling Iterations: {iterations}");
-        UnityEngine.Debug.Log($"Labeling Frames: {frames}");
+        UnityEngine.Debug.Log($"Labeling Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames} | Iterations: {iterations}");
+        yield return new WaitForEndOfFrame();
     }
 
-    private Dictionary<float, float> IdentifyRelabels()
+    private IEnumerator IdentifyRelabels()
     {
+        var frames = 0;
+        var totalStopwatch = new Stopwatch();
+        var fameStopwatch = new Stopwatch();
+
+        fameStopwatch.Restart();
+        totalStopwatch.Restart();
+
+        yield return new WaitForEndOfFrame();
+
+        //get labels from gpu
+        var refreshTask = _tmpPlateThicknessMaps.RefreshCacheAsync();
+        yield return new WaitUntil(() => refreshTask.IsCompleted);
+        var continentMaps = _tmpPlateThicknessMaps.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
+        
+        //vote on neighbors
+
+        //TODO: Taskify this
+        var voters = new Dictionary<float, Dictionary<float, int>>();
+        for (var w = 0; w < 6; w++)
+        {
+            for (var x = 1; x < Coordinate.TextureWidthInPixels - 1; x++)
+            {
+                for (var y = 1; y < Coordinate.TextureWidthInPixels - 1; y++)
+                {
+                    var center = Sample(x, y, w);
+                    if (!voters.TryGetValue(center, out Dictionary<float, int> voter))
+                        voter = voters[center] = new Dictionary<float, int>();
+
+                    foreach (var candidate in Neighbors(x, y, w).Concat(new[] { center }))
+                    {
+                        if (!voter.TryGetValue(candidate, out int votes))
+                            votes = voter[candidate] = 0;
+
+                        voter[candidate]++;
+                    }
+
+                    if (fameStopwatch.ElapsedMilliseconds > MsBudget)
+                    {
+                        yield return new WaitForEndOfFrame();
+                        fameStopwatch.Restart();
+                        frames++;
+                    }
+                }
+            }
+        }
+
+        //identify largest neighbors
+        var totalVotes = voters.SelectMany(x => x.Value.Keys).Distinct().ToDictionary(voter => voter, _ => 0);
+        foreach(var (voter, candidates) in voters)
+        foreach(var (candidate, votes) in candidates)
+        {
+            totalVotes[candidate] += votes;
+        }
+
+        //merge tiny continents into largest neighbor
+        _continentMerges = new Dictionary<float, float>();
+        //Needs to havee at least 1
+        var largeCandidates = totalVotes.Where((candidate, votes) => votes >= MinContinentSize * 5).Select((candidate, votes) => candidate.Key).ToList();
+        var smallCandidates = totalVotes.Where((candidate, votes) => votes < MinContinentSize * 5).Select((candidate, votes) => candidate.Key).ToList();
+        foreach(var candidate in smallCandidates)
+        {
+            _continentMerges[candidate] = voters[candidate].OrderByDescending(x => x.Value).First(x => largeCandidates.Contains(x.Key)).Key;
+        }
+
+        //relabel remaining contents
+        foreach (var candidate in largeCandidates)
+        {
+            _continentMerges[candidate] = largeCandidates.IndexOf(candidate);
+            foreach (var (from, to) in _continentMerges)
+            {
+                if (to == candidate)
+                    _continentMerges[from] = _continentMerges[candidate];
+            }
+        }
+
+        //update gpu data
         //TODO
-        var merges = new Dictionary<float, float>();
-        return merges;
+
+
+        UnityEngine.Debug.Log($"Identify Relabels Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames}");
+        yield return new WaitForEndOfFrame();
+
+        //helpers
+
+        float[] Neighbors(int x, int y, int w) => new float[] {
+            Sample(x + 1, y, w),
+            Sample(x - 1, y, w),
+            Sample(x, y + 1, w),
+            Sample(x, y - 1, w),
+        };
+        float Sample(int x, int y, int w) => continentMaps[w][x + y * Coordinate.TextureWidthInPixels];
     }
 
-    private void RelabelContinents(Dictionary<float, float> merges)
+    private IEnumerator RelabelContinents()
     {
-        //TODO
 
+        yield return new WaitForEndOfFrame();
     }
-
-    private void SyncCpuData(List<float> ids)
+     
+    private IEnumerator SyncData()
     {
+        var continentIds = _continentMerges.Values.Distinct().ToList();
         //TODO:
         //Remove missing GPU plates
         //Add missing cpu plates
-    }
-     
-    private void SyncGpuData()
-    {
+        yield return new WaitForEndOfFrame();
+
         //_data.ContinentalIdMap.SetTextures(_tmpContinentalIdMap);
+        yield return new WaitForEndOfFrame();
     }
+
+    #endregion
+
+    #region GPU IO
 
     private bool RunTectonicKernel(string name)
     {
@@ -153,4 +248,6 @@ public class PlateBakerV2 : MonoBehaviour
     {
         public int Changed;
     }
+
+    #endregion
 }

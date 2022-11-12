@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -60,6 +61,16 @@ public class EnvironmentMap
         Channels = Channels,
         Layers = Layers,
     };
+
+    public Task<Texture2D[]> RefreshCacheAsync()
+    {
+        var refreshTaskSource = new TaskCompletionSource<Texture2D[]>();
+        RefreshCache(() =>
+        {
+            refreshTaskSource.TrySetResult(CachedTextures);
+        });
+        return refreshTaskSource.Task;
+    }
 
     public void RefreshCache(Action callback = null)
     {
