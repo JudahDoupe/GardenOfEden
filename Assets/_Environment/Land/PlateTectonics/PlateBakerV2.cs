@@ -118,11 +118,19 @@ public class PlateBakerV2 : MonoBehaviour
         var refreshTask = _tmpPlateThicknessMaps.RefreshCacheAsync();
         yield return new WaitUntil(() => refreshTask.IsCompleted);
         var continentMaps = _tmpPlateThicknessMaps.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
-        
-        //vote on neighbors
+
+        //vote for neighbors
+        float[] Neighbors(int x, int y, int w) => new float[] {
+            Sample(x + 1, y, w),
+            Sample(x - 1, y, w),
+            Sample(x, y + 1, w),
+            Sample(x, y - 1, w),
+        };
+        float Sample(int x, int y, int w) => continentMaps[w][x + y * Coordinate.TextureWidthInPixels];
 
         //TODO: Taskify this
         var voters = new Dictionary<float, Dictionary<float, int>>();
+
         for (var w = 0; w < 6; w++)
         {
             for (var x = 1; x < Coordinate.TextureWidthInPixels - 1; x++)
@@ -151,51 +159,79 @@ public class PlateBakerV2 : MonoBehaviour
             }
         }
 
-        //identify largest neighbors
+        // tally votes
+        _continentMerges = new Dictionary<float, float>();
         var totalVotes = voters.SelectMany(x => x.Value.Keys).Distinct().ToDictionary(voter => voter, _ => 0);
         foreach(var (voter, candidates) in voters)
         foreach(var (candidate, votes) in candidates)
         {
             totalVotes[candidate] += votes;
-        }
 
-        //merge tiny continents into largest neighbor
-        _continentMerges = new Dictionary<float, float>();
-        //Needs to havee at least 1
-        var largeCandidates = totalVotes.Where((candidate, votes) => votes >= MinContinentSize * 5).Select((candidate, votes) => candidate.Key).ToList();
-        var smallCandidates = totalVotes.Where((candidate, votes) => votes < MinContinentSize * 5).Select((candidate, votes) => candidate.Key).ToList();
-        foreach(var candidate in smallCandidates)
-        {
-            _continentMerges[candidate] = voters[candidate].OrderByDescending(x => x.Value).First(x => largeCandidates.Contains(x.Key)).Key;
-        }
-
-        //relabel remaining contents
-        foreach (var candidate in largeCandidates)
-        {
-            _continentMerges[candidate] = largeCandidates.IndexOf(candidate);
-            foreach (var (from, to) in _continentMerges)
+            if (fameStopwatch.ElapsedMilliseconds > MsBudget)
             {
-                if (to == candidate)
-                    _continentMerges[from] = _continentMerges[candidate];
+                yield return new WaitForEndOfFrame();
+                fameStopwatch.Restart();
+                frames++;
             }
         }
+
+
+        var x_0 = totalVotes.Keys.Count();
+        var x_1 = totalVotes.Where(x => x.Value > 10).Count();
+        var x_2 = totalVotes.Where(x => x.Value > 100).Count();
+        var x_3 = totalVotes.Where(x => x.Value > 1000).Count();
+        var x_4 = totalVotes.Where(x => x.Value > 10000).Count();
+        var x_5 = totalVotes.Where(x => x.Value > 100000).Count();
+
+        // relabel winners
+        var winningCandidates = totalVotes.Where(x => x.Value > (MinContinentSize * 5)).Select(x => x.Key).ToList();
+        if (!winningCandidates.Any())
+        {
+            winningCandidates.Add(totalVotes.Aggregate((x, y) => x.Value > y.Value ? x : y).Key);
+        }
+        foreach(var candidate in winningCandidates)
+        {
+            _continentMerges[candidate] = winningCandidates.IndexOf(candidate);
+
+            if (fameStopwatch.ElapsedMilliseconds > MsBudget)
+            {
+                yield return new WaitForEndOfFrame();
+                fameStopwatch.Restart();
+                frames++;
+            }
+        }
+
+        // relabel losers
+        var losingCandidates = totalVotes.Select((candidate, votes) => candidate.Key).Where(x => !winningCandidates.Contains(x)).ToList();
+        foreach (var candidate in losingCandidates)
+        {
+            var largestCandidate = voters[candidate].Any(x => winningCandidates.Contains(x.Key)) 
+                ? voters[candidate].First(x => winningCandidates.Contains(x.Key)).Key
+                : voters[candidate].First().Key;
+            var largestCandidateLabel = _continentMerges.ContainsKey(largestCandidate) ? _continentMerges[largestCandidate] : largestCandidate;
+            _continentMerges[candidate] = largestCandidateLabel;
+
+            foreach (var (key, value) in _continentMerges.ToList())
+            {
+                if (value == candidate) _continentMerges[key] = largestCandidateLabel;
+            }
+
+            if (fameStopwatch.ElapsedMilliseconds > MsBudget)
+            {
+                yield return new WaitForEndOfFrame();
+                fameStopwatch.Restart();
+                frames++;
+            }
+        }
+
 
         //update gpu data
         //TODO
 
 
-        UnityEngine.Debug.Log($"Identify Relabels Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames}");
+        UnityEngine.Debug.Log($"Identify Relabels Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames} | Labels: {winningCandidates.Count}");
+        UnityEngine.Debug.Log($"{x_0} | > 10: {x_1} | > 100 {x_2} | > 1000 {x_3} | > 10000 {x_4} | > 100000 {x_5}");
         yield return new WaitForEndOfFrame();
-
-        //helpers
-
-        float[] Neighbors(int x, int y, int w) => new float[] {
-            Sample(x + 1, y, w),
-            Sample(x - 1, y, w),
-            Sample(x, y + 1, w),
-            Sample(x, y - 1, w),
-        };
-        float Sample(int x, int y, int w) => continentMaps[w][x + y * Coordinate.TextureWidthInPixels];
     }
 
     private IEnumerator RelabelContinents()
@@ -214,6 +250,14 @@ public class PlateBakerV2 : MonoBehaviour
 
         //_data.ContinentalIdMap.SetTextures(_tmpContinentalIdMap);
         yield return new WaitForEndOfFrame();
+    }
+
+    private class Continent
+    {
+        public float Label;
+        public int Size;
+        public List<Continent> Neighbors;
+        public Continent Parent;
     }
 
     #endregion
