@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class PlateBakerV2 : MonoBehaviour
@@ -15,7 +17,7 @@ public class PlateBakerV2 : MonoBehaviour
     private EnvironmentMap _tmpPlateThicknessMaps;
     private EnvironmentMap _tmpContinentalIdMap;
     private PlateTectonicsData _data;
-    private Dictionary<float, float> _continentMerges;
+    private RelabelGpuData[] _continentRelabels;
 
     private void Update()
     {
@@ -119,34 +121,36 @@ public class PlateBakerV2 : MonoBehaviour
         yield return new WaitUntil(() => refreshTask.IsCompleted);
         var continentMaps = _tmpPlateThicknessMaps.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
 
-        //vote for neighbors
+        //build continent graph
         float[] Neighbors(int x, int y, int w) => new float[] {
-            Sample(x + 1, y, w),
-            Sample(x - 1, y, w),
-            Sample(x, y + 1, w),
-            Sample(x, y - 1, w),
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x + 1, y, w))),
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x - 1, y, w))),
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y + 1, w))),
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y - 1, w))),
         };
-        float Sample(int x, int y, int w) => continentMaps[w][x + y * Coordinate.TextureWidthInPixels];
+        float Sample(int3 xyw) => continentMaps[xyw.z][xyw.x + xyw.y * Coordinate.TextureWidthInPixels];
 
         //TODO: Taskify this
-        var voters = new Dictionary<float, Dictionary<float, int>>();
+        var continents = new Dictionary<float, Continent>();
+        Continent GetOrCreateContinent(float label) => continents.ContainsKey(label)
+            ? continents[label]
+            : continents[label] = new Continent(label);
 
         for (var w = 0; w < 6; w++)
         {
-            for (var x = 1; x < Coordinate.TextureWidthInPixels - 1; x++)
+            for (var x = 0; x < Coordinate.TextureWidthInPixels; x++)
             {
-                for (var y = 1; y < Coordinate.TextureWidthInPixels - 1; y++)
+                for (var y = 0; y < Coordinate.TextureWidthInPixels; y++)
                 {
-                    var center = Sample(x, y, w);
-                    if (!voters.TryGetValue(center, out Dictionary<float, int> voter))
-                        voter = voters[center] = new Dictionary<float, int>();
+                    var label = Sample(new int3(x,y,w));
+                    var continent = GetOrCreateContinent(label);
+                    continent.Size++;
 
-                    foreach (var candidate in Neighbors(x, y, w).Concat(new[] { center }))
+                    foreach (var neighborLabel in Neighbors(x, y, w))
                     {
-                        if (!voter.TryGetValue(candidate, out int votes))
-                            votes = voter[candidate] = 0;
-
-                        voter[candidate]++;
+                        var neighbor = GetOrCreateContinent(neighborLabel);
+                        if (!neighbor.Equals(continent))
+                            continent.Neighbors.Add(neighbor);
                     }
 
                     if (fameStopwatch.ElapsedMilliseconds > MsBudget)
@@ -159,61 +163,23 @@ public class PlateBakerV2 : MonoBehaviour
             }
         }
 
-        // tally votes
-        _continentMerges = new Dictionary<float, float>();
-        var totalVotes = voters.SelectMany(x => x.Value.Keys).Distinct().ToDictionary(voter => voter, _ => 0);
-        foreach(var (voter, candidates) in voters)
-        foreach(var (candidate, votes) in candidates)
+        var minLabel = 0;
+        foreach (var continent in continents.Values)
         {
-            totalVotes[candidate] += votes;
-
-            if (fameStopwatch.ElapsedMilliseconds > MsBudget)
+            if (continent.Size < MinContinentSize)
             {
-                yield return new WaitForEndOfFrame();
-                fameStopwatch.Restart();
-                frames++;
+                var neighbors = continent.Neighbors.Select(x => x.Root).Where(x => !x.Root.Equals(continent));
+                var newRoot = neighbors.Aggregate((x, y) => x.Size > y.Size ? x : y);
+                continent.Root = newRoot;
+                newRoot.Size += continent.Size;
+                foreach(var neighbor in neighbors.Where(x => !x.Equals(newRoot)))
+                {
+                    newRoot.Neighbors.Add(neighbor);
+                }
             }
-        }
-
-
-        var x_0 = totalVotes.Keys.Count();
-        var x_1 = totalVotes.Where(x => x.Value > 10).Count();
-        var x_2 = totalVotes.Where(x => x.Value > 100).Count();
-        var x_3 = totalVotes.Where(x => x.Value > 1000).Count();
-        var x_4 = totalVotes.Where(x => x.Value > 10000).Count();
-        var x_5 = totalVotes.Where(x => x.Value > 100000).Count();
-
-        // relabel winners
-        var winningCandidates = totalVotes.Where(x => x.Value > (MinContinentSize * 5)).Select(x => x.Key).ToList();
-        if (!winningCandidates.Any())
-        {
-            winningCandidates.Add(totalVotes.Aggregate((x, y) => x.Value > y.Value ? x : y).Key);
-        }
-        foreach(var candidate in winningCandidates)
-        {
-            _continentMerges[candidate] = winningCandidates.IndexOf(candidate);
-
-            if (fameStopwatch.ElapsedMilliseconds > MsBudget)
+            else
             {
-                yield return new WaitForEndOfFrame();
-                fameStopwatch.Restart();
-                frames++;
-            }
-        }
-
-        // relabel losers
-        var losingCandidates = totalVotes.Select((candidate, votes) => candidate.Key).Where(x => !winningCandidates.Contains(x)).ToList();
-        foreach (var candidate in losingCandidates)
-        {
-            var largestCandidate = voters[candidate].Any(x => winningCandidates.Contains(x.Key)) 
-                ? voters[candidate].First(x => winningCandidates.Contains(x.Key)).Key
-                : voters[candidate].First().Key;
-            var largestCandidateLabel = _continentMerges.ContainsKey(largestCandidate) ? _continentMerges[largestCandidate] : largestCandidate;
-            _continentMerges[candidate] = largestCandidateLabel;
-
-            foreach (var (key, value) in _continentMerges.ToList())
-            {
-                if (value == candidate) _continentMerges[key] = largestCandidateLabel;
+                continent.Relabel = minLabel++;
             }
 
             if (fameStopwatch.ElapsedMilliseconds > MsBudget)
@@ -224,13 +190,13 @@ public class PlateBakerV2 : MonoBehaviour
             }
         }
 
+        _continentRelabels = continents.Values.Select(x => new RelabelGpuData
+        {
+            From = x.Label,
+            To = x.Root.Relabel,
+        }).ToArray();
 
-        //update gpu data
-        //TODO
-
-
-        UnityEngine.Debug.Log($"Identify Relabels Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames} | Labels: {winningCandidates.Count}");
-        UnityEngine.Debug.Log($"{x_0} | > 10: {x_1} | > 100 {x_2} | > 1000 {x_3} | > 10000 {x_4} | > 100000 {x_5}");
+        UnityEngine.Debug.Log($"Identify Relabels Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames} | Labels: {minLabel}");
         yield return new WaitForEndOfFrame();
     }
 
@@ -242,7 +208,7 @@ public class PlateBakerV2 : MonoBehaviour
      
     private IEnumerator SyncData()
     {
-        var continentIds = _continentMerges.Values.Distinct().ToList();
+        var continentIds = _continentRelabels.Select(x => x.To).Distinct().ToList();
         //TODO:
         //Remove missing GPU plates
         //Add missing cpu plates
@@ -252,12 +218,30 @@ public class PlateBakerV2 : MonoBehaviour
         yield return new WaitForEndOfFrame();
     }
 
-    private class Continent
+    private class Continent : IEquatable<Continent>
     {
         public float Label;
+        public float Relabel;
         public int Size;
-        public List<Continent> Neighbors;
-        public Continent Parent;
+        public HashSet<Continent> Neighbors;
+
+        private Continent _parent;
+        public Continent Root
+        {
+            get => _parent == null ? this : _parent.Root;
+            set => _parent = value.Root;
+        }
+
+        public Continent(float label)
+        {
+            Label = label;
+            Relabel = 0;
+            Size = 0;
+            Neighbors = new HashSet<Continent>();
+            _parent = null;
+        }
+
+        public bool Equals(Continent other) => other.Label == this.Label; 
     }
 
     #endregion
@@ -291,6 +275,12 @@ public class PlateBakerV2 : MonoBehaviour
     public struct LabelGpuData
     {
         public int Changed;
+    }
+
+    public struct RelabelGpuData
+    {
+        public float From;
+        public float To;
     }
 
     #endregion
