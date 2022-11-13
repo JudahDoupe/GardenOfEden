@@ -1,7 +1,7 @@
 #pragma kernel AlignPlateThicknessMaps
-#pragma kernel BakePlates
 #pragma kernel InitializeLabeling
 #pragma kernel RunLabelingIteration
+#pragma kernel RelabelContinents
 
 #include "PlateTectonicsInclude.hlsl"
 
@@ -15,6 +15,15 @@ struct LabelData
     int Changed;
 }; 
 RWStructuredBuffer<LabelData> Label;
+
+struct RelabelData
+{
+    float From;
+    float To;
+    float ToIdx;
+};
+RWStructuredBuffer<RelabelData> Relabels;
+int NumRelabels;
 
 
 [numthreads(8, 8, 6)]
@@ -31,60 +40,53 @@ void AlignPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
     }
 }
 
-
-[numthreads(8, 8, 6)]
-void BakePlates(uint3 id : SV_DispatchThreadID)
-{
-    float oldId = ContinentalIdMap[id];
-    float newId = TmpContinentalIdMap[get_source_xyw(id)];
-    
-    uint3 oldXyp = xyw_to_xyp(id, GetPlateIdx(oldId));
-    uint3 newXyp = xyw_to_xyp(id, GetPlateIdx(newId));
-    
-    float oldThickness = PlateThicknessMaps[oldXyp];
-    float newThickness = PlateThicknessMaps[newXyp];
-    
-    PlateThicknessMaps[oldXyp] = newThickness;
-    PlateThicknessMaps[newXyp] = oldThickness;
-    ContinentalIdMap[id] = newId;
-}
-
-int cantor(uint a, uint b) {
-   return (a + b + 1) * (a + b) / 2 + b;
-}
-int hash(uint3 id) {
-   return cantor(id.x, cantor(id.y, id.z));
-}
-
 [numthreads(8, 8, 6)]
 void InitializeLabeling(uint3 id : SV_DispatchThreadID)
 {
-    TmpContinentalIdMap[id] = hash(id);
+    TmpContinentalIdMap[id] = id.x + (id.y * TextureWidthInPixels) + (id.z * TextureWidthInPixels * TextureWidthInPixels);
+}
+
+int IsBetterLabel(uint3 center, uint3 neighbor){
+    return TmpContinentalIdMap[neighbor] > TmpContinentalIdMap[center] && ContinentalIdMap[neighbor] == ContinentalIdMap[center];
 }
 
 [numthreads(8, 8, 6)]
 void RunLabelingIteration(uint3 id : SV_DispatchThreadID)
 {
     uint3 center = get_source_xyw(id);
-    uint3 left = get_source_xyw(center + uint3(-1,0,0));
-    uint3 right = get_source_xyw(center + uint3(1,0,0));
     uint3 up = get_source_xyw(center + uint3(0,1,0));
+    uint3 upRight = get_source_xyw(center + uint3(1,1,0));
+    uint3 right = get_source_xyw(center + uint3(1,0,0));
+    uint3 rightDown = get_source_xyw(center + uint3(1,-1,0));
     uint3 down = get_source_xyw(center + uint3(0,-1,0));
+    uint3 downLeft = get_source_xyw(center + uint3(-1,-1,0));
+    uint3 left = get_source_xyw(center + uint3(-1,0,0));
+    uint3 leftUp = get_source_xyw(center + uint3(-1,1,0));
     
-    int upChanged = TmpContinentalIdMap[up] > TmpContinentalIdMap[id] && ContinentalIdMap[up] == ContinentalIdMap[center];
-    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[up] * upChanged);
+    float startingValue = TmpContinentalIdMap[id];
 
-    int rightChanged = TmpContinentalIdMap[right] > TmpContinentalIdMap[id] && ContinentalIdMap[right] == ContinentalIdMap[center];
-    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[right] * rightChanged);
-    
-    int downChanged = TmpContinentalIdMap[down] > TmpContinentalIdMap[id] && ContinentalIdMap[down] == ContinentalIdMap[center];
-    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[down] * downChanged);
-    
-    int leftChanged = TmpContinentalIdMap[left] > TmpContinentalIdMap[id] && ContinentalIdMap[left] == ContinentalIdMap[center];
-    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[left] * leftChanged);
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[up] * IsBetterLabel(id, up));
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[upRight] * IsBetterLabel(id, upRight));
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[right] * IsBetterLabel(id, right));
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[rightDown] * IsBetterLabel(id, rightDown));
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[down] * IsBetterLabel(id, down));
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[downLeft] * IsBetterLabel(id, downLeft));
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[left] * IsBetterLabel(id, left));
+    TmpContinentalIdMap[id] = max(TmpContinentalIdMap[id], TmpContinentalIdMap[leftUp] * IsBetterLabel(id, leftUp));
 
-    if (upChanged + rightChanged + downChanged + leftChanged > 0)
+    if (TmpContinentalIdMap[id] != startingValue)
     {
         Label[0].Changed = 1;
+    }
+}
+
+[numthreads(8, 8, 6)]
+void RelabelContinents(uint3 id : SV_DispatchThreadID)
+{
+    for (int i = 0; i < NumRelabels; i++){
+        if (round(Relabels[i].From) == round(TmpContinentalIdMap[id])){
+            TmpContinentalIdMap[id] = Relabels[i].To;
+            TmpPlateThicknessMaps[xyw_to_xyp(id, Relabels[i].ToIdx)] = PlateThicknessMaps[xyw_to_xyp(id, GetPlateIdx(ContinentalIdMap[id]))];
+        }
     }
 }

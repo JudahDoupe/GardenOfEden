@@ -47,9 +47,7 @@ public class PlateBakerV2 : MonoBehaviour
 
         yield return LabelContinents();
 
-        yield return IdentifyRelabels();
-
-        yield return RelabelContinents();
+        yield return RelabelsContinents();
 
         yield return SyncData();
 
@@ -66,7 +64,7 @@ public class PlateBakerV2 : MonoBehaviour
         _tmpPlateThicknessMaps.Layers = _data.PlateThicknessMaps.Layers;
         yield return new WaitForEndOfFrame();
 
-        RunTectonicKernel("AlignPlateThicknessMaps");
+        AlignPlatesGPU();
         foreach (var plate in _data.Plates)
         {
             plate.Rotation = Quaternion.identity;
@@ -88,9 +86,9 @@ public class PlateBakerV2 : MonoBehaviour
         
         var iterations = 0;
         var frames = 0;
-        
-        RunTectonicKernel("InitializeLabeling");
-        while (RunTectonicKernel("RunLabelingIteration"))
+
+        InitializeLabelingGPU();
+        while (RunLabelingIterationGpu())
         {
             iterations++;
             if (fameStopwatch.ElapsedMilliseconds > MsBudget)
@@ -105,7 +103,7 @@ public class PlateBakerV2 : MonoBehaviour
         yield return new WaitForEndOfFrame();
     }
 
-    private IEnumerator IdentifyRelabels()
+    private IEnumerator RelabelsContinents()
     {
         var frames = 0;
         var totalStopwatch = new Stopwatch();
@@ -128,7 +126,7 @@ public class PlateBakerV2 : MonoBehaviour
             Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y + 1, w))),
             Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y - 1, w))),
         };
-        float Sample(int3 xyw) => continentMaps[xyw.z][xyw.x + xyw.y * Coordinate.TextureWidthInPixels];
+        float Sample(int3 xyw) => math.round(continentMaps[xyw.z][xyw.x + xyw.y * Coordinate.TextureWidthInPixels]);
 
         //TODO: Taskify this
         var continents = new Dictionary<float, Continent>();
@@ -163,7 +161,15 @@ public class PlateBakerV2 : MonoBehaviour
             }
         }
 
-        var minLabel = 0;
+        UnityEngine.Debug.Log($"Identify Continents Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames} | Labels: {continents.Count()}");
+        yield return new WaitForEndOfFrame();
+        totalStopwatch.Restart();
+        fameStopwatch.Restart();
+        frames = 0;
+
+        var continentList = continents.Values.ToList();
+        var minIdx = 0;
+        var minLabel = 1.0001f;
         foreach (var continent in continents.Values)
         {
             if (continent.Size < MinContinentSize)
@@ -179,7 +185,10 @@ public class PlateBakerV2 : MonoBehaviour
             }
             else
             {
-                continent.Relabel = minLabel++;
+                continent.Relabel = minLabel;
+                continent.Idx = minIdx;
+                minLabel += 1;
+                minIdx += 1;
             }
 
             if (fameStopwatch.ElapsedMilliseconds > MsBudget)
@@ -190,31 +199,31 @@ public class PlateBakerV2 : MonoBehaviour
             }
         }
 
-        _continentRelabels = continents.Values.Select(x => new RelabelGpuData
-        {
-            From = x.Label,
-            To = x.Root.Relabel,
-        }).ToArray();
 
-        UnityEngine.Debug.Log($"Identify Relabels Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames} | Labels: {minLabel}");
+        UnityEngine.Debug.Log($"Identify Relabels Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames} | Labels: {math.floor(minLabel)}");
         yield return new WaitForEndOfFrame();
-    }
+        totalStopwatch.Restart();
 
-    private IEnumerator RelabelContinents()
-    {
 
+        _continentRelabels = continents.Values.Select(x => new RelabelGpuData{ From = x.Label, To = x.Root.Relabel, ToIdx = x.Idx }).ToArray();
+        _tmpPlateThicknessMaps.Layers = _continentRelabels.Count();
+        RelableContinentsGPU();
+
+
+        UnityEngine.Debug.Log($"Relabel Time: {totalStopwatch.ElapsedMilliseconds}ms");
         yield return new WaitForEndOfFrame();
     }
      
     private IEnumerator SyncData()
     {
-        var continentIds = _continentRelabels.Select(x => x.To).Distinct().ToList();
-        //TODO:
-        //Remove missing GPU plates
-        //Add missing cpu plates
-        yield return new WaitForEndOfFrame();
+        var stopwatch = new Stopwatch();
+        stopwatch.Restart();
 
-        //_data.ContinentalIdMap.SetTextures(_tmpContinentalIdMap);
+        _data.Plates = _continentRelabels.Select((c, i) => new PlateData(c.To, i)).ToList();
+        _data.ContinentalIdMap.SetTextures(_tmpContinentalIdMap);
+        _data.PlateThicknessMaps.SetTextures(_tmpPlateThicknessMaps);
+
+        UnityEngine.Debug.Log($"Sync Data Time: {stopwatch.ElapsedMilliseconds}ms");
         yield return new WaitForEndOfFrame();
     }
 
@@ -222,6 +231,7 @@ public class PlateBakerV2 : MonoBehaviour
     {
         public float Label;
         public float Relabel;
+        public int Idx;
         public int Size;
         public HashSet<Continent> Neighbors;
 
@@ -236,6 +246,7 @@ public class PlateBakerV2 : MonoBehaviour
         {
             Label = label;
             Relabel = 0;
+            Idx = 0;
             Size = 0;
             Neighbors = new HashSet<Continent>();
             _parent = null;
@@ -248,28 +259,63 @@ public class PlateBakerV2 : MonoBehaviour
 
     #region GPU IO
 
-    private bool RunTectonicKernel(string name)
+    private void AlignPlatesGPU()
     {
-        var kernel = BakePlatesShader.FindKernel(name);
+        var kernel = BakePlatesShader.FindKernel("AlignPlateThicknessMaps");
         using var plateBuffer = new ComputeBuffer(_data.Plates.Count(), Marshal.SizeOf(typeof(PlateGpuData)));
         plateBuffer.SetData(_data.Plates.Select(x => x.ToGpuData()).ToArray());
         BakePlatesShader.SetBuffer(kernel, "Plates", plateBuffer);
+
+        BakePlatesShader.SetInt("NumPlates", _data.Plates.Count());
+        BakePlatesShader.SetFloat("MantleHeight", _data.MantleHeight);
+        BakePlatesShader.SetTexture(kernel, "TmpPlateThicknessMaps", _tmpPlateThicknessMaps.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
+        BakePlatesShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
+    }
+    private void InitializeLabelingGPU()
+    {
+        var kernel = BakePlatesShader.FindKernel("InitializeLabeling");
+        
+        BakePlatesShader.SetTexture(kernel, "TmpContinentalIdMap", _tmpContinentalIdMap.RenderTexture);
+        BakePlatesShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
+    }
+    private bool RunLabelingIterationGpu()
+    {
+        var kernel = BakePlatesShader.FindKernel("RunLabelingIteration");
 
         using var labelBuffer = new ComputeBuffer(1, Marshal.SizeOf(typeof(LabelGpuData)));
         var labelData = new[] { new LabelGpuData { Changed = 0 } };
         labelBuffer.SetData(labelData);
         BakePlatesShader.SetBuffer(kernel, "Label", labelBuffer);
 
-        BakePlatesShader.SetInt("NumPlates", _data.Plates.Count());
-        BakePlatesShader.SetFloat("MantleHeight", _data.MantleHeight);
-        BakePlatesShader.SetTexture(kernel, "TmpPlateThicknessMaps", _tmpPlateThicknessMaps.RenderTexture);
-        BakePlatesShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
         BakePlatesShader.SetTexture(kernel, "TmpContinentalIdMap", _tmpContinentalIdMap.RenderTexture);
         BakePlatesShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
         BakePlatesShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
 
         labelBuffer.GetData(labelData);
         return labelData[0].Changed > 0;
+    }
+    private void RelableContinentsGPU()
+    {
+        var kernel = BakePlatesShader.FindKernel("RelabelContinents");
+
+        using var relabelBuffer = new ComputeBuffer(_continentRelabels.Count(), Marshal.SizeOf(typeof(RelabelGpuData)));
+        relabelBuffer.SetData(_continentRelabels);
+        BakePlatesShader.SetBuffer(kernel, "Relabels", relabelBuffer);
+        BakePlatesShader.SetInt("NumRelabels", _continentRelabels.Count());
+
+        using var plateBuffer = new ComputeBuffer(_data.Plates.Count(), Marshal.SizeOf(typeof(PlateGpuData)));
+        plateBuffer.SetData(_data.Plates.Select(x => x.ToGpuData()).ToArray());
+        BakePlatesShader.SetBuffer(kernel, "Plates", plateBuffer);
+        BakePlatesShader.SetInt("NumPlates", _data.Plates.Count());
+
+        BakePlatesShader.SetFloat("MantleHeight", _data.MantleHeight);
+        BakePlatesShader.SetTexture(kernel, "TmpContinentalIdMap", _tmpContinentalIdMap.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "TmpPlateThicknessMaps", _tmpPlateThicknessMaps.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
+
+        BakePlatesShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 
     public struct LabelGpuData
@@ -281,6 +327,7 @@ public class PlateBakerV2 : MonoBehaviour
     {
         public float From;
         public float To;
+        public int ToIdx;
     }
 
     #endregion

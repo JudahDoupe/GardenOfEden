@@ -136,6 +136,7 @@ public class EnvironmentMap
     }
     public void SetTextures(EnvironmentMap map)
     {
+        Layers = map.Layers;
         Graphics.Blit(map.RenderTexture, RenderTexture);
         RefreshCache();
     }
@@ -166,6 +167,9 @@ public class EnvironmentMap
 
     private void SetLayers(int layers)
     {
+        if (Layers == layers)
+            return;
+
         RenderTexture.Release();
         RenderTexture.dimension = TextureDimension.Tex2DArray;
         RenderTexture.volumeDepth = layers;

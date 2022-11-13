@@ -8,7 +8,7 @@ public class PlateTectonicsData
 {
     public string PlanetName { get; }
     public float MantleHeight { get; set; }
-    public List<PlateData> Plates { get; }
+    public List<PlateData> Plates { get; set; }
     public EnvironmentMap LandHeightMap { get; }
     public EnvironmentMap ContinentalIdMap { get; }
     public EnvironmentMap VisualizedContinentalIdMap { get; }
@@ -101,7 +101,6 @@ public class PlateTectonicsData
 
 public class PlateData
 {
-    public bool NeedsRegeneration { get; set; }
     public float Id { get; set; }
     public int Idx { get; set; }
     public Quaternion Rotation { get; set; }
