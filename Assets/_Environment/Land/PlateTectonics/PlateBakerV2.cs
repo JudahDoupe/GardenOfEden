@@ -84,7 +84,7 @@ public class PlateBakerV2 : MonoBehaviour
 
         #endregion
 
-        #region Identify Continents
+        #region Analyze Continents
 
         frameCount = 1;
         stepTimer.Restart();
@@ -94,88 +94,11 @@ public class PlateBakerV2 : MonoBehaviour
         yield return new WaitUntil(() => refreshTask.IsCompleted);
         var continentMaps = _tmpContinentalIdMap.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
 
-        float[] Neighbors(int x, int y, int w) => new float[] {
-            Sample(CoordinateTransforms.GetSourceXyw(new int3(x + 1, y, w))),
-            Sample(CoordinateTransforms.GetSourceXyw(new int3(x - 1, y, w))),
-            Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y + 1, w))),
-            Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y - 1, w))),
-        };
-        float Sample(int3 xyw) => math.round(continentMaps[xyw.z][xyw.x + xyw.y * Coordinate.TextureWidthInPixels]);
+        var continentsTask = Task.Run(async () => await IdentifyContinentsAsync(continentMaps));
+        yield return new WaitUntil(() => continentsTask.IsCompleted);
+        var continents = continentsTask.Result;
 
-        //TODO: Taskify this
-        var continents = new Dictionary<float, Continent>();
-        Continent GetOrCreateContinent(float label) => continents.ContainsKey(label)
-            ? continents[label]
-            : continents[label] = new Continent(label);
-
-        for (var w = 0; w < 6; w++)
-        {
-            for (var x = 0; x < Coordinate.TextureWidthInPixels; x++)
-            {
-                for (var y = 0; y < Coordinate.TextureWidthInPixels; y++)
-                {
-                    var label = Sample(new int3(x,y,w));
-                    var continent = GetOrCreateContinent(label);
-                    continent.Size++;
-
-                    foreach (var neighborLabel in Neighbors(x, y, w))
-                    {
-                        var neighbor = GetOrCreateContinent(neighborLabel);
-                        if (!neighbor.Equals(continent))
-                            continent.Neighbors.Add(neighbor);
-                    }
-
-                    if (frameTimer.ElapsedMilliseconds > MsBudget)
-                    {
-                        yield return new WaitForEndOfFrame();
-                        frameTimer.Restart();
-                        frameCount++;
-                    }
-                }
-            }
-        }
-
-        //UnityEngine.Debug.Log($"Identify Continents Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Labels: {continents.Count()}");
-        yield return new WaitForEndOfFrame();
-
-        #endregion
-
-        #region Identify Continents Relabels
-
-        frameCount = 1;
-        stepTimer.Restart();
-        frameTimer.Restart();
-
-        var continentList = continents.Values.ToList();
-        var minLabel = 1.0001f;
-        foreach (var continent in continents.Values)
-        {
-            if (continent.Size < MinContinentSize)
-            {
-                var neighbors = continent.Neighbors.Select(x => x.Root).Where(x => !x.Root.Equals(continent));
-                var newRoot = neighbors.Aggregate((x, y) => x.Size > y.Size ? x : y);
-                continent.Root = newRoot;
-                newRoot.Size += continent.Size;
-                foreach(var neighbor in neighbors.Where(x => !x.Equals(newRoot)))
-                {
-                    newRoot.Neighbors.Add(neighbor);
-                }
-            }
-            else
-            {
-                continent.Relabel = minLabel;
-                minLabel += 1;
-            }
-
-            if (frameTimer.ElapsedMilliseconds > MsBudget)
-            {
-                yield return new WaitForEndOfFrame();
-                frameTimer.Restart();
-                frameCount++;
-            }
-        }
-
-        //UnityEngine.Debug.Log($"Identify Relabels Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Labels: {math.floor(minLabel)}");
+        //UnityEngine.Debug.Log($"Analyze Continents Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Labels: {continents.Count()}");
         yield return new WaitForEndOfFrame();
 
         #endregion
@@ -197,8 +120,68 @@ public class PlateBakerV2 : MonoBehaviour
 
         #endregion
 
-        UnityEngine.Debug.Log($"Total Bake Time: {bakeTimer.ElapsedMilliseconds}ms");
+        //UnityEngine.Debug.Log($"Total Bake Time: {bakeTimer.ElapsedMilliseconds}ms");
         //UnityEngine.Debug.Log($"Finished Baking Plates");
+    }
+
+    private Task<Dictionary<float, Continent>> IdentifyContinentsAsync(float[][] continentMaps)
+    {
+        var continents = new Dictionary<float, Continent>();
+        Continent GetOrCreateContinent(float label) => continents.ContainsKey(label)
+            ? continents[label]
+            : continents[label] = new Continent(label);
+
+        float[] Neighbors(int x, int y, int w) => new float[] {
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x + 1, y, w))),
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x - 1, y, w))),
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y + 1, w))),
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y - 1, w))),
+        };
+        float Sample(int3 xyw) => math.round(continentMaps[xyw.z][xyw.x + xyw.y * Coordinate.TextureWidthInPixels]);
+
+        for (var w = 0; w < 6; w++)
+        {
+            for (var x = 0; x < Coordinate.TextureWidthInPixels; x++)
+            {
+                for (var y = 0; y < Coordinate.TextureWidthInPixels; y++)
+                {
+                    var label = Sample(new int3(x, y, w));
+                    var continent = GetOrCreateContinent(label);
+                    continent.Size++;
+
+                    foreach (var neighborLabel in Neighbors(x, y, w))
+                    {
+                        var neighbor = GetOrCreateContinent(neighborLabel);
+                        if (!neighbor.Equals(continent))
+                            continent.Neighbors.Add(neighbor);
+                    }
+                }
+            }
+        }
+
+        var continentList = continents.Values.ToList();
+        var minLabel = 1.0001f;
+        foreach (var continent in continents.Values)
+        {
+            if (continent.Size < MinContinentSize)
+            {
+                var neighbors = continent.Neighbors.Select(x => x.Root).Where(x => !x.Root.Equals(continent));
+                var newRoot = neighbors.Aggregate((x, y) => x.Size > y.Size ? x : y);
+                continent.Root = newRoot;
+                newRoot.Size += continent.Size;
+                foreach (var neighbor in neighbors.Where(x => !x.Equals(newRoot)))
+                {
+                    newRoot.Neighbors.Add(neighbor);
+                }
+            }
+            else
+            {
+                continent.Relabel = minLabel;
+                minLabel += 1;
+            }
+        }
+
+        return continents;
     }
 
     private class Continent : IEquatable<Continent>
