@@ -9,6 +9,7 @@ RWTexture2DArray<float> PlateThicknessMaps;
 RWTexture2DArray<float> TmpPlateThicknessMaps;
 RWTexture2DArray<float> ContinentalIdMap;
 RWTexture2DArray<float> TmpContinentalIdMap;
+RWTexture2DArray<float> LandHeightMap;
 
 struct LabelData
 {
@@ -20,7 +21,6 @@ struct RelabelData
 {
     float From;
     float To;
-    float ToIdx;
 };
 RWStructuredBuffer<RelabelData> Relabels;
 int NumRelabels;
@@ -85,8 +85,9 @@ void RelabelContinents(uint3 id : SV_DispatchThreadID)
 {
     for (int i = 0; i < NumRelabels; i++){
         if (round(Relabels[i].From) == round(TmpContinentalIdMap[id])){
-            TmpContinentalIdMap[id] = Relabels[i].To;
-            TmpPlateThicknessMaps[xyw_to_xyp(id, Relabels[i].ToIdx)] = PlateThicknessMaps[xyw_to_xyp(id, GetPlateIdx(ContinentalIdMap[id]))];
+            ContinentalIdMap[id] = Relabels[i].To;
         }
     }
+
+    PlateThicknessMaps[xyw_to_xyp(id, GetPlateIdx(ContinentalIdMap[id]))] = LandHeightMap[id] - MantleHeight;
 }

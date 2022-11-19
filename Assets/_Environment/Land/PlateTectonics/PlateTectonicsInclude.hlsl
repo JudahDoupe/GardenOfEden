@@ -38,3 +38,6 @@ uint GetPlateIdx(float id)
     }
     return pId;
 }
+Plate GetPlate(float id){
+    return Plates[GetPlateIdx(id)];
+}

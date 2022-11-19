@@ -17,7 +17,6 @@ public class PlateBakerV2 : MonoBehaviour
     private EnvironmentMap _tmpPlateThicknessMaps;
     private EnvironmentMap _tmpContinentalIdMap;
     private PlateTectonicsData _data;
-    private RelabelGpuData[] _continentRelabels;
 
     private void Update()
     {
@@ -38,32 +37,16 @@ public class PlateBakerV2 : MonoBehaviour
         StartCoroutine(BakePlatesAsync());
     }
 
-    private IEnumerator BakePlatesAsync()
-    {
-        var stopwatch = new Stopwatch();
-        stopwatch.Restart();
-
-        yield return AlignPlates();
-
-        yield return LabelContinents();
-
-        yield return RelabelsContinents();
-
-        yield return SyncData();
-
-        UnityEngine.Debug.Log($"Bake Time: {stopwatch.ElapsedMilliseconds}ms");
-    }
-
     #region Steps
 
-    private IEnumerator AlignPlates()
+    private IEnumerator BakePlatesAsync()
     {
-        var stopwatch = new Stopwatch();
-        stopwatch.Restart();
+        var frameCount = 1;
+        var bakeTimer = DebugUtils.StartTimer();
+        var stepTimer = DebugUtils.StartTimer();
+        var frameTimer = DebugUtils.StartTimer();
 
         _tmpPlateThicknessMaps.Layers = _data.PlateThicknessMaps.Layers;
-        yield return new WaitForEndOfFrame();
-
         AlignPlatesGPU();
         foreach (var plate in _data.Plates)
         {
@@ -72,54 +55,36 @@ public class PlateBakerV2 : MonoBehaviour
         }
         _data.PlateThicknessMaps.SetTextures(_tmpPlateThicknessMaps);
 
-        UnityEngine.Debug.Log($"Align Plates Time: {stopwatch.ElapsedMilliseconds}ms | Frames: {2}");
+        UnityEngine.Debug.Log($"Align Plate Thickness MapsTime: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount}");
         yield return new WaitForEndOfFrame();
-    }
 
-    private IEnumerator LabelContinents()
-    {
-        var totalStopwatch = new Stopwatch();
-        var fameStopwatch = new Stopwatch();
 
-        fameStopwatch.Restart();
-        totalStopwatch.Restart();
-        
+
+        frameCount = 1;
+        stepTimer.Restart();
+        frameTimer.Restart();
+
         var iterations = 0;
-        var frames = 0;
-
         InitializeLabelingGPU();
         while (RunLabelingIterationGpu())
         {
             iterations++;
-            if (fameStopwatch.ElapsedMilliseconds > MsBudget)
-            {
-                yield return new WaitForEndOfFrame();
-                fameStopwatch.Restart();
-                frames++;
-            } 
+            yield return TryWaitForNextFrame();
         }
-        
-        UnityEngine.Debug.Log($"Labeling Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames} | Iterations: {iterations}");
-        yield return new WaitForEndOfFrame();
-    }
 
-    private IEnumerator RelabelsContinents()
-    {
-        var frames = 0;
-        var totalStopwatch = new Stopwatch();
-        var fameStopwatch = new Stopwatch();
-
-        fameStopwatch.Restart();
-        totalStopwatch.Restart();
-
+        UnityEngine.Debug.Log($"Labeling Continents Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Iterations: {iterations}");
         yield return new WaitForEndOfFrame();
 
-        //get labels from gpu
-        var refreshTask = _tmpPlateThicknessMaps.RefreshCacheAsync();
+
+
+        frameCount = 1;
+        stepTimer.Restart();
+        frameTimer.Restart();
+
+        var refreshTask = _tmpContinentalIdMap.RefreshCacheAsync();
         yield return new WaitUntil(() => refreshTask.IsCompleted);
-        var continentMaps = _tmpPlateThicknessMaps.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
+        var continentMaps = _tmpContinentalIdMap.CachedTextures.Select(x => x.GetRawTextureData<float>().ToArray()).ToArray();
 
-        //build continent graph
         float[] Neighbors(int x, int y, int w) => new float[] {
             Sample(CoordinateTransforms.GetSourceXyw(new int3(x + 1, y, w))),
             Sample(CoordinateTransforms.GetSourceXyw(new int3(x - 1, y, w))),
@@ -151,24 +116,21 @@ public class PlateBakerV2 : MonoBehaviour
                             continent.Neighbors.Add(neighbor);
                     }
 
-                    if (fameStopwatch.ElapsedMilliseconds > MsBudget)
-                    {
-                        yield return new WaitForEndOfFrame();
-                        fameStopwatch.Restart();
-                        frames++;
-                    }
+                    yield return TryWaitForNextFrame();
                 }
             }
         }
 
-        UnityEngine.Debug.Log($"Identify Continents Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames} | Labels: {continents.Count()}");
+        UnityEngine.Debug.Log($"Identify Continents Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Labels: {continents.Count()}");
         yield return new WaitForEndOfFrame();
-        totalStopwatch.Restart();
-        fameStopwatch.Restart();
-        frames = 0;
+
+
+
+        frameCount = 1;
+        stepTimer.Restart();
+        frameTimer.Restart();
 
         var continentList = continents.Values.ToList();
-        var minIdx = 0;
         var minLabel = 1.0001f;
         foreach (var continent in continents.Values)
         {
@@ -186,54 +148,49 @@ public class PlateBakerV2 : MonoBehaviour
             else
             {
                 continent.Relabel = minLabel;
-                continent.Idx = minIdx;
                 minLabel += 1;
-                minIdx += 1;
             }
 
-            if (fameStopwatch.ElapsedMilliseconds > MsBudget)
-            {
-                yield return new WaitForEndOfFrame();
-                fameStopwatch.Restart();
-                frames++;
-            }
+            yield return TryWaitForNextFrame();
         }
 
-
-        UnityEngine.Debug.Log($"Identify Relabels Time: {totalStopwatch.ElapsedMilliseconds}ms | Frames: {frames} | Labels: {math.floor(minLabel)}");
+        UnityEngine.Debug.Log($"Identify Relabels Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Labels: {math.floor(minLabel)}");
         yield return new WaitForEndOfFrame();
-        totalStopwatch.Restart();
 
 
-        _continentRelabels = continents.Values.Select(x => new RelabelGpuData{ From = x.Label, To = x.Root.Relabel, ToIdx = x.Idx }).ToArray();
-        _tmpPlateThicknessMaps.Layers = _continentRelabels.Count();
-        RelableContinentsGPU();
 
+        frameCount = 1;
+        stepTimer.Restart();
+        frameTimer.Restart();
 
-        UnityEngine.Debug.Log($"Relabel Time: {totalStopwatch.ElapsedMilliseconds}ms");
-        yield return new WaitForEndOfFrame();
-    }
-     
-    private IEnumerator SyncData()
-    {
-        var stopwatch = new Stopwatch();
-        stopwatch.Restart();
+        _data.Plates = continents.Values.Where(x => x.IsRoot).Select((c, i) => new PlateData(c.Relabel, i)).ToList();
 
-        _data.Plates = _continentRelabels.Select((c, i) => new PlateData(c.To, i)).ToList();
-        _data.ContinentalIdMap.SetTextures(_tmpContinentalIdMap);
-        _data.PlateThicknessMaps.SetTextures(_tmpPlateThicknessMaps);
+        _data.PlateThicknessMaps.Layers = _data.Plates.Count() * 6;
+        var _continentRelabels = continents.Values.Select(x => new RelabelGpuData{ From = x.Label, To = x.Root.Relabel}).ToArray();
+        RelableContinentsGPU(_continentRelabels);
+        _data.ContinentalIdMap.RefreshCache();
 
-        UnityEngine.Debug.Log($"Sync Data Time: {stopwatch.ElapsedMilliseconds}ms");
-        yield return new WaitForEndOfFrame();
+        UnityEngine.Debug.Log($"Relabel Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount}");
+        UnityEngine.Debug.Log($"Bake Time: {bakeTimer.ElapsedMilliseconds}ms");
+
+        IEnumerator TryWaitForNextFrame()
+        {
+            if (frameTimer.ElapsedMilliseconds > MsBudget)
+            {
+                yield return new WaitForEndOfFrame();
+                frameTimer.Restart();
+                frameCount++;
+            }
+        }
     }
 
     private class Continent : IEquatable<Continent>
     {
         public float Label;
         public float Relabel;
-        public int Idx;
         public int Size;
         public HashSet<Continent> Neighbors;
+        public bool IsRoot => _parent == null;
 
         private Continent _parent;
         public Continent Root
@@ -246,11 +203,11 @@ public class PlateBakerV2 : MonoBehaviour
         {
             Label = label;
             Relabel = 0;
-            Idx = 0;
             Size = 0;
             Neighbors = new HashSet<Continent>();
             _parent = null;
         }
+
 
         public bool Equals(Continent other) => other.Label == this.Label; 
     }
@@ -295,14 +252,14 @@ public class PlateBakerV2 : MonoBehaviour
         labelBuffer.GetData(labelData);
         return labelData[0].Changed > 0;
     }
-    private void RelableContinentsGPU()
+    private void RelableContinentsGPU(RelabelGpuData[] relabels)
     {
         var kernel = BakePlatesShader.FindKernel("RelabelContinents");
 
-        using var relabelBuffer = new ComputeBuffer(_continentRelabels.Count(), Marshal.SizeOf(typeof(RelabelGpuData)));
-        relabelBuffer.SetData(_continentRelabels);
+        using var relabelBuffer = new ComputeBuffer(relabels.Count(), Marshal.SizeOf(typeof(RelabelGpuData)));
+        relabelBuffer.SetData(relabels);
         BakePlatesShader.SetBuffer(kernel, "Relabels", relabelBuffer);
-        BakePlatesShader.SetInt("NumRelabels", _continentRelabels.Count());
+        BakePlatesShader.SetInt("NumRelabels", relabels.Count());
 
         using var plateBuffer = new ComputeBuffer(_data.Plates.Count(), Marshal.SizeOf(typeof(PlateGpuData)));
         plateBuffer.SetData(_data.Plates.Select(x => x.ToGpuData()).ToArray());
@@ -312,8 +269,8 @@ public class PlateBakerV2 : MonoBehaviour
         BakePlatesShader.SetFloat("MantleHeight", _data.MantleHeight);
         BakePlatesShader.SetTexture(kernel, "TmpContinentalIdMap", _tmpContinentalIdMap.RenderTexture);
         BakePlatesShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
-        BakePlatesShader.SetTexture(kernel, "TmpPlateThicknessMaps", _tmpPlateThicknessMaps.RenderTexture);
         BakePlatesShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
+        BakePlatesShader.SetTexture(kernel, "LandHeightMap", _data.LandHeightMap.RenderTexture);
 
         BakePlatesShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
@@ -327,7 +284,6 @@ public class PlateBakerV2 : MonoBehaviour
     {
         public float From;
         public float To;
-        public int ToIdx;
     }
 
     #endregion
