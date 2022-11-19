@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class AtmosphereVisualization : MonoBehaviour
+public class AtmosphereVisualization : Singleton<AtmosphereVisualization>
 {
     public Material Atmospheere;
     public RenderTexture OpticalDepth;
@@ -20,9 +20,30 @@ public class AtmosphereVisualization : MonoBehaviour
     [Range(1,10)]
     public float ScatteringStrength = 4;
 
+    private Planet _planet = null;
+    public static void AttachToPlate(Planet planet)
+    {
+        Instance._planet = planet;
+        Instance.Atmospheere.SetFloat("_AtmoshpereScale", Instance.AtmosphereScale);
+    }
+
     private void OnValidate()
     {
         UpdateVisualization();
+    }
+    private void Start()
+    {
+        UpdateVisualization();
+        Atmospheere.SetFloat("_AtmoshpereScale", 0);
+    }
+    private void Update()
+    {
+        if (_planet != null)
+        {
+            Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
+            Atmospheere.SetVector("_SunDirection", (Sun.transform.position - Planet.Transform.position).normalized);
+            Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
+        }
     }
 
     private void UpdateVisualization()
@@ -35,12 +56,6 @@ public class AtmosphereVisualization : MonoBehaviour
         Atmospheere.SetFloat("_SeaLevel", SeaLevel);
         Atmospheere.SetFloat("_ScatteringStrength", ScatteringStrength);
         Atmospheere.SetVector("_WaveLengths", WaveLengths);
-        if (Planet.Transform != null)
-        {
-            Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
-            Atmospheere.SetVector("_SunDirection", (Sun.transform.position - Planet.Transform.position).normalized);
-            Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
-        }
     }
 
     private void BakeOpticalDepth()

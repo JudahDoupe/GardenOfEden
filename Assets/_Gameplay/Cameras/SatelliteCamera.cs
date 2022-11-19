@@ -27,11 +27,11 @@ public class SatelliteCamera : CameraPerspective
 
     public override CameraState StartTransitionTo()
     {
-        var target = new Coordinate(CameraController.CurrentState.Camera.transform.position, Planet.LocalToWorld);
+        _targetCoord = new Coordinate(CameraController.CurrentState.Camera.transform.position, Planet.LocalToWorld);
         _targetCoord.Lat = math.clamp(_targetCoord.Lat, PoleBuffer, 180 - PoleBuffer);
         _targetCoord.Lat = math.clamp(_targetCoord.Lat, PoleBuffer, 180 - PoleBuffer);
         _targetCoord.Altitude = math.clamp(_targetCoord.Altitude, MinAltitude, MaxAltitude);
-        return GetTargetState(target);
+        return GetTargetState(_targetCoord);
     }
 
     public override void Enable()

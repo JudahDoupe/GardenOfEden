@@ -27,6 +27,7 @@ public class Planet : Singleton<Planet>
         Data = data;
         FindObjectOfType<SystemsController>().InitializeAllSystems(data);
         FindObjectOfType<SystemsController>().EnableGlobe();
+        AtmosphereVisualization.AttachToPlate(this);
     }
 
     void Start()
