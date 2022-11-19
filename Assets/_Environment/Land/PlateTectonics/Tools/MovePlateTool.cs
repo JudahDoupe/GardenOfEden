@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,14 +14,16 @@ public class MovePlateTool : MonoBehaviour, ITool
     private PlateTectonicsData _data;
     private PlateTectonicsVisualization _visualization;
     private PlateTectonicsSimulation _simulation; 
-    private PlateBaker _baker; 
+    private PlateBakerV2 _baker; 
+
     private float _currentPlateId;
     private Vector3 _startingPosition;
+    private bool _needsBaking = false;
 
     public void Initialize(PlateTectonicsData data,
         PlateTectonicsSimulation simulation,
         PlateTectonicsVisualization visualization,
-        PlateBaker baker)
+        PlateBakerV2 baker)
     {
         _data = data;
         _simulation = simulation;
@@ -33,7 +36,7 @@ public class MovePlateTool : MonoBehaviour, ITool
         if (!IsInitialized)
             return;
 
-        Clear();
+        StopMoving();
         _simulation.Enable();
         IsActive = true;
 
@@ -44,50 +47,52 @@ public class MovePlateTool : MonoBehaviour, ITool
             },
             finishCallback: () =>
             {
-                Clear();
+                StopMoving();
             });
     }
     public void Disable()
     {
-        Clear();
+        StopMoving();
         InputAdapter.Click.Unubscribe(this);
         _visualization.HideOutlines();
-        IsActive = false; 
+        IsActive = false;
+        TryBake();
     }
 
     private void Update()
     {
-
         if (IsActive)
         {
             _visualization.OutlinePlates();
-            
-            if(_currentPlateId > 0)
+            TryMove();
+
+            if (_data.Plates.Any(x => x.IsInMotion))
             {
-                Move();
+                _needsBaking = true;
+                _baker.CancelBake();
+            }
+            else
+            {
+                TryBake();
             }
         }
     }
 
-    private void StartMoving()
+
+
+    private void TryBake()
     {
-        var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
-        var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out var hit, distance))
+        if (_needsBaking)
         {
-            var coord = new Coordinate(hit.point, Planet.LocalToWorld)
-            {
-                Altitude = Coordinate.PlanetRadius
-            };
-            _currentPlateId = _data.ContinentalIdMap.SamplePoint(coord).r;
-            var plate = _data.GetPlate(_currentPlateId);
-            _startingPosition = Quaternion.Inverse(plate.Rotation) * coord.LocalPlanet;
-            _baker.Disable();
+            _needsBaking = false;
+            _baker.BakePlates();
         }
-        else
-        {
-            _currentPlateId = 0;
-        }
+    }
+
+    private void TryMove()
+    {
+        if (_currentPlateId > 0)
+            Move();
     }
 
     private void Move()
@@ -111,9 +116,30 @@ public class MovePlateTool : MonoBehaviour, ITool
         var targetVelocity = targetRotation * Quaternion.Inverse(lastRotation);
 
         plate.TargetVelocity = targetVelocity;
+        _needsBaking = true;
     }
 
-    private void Clear()
+    private void StartMoving()
+    {
+        var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
+        var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        if (Physics.Raycast(ray, out var hit, distance))
+        {
+            var coord = new Coordinate(hit.point, Planet.LocalToWorld)
+            {
+                Altitude = Coordinate.PlanetRadius
+            };
+            _currentPlateId = _data.ContinentalIdMap.SamplePoint(coord).r;
+            var plate = _data.GetPlate(_currentPlateId);
+            _startingPosition = Quaternion.Inverse(plate.Rotation) * coord.LocalPlanet;
+        }
+        else
+        {
+            _currentPlateId = 0;
+        }
+    }
+
+    private void StopMoving()
     {
         if (_currentPlateId > 0)
         {
@@ -124,10 +150,5 @@ public class MovePlateTool : MonoBehaviour, ITool
             }
         }
         _currentPlateId = 0;
-
-        if (_simulation.IsActive)
-        {
-            _baker.Enable();
-        }
     }
 }

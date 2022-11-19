@@ -27,8 +27,13 @@ public class PlateBakerV2 : MonoBehaviour
 
     public void BakePlates()
     {
-        StopAllCoroutines();
+        CancelBake();
         StartCoroutine(BakePlatesAsync());
+    }
+
+    public void CancelBake()
+    {
+        StopAllCoroutines();
     }
 
     private IEnumerator BakePlatesAsync()
@@ -37,6 +42,7 @@ public class PlateBakerV2 : MonoBehaviour
         var bakeTimer = DebugUtils.StartTimer();
         var stepTimer = DebugUtils.StartTimer();
         var frameTimer = DebugUtils.StartTimer();
+        //UnityEngine.Debug.Log($"Started Baking Plates");
 
         #region Align Plate Thickness Maps
 
@@ -49,7 +55,7 @@ public class PlateBakerV2 : MonoBehaviour
         }
         _data.PlateThicknessMaps.SetTextures(_tmpPlateThicknessMaps);
 
-        UnityEngine.Debug.Log($"Align Plates Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount}");
+        //UnityEngine.Debug.Log($"Align Plates Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount}");
         yield return new WaitForEndOfFrame();
 
         #endregion
@@ -73,7 +79,7 @@ public class PlateBakerV2 : MonoBehaviour
             }
         }
 
-        UnityEngine.Debug.Log($"Labeling Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Iterations: {iterations}");
+        //UnityEngine.Debug.Log($"Labeling Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Iterations: {iterations}");
         yield return new WaitForEndOfFrame();
 
         #endregion
@@ -129,7 +135,7 @@ public class PlateBakerV2 : MonoBehaviour
             }
         }
 
-        UnityEngine.Debug.Log($"Identify Continents Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Labels: {continents.Count()}");
+        //UnityEngine.Debug.Log($"Identify Continents Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Labels: {continents.Count()}");
         yield return new WaitForEndOfFrame();
 
         #endregion
@@ -169,7 +175,7 @@ public class PlateBakerV2 : MonoBehaviour
             }
         }
 
-        UnityEngine.Debug.Log($"Identify Relabels Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Labels: {math.floor(minLabel)}");
+        //UnityEngine.Debug.Log($"Identify Relabels Time: {stepTimer.ElapsedMilliseconds}ms | Frames: {frameCount} | Labels: {math.floor(minLabel)}");
         yield return new WaitForEndOfFrame();
 
         #endregion
@@ -187,11 +193,12 @@ public class PlateBakerV2 : MonoBehaviour
         RelableContinentsGPU(_continentRelabels);
         _data.ContinentalIdMap.RefreshCache();
 
-        UnityEngine.Debug.Log($"Relabel Time: {stepTimer.ElapsedMilliseconds}ms");
+        //UnityEngine.Debug.Log($"Relabel Time: {stepTimer.ElapsedMilliseconds}ms");
 
         #endregion
 
         UnityEngine.Debug.Log($"Total Bake Time: {bakeTimer.ElapsedMilliseconds}ms");
+        //UnityEngine.Debug.Log($"Finished Baking Plates");
     }
 
     private class Continent : IEquatable<Continent>

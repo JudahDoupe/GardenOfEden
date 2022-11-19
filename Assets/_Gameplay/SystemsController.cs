@@ -18,9 +18,7 @@ public class SystemsController : MonoBehaviour
         FindObjectOfType<PlateTectonicsVisualization>().Initialize(data.PlateTectonics);
         FindObjectOfType<PlateTectonicsAudio>().Initialize(data.PlateTectonics);
         FindObjectOfType<PlateTectonicsToolbar>().Initialize(data.PlateTectonics);
-        FindObjectOfType<PlateBaker>().Initialize(data.PlateTectonics);
         FindObjectOfType<PlateBakerV2>().Initialize(data.PlateTectonics);
-
 
         FindObjectOfType<WaterSimulation>().Initialize(data.Water);
     }
@@ -40,8 +38,6 @@ public class SystemsController : MonoBehaviour
         FindObjectOfType<PlateTectonicsAudio>().Disable();
         FindObjectOfType<PlateTectonicsVisualization>().Disable();
         FindObjectOfType<WaterSimulation>().Disable();
-        FindObjectOfType<PlateBaker>().Disable();
-        FindObjectOfType<PlateBaker>().BakePlates();
 
         Planet.Instance.RunTaskInCoroutine(Task.WhenAll(new List<Task>
         {

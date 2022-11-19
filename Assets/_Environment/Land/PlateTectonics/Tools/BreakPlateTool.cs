@@ -18,20 +18,17 @@ public class BreakPlateTool : MonoBehaviour, ITool
     private PlateTectonicsVisualization _visualization;
     private PlateTectonicsAudio _audio;
     private PlateTectonicsSimulation _simulation;
-    private PlateBaker _baker;
     private Break? _break;
 
     public void Initialize(PlateTectonicsData data,
                            PlateTectonicsSimulation simulation,
                            PlateTectonicsVisualization visualization,
-                           PlateTectonicsAudio audio,
-                           PlateBaker baker)
+                           PlateTectonicsAudio audio)
     {
         _data = data;
         _simulation = simulation;
         _visualization = visualization;
         _audio = audio;
-        _baker = baker;
         IsInitialized = true;
     }
     public void Enable()
@@ -40,7 +37,6 @@ public class BreakPlateTool : MonoBehaviour, ITool
             return;
 
         _simulation.Disable();
-        _baker.Disable();
         _break = null;
         IsActive = true;
 

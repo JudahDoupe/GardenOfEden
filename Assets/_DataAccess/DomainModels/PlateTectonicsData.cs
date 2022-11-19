@@ -108,7 +108,7 @@ public class PlateData
     public Quaternion TargetVelocity { get; set; }
     public float TravelDistance => Quaternion.Angle(Quaternion.identity, Velocity) * (math.PI/180) * Coordinate.PlanetRadius;
     public Vector3 Center => Rotation * Vector3.forward * 1000;
-    public bool IsStopped => Quaternion.Angle(Velocity, Quaternion.identity) < 0.0001f;
+    public bool IsInMotion => Quaternion.Angle(Velocity, Quaternion.identity) > 0.0001f;
     public bool IsAligned => Quaternion.Angle(Rotation, Quaternion.identity) < 0.0001f;
 
     public PlateData(float id, int idx, Quaternion? rotation = null)

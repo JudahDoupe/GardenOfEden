@@ -5,7 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(PateTectonicsGenerator))]
 [RequireComponent(typeof(PlateTectonicsAudio))]
 [RequireComponent(typeof(PlateTectonicsVisualization))]
-[RequireComponent(typeof(PlateBaker))]
+[RequireComponent(typeof(PlateBakerV2))]
 [RequireComponent(typeof(MergePlateTool))]
 [RequireComponent(typeof(BreakPlateTool))]
 [RequireComponent(typeof(MovePlateTool))]
