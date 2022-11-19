@@ -71,8 +71,7 @@ public class PlateBaker : MonoBehaviour
 
     public void BakePlates()
     {
-        _cancelation = new CancellationTokenSource();
-        _data.ContinentalIdMap.RefreshCache(() => StartCoroutine(BakePlatesAsync()));
+        FindObjectOfType<PlateBakerV2>().BakePlates();
     }
     private IEnumerator BakePlatesAsync()
     {
