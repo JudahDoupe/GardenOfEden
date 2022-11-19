@@ -85,6 +85,7 @@ public class MovePlateTool : MonoBehaviour, ITool
         if (_needsBaking)
         {
             _needsBaking = false;
+            _data.LandHeightMap.RefreshCache();
             _baker.BakePlates();
         }
     }

@@ -229,7 +229,7 @@ public class LandscapeCamera : CameraPerspective
 
         var zoom = InputAdapter.Scroll.Read(this) * math.exp(math.lerp(math.log(Near.ZoomSpeed), math.log(Far.ZoomSpeed), t)) * Time.deltaTime * speedMultiuplier;
 
-        var drag = Mouse.current.delta.ReadValue() * DragSpeed * Convert.ToInt16(_isDragging) * horizontal;
+        var drag = Mouse.current.delta.ReadValue() * DragSpeed * Convert.ToInt16(_isDragging) * Time.deltaTime * horizontal;
         var rotation = RotationSpeed * (drag.x + InputAdapter.LeftMove.Read(this).x) * Time.deltaTime;
         var pitch = PitchSpeed * (drag.y + InputAdapter.RightMove.Read(this).y) * Time.deltaTime;
 

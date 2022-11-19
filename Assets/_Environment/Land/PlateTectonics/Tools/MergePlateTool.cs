@@ -14,17 +14,20 @@ public class MergePlateTool : MonoBehaviour, ITool
     private PlateTectonicsVisualization _visualization;
     private PlateTectonicsAudio _audio;
     private PlateTectonicsSimulation _simulation;
+    private PlateBakerV2 _baker;
     private PlateData selectedPlate;
 
     public void Initialize(PlateTectonicsData data,
         PlateTectonicsSimulation simulation,
         PlateTectonicsVisualization visualization,
-        PlateTectonicsAudio audio)
+        PlateTectonicsAudio audio,
+        PlateBakerV2 baker)
     {
         _data = data;
         _simulation = simulation;
         _visualization = visualization;
         _audio = audio;
+        _baker = baker;
         IsInitialized = true;
     }
     public void Enable()
@@ -33,6 +36,7 @@ public class MergePlateTool : MonoBehaviour, ITool
             return;
 
         selectedPlate = null;
+        _baker.CancelBake();
         _simulation.Disable();
         IsActive = true;
         InputAdapter.Click.Subscribe(this, () =>

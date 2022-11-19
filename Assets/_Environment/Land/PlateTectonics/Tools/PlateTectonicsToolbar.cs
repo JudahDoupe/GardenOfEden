@@ -22,9 +22,9 @@ public class PlateTectonicsToolbar : MenuUi
         _movePlateTool = FindObjectOfType<MovePlateTool>();
         _movePlateTool.Initialize(data, _simulation, _visualization, _baker);
         _breakPlateTool = FindObjectOfType<BreakPlateTool>();
-        _breakPlateTool.Initialize(data, _simulation, _visualization, _audio);
+        _breakPlateTool.Initialize(data, _simulation, _visualization, _audio, _baker);
         _mergePlateTool = FindObjectOfType<MergePlateTool>();
-        _mergePlateTool.Initialize(data, _simulation, _visualization, _audio);
+        _mergePlateTool.Initialize(data, _simulation, _visualization, _audio, _baker);
         _isInitialized = true;
     }
     public override void Enable()

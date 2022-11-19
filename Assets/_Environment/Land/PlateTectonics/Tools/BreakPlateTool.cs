@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -18,17 +16,20 @@ public class BreakPlateTool : MonoBehaviour, ITool
     private PlateTectonicsVisualization _visualization;
     private PlateTectonicsAudio _audio;
     private PlateTectonicsSimulation _simulation;
+    private PlateBakerV2 _baker;
     private Break? _break;
 
     public void Initialize(PlateTectonicsData data,
                            PlateTectonicsSimulation simulation,
                            PlateTectonicsVisualization visualization,
-                           PlateTectonicsAudio audio)
+                           PlateTectonicsAudio audio,
+                           PlateBakerV2 baker)
     {
         _data = data;
         _simulation = simulation;
         _visualization = visualization;
         _audio = audio;
+        _baker = baker;
         IsInitialized = true;
     }
     public void Enable()
@@ -36,6 +37,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
         if (!IsInitialized)
             return;
 
+        _baker.CancelBake();
         _simulation.Disable();
         _break = null;
         IsActive = true;

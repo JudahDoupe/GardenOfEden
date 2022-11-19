@@ -1,4 +1,3 @@
-#pragma kernel AlignPlateThicknessMaps
 #pragma kernel InitializeLabeling
 #pragma kernel RunLabelingIteration
 #pragma kernel RelabelContinents
@@ -6,7 +5,6 @@
 #include "PlateTectonicsInclude.hlsl"
 
 RWTexture2DArray<float> PlateThicknessMaps;
-RWTexture2DArray<float> TmpPlateThicknessMaps;
 RWTexture2DArray<float> ContinentalIdMap;
 RWTexture2DArray<float> TmpContinentalIdMap;
 RWTexture2DArray<float> LandHeightMap;
@@ -25,20 +23,6 @@ struct RelabelData
 RWStructuredBuffer<RelabelData> Relabels;
 int NumRelabels;
 
-
-[numthreads(8, 8, 6)]
-void AlignPlateThicknessMaps(uint3 id : SV_DispatchThreadID)
-{
-    float3 xyz = xyw_to_xyz(id, MantleHeight);
-	
-    for (uint p = 0; p < NumPlates; p++)
-    {
-        Plate plate = Plates[p];
-        uint3 xyp = xyz_to_xyp(xyz, p);
-        uint3 xypTmp = uint3(id.xy, id.z + p * 6);
-        TmpPlateThicknessMaps[xypTmp] = PlateThicknessMaps[xyp];
-    }
-}
 
 [numthreads(8, 8, 6)]
 void InitializeLabeling(uint3 id : SV_DispatchThreadID)
