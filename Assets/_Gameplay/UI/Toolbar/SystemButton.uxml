@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/_Gameplay/UI/Toolbar/Toolbar.uss?fileID=7433441132597879392&amp;guid=3a8a13f5bed82514893aef499fd65d4e&amp;type=3#Toolbar" />
+    <ui:Button display-tooltip-when-elided="true" name="SystemButton" class="SystemButton" style="padding-left: 7px; padding-right: 7px; padding-top: 7px; padding-bottom: 7px;">
+        <ui:VisualElement name="Image" class="Image" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/world.png?fileID=2800000&amp;guid=b003817db899db74e8c9d4b3bf83bd47&amp;type=3#world&apos;);" />
+    </ui:Button>
+</ui:UXML>
