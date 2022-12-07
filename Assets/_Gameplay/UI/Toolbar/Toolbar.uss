@@ -1,4 +1,4 @@
-.SystemButton {
+.Button {
     width: 50px;
     height: 50px;
     margin-left: 0;
@@ -23,18 +23,56 @@
     -unity-slice-top: 0;
     -unity-slice-right: 0;
     -unity-slice-bottom: 0;
+    transition-duration: 0.1s;
 }
 
-.SystemButton > .Image {
+.Button .Icon {
     flex-grow: 1;
     flex-shrink: 0;
-    -unity-background-image-tint-color: rgb(132, 132, 132);
+    -unity-background-image-tint-color: rgb(85, 85, 85);
+    transition-duration: 0.1s;
 }
 
-.SystemButton:hover > .Image {
+.Button:hover .Icon {
+    -unity-background-image-tint-color: rgb(187, 187, 187);
+}
+
+.Button:active .Icon {
     -unity-background-image-tint-color: rgb(255, 255, 255);
 }
 
-LandButton > .Image {
+.Tool .Button {
+    background-color: rgb(25, 25, 25);
+}
+
+.System .Button {
+    background-color: rgb(0, 0, 0);
+}
+
+#Globe .Icon {
+    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/world.png?fileID=2800000&guid=b003817db899db74e8c9d4b3bf83bd47&type=3#world');
+}
+
+#LandSystem .Icon {
     background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/mountain.png?fileID=2800000&guid=88379921de8c9da4db77991bc76966f9&type=3#mountain');
+}
+
+#LandSystem .Button:active {
+    background-color: rgb(72, 44, 21);
+}
+
+#MovePlateTool .Icon {
+    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/move.png?fileID=21300000&guid=329deda6817042959162aa12f777a0d0&type=3#move');
+}
+
+#BreakPlateTool .Icon {
+    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/break.png?fileID=2800000&guid=6e9634e67a8267b40b342397d55d6e69&type=3#break');
+}
+
+#MergePlateTool .Icon {
+    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/merge.png?fileID=2800000&guid=a0fe46d9072ed5940b23a57870c7e928&type=3#merge');
+}
+
+#LandscapeCamera .Icon {
+    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/video-camera.png?fileID=2800000&guid=e0df7e537fdf95a4a80e5a56bdd4d91a&type=3#video-camera');
 }
