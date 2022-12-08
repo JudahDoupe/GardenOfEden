@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/_Gameplay/UI/Toolbar/Toolbar.uss?fileID=7433441132597879392&amp;guid=3a8a13f5bed82514893aef499fd65d4e&amp;type=3#Toolbar" />
-    <ui:Button display-tooltip-when-elided="true" name="ToolbarButton" class="Button" style="padding-left: 7px; padding-right: 7px; padding-top: 7px; padding-bottom: 7px;">
+    <ui:Button display-tooltip-when-elided="true" name="ToolbarButton" class="Button">
         <ui:VisualElement name="Icon" class="Icon" />
     </ui:Button>
 </ui:UXML>
