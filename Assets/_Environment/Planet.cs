@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Unity.Entities;
 using Unity.Transforms;
@@ -6,7 +7,6 @@ using UnityEngine;
 public class Planet : Singleton<Planet>
 {
     public float RotationSpeed;
-    public string Name = "New Planet";
 
     public static Entity Entity;
     public static Transform Transform;
@@ -14,13 +14,14 @@ public class Planet : Singleton<Planet>
     public static PlanetData Data;
 
     [ContextMenu("Save")]
-    public void Save() => Instance.RunTaskInCoroutine(PlanetDataStore.Update(Data));
+    public void Save(Action callback = null) => Instance.RunTaskInCoroutine(PlanetDataStore.Update(Data), callback);
 
     [ContextMenu("Load")]
-    public void Load() => Instance.RunTaskInCoroutine(PlanetDataStore.GetOrCreate(Name), data => Initialize(data));
-
-    [ContextMenu("Reset")]
-    public void ResetPlanet() => Instance.RunTaskInCoroutine(PlanetDataStore.Create(Name), data => Initialize(data));
+    public void Load(string name, Action callback = null) => Instance.RunTaskInCoroutine(PlanetDataStore.GetOrCreate(name), data =>
+    {
+        Initialize(data);
+        callback?.Invoke();
+    });
 
     public void Initialize(PlanetData data)
     {
@@ -39,10 +40,11 @@ public class Planet : Singleton<Planet>
         AtmosphereVisualization.AttachToPlanet(this);
     }
 
-    void Start()
+    void Awake()
     {
-        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+        Instance = this;
         Transform = transform;
+        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         Entity = em.CreateEntity();
         em.AddComponent<Translation>(Entity);
         em.AddComponent<Rotation>(Entity);
@@ -50,8 +52,6 @@ public class Planet : Singleton<Planet>
 #if UNITY_EDITOR
         em.SetName(Entity, "Planet");
 #endif
-
-        Load();
     }
 
     void Update()

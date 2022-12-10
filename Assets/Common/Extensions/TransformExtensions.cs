@@ -64,7 +64,7 @@ public static class TransformExtensions
         IEnumerator Coroutine()
         {
             yield return new WaitUntil(() => task.IsCompleted);
-            if (callback != null) callback(task.Result);
+            callback?.Invoke(task.Result);
         }
     }
 
@@ -75,7 +75,7 @@ public static class TransformExtensions
         IEnumerator Coroutine()
         {
             yield return new WaitUntil(() => task.IsCompleted);
-            if (callback != null) callback();
+            callback?.Invoke();
         }
     }
 }

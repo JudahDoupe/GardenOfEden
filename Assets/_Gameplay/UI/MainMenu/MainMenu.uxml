@@ -1,0 +1,29 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="SquareButton" src="project://database/Assets/_Gameplay/UI/MainMenu/SquareButton.uxml?fileID=9197481963319205126&amp;guid=65749a1436e71f846907e379d23b7748&amp;type=3#SquareButton" />
+    <Style src="project://database/Assets/_Gameplay/UI/MainMenu/MainMenu.uss?fileID=7433441132597879392&amp;guid=b43155079087014468e357912fd888c7&amp;type=3#MainMenu" />
+    <ui:VisualElement name="Header" class="Hidden" style="height: 20%; flex-direction: row;">
+        <ui:VisualElement name="HeaderRight" class="Hidden" style="width: 20%; justify-content: flex-end; align-items: flex-end; flex-direction: column;">
+            <ui:Instance template="SquareButton" name="Quit" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Center" style="width: 60%; flex-direction: column-reverse; align-items: center;">
+            <ui:Label text="PlanetName" display-tooltip-when-elided="true" name="PlanetName" class="Title" />
+        </ui:VisualElement>
+        <ui:VisualElement name="HeaderLeft" class="Hidden" style="width: 20%; align-items: flex-start; justify-content: flex-end;">
+            <ui:Instance template="SquareButton" name="Settings" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="Body" style="height: 60%; flex-direction: row;">
+        <ui:VisualElement name="Left" class="Hidden" style="width: 20%; align-items: flex-end; justify-content: center;">
+            <ui:Instance template="SquareButton" name="PrevPlanet" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Center" style="width: 60%;" />
+        <ui:VisualElement name="Right" class="Hidden" style="width: 20%; justify-content: center; align-items: flex-start;">
+            <ui:Instance template="SquareButton" name="NextPlanet" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="Footer" class="Hidden" style="align-items: flex-start; justify-content: center; height: 20%; flex-direction: row;">
+        <ui:Instance template="SquareButton" name="DeletePlanet" />
+        <ui:Instance template="SquareButton" name="Continue" />
+        <ui:Instance template="SquareButton" name="NewPlanet" />
+    </ui:VisualElement>
+</ui:UXML>

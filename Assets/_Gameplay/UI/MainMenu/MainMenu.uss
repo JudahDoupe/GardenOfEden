@@ -1,0 +1,126 @@
+.Button {
+    width: 60px;
+    height: 60px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-left-color: rgba(255, 255, 255, 0.7);
+    border-right-color: rgba(255, 255, 255, 0.7);
+    border-top-color: rgba(255, 255, 255, 0.7);
+    border-bottom-color: rgba(255, 255, 255, 0.7);
+    transition-duration: 0.1s;
+    transition-timing-function: ease-out;
+    overflow: hidden;
+}
+
+.Button:hover {
+    -unity-background-image-tint-color: rgb(30, 30, 30);
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    scale: 1.1 1.1;
+}
+
+.Button:hover > .Icon {
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.Button > .Icon {
+    -unity-background-image-tint-color: rgb(175, 175, 175);
+}
+
+.Icon {
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+.Title {
+    -unity-font: url('project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Bold.ttf?fileID=12800000&guid=dbe3c3546677f8f4cbb54d830e9a59f5&type=3#Raleway-Bold');
+    -unity-font-definition: none;
+    font-size: 40px;
+    background-color: rgba(0, 0, 0, 0.7);
+    width: auto;
+    -unity-text-align: middle-center;
+    height: 60px;
+    min-width: 400px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    color: rgba(255, 255, 255, 255);
+}
+
+#NextPlanet .Icon {
+    background-image: url('project://database/Assets/_Gameplay/UI/MainMenu/Icons/right-arrow.png?fileID=2800000&guid=2201aae25718597478f4adcfa8890ce0&type=3#right-arrow');
+}
+
+#PrevPlanet .Icon {
+    background-image: url('project://database/Assets/_Gameplay/UI/MainMenu/Icons/left-arrow.png?fileID=2800000&guid=b025aef7f916e6d49885d2c5f2a2becf&type=3#left-arrow');
+}
+
+#DeletePlanet .Icon {
+    background-image: url('project://database/Assets/_Gameplay/UI/MainMenu/Icons/trash-can%20(1).png?fileID=2800000&guid=d82be03425dee2e40a6a7f603aaff4ed&type=3#trash-can (1)');
+}
+
+#NewPlanet .Icon {
+    background-image: url('project://database/Assets/_Gameplay/UI/MainMenu/Icons/add.png?fileID=2800000&guid=ff9448d4981c19a449ff847745b80dd3&type=3#add');
+}
+
+#Continue .Icon {
+    background-image: url('project://database/Assets/_Gameplay/UI/MainMenu/Icons/play-button-arrowhead.png?fileID=2800000&guid=935e65856c94c65428918d4972c46452&type=3#play-button-arrowhead');
+}
+
+#Left {
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    translate: 0% 0;
+}
+
+#Left.Hidden {
+    translate: -100% 0;
+}
+
+#Right {
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    translate: 0% 0;
+}
+
+#Right.Hidden {
+    translate: 100% 0;
+}
+
+#Header {
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    translate: 0 0%;
+}
+
+#Header.Hidden {
+    translate: 0 -100%;
+}
+
+#Footer {
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    translate: 0 0%;
+}
+
+#Footer.Hidden {
+    translate: 0 100%;
+}

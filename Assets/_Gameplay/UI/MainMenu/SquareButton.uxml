@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/_Gameplay/UI/MainMenu/MainMenu.uss?fileID=7433441132597879392&amp;guid=b43155079087014468e357912fd888c7&amp;type=3#MainMenu" />
+    <ui:Button display-tooltip-when-elided="true" name="Button" class="Button">
+        <ui:VisualElement name="Icon" class="Icon" />
+    </ui:Button>
+</ui:UXML>

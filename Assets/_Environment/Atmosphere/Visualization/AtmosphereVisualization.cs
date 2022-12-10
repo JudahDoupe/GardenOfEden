@@ -24,6 +24,9 @@ public class AtmosphereVisualization : Singleton<AtmosphereVisualization>
     public static void AttachToPlanet(Planet planet)
     {
         Instance._planet = planet;
+        Instance.Atmospheere.SetVector("_PlanetCenter", planet.transform.position);
+        Instance.Atmospheere.SetVector("_SunDirection", (Instance.Sun.transform.position - planet.transform.position).normalized);
+        Instance.Atmospheere.SetVector("_PlanetCenter", planet.transform.position);
         Instance.Atmospheere.SetFloat("_AtmoshpereScale", Instance.AtmosphereScale);
     }
 
@@ -38,12 +41,10 @@ public class AtmosphereVisualization : Singleton<AtmosphereVisualization>
     }
     private void Update()
     {
-        if (_planet != null)
-        {
-            Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
-            Atmospheere.SetVector("_SunDirection", (Sun.transform.position - Planet.Transform.position).normalized);
-            Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
-        }
+        if (_planet == null) return;
+        Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
+        Atmospheere.SetVector("_SunDirection", (Sun.transform.position - Planet.Transform.position).normalized);
+        Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
     }
 
     private void UpdateVisualization()

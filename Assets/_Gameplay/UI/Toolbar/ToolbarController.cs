@@ -22,6 +22,8 @@ public class ToolbarController : Singleton<ToolbarController>
         public UnityEvent OnDeactivate;
     }
 
+    public UIDocument UI;
+    
     [Header("Systems")]
     public System Global;
     public System Land;
@@ -41,7 +43,7 @@ public class ToolbarController : Singleton<ToolbarController>
     
     private void Start()
     {
-        _toolbar = GetComponent<UIDocument>().rootVisualElement.Query("ToolbarContainer");
+        _toolbar = UI.rootVisualElement.Query("ToolbarContainer");
         AddButtonAction(Global.UiName, SelectGlobalSystem);
         AddButtonAction(Land.UiName, SelectLandSystem);
         AddButtonAction(MovePlate.UiName, SelectMovePlateTool);
