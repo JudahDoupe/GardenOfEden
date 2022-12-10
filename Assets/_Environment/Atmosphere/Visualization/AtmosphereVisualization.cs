@@ -21,7 +21,7 @@ public class AtmosphereVisualization : Singleton<AtmosphereVisualization>
     public float ScatteringStrength = 4;
 
     private Planet _planet = null;
-    public static void AttachToPlate(Planet planet)
+    public static void AttachToPlanet(Planet planet)
     {
         Instance._planet = planet;
         Instance.Atmospheere.SetFloat("_AtmoshpereScale", Instance.AtmosphereScale);

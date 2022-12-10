@@ -54,30 +54,41 @@ public class ToolbarController : Singleton<ToolbarController>
     }
 
     // ToolBar
-    public static void ShowToolbar()
+    public static void EnableToolbar()
     {
         Instance._toolbar.RemoveFromClassList("Hidden");
-        Instance._toolbar.RemoveFromClassList("AutoHide");
+        SelectGlobalSystem();
     }
-    public static void HideToolbar()
+    public static void DisableToolbar()
     {
         Instance._toolbar.AddToClassList("Hidden");
         Instance._toolbar.RemoveFromClassList("AutoHide");
+        if (Instance._activeSystem.HasValue)
+        {
+            Instance._toolbar.Query(name: Instance._activeSystem.Value.UiName).First().RemoveFromClassList("Active");
+            Instance._activeSystem.Value.OnDeactivate.Invoke();
+            Instance._activeSystem = null;
+        }
+        if (Instance._activeTool.HasValue)
+        {
+            Instance._toolbar.Query(name: Instance._activeTool.Value.UiName).First().RemoveFromClassList("Active");
+            Instance._activeTool.Value.OnDeactivate.Invoke();
+            Instance._activeTool = null;
+        }
     }
-    public static void AutoHideToolbar()
+    public static void EnableAutoHide()
     {
-        Instance._toolbar.RemoveFromClassList("Hidden");
         Instance._toolbar.AddToClassList("AutoHide");
     }
-
+    public static void DisableAutoHide()
+    {
+        Instance._toolbar.RemoveFromClassList("AutoHide");
+    }
 
     // Systems
     public static void SelectGlobalSystem() => Instance.ActivateSystem(Instance.Global, Instance.GlobalCamera);
     public static void SelectLandSystem() => Instance.ActivateSystem(Instance.Land, Instance.MovePlate);
-    
-    // Global Tools
-    public static void SelectGlobalCamera() => Instance.ActivateTool(Instance.Land, Instance.MovePlate);
-    
+
     // Land Tools 
     public static void SelectMovePlateTool() => Instance.ActivateTool(Instance.Land, Instance.MovePlate);
     public static void SelectBreakPlateTool() => Instance.ActivateTool(Instance.Land, Instance.BreakPlate);

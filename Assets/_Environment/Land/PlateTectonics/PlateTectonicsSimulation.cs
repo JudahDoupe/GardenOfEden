@@ -62,6 +62,8 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         IsActive = false;
     }
 
+    public void Save() => this.RunTaskInCoroutine(SimulationDataStore.UpdatePlateTectonics(_data));
+
     public void UpdateSystem()
     {
         UpdateVelocity();

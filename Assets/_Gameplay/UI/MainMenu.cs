@@ -5,11 +5,8 @@ using UnityEngine;
 public class MainMenu : MenuUi
 {
 
-    private SystemsController _systemsContoller;
-
     private void Start()
     {
-        _systemsContoller = FindObjectOfType<SystemsController>();
         Enable();
     }
 
@@ -19,7 +16,6 @@ public class MainMenu : MenuUi
         home.gameObject.SetActive(true);
         home.AnimatePosition(0.3f, new Vector3(350, 0, 0));
         CameraController.SetPerspective(FindObjectOfType<MainMenuCamera>(), CameraTransition.Smooth);
-        _systemsContoller.EnableGlobe();
     }
     public override void Disable()
     {
@@ -30,8 +26,7 @@ public class MainMenu : MenuUi
     public void Continue()
     {
         Disable();
-        ToolbarController.ShowToolbar();
-        ToolbarController.SelectGlobalSystem();
+        ToolbarController.EnableToolbar();
     }
     public void Quit() => Application.Quit();
 }

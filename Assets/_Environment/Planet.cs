@@ -25,9 +25,18 @@ public class Planet : Singleton<Planet>
     public void Initialize(PlanetData data)
     {
         Data = data;
-        FindObjectOfType<SystemsController>().InitializeAllSystems(data);
-        FindObjectOfType<SystemsController>().EnableGlobe();
-        AtmosphereVisualization.AttachToPlate(this);
+        
+        FindObjectOfType<PlateTectonicsSimulation>().Initialize(data.PlateTectonics);
+        FindObjectOfType<PlateTectonicsVisualization>().Initialize(data.PlateTectonics);
+        FindObjectOfType<PlateTectonicsAudio>().Initialize(data.PlateTectonics);
+        FindObjectOfType<PlateBakerV2>().Initialize(data.PlateTectonics);
+        FindObjectOfType<MovePlateTool>().Initialize(data.PlateTectonics);
+        FindObjectOfType<BreakPlateTool>().Initialize(data.PlateTectonics);
+        FindObjectOfType<MergePlateTool>().Initialize(data.PlateTectonics);
+
+        FindObjectOfType<WaterSimulation>().Initialize(data.Water);
+        
+        AtmosphereVisualization.AttachToPlanet(this);
     }
 
     void Start()

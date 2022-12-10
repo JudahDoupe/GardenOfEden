@@ -9,7 +9,7 @@ public class GlobalCameraTool : MonoBehaviour, ITool
         IsActive = true;
         CameraController.SetPerspective(FindObjectOfType<SatelliteCamera>(), CameraTransition.Smooth);
         InputAdapter.Cancel.Subscribe(this, () => {
-            ToolbarController.HideToolbar();
+            ToolbarController.DisableToolbar();
             FindObjectOfType<MainMenu>().Enable();
         });
     }
