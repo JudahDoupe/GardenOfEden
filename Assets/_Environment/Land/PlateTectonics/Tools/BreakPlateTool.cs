@@ -1,7 +1,12 @@
+using Assets.GamePlay.Cameras;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(PlateTectonicsSimulation))]
+[RequireComponent(typeof(PlateTectonicsVisualization))]
+[RequireComponent(typeof(PlateTectonicsAudio))]
+[RequireComponent(typeof(PlateBakerV2))]
 public class BreakPlateTool : MonoBehaviour, ITool
 {
     public ComputeShader BreakPlateShader;
@@ -19,17 +24,13 @@ public class BreakPlateTool : MonoBehaviour, ITool
     private PlateBakerV2 _baker;
     private Break? _break;
 
-    public void Initialize(PlateTectonicsData data,
-                           PlateTectonicsSimulation simulation,
-                           PlateTectonicsVisualization visualization,
-                           PlateTectonicsAudio audio,
-                           PlateBakerV2 baker)
+    public void Initialize(PlateTectonicsData data)
     {
         _data = data;
-        _simulation = simulation;
-        _visualization = visualization;
-        _audio = audio;
-        _baker = baker;
+        _simulation = GetComponent<PlateTectonicsSimulation>();
+        _visualization = GetComponent<PlateTectonicsVisualization>();
+        _audio = GetComponent<PlateTectonicsAudio>();
+        _baker = GetComponent<PlateBakerV2>();
         IsInitialized = true;
     }
     public void Enable()
@@ -37,6 +38,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
         if (!IsInitialized)
             return;
 
+        CameraController.SetPerspective(FindObjectOfType<SatelliteCamera>(), CameraTransition.SmoothFast);
         _baker.CancelBake();
         _simulation.Disable();
         _break = null;
@@ -57,7 +59,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
             if (_break.HasValue)
                 _break = null;
             else
-                FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
+                ToolbarController.SelectMovePlateTool();
         });
     }
     public void Disable()

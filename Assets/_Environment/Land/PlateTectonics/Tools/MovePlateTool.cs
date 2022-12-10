@@ -1,7 +1,11 @@
 using System.Linq;
+using Assets.GamePlay.Cameras;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(PlateTectonicsSimulation))]
+[RequireComponent(typeof(PlateTectonicsVisualization))]
+[RequireComponent(typeof(PlateBakerV2))]
 public class MovePlateTool : MonoBehaviour, ITool
 {
     public float MaxVelocity = 10;
@@ -20,15 +24,12 @@ public class MovePlateTool : MonoBehaviour, ITool
     private Vector3 _startingPosition;
     private bool _needsBaking = false;
 
-    public void Initialize(PlateTectonicsData data,
-        PlateTectonicsSimulation simulation,
-        PlateTectonicsVisualization visualization,
-        PlateBakerV2 baker)
+    public void Initialize(PlateTectonicsData data)
     {
         _data = data;
-        _simulation = simulation;
-        _visualization = visualization;
-        _baker = baker;
+        _simulation = GetComponent<PlateTectonicsSimulation>();
+        _visualization = GetComponent<PlateTectonicsVisualization>();
+        _baker = GetComponent<PlateBakerV2>();
         IsInitialized = true;
     }
     public void Enable()
@@ -36,6 +37,7 @@ public class MovePlateTool : MonoBehaviour, ITool
         if (!IsInitialized)
             return;
 
+        CameraController.SetPerspective(FindObjectOfType<SatelliteCamera>(), CameraTransition.SmoothFast);
         StopMoving();
         _simulation.Enable();
         IsActive = true;
@@ -49,11 +51,13 @@ public class MovePlateTool : MonoBehaviour, ITool
             {
                 StopMoving();
             });
+        InputAdapter.Cancel.Subscribe(this, ToolbarController.SelectGlobalSystem);
     }
     public void Disable()
     {
         StopMoving();
         InputAdapter.Click.Unubscribe(this);
+        InputAdapter.Cancel.Unubscribe(this);
         _visualization.HideOutlines();
         IsActive = false;
         TryBake();

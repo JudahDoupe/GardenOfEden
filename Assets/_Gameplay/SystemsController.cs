@@ -17,12 +17,14 @@ public class SystemsController : MonoBehaviour
         FindObjectOfType<PlateTectonicsSimulation>().Initialize(data.PlateTectonics);
         FindObjectOfType<PlateTectonicsVisualization>().Initialize(data.PlateTectonics);
         FindObjectOfType<PlateTectonicsAudio>().Initialize(data.PlateTectonics);
-        FindObjectOfType<PlateTectonicsToolbar>().Initialize(data.PlateTectonics);
         FindObjectOfType<PlateBakerV2>().Initialize(data.PlateTectonics);
+        FindObjectOfType<MovePlateTool>().Initialize(data.PlateTectonics);
+        FindObjectOfType<BreakPlateTool>().Initialize(data.PlateTectonics);
+        FindObjectOfType<MergePlateTool>().Initialize(data.PlateTectonics);
 
         FindObjectOfType<WaterSimulation>().Initialize(data.Water);
     }
-
+    
     public void EnablePlateTectonics()
     {
         _disableCurrentSystem();

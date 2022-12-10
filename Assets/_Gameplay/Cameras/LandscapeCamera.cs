@@ -124,7 +124,6 @@ public class LandscapeCamera : CameraPerspective
 
             priority: InputPriority.Low);
         InputAdapter.Drag.Subscribe(this, priority: InputPriority.Low);
-        InputAdapter.Cancel.Subscribe(this, () => FindObjectOfType<PlateTectonicsToolbar>().MovePlates());
     }
     
     public override void Disable()
@@ -136,7 +135,6 @@ public class LandscapeCamera : CameraPerspective
         InputAdapter.MoveModifier.Unubscribe(this);
         InputAdapter.Click.Unubscribe(this);
         InputAdapter.Drag.Unubscribe(this);
-        InputAdapter.Cancel.Unubscribe(this);
     }
     
 #endregion

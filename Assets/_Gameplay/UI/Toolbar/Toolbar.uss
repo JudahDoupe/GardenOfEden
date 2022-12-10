@@ -1,14 +1,25 @@
+#ToolbarContainer {
+    bottom: 0px;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+}
+
+#ToolbarContainer.Hidden {
+    bottom: -60px;
+}
+
+#ToolbarContainer.AutoHide {
+    bottom: -45px;
+}
+
+#ToolbarContainer.AutoHide:hover {
+    bottom: 0;
+}
+
 .Button {
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    background-image: none;
-    background-color: rgb(0, 0, 0);
+    transition-duration: 0.1s;
+    align-items: center;
+    justify-content: center;
     border-left-width: 0;
     border-right-width: 0;
     border-top-width: 0;
@@ -17,20 +28,23 @@
     border-bottom-left-radius: 0;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    -unity-slice-left: 0;
-    -unity-slice-top: 0;
-    -unity-slice-right: 0;
-    -unity-slice-bottom: 0;
-    transition-duration: 0.1s;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
     min-width: 60px;
     min-height: 60px;
 }
 
 .Button > .Icon {
-    flex-grow: 1;
-    flex-shrink: 0;
     -unity-background-image-tint-color: rgb(85, 85, 85);
     transition-duration: 0.1s;
+    min-width: 70%;
+    min-height: 70%;
 }
 
 .Button:hover > .Icon {
@@ -38,16 +52,24 @@
 }
 
 .Tool {
-    min-width: 50px;
-    min-height: 50px;
+    flex-grow: 1;
+    flex-shrink: 0;
 }
 
 .Tool > .Button {
     background-color: rgb(25, 25, 25);
 }
 
-.Tool.Active > .Icon {
+.Tool.Active > .Button {
+    background-color: rgb(51, 51, 51);
+}
+
+.Tool.Active > .Button > .Icon {
     -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.System {
+    flex-direction: row;
 }
 
 .System > .Button {
@@ -63,15 +85,16 @@
     transition-duration: 0.3s;
     transition-property: width;
     transition-timing-function: ease-out;
-    flex-direction: row;
     overflow: hidden;
+    flex-direction: row;
 }
 
 .System.Active > .ToolDrawer {
+    overflow: hidden;
     width: 240px;
 }
 
-#Globe .Icon {
+#GlobalSystem .Icon {
     background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/world.png?fileID=2800000&guid=b003817db899db74e8c9d4b3bf83bd47&type=3#world');
 }
 

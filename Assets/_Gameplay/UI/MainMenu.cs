@@ -30,7 +30,8 @@ public class MainMenu : MenuUi
     public void Continue()
     {
         Disable();
-        FindObjectOfType<SystemsMenu>().Enable();
+        ToolbarController.ShowToolbar();
+        ToolbarController.SelectGlobalSystem();
     }
     public void Quit() => Application.Quit();
 }

@@ -2,18 +2,18 @@
     <ui:Template name="ToolbarButton" src="project://database/Assets/_Gameplay/UI/Toolbar/ToolbarButton.uxml?fileID=9197481963319205126&amp;guid=5ee24560659e92f469d4e33d763282a4&amp;type=3#ToolbarButton" />
     <Style src="project://database/Assets/_Gameplay/UI/Toolbar/Toolbar.uss?fileID=7433441132597879392&amp;guid=3a8a13f5bed82514893aef499fd65d4e&amp;type=3#Toolbar" />
     <ui:GroupBox name="ScreenContainer" style="flex-grow: 1; flex-direction: column-reverse; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
-        <ui:GroupBox name="ToolbarContainer" style="flex-direction: row; align-items: flex-end; justify-content: center; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;">
+        <ui:GroupBox name="ToolbarContainer" class="Hidden" style="flex-direction: row; align-items: flex-end; justify-content: center; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;">
             <ui:VisualElement name="LeftBumper" style="border-top-left-radius: 15px; width: 30px; height: 60px; background-color: rgb(0, 0, 0);" />
-            <ui:Instance template="ToolbarButton" name="Globe" class="System" />
-            <ui:Instance template="ToolbarButton" name="LandSystem" class="System" style="flex-direction: row;">
-                <ui:VisualElement name="LandToolDrawer" class="ToolDrawer" style="flex-direction: row; overflow: hidden;">
+            <ui:Instance template="ToolbarButton" name="GlobalSystem" class="System" />
+            <ui:Instance template="ToolbarButton" name="LandSystem" class="System">
+                <ui:VisualElement name="LandToolDrawer" class="ToolDrawer">
                     <ui:Instance template="ToolbarButton" name="MovePlateTool" class="Tool" />
                     <ui:Instance template="ToolbarButton" name="BreakPlateTool" class="Tool" />
                     <ui:Instance template="ToolbarButton" name="MergePlateTool" class="Tool" />
                     <ui:Instance template="ToolbarButton" name="LandscapeCamera" class="Tool" />
                 </ui:VisualElement>
             </ui:Instance>
-            <ui:VisualElement name="RightBumper" style="border-top-left-radius: 0; width: 30px; height: 60px; background-color: rgb(0, 0, 0); border-top-right-radius: 15px;" />
+            <ui:VisualElement name="RightBumper" style="width: 30px; height: 60px; background-color: rgb(0, 0, 0); border-top-right-radius: 15px;" />
         </ui:GroupBox>
     </ui:GroupBox>
 </ui:UXML>

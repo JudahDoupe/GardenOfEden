@@ -1,8 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
+using Assets.GamePlay.Cameras;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(PlateTectonicsSimulation))]
+[RequireComponent(typeof(PlateTectonicsVisualization))]
+[RequireComponent(typeof(PlateTectonicsAudio))]
+[RequireComponent(typeof(PlateBakerV2))]
 public class MergePlateTool : MonoBehaviour, ITool
 {
     public ComputeShader MergePlateShader;
@@ -17,17 +22,13 @@ public class MergePlateTool : MonoBehaviour, ITool
     private PlateBakerV2 _baker;
     private PlateData selectedPlate;
 
-    public void Initialize(PlateTectonicsData data,
-        PlateTectonicsSimulation simulation,
-        PlateTectonicsVisualization visualization,
-        PlateTectonicsAudio audio,
-        PlateBakerV2 baker)
+    public void Initialize(PlateTectonicsData data)
     {
         _data = data;
-        _simulation = simulation;
-        _visualization = visualization;
-        _audio = audio;
-        _baker = baker;
+        _simulation = GetComponent<PlateTectonicsSimulation>();
+        _visualization = GetComponent<PlateTectonicsVisualization>();
+        _audio = GetComponent<PlateTectonicsAudio>();
+        _baker = GetComponent<PlateBakerV2>();
         IsInitialized = true;
     }
     public void Enable()
@@ -35,6 +36,7 @@ public class MergePlateTool : MonoBehaviour, ITool
         if (!IsInitialized)
             return;
 
+        CameraController.SetPerspective(FindObjectOfType<SatelliteCamera>(), CameraTransition.SmoothFast);
         selectedPlate = null;
         _baker.CancelBake();
         _simulation.Disable();
@@ -56,7 +58,7 @@ public class MergePlateTool : MonoBehaviour, ITool
             if (selectedPlate is not null)
                 selectedPlate = null;
             else
-                FindObjectOfType<PlateTectonicsToolbar>().MovePlates();
+                ToolbarController.SelectMovePlateTool();
         });
     }
     public void Disable()
