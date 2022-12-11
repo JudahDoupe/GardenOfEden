@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/_Gameplay/UI/Debug/DebugMenu.uss?fileID=7433441132597879392&amp;guid=8e31a8c8c841a06408404061d74274cf&amp;type=3#DebugMenu" />
+    <ui:VisualElement name="DebugContainer" class="Hidden" style="padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; background-color: rgba(0, 0, 0, 0.25);">
+        <ui:Label text="60 FPS" display-tooltip-when-elided="true" name="FPS" style="color: rgb(255, 255, 255);" />
+    </ui:VisualElement>
+</ui:UXML>

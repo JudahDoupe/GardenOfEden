@@ -42,10 +42,14 @@ public class InputAdapter : Singleton<InputAdapter>
     /// Triggers when the cancel button is pressed
     /// </summary>
     public static PriorityAction Cancel { get; private set; }
+    /// <summary>
+    /// Triggers when the debug button is pressed
+    /// </summary>
+    public static PriorityAction Debug { get; private set; }
 
     private static Controls _controls;
 
-    private void Start()
+    private void Awake()
     {
         _controls = new Controls();
         _controls.Standard.Enable();
@@ -58,6 +62,7 @@ public class InputAdapter : Singleton<InputAdapter>
         RightMove = new PriorityAction<Vector2>(_controls.Standard.RightMove);
         Confirm = new PriorityAction(_controls.Standard.Confirm);
         Cancel = new PriorityAction(_controls.Standard.Cancel);
+        Debug = new PriorityAction(_controls.Standard.Debug);
     }
 }
 
