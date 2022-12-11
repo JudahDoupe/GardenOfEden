@@ -72,8 +72,7 @@ public static class SimulationDataStore
     }
 
     #endregion
-
-
+    
     private static async Task SaveDataAsync<T>(string path, T dbData) => await Task.Run(() => File.WriteAllText(path,  JsonUtility.ToJson(dbData)));
     private static async Task<T> LoadDataAsync<T>(string path) => JsonUtility.FromJson<T>(File.Exists(path) ? await File.ReadAllTextAsync(path) : "");
 }

@@ -9,14 +9,29 @@
             <ui:Label text="PlanetName" display-tooltip-when-elided="true" name="PlanetName" class="Title" />
         </ui:VisualElement>
         <ui:VisualElement name="HeaderLeft" class="Hidden" style="width: 20%; align-items: flex-start; justify-content: flex-end;">
-            <ui:Instance template="SquareButton" name="Settings" />
+            <ui:Instance template="SquareButton" name="Settings" class="Hidden" />
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="Body" style="height: 60%; flex-direction: row;">
         <ui:VisualElement name="Left" class="Hidden" style="width: 20%; align-items: flex-end; justify-content: center;">
             <ui:Instance template="SquareButton" name="PrevPlanet" />
         </ui:VisualElement>
-        <ui:VisualElement name="Center" style="width: 60%;" />
+        <ui:VisualElement name="Center" style="width: 60%; align-items: center; justify-content: center;">
+            <ui:VisualElement name="NewPlanetContainer" class="Popup Hidden">
+                <ui:TextField picking-mode="Ignore" label="Name your new planet" value="Earth" text="Earth" name="NewPlanetInput" multiline="false" style="flex-direction: column; align-items: center; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 400px;" />
+                <ui:VisualElement name="ButtonContainer" style="flex-direction: row; justify-content: space-around; flex-wrap: nowrap;">
+                    <ui:Instance template="SquareButton" name="CancelNewPlanet" />
+                    <ui:Instance template="SquareButton" name="ConfirmNewPlanet" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="DeletePlanetDialog" class="Popup Hidden">
+                <ui:Label text="Are you sure &#10;you want to delete this planet?" display-tooltip-when-elided="true" style="font-size: 30px; -unity-font-definition: none; -unity-font: url(&apos;project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Light.ttf?fileID=12800000&amp;guid=1e4724edc335041458658f2bc32fabd8&amp;type=3#Raleway-Light&apos;); padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 15px; -unity-text-align: upper-center; color: rgb(255, 255, 255);" />
+                <ui:VisualElement name="ButtonContainer" style="flex-direction: row; justify-content: space-around; flex-wrap: nowrap;">
+                    <ui:Instance template="SquareButton" name="CancelDeletePlanet" />
+                    <ui:Instance template="SquareButton" name="ConfirmDeletePlanet" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:VisualElement name="Right" class="Hidden" style="width: 20%; justify-content: center; align-items: flex-start;">
             <ui:Instance template="SquareButton" name="NextPlanet" />
         </ui:VisualElement>

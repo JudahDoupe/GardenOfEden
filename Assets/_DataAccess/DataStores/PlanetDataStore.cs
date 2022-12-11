@@ -29,4 +29,9 @@ public static class PlanetDataStore
         await SimulationDataStore.UpdatePlateTectonics(data.PlateTectonics);
         await SimulationDataStore.UpdateWater(data.Water);
     }
+    public static void Delete(string planetName)
+    {
+        var folderPath = $"{Application.persistentDataPath}/{planetName}";
+        Directory.Delete(folderPath, true);
+    }
 }
