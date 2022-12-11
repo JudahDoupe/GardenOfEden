@@ -3,6 +3,7 @@ using Assets.GamePlay.Cameras;
 using Assets.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Application = UnityEngine.Device.Application;
 
 public class MainMenuController : Singleton<MainMenuController>
 {
@@ -10,7 +11,13 @@ public class MainMenuController : Singleton<MainMenuController>
 
     private void Start()
     {
+        AddButtonAction("Quit", Quit);
+        AddButtonAction("Settings", Settings);
+        AddButtonAction("DeletePlanet", DeletePlanet);
         AddButtonAction("Continue", Continue);
+        AddButtonAction("NewPlanet", NewPlanet);
+        AddButtonAction("NextPlanet", NextPlanet);
+        AddButtonAction("PrevPlanet", PrevPlanet);
         
         LoadPlanet("Earth");
         
@@ -18,8 +25,8 @@ public class MainMenuController : Singleton<MainMenuController>
             => UI.rootVisualElement.Query(buttonName).First().Query<Button>(classes: "Button").First().clicked += action;
     }
     
-    // Menu
-    
+    #region Menu
+
     public static void EnableMainMenu()
     {
         Instance.ShowUi();
@@ -27,15 +34,25 @@ public class MainMenuController : Singleton<MainMenuController>
     }
     public static void DisableMainMenu() => Instance.HideUi();
 
-    // Buttons
-    
+    #endregion
+
+    #region Buttons
+
+    public static void Quit() => Planet.Instance.Save(Application.Quit);
+    public static void Settings() {}
+    public static void DeletePlanet() {}
     public static void Continue() {
         DisableMainMenu();
         ToolbarController.EnableToolbar();
     }
+    public static void NewPlanet() {}
+    public static void NextPlanet() {}
+    public static void PrevPlanet() {}
 
-    
-    // Planet Helpers
+    #endregion
+
+
+    #region Planet Helpers
 
     private void UnloadPlanet(bool exitRight = true, Action onUnload = null)
     {
@@ -62,9 +79,11 @@ public class MainMenuController : Singleton<MainMenuController>
                                                          EaseType.Out));
         });
     }
-    
-    // UI Helpers
-    
+
+    #endregion
+
+    #region UI Helpers
+
     private void ShowUi()
     {
         ShowPlanetNavigation();
@@ -104,4 +123,7 @@ public class MainMenuController : Singleton<MainMenuController>
     {
         UI.rootVisualElement.Query("Footer").First().AddToClassList("Hidden");
     }
+
+    #endregion
+    
 }
