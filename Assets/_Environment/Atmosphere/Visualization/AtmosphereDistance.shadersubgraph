@@ -5,6 +5,9 @@
     "m_Properties": [
         {
             "m_Id": "f8b43d8829614ccaac841e5305e739cc"
+        },
+        {
+            "m_Id": "623acce37a024038b581ef5f6fa08389"
         }
     ],
     "m_Keywords": [],
@@ -44,6 +47,9 @@
         },
         {
             "m_Id": "4ad76657f37b4fe4a32ef321b3f3687e"
+        },
+        {
+            "m_Id": "e5ad15e63e70437a94c2e33a1a2db862"
         }
     ],
     "m_GroupDatas": [],
@@ -229,6 +235,20 @@
                     "m_Id": "e4c44fffb7c6402e9e97eb9aaacfe2af"
                 },
                 "m_SlotId": 3
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "e5ad15e63e70437a94c2e33a1a2db862"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "b49d3fa382444341825a0bcb97f680ac"
+                },
+                "m_SlotId": 2
             }
         },
         {
@@ -529,6 +549,9 @@
     "m_ChildObjectList": [
         {
             "m_Id": "f8b43d8829614ccaac841e5305e739cc"
+        },
+        {
+            "m_Id": "623acce37a024038b581ef5f6fa08389"
         }
     ]
 }
@@ -593,6 +616,33 @@
         "e31": 0.0,
         "e32": 0.0,
         "e33": 1.0
+    }
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector3ShaderProperty",
+    "m_ObjectId": "623acce37a024038b581ef5f6fa08389",
+    "m_Guid": {
+        "m_GuidSerialized": "ab51bb09-ddc5-4bf2-a133-4abf85f7bb77"
+    },
+    "m_Name": "PlanetCenter",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "PlanetCenter",
+    "m_DefaultReferenceName": "_PlanetCenter",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
     }
 }
 
@@ -852,6 +902,29 @@
         "m_SerializableColors": []
     },
     "m_DepthSamplingMode": 2
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "750eca26576849b1a045be650d03577d",
+    "m_Id": 0,
+    "m_DisplayName": "PlanetCenter",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
 }
 
 {
@@ -1373,6 +1446,41 @@
         "m_SerializableColors": []
     },
     "IsFirstSlotValid": true
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "e5ad15e63e70437a94c2e33a1a2db862",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -545.0,
+            "y": -72.0,
+            "width": 145.0,
+            "height": 34.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "750eca26576849b1a045be650d03577d"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "623acce37a024038b581ef5f6fa08389"
+    }
 }
 
 {

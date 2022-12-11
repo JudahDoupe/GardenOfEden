@@ -122,6 +122,9 @@
         },
         {
             "m_Id": "20ecc5bc390e4136825a385f51a9fa2e"
+        },
+        {
+            "m_Id": "5baee5b9c5e14feca8c43f03ea36e640"
         }
     ],
     "m_GroupDatas": [],
@@ -223,6 +226,20 @@
                     "m_Id": "61237746a4b34399b8f79849bd758af9"
                 },
                 "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "5baee5b9c5e14feca8c43f03ea36e640"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "be14c5d0a8df4e9cb0bb46af5e5f381e"
+                },
+                "m_SlotId": 676504296
             }
         },
         {
@@ -1384,6 +1401,41 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "5baee5b9c5e14feca8c43f03ea36e640",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -2190.0,
+            "y": 359.0,
+            "width": 145.0,
+            "height": 34.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "a9a325d5dcb84d2893c7423972edefc5"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "96a02aea452e49818e074579c83f7337"
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
     "m_ObjectId": "5fe6d6a1ce3a4f89836c6e2520350bd9",
     "m_Group": {
         "m_Id": ""
@@ -2005,6 +2057,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "a9a325d5dcb84d2893c7423972edefc5",
+    "m_Id": 0,
+    "m_DisplayName": "PlanetCenter",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
     "m_ObjectId": "abbddcf4a57a47eab32d72953167ee28",
     "m_Group": {
@@ -2301,6 +2376,9 @@
             "m_Id": "1d704c0d672e4b7aa7dcfc960f335118"
         },
         {
+            "m_Id": "d71e0695492a4df396e99668558d889c"
+        },
+        {
             "m_Id": "652f4cbc6a164453864c40a86e40bfbb"
         },
         {
@@ -2319,10 +2397,12 @@
     },
     "m_SerializedSubGraph": "{\n    \"subGraph\": {\n        \"fileID\": -5475051401550479605,\n        \"guid\": \"3f101ac0a562e91419264cb149ff3ec3\",\n        \"type\": 3\n    }\n}",
     "m_PropertyGuids": [
-        "00ac8a3b-cdff-4b12-9593-95580ff847ed"
+        "00ac8a3b-cdff-4b12-9593-95580ff847ed",
+        "ab51bb09-ddc5-4bf2-a133-4abf85f7bb77"
     ],
     "m_PropertyIds": [
-        -26465186
+        -26465186,
+        676504296
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []
@@ -2433,6 +2513,29 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "scatteringCoefficients",
     "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "d71e0695492a4df396e99668558d889c",
+    "m_Id": 676504296,
+    "m_DisplayName": "PlanetCenter",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_PlanetCenter",
+    "m_StageCapability": 2,
     "m_Value": {
         "x": 0.0,
         "y": 0.0,
