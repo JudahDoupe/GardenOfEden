@@ -24,7 +24,11 @@ public class MainMenuController : Singleton<MainMenuController>
         });
 
         AddButtonAction("Quit", Application.Quit);
-        // AddButtonAction("Settings", () => { }); TODO
+        AddButtonAction("Settings", () =>
+        {
+            DisableMainMenu();
+            SettingsController.ShowSettingsMenu();
+        });
         AddButtonAction("DeletePlanet", () =>
         {
             HideUi();
@@ -101,12 +105,14 @@ public class MainMenuController : Singleton<MainMenuController>
 
     public static void EnableMainMenu()
     {
+        Instance.UI.sortingOrder = 1;
         Instance.ShowUi();
         CameraController.SetPerspective(FindObjectOfType<MainMenuCamera>(), CameraTransition.Smooth);
     }
 
     public static void DisableMainMenu()
     {
+        Instance.UI.sortingOrder = 0;
         Instance.HideUi();
     }
 

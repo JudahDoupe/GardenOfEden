@@ -58,11 +58,13 @@ public class ToolbarController : Singleton<ToolbarController>
     // ToolBar
     public static void EnableToolbar()
     {
+        Instance.UI.sortingOrder = 1;
         Instance._toolbar.RemoveFromClassList("Hidden");
         SelectGlobalSystem();
     }
     public static void DisableToolbar()
     {
+        Instance.UI.sortingOrder = 0;
         Instance._toolbar.AddToClassList("Hidden");
         Instance._toolbar.RemoveFromClassList("AutoHide");
         if (Instance._activeSystem.HasValue)

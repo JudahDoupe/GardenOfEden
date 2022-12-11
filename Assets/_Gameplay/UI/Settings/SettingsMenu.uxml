@@ -1,0 +1,30 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/_Gameplay/UI/Settings/SettingsMenu.uss?fileID=7433441132597879392&amp;guid=c48296034a25f0447aad6d4a66fe095f&amp;type=3#SettingsMenu" />
+    <ui:VisualElement name="ScreenContainer" style="justify-content: center; align-items: center; flex-grow: 1;">
+        <ui:VisualElement name="SettingsContainer" class="Hidden" style="border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; background-color: rgba(0, 0, 0, 0.7); padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; flex-direction: row; height: 500px; transition-duration: 0.3s;">
+            <ui:VisualElement name="SideBar" style="background-color: rgb(0, 0, 0); border-top-left-radius: 10px; border-bottom-left-radius: 10px; padding-top: 10px; padding-bottom: 10px; padding-left: 0;">
+                <ui:Label text="Settings" display-tooltip-when-elided="true" class="Title" />
+                <ui:Button text="Gameplay" display-tooltip-when-elided="true" name="Gameplay" class="TabButton" style="border-top-width: 2px;" />
+                <ui:Button text="Graphics" display-tooltip-when-elided="true" name="Graphics" class="TabButton" />
+                <ui:Button text="Sound" display-tooltip-when-elided="true" name="Sound" class="TabButton" />
+                <ui:Button text="Controls" display-tooltip-when-elided="true" name="Controls" class="TabButton" />
+                <ui:VisualElement name="Spacer" style="flex-grow: 1;" />
+                <ui:Button text="Done" display-tooltip-when-elided="true" name="Done" class="TabButton" style="border-top-width: 2px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Content" style="width: 600px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px;">
+                <ui:VisualElement name="GameplaySettings" class="Hidden">
+                    <ui:Label text="Gameplay" display-tooltip-when-elided="true" class="Title" />
+                </ui:VisualElement>
+                <ui:VisualElement name="GraphicsSettings" class="Hidden">
+                    <ui:Label text="Graphics" display-tooltip-when-elided="true" class="Title" />
+                </ui:VisualElement>
+                <ui:VisualElement name="SoundSettings" class="Hidden">
+                    <ui:Label text="Sound" display-tooltip-when-elided="true" class="Title" />
+                </ui:VisualElement>
+                <ui:VisualElement name="ControlsSettings" class="Hidden">
+                    <ui:Label text="Controls" display-tooltip-when-elided="true" class="Title" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
