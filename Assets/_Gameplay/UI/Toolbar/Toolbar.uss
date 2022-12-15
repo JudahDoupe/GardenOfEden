@@ -65,14 +65,6 @@
     background-color: rgb(13, 13, 13);
 }
 
-#LandSystem:hover > .Icon {
-    -unity-background-image-tint-color: rgb(255, 148, 102);
-}
-
-#LandSystem.Active > .Icon {
-    -unity-background-image-tint-color: rgb(255, 113, 51);
-}
-
 #LandSystemTray {
     width: 240px;
     flex-direction: row;
@@ -98,4 +90,82 @@
 
 #LandSystemTray .Tool.Active > .Underline {
     background-color: rgb(255, 112, 51);
+}
+
+#LandSystem:hover > .Icon {
+    -unity-background-image-tint-color: rgb(255, 148, 102);
+}
+
+#LandSystem.Active > .Icon {
+    -unity-background-image-tint-color: rgb(255, 113, 51);
+}
+
+#WaterSystemTray {
+    width: 180px;
+    flex-direction: row;
+    transition-duration: 0.3s;
+    overflow: hidden;
+}
+
+#WaterSystemTray.Hidden {
+    width: 0;
+}
+
+#WaterSystemTray .Tool:hover {
+    background-color: rgb(5, 16, 26);
+}
+
+#WaterSystemTray .Tool:hover > .Underline {
+    background-color: rgb(30, 92, 153);
+}
+
+#WaterSystemTray .Tool.Active {
+    background-color: rgb(13, 39, 64);
+}
+
+#WaterSystemTray .Tool.Active > .Underline {
+    background-color: rgb(51, 153, 255);
+}
+
+#WaterSystem:hover > .Icon {
+    -unity-background-image-tint-color: rgb(102, 178, 255);
+}
+
+#WaterSystem.Active > .Icon {
+    -unity-background-image-tint-color: rgb(51, 153, 255);
+}
+
+#PlantSystemTray {
+    width: 180px;
+    flex-direction: row;
+    transition-duration: 0.3s;
+    overflow: hidden;
+}
+
+#PlantSystemTray.Hidden {
+    width: 0;
+}
+
+#PlantSystemTray .Tool:hover {
+    background-color: rgb(6, 26, 5);
+}
+
+#PlantSystemTray .Tool:hover > .Underline {
+    background-color: rgb(36, 153, 30);
+}
+
+#PlantSystemTray .Tool.Active {
+    background-color: rgb(16, 64, 13);
+}
+
+#PlantSystemTray .Tool.Active > .Underline {
+    background-color: rgb(61, 255, 51);
+}
+
+#PlantSystem:hover > .Icon {
+    -unity-background-image-tint-color: rgb(110, 255, 102);
+}
+
+#PlantSystem.Active > .Icon {
+    -unity-background-image-tint-color: rgb(61, 255, 51);
 }

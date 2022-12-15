@@ -27,6 +27,8 @@ public class ToolbarController : Singleton<ToolbarController>
     [Header("Systems")]
     public System Global;
     public System Land;
+    public System Water;
+    public System Plants;
 
     [Header("Global Tools")]
     public Tool GlobalCamera;
@@ -37,6 +39,16 @@ public class ToolbarController : Singleton<ToolbarController>
     public Tool MergePlate;
     public Tool LandscapeCamera;
     
+    [Header("Water Tools")]
+    public Tool CloudsTool;
+    public Tool WindTool;
+    public Tool WaterCamera;
+    
+    [Header("Plants Tools")]
+    public Tool NewPlantTool;
+    public Tool EditPlantTool;
+    public Tool ObservationCamera;
+    
     private VisualElement _toolbar;
     private System? _activeSystem;
     private Tool? _activeTool;
@@ -46,10 +58,18 @@ public class ToolbarController : Singleton<ToolbarController>
         _toolbar = UI.rootVisualElement.Query("ToolbarContainer");
         AddButtonAction(Global.UiName, SelectGlobalSystem);
         AddButtonAction(Land.UiName, SelectLandSystem);
+        AddButtonAction(Water.UiName, SelectWaterSystem);
+        AddButtonAction(Plants.UiName, SelectPlantsSystem);
         AddButtonAction(MovePlate.UiName, SelectMovePlateTool);
         AddButtonAction(BreakPlate.UiName, SelectBreakPlateTool);
         AddButtonAction(MergePlate.UiName, SelectMergePlateTool);
         AddButtonAction(LandscapeCamera.UiName, SelectLandscapeCamera);
+        AddButtonAction(CloudsTool.UiName, SelectCloudsTool);
+        AddButtonAction(WindTool.UiName, SelectWindTool);
+        AddButtonAction(WaterCamera.UiName, SelectWaterCamera);
+        AddButtonAction(NewPlantTool.UiName, SelectNewPlantTool);
+        AddButtonAction(EditPlantTool.UiName, SelectEditPlantTool);
+        AddButtonAction(ObservationCamera.UiName, SelectObservationCamera);
 
         void AddButtonAction(string buttonName, Action action)
             => _toolbar.Query(buttonName).First().Query<Button>(classes: "Button").First().clicked += action;
@@ -82,6 +102,8 @@ public class ToolbarController : Singleton<ToolbarController>
     // Systems
     public static void SelectGlobalSystem() => Instance.ActivateSystem(Instance.Global, Instance.GlobalCamera);
     public static void SelectLandSystem() => Instance.ActivateSystem(Instance.Land, Instance.MovePlate);
+    public static void SelectWaterSystem() => Instance.ActivateSystem(Instance.Water, Instance.CloudsTool);
+    public static void SelectPlantsSystem() => Instance.ActivateSystem(Instance.Plants, Instance.NewPlantTool);
 
     // Land Tools 
     public static void SelectMovePlateTool() => Instance.ActivateTool(Instance.Land, Instance.MovePlate);
@@ -89,6 +111,17 @@ public class ToolbarController : Singleton<ToolbarController>
     public static void SelectMergePlateTool() => Instance.ActivateTool(Instance.Land, Instance.MergePlate);
     public static void SelectLandscapeCamera() => Instance.ActivateTool(Instance.Land, Instance.LandscapeCamera);
     
+    // Water Tools 
+    public static void SelectCloudsTool() => Instance.ActivateTool(Instance.Water, Instance.CloudsTool);
+    public static void SelectWindTool() => Instance.ActivateTool(Instance.Water, Instance.WindTool);
+    public static void SelectWaterCamera() => Instance.ActivateTool(Instance.Water, Instance.WaterCamera);
+    
+    // Plant Tools 
+    public static void SelectNewPlantTool() => Instance.ActivateTool(Instance.Plants, Instance.NewPlantTool);
+    public static void SelectEditPlantTool() => Instance.ActivateTool(Instance.Plants, Instance.EditPlantTool);
+    public static void SelectObservationCamera() => Instance.ActivateTool(Instance.Plants, Instance.ObservationCamera);
+
+
     // Helpers
     private void ActivateSystem(System system, Tool tool)
     {
