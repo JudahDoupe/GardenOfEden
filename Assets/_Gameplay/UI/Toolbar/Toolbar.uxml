@@ -1,19 +1,37 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:Template name="ToolbarButton" src="project://database/Assets/_Gameplay/UI/Toolbar/ToolbarButton.uxml?fileID=9197481963319205126&amp;guid=5ee24560659e92f469d4e33d763282a4&amp;type=3#ToolbarButton" />
     <Style src="project://database/Assets/_Gameplay/UI/Toolbar/Toolbar.uss?fileID=7433441132597879392&amp;guid=3a8a13f5bed82514893aef499fd65d4e&amp;type=3#Toolbar" />
     <ui:GroupBox name="ScreenContainer" style="flex-grow: 1; flex-direction: column-reverse; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
         <ui:GroupBox name="ToolbarContainer" class="Hidden" style="flex-direction: row; align-items: flex-end; justify-content: center; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;">
-            <ui:VisualElement name="LeftBumper" style="border-top-left-radius: 15px; width: 30px; height: 60px; background-color: rgb(0, 0, 0);" />
-            <ui:Instance template="ToolbarButton" name="GlobalSystem" class="System" />
-            <ui:Instance template="ToolbarButton" name="LandSystem" class="System">
-                <ui:VisualElement name="LandToolDrawer" class="ToolDrawer">
-                    <ui:Instance template="ToolbarButton" name="MovePlateTool" class="Tool" />
-                    <ui:Instance template="ToolbarButton" name="BreakPlateTool" class="Tool" />
-                    <ui:Instance template="ToolbarButton" name="MergePlateTool" class="Tool" />
-                    <ui:Instance template="ToolbarButton" name="LandscapeCamera" class="Tool" />
-                </ui:VisualElement>
-            </ui:Instance>
-            <ui:VisualElement name="RightBumper" style="width: 30px; height: 60px; background-color: rgb(0, 0, 0); border-top-right-radius: 15px;" />
+            <ui:VisualElement name="LeftBumper" style="border-top-left-radius: 15px; width: 30px; height: 70px; background-color: rgb(32, 32, 32);" />
+            <ui:Button display-tooltip-when-elided="true" name="GlobalSystem" tooltip="Globe" class="Button System">
+                <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/world.png?fileID=2800000&amp;guid=b003817db899db74e8c9d4b3bf83bd47&amp;type=3#world&apos;);" />
+                <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px; border-top-left-radius: 5px; border-top-right-radius: 5px;" />
+            </ui:Button>
+            <ui:VisualElement name="Spacer" style="width: 30px; height: 70px; background-color: rgb(32, 32, 32); align-items: center; justify-content: center;">
+                <ui:VisualElement name="Bar" style="width: 3px; height: 75%; background-color: rgb(204, 204, 204); border-top-left-radius: 2px; border-bottom-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px;" />
+            </ui:VisualElement>
+            <ui:Button display-tooltip-when-elided="true" name="LandSystem" tooltip="Land" class="Button System" style="flex-shrink: 1;">
+                <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/mountain.png?fileID=2800000&amp;guid=88379921de8c9da4db77991bc76966f9&amp;type=3#mountain&apos;);" />
+            </ui:Button>
+            <ui:VisualElement name="LandSystemTray" class="Hidden" style="flex-direction: row; transition-duration: 0.3s;">
+                <ui:Button display-tooltip-when-elided="true" name="MovePlateTool" tooltip="Move Plates" class="Button Tool" style="flex-shrink: 1;">
+                    <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/move.png?fileID=2800000&amp;guid=329deda6817042959162aa12f777a0d0&amp;type=3#move&apos;);" />
+                    <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />
+                </ui:Button>
+                <ui:Button display-tooltip-when-elided="true" name="BreakPlateTool" tooltip="Break Plates" class="Button Tool" style="flex-shrink: 1;">
+                    <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/break.png?fileID=2800000&amp;guid=6e9634e67a8267b40b342397d55d6e69&amp;type=3#break&apos;);" />
+                    <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />
+                </ui:Button>
+                <ui:Button display-tooltip-when-elided="true" name="MergePlateTool" tooltip="Merge Plates" class="Button Tool" style="flex-shrink: 1;">
+                    <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/merge.png?fileID=2800000&amp;guid=a0fe46d9072ed5940b23a57870c7e928&amp;type=3#merge&apos;);" />
+                    <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />
+                </ui:Button>
+                <ui:Button display-tooltip-when-elided="true" name="LandscapeCamera" tooltip="Landscape Camera" class="Button Tool" style="flex-shrink: 1;">
+                    <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/video-camera.png?fileID=2800000&amp;guid=e0df7e537fdf95a4a80e5a56bdd4d91a&amp;type=3#video-camera&apos;);" />
+                    <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />
+                </ui:Button>
+            </ui:VisualElement>
+            <ui:VisualElement name="RightBumper" style="width: 30px; height: 70px; background-color: rgb(32, 32, 32); border-top-right-radius: 15px;" />
         </ui:GroupBox>
     </ui:GroupBox>
 </ui:UXML>

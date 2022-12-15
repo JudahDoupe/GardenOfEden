@@ -26,14 +26,14 @@ VisualElement {
     border-bottom-left-radius: 0;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    border-left-color: rgba(64, 64, 64, 255);
-    border-right-color: rgba(64, 64, 64, 255);
-    border-top-color: rgba(64, 64, 64, 255);
-    border-bottom-color: rgba(64, 64, 64, 255);
+    border-left-color: rgb(64, 64, 64);
+    border-right-color: rgb(64, 64, 64);
+    border-top-color: rgb(64, 64, 64);
+    border-bottom-color: rgb(64, 64, 64);
 }
 
 .TabButton:hover {
-    color: rgba(255, 255, 255, 255);
+    color: rgb(255, 255, 255);
     padding-left: 25px;
 }
 

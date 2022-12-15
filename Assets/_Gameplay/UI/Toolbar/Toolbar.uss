@@ -1,25 +1,17 @@
 #ToolbarContainer {
-    bottom: 0px;
+    bottom: 0;
     transition-duration: 0.3s;
-    transition-timing-function: ease-out;
+    transition-timing-function: ease;
 }
 
 #ToolbarContainer.Hidden {
-    bottom: -60px;
-}
-
-#ToolbarContainer.AutoHide {
-    bottom: -45px;
-}
-
-#ToolbarContainer.AutoHide:hover {
-    bottom: 0;
+    bottom: -70px;
 }
 
 .Button {
     transition-duration: 0.1s;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     border-left-width: 0;
     border-right-width: 0;
     border-top-width: 0;
@@ -37,87 +29,73 @@
     padding-top: 0;
     padding-bottom: 0;
     min-width: 60px;
-    min-height: 60px;
+    height: 70px;
+    flex-direction: column;
+    background-color: rgb(32, 32, 32);
 }
 
 .Button > .Icon {
-    -unity-background-image-tint-color: rgb(85, 85, 85);
-    transition-duration: 0.1s;
-    min-width: 70%;
-    min-height: 70%;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 40px;
+    height: 40px;
 }
 
-.Button:hover > .Icon {
-    -unity-background-image-tint-color: rgb(187, 187, 187);
+.Button > .Underline {
+    background-color: rgb(33, 33, 33);
+    transition-duration: 0.1s;
+}
+
+.System > .Underline {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.System:hover > .Underline {
+    background-color: rgb(128, 128, 128);
+}
+
+.System.Active > .Underline {
+    background-color: rgb(255, 255, 255);
 }
 
 .Tool {
-    flex-grow: 1;
-    flex-shrink: 0;
+    background-color: rgb(13, 13, 13);
 }
 
-.Tool > .Button {
-    background-color: rgb(25, 25, 25);
+#LandSystem:hover > .Icon {
+    -unity-background-image-tint-color: rgb(255, 148, 102);
 }
 
-.Tool.Active > .Button {
-    background-color: rgb(51, 51, 51);
+#LandSystem.Active > .Icon {
+    -unity-background-image-tint-color: rgb(255, 113, 51);
 }
 
-.Tool.Active > .Button > .Icon {
-    -unity-background-image-tint-color: rgb(255, 255, 255);
-}
-
-.System {
-    flex-direction: row;
-}
-
-.System > .Button {
-    background-color: rgb(0, 0, 0);
-}
-
-.System.Active > .Button > .Icon {
-    -unity-background-image-tint-color: rgb(255, 255, 255);
-}
-
-.System > .ToolDrawer {
-    width: 0;
-    transition-duration: 0.3s;
-    transition-property: width;
-    transition-timing-function: ease-out;
-    overflow: hidden;
-    flex-direction: row;
-}
-
-.System.Active > .ToolDrawer {
-    overflow: hidden;
+#LandSystemTray {
     width: 240px;
+    flex-direction: row;
+    transition-duration: 0.3s;
+    overflow: hidden;
 }
 
-#GlobalSystem .Icon {
-    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/world.png?fileID=2800000&guid=b003817db899db74e8c9d4b3bf83bd47&type=3#world');
+#LandSystemTray.Hidden {
+    width: 0;
 }
 
-#LandSystem .Icon {
-    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/mountain.png?fileID=2800000&guid=88379921de8c9da4db77991bc76966f9&type=3#mountain');
+#LandSystemTray .Tool:hover {
+    background-color: rgb(26, 11, 5);
 }
 
-#LandSystem.Active > .Button {
-    background-color: rgb(72, 44, 21);
+#LandSystemTray .Tool:hover > .Underline {
+    background-color: rgb(153, 67, 30);
 }
 
-#MovePlateTool .Icon {
-    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/move.png?fileID=21300000&guid=329deda6817042959162aa12f777a0d0&type=3#move');
+#LandSystemTray .Tool.Active {
+    background-color: rgb(64, 28, 13);
 }
 
-#BreakPlateTool .Icon {
-    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/break.png?fileID=2800000&guid=6e9634e67a8267b40b342397d55d6e69&type=3#break');
-}
-
-#MergePlateTool .Icon {
-    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/merge.png?fileID=2800000&guid=a0fe46d9072ed5940b23a57870c7e928&type=3#merge');
-}
-
-#LandscapeCamera .Icon {
-    background-image: url('project://database/Assets/_Gameplay/UI/Toolbar/Icons/video-camera.png?fileID=2800000&guid=e0df7e537fdf95a4a80e5a56bdd4d91a&type=3#video-camera');
+#LandSystemTray .Tool.Active > .Underline {
+    background-color: rgb(255, 112, 51);
 }

@@ -32,7 +32,7 @@ public class MainMenuController : Singleton<MainMenuController>
         AddButtonAction("DeletePlanet", () =>
         {
             HideUi();
-            ShowDeletePlanetDialog();
+            ShowUi("DeletePlanetDialog");
         });
         AddButtonAction("Continue", () =>
         {
@@ -41,59 +41,59 @@ public class MainMenuController : Singleton<MainMenuController>
         });
         AddButtonAction("NewPlanet", () =>
         {
-            if (string.IsNullOrWhiteSpace(Instance._playerData.CurrentPlanetName))
+            if (string.IsNullOrWhiteSpace(_playerData.CurrentPlanetName))
             {
-                Instance.HideUi();
-                Instance.ShowNewPlanetDialog();
+                HideUi();
+                ShowUi("NewPlanetContainer");
             }
             else
             {
-                Instance.UnloadPlanet(onUnload: Instance.ShowNewPlanetDialog);
+                UnloadPlanet(onUnload: () => ShowUi("NewPlanetContainer"));
             }
         });
         AddButtonAction("NextPlanet", () =>
         {
-            var planets = Instance._playerData.PlanetNames;
-            var nextPlanet = planets[planets.IndexOf(Instance._playerData.CurrentPlanetName) + 1];
-            Instance.UnloadPlanet(true, () => Instance.LoadPlanet(nextPlanet));
+            var planets = _playerData.PlanetNames;
+            var nextPlanet = planets[planets.IndexOf(_playerData.CurrentPlanetName) + 1];
+            UnloadPlanet(true, () => Instance.LoadPlanet(nextPlanet));
         });
         AddButtonAction("PrevPlanet", () =>
         {
-            var planets = Instance._playerData.PlanetNames;
-            var prevPlanet = planets[planets.IndexOf(Instance._playerData.CurrentPlanetName) - 1];
-            Instance.UnloadPlanet(false, () => Instance.LoadPlanet(prevPlanet, false));
+            var planets = _playerData.PlanetNames;
+            var prevPlanet = planets[planets.IndexOf(_playerData.CurrentPlanetName) - 1];
+            UnloadPlanet(false, () => LoadPlanet(prevPlanet, false));
         });
         AddButtonAction("ConfirmNewPlanet", () =>
         {
-            var planetName = Instance.UI.rootVisualElement.Query<TextField>("NewPlanetInput").First().value;
-            if (string.IsNullOrWhiteSpace(planetName) || Instance._playerData.PlanetNames.Contains(planetName))
+            var planetName = UI.rootVisualElement.Query<TextField>("NewPlanetInput").First().value;
+            if (string.IsNullOrWhiteSpace(planetName) || _playerData.PlanetNames.Contains(planetName))
             {
-                Instance.ShowNewPlanetNameError();
+                ShowUiError("NewPlanetInput");
             }
             else
             {
-                Instance.HideNewPlanetNameError();
-                Instance.HideNewPlanetDialog();
-                Instance.LoadPlanet(planetName);
+                HideUiError("NewPlanetInput");
+                HideUi("NewPlanetContainer");
+                LoadPlanet(planetName);
             }
         });
         AddButtonAction("CancelNewPlanet", () =>
         {
-            Instance.HideNewPlanetNameError();
-            Instance.HideNewPlanetDialog();
+            HideUiError("NewPlanetInput");
+            HideUi("NewPlanetContainer");
             if (string.IsNullOrWhiteSpace(Instance._playerData.CurrentPlanetName))
-                Instance.ShowUi();
+                ShowUi();
             else
-                Instance.LoadPlanet(Instance._playerData.CurrentPlanetName, false);
+                LoadPlanet(Instance._playerData.CurrentPlanetName, false);
         });
         AddButtonAction("ConfirmDeletePlanet", () =>
         {
-            HideDeletePlanetDialog();
-            Instance.DeletePlanet(Instance._playerData.CurrentPlanetName);
+            HideUi("DeletePlanetDialog");
+            DeletePlanet(Instance._playerData.CurrentPlanetName);
         });
         AddButtonAction("CancelDeletePlanet", () =>
         {
-            HideDeletePlanetDialog();
+            HideUi("DeletePlanetDialog");
             ShowUi();
         });
 
@@ -105,14 +105,12 @@ public class MainMenuController : Singleton<MainMenuController>
 
     public static void EnableMainMenu()
     {
-        Instance.UI.sortingOrder = 1;
         Instance.ShowUi();
         CameraController.SetPerspective(FindObjectOfType<MainMenuCamera>(), CameraTransition.Smooth);
     }
 
     public static void DisableMainMenu()
     {
-        Instance.UI.sortingOrder = 0;
         Instance.HideUi();
     }
 
@@ -194,67 +192,42 @@ public class MainMenuController : Singleton<MainMenuController>
 
     private void ShowUi()
     {
-        ShowPlanetNavigation();
-        ShowPlanetName();
-        ShowPlanetControls();
-    }
-    private void HideUi()
-    {
-        HidePlanetNavigation();
-        HidePlanetName();
-        HidePlanetControls();
-    }
-
-    private void ShowPlanetNavigation()
-    {
-        if (!_playerData.PlanetNames.Any())
-            return;
-
-        if (_playerData.CurrentPlanetName != _playerData.PlanetNames.First())
-            UI.rootVisualElement.Query("Left").First().RemoveFromClassList("Hidden");
-
-        if (_playerData.CurrentPlanetName != _playerData.PlanetNames.Last())
-            UI.rootVisualElement.Query("Right").First().RemoveFromClassList("Hidden");
-    }
-    private void HidePlanetNavigation()
-    {
-        UI.rootVisualElement.Query("Left").First().AddToClassList("Hidden");
-        UI.rootVisualElement.Query("Right").First().AddToClassList("Hidden");
-    }
-
-    private void ShowPlanetName()
-    {
-        if (string.IsNullOrWhiteSpace(_playerData.CurrentPlanetName))
-            return;
-
-        UI.rootVisualElement.Query("Header").First().RemoveFromClassList("Hidden");
-    }
-    private void HidePlanetName() => UI.rootVisualElement.Query("Header").First().AddToClassList("Hidden");
-
-    private void ShowPlanetControls()
-    {
-        UI.rootVisualElement.Query("Footer").First().RemoveFromClassList("Hidden");
+        ShowUi("Header");
+        ShowUi("Footer");
 
         if (string.IsNullOrWhiteSpace(_playerData.CurrentPlanetName))
         {
-            UI.rootVisualElement.Query("DeletePlanet").First().AddToClassList("Hidden");
-            UI.rootVisualElement.Query("Continue").First().AddToClassList("Hidden");
+            HideUi("PlanetName");
+            HideUi("DeletePlanet");
+            HideUi("Continue");
         }
         else
         {
-            UI.rootVisualElement.Query("DeletePlanet").First().RemoveFromClassList("Hidden");
-            UI.rootVisualElement.Query("Continue").First().RemoveFromClassList("Hidden");
+            ShowUi("PlanetName");
+            ShowUi("DeletePlanet");
+            ShowUi("Continue");
         }
+
+        if (_playerData.PlanetNames.Any() && _playerData.CurrentPlanetName != _playerData.PlanetNames.First())
+            ShowUi("Left");
+
+        if (_playerData.PlanetNames.Any() && _playerData.CurrentPlanetName != _playerData.PlanetNames.Last())
+            ShowUi("Right");
+        
     }
-    private void HidePlanetControls() => UI.rootVisualElement.Query("Footer").First().AddToClassList("Hidden");
+    private void HideUi()
+    {
+        HideUi("Left");
+        HideUi("Right");
+        HideUi("Footer");
+        HideUi("Header");
+    }
 
-    private void ShowNewPlanetDialog() => UI.rootVisualElement.Query("NewPlanetContainer").First().RemoveFromClassList("Hidden");
-    private void HideNewPlanetDialog() => UI.rootVisualElement.Query("NewPlanetContainer").First().AddToClassList("Hidden");
-    private void ShowNewPlanetNameError() => UI.rootVisualElement.Query("NewPlanetInput").First().AddToClassList("Error");
-    private void HideNewPlanetNameError() => UI.rootVisualElement.Query("NewPlanetInput").First().RemoveFromClassList("Error");
+    private void ShowUi(string uiaNme) => UI.rootVisualElement.Query(uiaNme).First().RemoveFromClassList("Hidden");
+    private void HideUi(string uiaNme) => UI.rootVisualElement.Query(uiaNme).First().AddToClassList("Hidden");
     
-    private void ShowDeletePlanetDialog() => UI.rootVisualElement.Query("DeletePlanetDialog").First().RemoveFromClassList("Hidden");
-    private void HideDeletePlanetDialog() => UI.rootVisualElement.Query("DeletePlanetDialog").First().AddToClassList("Hidden");
-
+    private void ShowUiError(string uiaNme) => UI.rootVisualElement.Query(uiaNme).First().RemoveFromClassList("Error");
+    private void HideUiError(string uiaNme) => UI.rootVisualElement.Query(uiaNme).First().AddToClassList("Error");
+    
     #endregion
 }

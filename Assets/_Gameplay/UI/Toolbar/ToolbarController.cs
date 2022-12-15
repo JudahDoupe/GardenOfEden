@@ -58,13 +58,11 @@ public class ToolbarController : Singleton<ToolbarController>
     // ToolBar
     public static void EnableToolbar()
     {
-        Instance.UI.sortingOrder = 1;
         Instance._toolbar.RemoveFromClassList("Hidden");
         SelectGlobalSystem();
     }
     public static void DisableToolbar()
     {
-        Instance.UI.sortingOrder = 0;
         Instance._toolbar.AddToClassList("Hidden");
         Instance._toolbar.RemoveFromClassList("AutoHide");
         if (Instance._activeSystem.HasValue)
@@ -79,14 +77,6 @@ public class ToolbarController : Singleton<ToolbarController>
             Instance._activeTool.Value.OnDeactivate.Invoke();
             Instance._activeTool = null;
         }
-    }
-    public static void EnableAutoHide()
-    {
-        Instance._toolbar.AddToClassList("AutoHide");
-    }
-    public static void DisableAutoHide()
-    {
-        Instance._toolbar.RemoveFromClassList("AutoHide");
     }
 
     // Systems
@@ -108,10 +98,13 @@ public class ToolbarController : Singleton<ToolbarController>
         if (_activeSystem.HasValue)
         {
             _toolbar.Query(name: _activeSystem.Value.UiName).First().RemoveFromClassList("Active");
+            _toolbar.Query(name: _activeSystem.Value.UiName + "Tray").ForEach(x => x.AddToClassList("Hidden"));
             _activeSystem.Value.OnDeactivate.Invoke();
+            
         }
         
         _toolbar.Query(name: system.UiName).First().AddToClassList("Active");
+        _toolbar.Query(name: system.UiName + "Tray").ForEach(x => x.RemoveFromClassList("Hidden"));
         system.OnActivate.Invoke();
         _activeSystem = system;
         

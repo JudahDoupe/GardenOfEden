@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/_Gameplay/UI/Settings/SettingsMenu.uss?fileID=7433441132597879392&amp;guid=c48296034a25f0447aad6d4a66fe095f&amp;type=3#SettingsMenu" />
-    <ui:VisualElement name="ScreenContainer" style="justify-content: center; align-items: center; flex-grow: 1;">
-        <ui:VisualElement name="SettingsContainer" class="Hidden" style="border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; background-color: rgba(0, 0, 0, 0.7); padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; flex-direction: row; height: 500px; transition-duration: 0.3s;">
+    <ui:VisualElement name="ScreenContainer" class="Hidden" style="justify-content: center; align-items: center; flex-grow: 1; transition-duration: 0.3s; translate: 0 1%;">
+        <ui:VisualElement name="SettingsContainer" style="border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; background-color: rgba(0, 0, 0, 0.7); padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; flex-direction: row; height: 500px; transition-duration: 0.3s;">
             <ui:VisualElement name="SideBar" style="background-color: rgb(0, 0, 0); border-top-left-radius: 10px; border-bottom-left-radius: 10px; padding-top: 10px; padding-bottom: 10px; padding-left: 0;">
                 <ui:Label text="Settings" display-tooltip-when-elided="true" class="Title" />
                 <ui:Button text="Gameplay" display-tooltip-when-elided="true" name="Gameplay" class="TabButton" style="border-top-width: 2px;" />

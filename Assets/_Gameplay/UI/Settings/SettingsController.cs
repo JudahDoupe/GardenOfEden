@@ -22,15 +22,13 @@ public class SettingsController : Singleton<SettingsController>
     
     public static void ShowSettingsMenu()
     {
-        Instance.UI.sortingOrder = 1;
-        Instance.UI.rootVisualElement.Query("SettingsContainer").First().RemoveFromClassList("Hidden");
+        Instance.UI.rootVisualElement.Query("ScreenContainer").First().RemoveFromClassList("Hidden");
         Instance.SelectTab("Gameplay");
     }
     
     public static void HideSettingsMenu()
     {
-        Instance.UI.sortingOrder = 0;
-        Instance.UI.rootVisualElement.Query("SettingsContainer").First().AddToClassList("Hidden");
+        Instance.UI.rootVisualElement.Query("ScreenContainer").First().AddToClassList("Hidden");
         MainMenuController.EnableMainMenu();
     }
 

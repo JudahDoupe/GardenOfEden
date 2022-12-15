@@ -215,3 +215,7 @@
     display: none;
     scale: 0.001 0.001;
 }
+
+.Title.Hidden {
+    display: none;
+}

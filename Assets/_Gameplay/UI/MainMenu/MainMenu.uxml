@@ -6,7 +6,7 @@
             <ui:Instance template="SquareButton" name="Quit" />
         </ui:VisualElement>
         <ui:VisualElement name="Center" style="width: 60%; flex-direction: column-reverse; align-items: center;">
-            <ui:Label text="PlanetName" display-tooltip-when-elided="true" name="PlanetName" class="Title" />
+            <ui:Label text="PlanetName" display-tooltip-when-elided="true" name="PlanetName" class="Title Hidden" />
         </ui:VisualElement>
         <ui:VisualElement name="HeaderLeft" class="Hidden" style="width: 20%; align-items: flex-start; justify-content: flex-end;">
             <ui:Instance template="SquareButton" name="Settings" />
