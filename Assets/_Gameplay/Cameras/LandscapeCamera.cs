@@ -130,11 +130,11 @@ public class LandscapeCamera : CameraPerspective
     {
         IsActive = false;
         Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
-        InputAdapter.LeftMove.Unubscribe(this);
-        InputAdapter.Scroll.Unubscribe(this);
-        InputAdapter.MoveModifier.Unubscribe(this);
-        InputAdapter.Click.Unubscribe(this);
-        InputAdapter.Drag.Unubscribe(this);
+        InputAdapter.LeftMove.Unsubscribe(this);
+        InputAdapter.Scroll.Unsubscribe(this);
+        InputAdapter.MoveModifier.Unsubscribe(this);
+        InputAdapter.Click.Unsubscribe(this);
+        InputAdapter.Drag.Unsubscribe(this);
     }
     
 #endregion

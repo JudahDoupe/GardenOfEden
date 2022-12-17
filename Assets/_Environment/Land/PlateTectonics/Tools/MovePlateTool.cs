@@ -56,8 +56,8 @@ public class MovePlateTool : MonoBehaviour, ITool
     public void Disable()
     {
         StopMoving();
-        InputAdapter.Click.Unubscribe(this);
-        InputAdapter.Cancel.Unubscribe(this);
+        InputAdapter.Click.Unsubscribe(this);
+        InputAdapter.Cancel.Unsubscribe(this);
         _visualization.HideOutlines();
         IsActive = false;
         TryBake();

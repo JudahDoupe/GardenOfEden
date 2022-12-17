@@ -53,3 +53,25 @@ VisualElement {
     color: rgb(255, 255, 255);
     -unity-font-style: normal;
 }
+
+Slider {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+Slider > Label {
+    font-size: 20px;
+    width: 250px;
+    -unity-font-definition: none;
+    -unity-font: url('project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Light.ttf?fileID=12800000&guid=1e4724edc335041458658f2bc32fabd8&type=3#Raleway-Light');
+    color: rgba(255, 255, 255, 255);
+}
+
+Slider > VisualElement {
+    align-items: center;
+    flex-direction: row;
+}
+
+Slider #unity-dragger {
+    scale: 2 2;
+}

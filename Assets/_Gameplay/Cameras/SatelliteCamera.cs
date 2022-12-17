@@ -17,6 +17,7 @@ public class SatelliteCamera : CameraPerspective
     public float LerpSpeed = 5f;
     public float PoleBuffer = 30;
     public Texture2D CursorTexture;
+    
     [SerializeField]
     private Settings Near; 
     [SerializeField]
@@ -57,10 +58,10 @@ public class SatelliteCamera : CameraPerspective
     public override void Disable()
     {
         Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
-        InputAdapter.LeftMove.Unubscribe(this);
-        InputAdapter.Scroll.Unubscribe(this);
-        InputAdapter.Click.Unubscribe(this);
-        InputAdapter.Drag.Unubscribe(this);
+        InputAdapter.LeftMove.Unsubscribe(this);
+        InputAdapter.Scroll.Unsubscribe(this);
+        InputAdapter.Click.Unsubscribe(this);
+        InputAdapter.Drag.Unsubscribe(this);
         IsActive = false;
     }
 
@@ -68,7 +69,7 @@ public class SatelliteCamera : CameraPerspective
     {
         if (!IsActive) return;
 
-        Move(InputAdapter.LeftMove.Read(this));
+        Move(InputAdapter.LeftMove.Read(this) * Time.deltaTime);
         CameraUtils.SetState(GetTargetState(_targetCoord, true));
     }
 
@@ -78,7 +79,6 @@ public class SatelliteCamera : CameraPerspective
         var cameraPosition = lerp 
             ? Vector3.Lerp(currentState.Camera.transform.localPosition, coord.LocalPlanet, Time.deltaTime * LerpSpeed) 
             : coord.LocalPlanet.ToVector3();
-        var t = Ease.Out((MinAltitude - cameraPosition.magnitude) / (MinAltitude - MaxAltitude));
         var height = Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r;
         return new CameraState(currentState.Camera, currentState.Focus)
         {
@@ -88,7 +88,7 @@ public class SatelliteCamera : CameraPerspective
             FocusParent = Planet.Transform,
             FocusLocalPosition = height * cameraPosition.normalized,
             FocusLocalRotation = Quaternion.LookRotation(-cameraPosition.normalized, Vector3.up),
-            FieldOfView = math.lerp(Near.Fov, Far.Fov, t),
+            FieldOfView = Setting(Near.Fov, Far.Fov, cameraPosition.magnitude),
             NearClip = 10,
             FarClip = MaxAltitude + Coordinate.PlanetRadius,
         };
@@ -96,16 +96,18 @@ public class SatelliteCamera : CameraPerspective
 
     private void Zoom(float delta)
     {
-        var t = Ease.Out((MinAltitude - _targetCoord.Altitude) / (MinAltitude - MaxAltitude));
-        var z = math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, t) * Coordinate.PlanetRadius;
-        _targetCoord.Altitude = math.clamp(_targetCoord.Altitude + delta * z, MinAltitude, MaxAltitude);
+        var zoomSpeed = Setting(Near.ZoomSpeed, Far.ZoomSpeed, _targetCoord.Altitude);
+        var zoomDistance = delta * zoomSpeed;
+        _targetCoord.Altitude = math.clamp(_targetCoord.Altitude + zoomDistance, MinAltitude, MaxAltitude);
     }
 
     private void Move(Vector2 delta)
     {
-        var t = Ease.Out((MinAltitude - _targetCoord.Altitude) / (MinAltitude - MaxAltitude));
-        var m = math.lerp(Near.MovementSpeed, Far.MovementSpeed, t) * Time.deltaTime;
-        _targetCoord.Lat = math.clamp(_targetCoord.Lat + (delta.y * -m), PoleBuffer, 180 - PoleBuffer);
-        _targetCoord.Lon += delta.x * m;
+        var movementSpeed = Setting(Near.MovementSpeed, Far.MovementSpeed, _targetCoord.Altitude);
+        var movementDistance = new Vector2(delta.x, -delta.y) * movementSpeed;
+        _targetCoord.Lat = math.clamp(_targetCoord.Lat + movementDistance.y, PoleBuffer, 180 - PoleBuffer);
+        _targetCoord.Lon += movementDistance.x;
     }
+
+    private float Setting(float min, float max, float altitude) => Ease.Log(min, max, (altitude - MinAltitude) / (MaxAltitude - MinAltitude));
 }

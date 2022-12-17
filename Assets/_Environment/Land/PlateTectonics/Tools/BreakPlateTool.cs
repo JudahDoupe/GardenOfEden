@@ -65,8 +65,8 @@ public class BreakPlateTool : MonoBehaviour, ITool
     public void Disable()
     {
         _break = null;
-        InputAdapter.Click.Unubscribe(this);
-        InputAdapter.Cancel.Unubscribe(this);
+        InputAdapter.Click.Unsubscribe(this);
+        InputAdapter.Cancel.Unsubscribe(this);
         _visualization.HideOutlines();
         IsActive = false;
     }

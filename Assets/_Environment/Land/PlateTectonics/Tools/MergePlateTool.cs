@@ -64,9 +64,9 @@ public class MergePlateTool : MonoBehaviour, ITool
     public void Disable()
     {
         selectedPlate = null;
-        InputAdapter.Click.Unubscribe(this);
-        InputAdapter.RightClick.Unubscribe(this);
-        InputAdapter.Cancel.Unubscribe(this);
+        InputAdapter.Click.Unsubscribe(this);
+        InputAdapter.RightClick.Unsubscribe(this);
+        InputAdapter.Cancel.Unsubscribe(this);
         _visualization.HideOutlines();
         IsActive = false;
     }

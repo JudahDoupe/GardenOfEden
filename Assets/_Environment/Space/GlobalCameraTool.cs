@@ -17,6 +17,6 @@ public class GlobalCameraTool : MonoBehaviour, ITool
     public void Disable()
     {
         IsActive = false;
-        InputAdapter.Cancel.Unubscribe(this);
+        InputAdapter.Cancel.Unsubscribe(this);
     }
 }
