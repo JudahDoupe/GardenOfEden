@@ -69,7 +69,7 @@ public class SatelliteCamera : CameraPerspective
     {
         if (!IsActive) return;
 
-        Move(InputAdapter.LeftMove.Read(this) * Time.deltaTime);
+        Move(InputAdapter.LeftMove.Read(this));
         CameraUtils.SetState(GetTargetState(_targetCoord, true));
     }
 

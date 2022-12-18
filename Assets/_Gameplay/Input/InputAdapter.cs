@@ -70,9 +70,9 @@ public class InputAdapter : Singleton<InputAdapter>
         RightClick = new PriorityAction(_controls.Standard.RightClick);
         Drag = new PriorityAction<Vector2>(_controls.Standard.Drag, x => x * (_settings?.DragSpeed ?? 1));
         Scroll = new PriorityAction<float>(_controls.Standard.Scroll, x => x * (_settings?.ScrollSpeed ?? 1));
-        MoveModifier = new PriorityAction<float>(_controls.Standard.MoveModifier);
-        LeftMove = new PriorityAction<Vector2>(_controls.Standard.LeftMove);
-        RightMove = new PriorityAction<Vector2>(_controls.Standard.RightMove);
+        MoveModifier = new PriorityAction<float>(_controls.Standard.MoveModifier, x => 1+x);
+        LeftMove = new PriorityAction<Vector2>(_controls.Standard.LeftMove, x => x * Time.deltaTime);
+        RightMove = new PriorityAction<Vector2>(_controls.Standard.RightMove, x => x * Time.deltaTime);
         Confirm = new PriorityAction(_controls.Standard.Confirm);
         Cancel = new PriorityAction(_controls.Standard.Cancel);
         Debug = new PriorityAction(_controls.Standard.Debug);

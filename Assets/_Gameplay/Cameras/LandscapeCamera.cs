@@ -16,114 +16,136 @@ public class LandscapeCamera : CameraPerspective
         public float Fov;
     }
     
+    private float _t => (_targetInput.CameraDistance - Near.Distance) / (Far.Distance - Near.Distance);
+    private float _zoomSpeed => math.lerp(Near.ZoomSpeed, Far.ZoomSpeed, _t);
+    private float _strafeSpeed => math.lerp(Near.StrafeSpeed, Far.StrafeSpeed, _t);
+    
     public Texture2D CursorTexture;
     
+    
     public float LerpSpeed;
-    public float SmoothTime;
+    public float SmoothSpeed;
     public float RotationSpeed;
     public float PitchSpeed;
-    public Vector2 DragSpeed;
-    [Range(0, 1)]
-    public float PitchRange;
+    public float MinAngle = -20;
+    public float MaxAngle = 80;
     [SerializeField]
     private Settings Near; 
     [SerializeField]
     private Settings Far;
 
+    private int _horizontalDragDirection;
     private bool _isDragging;
-    private float _cameraAltitude;
-    private float _cameraDistance;
-    private float _cameraSetbackT;
-    
-#region Transitions
 
-    private void Start()
+    private struct Input
     {
-        _lastInput = new InputData()
-        {
-            Strafe = Vector2.zero,
-            Rotation = 0,
-            Pitch = 0,
-            Zoom = 0,
-        };
-        _velocity = new InputData()
-        {
-            Strafe = Vector2.zero,
-            Rotation = 0,
-            Pitch = 0,
-            Zoom = 0,
-        };
+        public float CameraDistance;
+        public float CameraAngle;
+        public float CameraAltitude;
+        public Vector3 FocusLocalPosition;
+        public Quaternion FocusLocalRotation;
     }
+    private Input _targetInput;
+    private Input _currentInput;
+    private Input _velocity;
+    
 
     public override CameraState StartTransitionTo()
     {
         Cursor.SetCursor(CursorTexture, new Vector2(CursorTexture.width / 2f, CursorTexture.height / 2f), CursorMode.Auto);
 
-        var currentState = CameraController.CurrentState;
+        _currentInput = new Input();
 
-        // Focus Position
-        var focusCoord = new Coordinate(currentState.Focus.position, Planet.LocalToWorld);
+        var focusPosition = CameraController.CurrentState.Focus.position;
+        var focusCoord = new Coordinate(focusPosition, Planet.LocalToWorld);
         focusCoord.Altitude = TerrainAltitude(focusCoord);
-        var focusLocalPosition = focusCoord.LocalPlanet.ToVector3();
-
+        
         var localUp = Vector3.Normalize(focusCoord.LocalPlanet);
-        var localRight = Planet.Transform.InverseTransformDirection(currentState.Camera.transform.right);
+        var localRight = Planet.Transform.InverseTransformDirection(CameraController.CurrentState.Camera.transform.right);
         var localForward = Quaternion.AngleAxis(90, localRight) * localUp;
 
-        // Focus Rotation
-        var focusLocalRotation = Quaternion.LookRotation(localForward, localUp);
+        _currentInput.FocusLocalPosition = focusCoord.LocalPlanet;
+        _currentInput.FocusLocalRotation = quaternion.LookRotation(localForward, localUp);
 
-        // Camera Position
-        var cameraPosition = currentState.Camera.transform.position;
-        cameraPosition = cameraPosition.normalized * math.clamp(cameraPosition.magnitude, MinAltitude, MaxAltitude);
-        var cameraLocalPosition = Planet.Transform.InverseTransformPoint(cameraPosition);
-
-        // FOV
-        var cameraAltitude = math.clamp(cameraLocalPosition.magnitude, MinAltitude, MaxAltitude);
-        var t = Ease.Out((MinAltitude - cameraAltitude) / (MinAltitude - MaxAltitude));
-        var fov = Mathf.Lerp(Near.Fov, Far.Fov, t);
-
-        return new CameraState(currentState.Camera, currentState.Focus)
+        var cameraBack = Quaternion.AngleAxis(_targetInput.CameraAngle, localRight) * -localForward;
+        var cameraCoord = new Coordinate(_currentInput.FocusLocalPosition + cameraBack * _targetInput.CameraDistance);
+        var maxBack = Quaternion.AngleAxis(MaxAngle, localRight) * -localForward;
+        var maxCameraCoord = new Coordinate(_currentInput.FocusLocalPosition + maxBack * Far.Distance);
+        cameraCoord.Altitude = math.clamp(cameraCoord.Altitude,
+            TerrainAltitude(cameraCoord),
+            maxCameraCoord.Altitude);
+        _currentInput.CameraAltitude = math.clamp(cameraCoord.Altitude, MinAltitude, maxCameraCoord.Altitude);
+        
+        var cameraVector = _targetInput.FocusLocalPosition - cameraCoord.LocalPlanet.ToVector3();
+        _currentInput.CameraAngle = math.clamp(Vector3.Angle(cameraVector.normalized, localForward), MinAngle, MaxAngle);
+        _currentInput.CameraDistance = math.clamp(cameraVector.magnitude, Near.Distance, Far.Distance);
+       
+        _targetInput = new Input
         {
-            FocusParent = Planet.Transform,
-            FocusLocalPosition = focusLocalPosition,
-            FocusLocalRotation = focusLocalRotation,
-            CameraParent = Planet.Transform,
-            CameraLocalPosition = cameraLocalPosition,
-            CameraLocalRotation = quaternion.LookRotation((focusLocalPosition - cameraLocalPosition).normalized, Vector3.up),
-            FieldOfView = fov
+            CameraDistance = _currentInput.CameraDistance,
+            CameraAngle = _currentInput.CameraAngle,
+            CameraAltitude = _currentInput.CameraAltitude,
+            FocusLocalPosition = _currentInput.FocusLocalPosition,
+            FocusLocalRotation = _currentInput.FocusLocalRotation,
         };
+
+        return GetTargetState(_currentInput);
     }
 
     public override void Enable()
     {
         IsActive = true;
 
-        var currentState = CameraController.CurrentState;
-        currentState.Camera.transform.parent = currentState.Focus;
-
-        _cameraAltitude = currentState.Camera.transform.position.magnitude;
-        _cameraDistance = math.clamp(Vector3.Distance(currentState.Focus.position, currentState.Camera.transform.position), Near.Distance, Far.Distance);
-        _cameraSetbackT = 0;
-
         InputAdapter.LeftMove.Subscribe(this);
-        InputAdapter.Scroll.Subscribe(this);
+        InputAdapter.RightMove.Subscribe(this);
         InputAdapter.MoveModifier.Subscribe(this);
+        InputAdapter.Scroll.Subscribe(this,
+            callback: delta =>
+            {
+                _targetInput.CameraDistance = math.clamp(_targetInput.CameraDistance + delta * _zoomSpeed, Near.Distance, Far.Distance);
+
+                RecalculateTargetAltitude();
+            });
         InputAdapter.Click.Subscribe(this,
             startCallback: () =>
             {
-                _horizontalDragDirection = Convert.ToInt32(Mouse.current.position.ReadValue().y < (Screen.height / 2)) * 2 - 1;
+                _horizontalDragDirection = Convert.ToInt32(Mouse.current.position.ReadValue().y < (Screen.height / 2.0)) * 2 - 1;
                 _isDragging = true;
                 Cursor.visible = false;
+                Cursor.lockState = CursorLockMode.Locked;
             },
             finishCallback: () =>
             {
                 Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
                 _isDragging = false;
             },
 
             priority: InputPriority.Low);
-        InputAdapter.Drag.Subscribe(this, priority: InputPriority.Low);
+        InputAdapter.Drag.Subscribe(this, 
+            priority: InputPriority.Low,
+            callback: delta =>
+            {
+                if (!_isDragging)
+                    return;
+                
+                var rotation = RotationSpeed * delta.x * _horizontalDragDirection;
+                _targetInput.FocusLocalRotation = Quaternion.AngleAxis(rotation, Vector3.Normalize(_targetInput.FocusLocalPosition)) * _targetInput.FocusLocalRotation;
+
+                var pitch = PitchSpeed * delta.y;
+                _targetInput.CameraAngle = math.clamp(_targetInput.CameraAngle + pitch, MinAngle, MaxAngle);
+
+                RecalculateTargetAltitude();
+            });
+        
+        void RecalculateTargetAltitude()
+        {
+            var localUp = Vector3.Normalize(_targetInput.FocusLocalPosition);
+            var localRight = _targetInput.FocusLocalRotation * Vector3.right;
+            var localForward = Quaternion.AngleAxis(90, localRight) * localUp;
+            var cameraBack = Quaternion.AngleAxis(_targetInput.CameraAngle, localRight) * -localForward;
+            _targetInput.CameraAltitude = (CameraController.CurrentState.FocusLocalPosition + cameraBack * _targetInput.CameraDistance).magnitude;
+        }
     }
     
     public override void Disable()
@@ -131,115 +153,88 @@ public class LandscapeCamera : CameraPerspective
         IsActive = false;
         Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
         InputAdapter.LeftMove.Unsubscribe(this);
-        InputAdapter.Scroll.Unsubscribe(this);
+        InputAdapter.RightMove.Unsubscribe(this);
         InputAdapter.MoveModifier.Unsubscribe(this);
+        InputAdapter.Scroll.Unsubscribe(this);
         InputAdapter.Click.Unsubscribe(this);
         InputAdapter.Drag.Unsubscribe(this);
     }
-    
-#endregion
-    
-#region Update
     
     private void LateUpdate()
     {
         if (!IsActive) return;
 
-        CameraUtils.SetState(GetTargetState(true));
+        Move();
+        
+        var lerpSpeed = Time.deltaTime * LerpSpeed;
+        _currentInput = new Input
+        {
+            CameraDistance = Mathf.SmoothDamp(_currentInput.CameraDistance, _targetInput.CameraDistance, ref _velocity.CameraDistance, SmoothSpeed),
+            CameraAngle = Mathf.SmoothDamp(_currentInput.CameraAngle, _targetInput.CameraAngle, ref _velocity.CameraAngle, SmoothSpeed),
+            CameraAltitude = Mathf.SmoothDamp(_currentInput.CameraAltitude, _targetInput.CameraAltitude, ref _velocity.CameraAltitude, SmoothSpeed),
+            FocusLocalPosition = Vector3.SmoothDamp(_currentInput.FocusLocalPosition, _targetInput.FocusLocalPosition, ref _velocity.FocusLocalPosition, SmoothSpeed),
+            FocusLocalRotation = Quaternion.Slerp(_currentInput.FocusLocalRotation, _targetInput.FocusLocalRotation, lerpSpeed),
+        };
+        
+        CameraUtils.SetState(GetTargetState(_currentInput));
     }
 
-    private CameraState GetTargetState(bool lerp)
+
+    private void Move()
     {
-        var currentState = CameraController.CurrentState;
-
-        var t = Ease.Out((MinAltitude - _cameraAltitude) / (MinAltitude - MaxAltitude));
-        var input = GetInput();
-
-        var localUp = Vector3.Normalize(currentState.FocusLocalPosition);
-        var localRight = Planet.Transform.InverseTransformDirection(currentState.Focus.right);
+        var strafeDistance = InputAdapter.LeftMove.Read(this) * InputAdapter.MoveModifier.Read(this) * _strafeSpeed;
+        _targetInput.FocusLocalPosition = CoordAboveTerrain(_targetInput.FocusLocalPosition
+                                                            + _targetInput.FocusLocalRotation * Vector3.right * strafeDistance.x 
+                                                            + _targetInput.FocusLocalRotation * Vector3.forward * strafeDistance.y).LocalPlanet;
+        var localUp = Vector3.Normalize(_targetInput.FocusLocalPosition);
+        var localRight = _targetInput.FocusLocalRotation * Vector3.right;
         var localForward = Quaternion.AngleAxis(90, localRight) * localUp;
-
-        var lerpSpeed = lerp ? Time.deltaTime * LerpSpeed : 1;
+        _targetInput.FocusLocalRotation = Quaternion.LookRotation(localForward, localUp);
         
-        // Focus Position
-        var focusLocalPosition = currentState.FocusLocalPosition;
-        focusLocalPosition += localRight * input.Strafe.x + localForward * input.Strafe.y;
-        var focusCoord = new Coordinate(focusLocalPosition);
-        focusCoord.Altitude = TerrainAltitude(focusCoord);
-        focusLocalPosition = focusCoord.LocalPlanet;
+        var cameraCoord = new Coordinate(_targetInput.FocusLocalPosition
+                                         + Quaternion.AngleAxis(_targetInput.CameraAngle, localRight) 
+                                         * -localForward 
+                                         * _targetInput.CameraDistance);
+        var maxCameraCoord = new Coordinate(_targetInput.FocusLocalPosition
+                                            + Quaternion.AngleAxis(MaxAngle, localRight) 
+                                            * -localForward 
+                                            * Far.Distance);
+        cameraCoord.Altitude = math.clamp(cameraCoord.Altitude,
+            TerrainAltitude(cameraCoord),
+            maxCameraCoord.Altitude);
+        _targetInput.CameraAltitude = cameraCoord.Altitude;
+        var cameraVector = _targetInput.FocusLocalPosition - cameraCoord.LocalPlanet.ToVector3();
+        _targetInput.CameraAngle = Vector3.Angle(cameraVector.normalized, localForward);
+        _targetInput.CameraDistance = math.clamp(cameraVector.magnitude, Near.Distance, Far.Distance);
+    }
+    
+    private CameraState GetTargetState(Input input)
+    {
+        var localUp = Vector3.Normalize(input.FocusLocalPosition);
+        var localRight = input.FocusLocalRotation * Vector3.right;
+        var localForward = Quaternion.AngleAxis(90, localRight) * localUp;
+        var cameraVector = Quaternion.AngleAxis(input.CameraAngle, localRight) * -localForward * input.CameraDistance;
         
-        // Focus Rotation
-        var focusLocalRotation = Quaternion.LookRotation(localForward, localUp);
-        focusLocalRotation = Quaternion.AngleAxis(input.Rotation, localUp) * focusLocalRotation;
-
-        // Camera Position
-        _cameraDistance = math.clamp(_cameraDistance + input.Zoom, Near.Distance, Far.Distance);
-        _cameraSetbackT = math.clamp(_cameraSetbackT + input.Pitch, 0.01f, 1);
-        var cameraLocalPosition = Vector3.Lerp(Vector3.up, -Vector3.forward, _cameraSetbackT * PitchRange).normalized * _cameraDistance;
-        
-        // Clamp Altitude
-        var focusAltitude = focusLocalPosition.magnitude;
-        var cameraCoord = new Coordinate(focusLocalPosition + cameraLocalPosition.z * localForward + cameraLocalPosition.y * localUp);
-        _cameraAltitude = new [] {
-            cameraCoord.Altitude,
-            focusLocalPosition.magnitude,
-            MinAltitude,
-            TerrainAltitude(cameraCoord) + currentState.Camera.nearClipPlane * 1.5f,
-        }.Max();
-        cameraLocalPosition.y = _cameraAltitude - focusAltitude;
-        
-        return new CameraState(currentState.Camera, currentState.Focus)
+        return new CameraState(CameraController.CurrentState.Camera, CameraController.CurrentState.Focus)
         {
             FocusParent = Planet.Transform,
-            FocusLocalPosition = Vector3.Lerp(currentState.FocusLocalPosition, focusLocalPosition, lerpSpeed),
-            FocusLocalRotation = Quaternion.Slerp(currentState.FocusLocalRotation, focusLocalRotation, lerpSpeed),
-            CameraParent = currentState.Focus,
-            CameraLocalPosition = Vector3.Lerp(currentState.CameraLocalPosition, cameraLocalPosition, lerpSpeed),
-            CameraLocalRotation = Quaternion.Slerp(currentState.CameraLocalRotation ,quaternion.LookRotation(-cameraLocalPosition.normalized, Vector3.up), lerpSpeed),
-            FieldOfView = math.lerp(Near.Fov, Far.Fov, t)
+            FocusLocalPosition = input.FocusLocalPosition,
+            FocusLocalRotation = input.FocusLocalRotation,
+            CameraParent = Planet.Transform,
+            CameraLocalPosition = input.FocusLocalPosition + cameraVector,
+            CameraLocalRotation = quaternion.LookRotation(-cameraVector.normalized, localUp),
+            FieldOfView = Ease.Log(Near.Fov, Far.Fov, (cameraVector.magnitude - Near.Distance) / (Far.Distance - Near.Distance)),
         };
     }
-
-    float TerrainAltitude(Coordinate coord) => math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r, Planet.Data.Water.WaterMap.Sample(coord).a);
     
-#endregion
-    
-#region Input
-
-    private struct InputData 
+    Coordinate CoordAboveTerrain(Vector3 localPlanetPosition)
     {
-        public Vector2 Strafe;
-        public float Rotation;
-        public float Pitch;
-        public float Zoom;
-    };
-    private InputData _lastInput;
-    private InputData _velocity;
-    private int _horizontalDragDirection;
-    
-    private InputData GetInput()
-    {
-        var horizontal = new Vector2(_horizontalDragDirection, 1);
-        var t = Ease.Out((MinAltitude - _cameraAltitude) / (MinAltitude - MaxAltitude));
-
-        var speedMultiuplier = 1 + InputAdapter.MoveModifier.Read(this);
-        var strafe = InputAdapter.LeftMove.Read(this) * math.lerp(Near.StrafeSpeed, Far.StrafeSpeed, t) * Time.deltaTime * speedMultiuplier;
-
-        var zoom = InputAdapter.Scroll.Read(this) * math.exp(math.lerp(math.log(Near.ZoomSpeed), math.log(Far.ZoomSpeed), t)) * Time.deltaTime * speedMultiuplier;
-
-        var drag = Mouse.current.delta.ReadValue() * DragSpeed * Convert.ToInt16(_isDragging) * Time.deltaTime * horizontal;
-        var rotation = RotationSpeed * (drag.x + InputAdapter.LeftMove.Read(this).x) * Time.deltaTime;
-        var pitch = PitchSpeed * (drag.y + InputAdapter.RightMove.Read(this).y) * Time.deltaTime;
-
-        _lastInput = new InputData
-        {
-            Strafe = Vector2.SmoothDamp(_lastInput.Strafe, strafe, ref _velocity.Strafe, SmoothTime),
-            Rotation = Mathf.SmoothDamp(_lastInput.Rotation, rotation, ref _velocity.Rotation, SmoothTime),
-            Pitch = Mathf.SmoothDamp(_lastInput.Pitch, pitch, ref _velocity.Pitch, SmoothTime),
-            Zoom = Mathf.SmoothDamp(_lastInput.Zoom, zoom, ref _velocity.Zoom, SmoothTime),
-        };
-        return _lastInput;
+        var coord = new Coordinate(localPlanetPosition);
+        coord.Altitude = TerrainAltitude(coord);
+        return coord;
     }
+    float TerrainAltitude(Coordinate coord) => math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r,
+                                                   Planet.Data.Water.WaterMap.Sample(coord).a)
+                                               + CameraController.CurrentState.Camera.nearClipPlane * 1.5f;
 
-#endregion
 }
