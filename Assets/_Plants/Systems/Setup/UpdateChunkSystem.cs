@@ -45,10 +45,9 @@ partial     class UpdateChunkSystem : SystemBase
                 .WithSharedComponentFilter(inactiveChunk)
                 .ForEach((in Entity entity, in Coordinate coord, in int entityInQueryIndex) =>
                 {
-                    var l2w = GetComponent<LocalToWorld>(planet);
                     var childrenQuery = GetBufferFromEntity<Child>(true);
                     var nodeQuery = GetComponentDataFromEntity<Node>(true);
-                    if (math.distance(coord.Global(l2w), position) <= radius)
+                    if (math.distance(coord.Global, position) <= radius)
                     {
                         RecursivelySetChunk(entity, childrenQuery, activeChunk, nodeQuery, ecb, entityInQueryIndex);
                     }
@@ -62,10 +61,9 @@ partial     class UpdateChunkSystem : SystemBase
                 .WithSharedComponentFilter(activeChunk)
                 .ForEach((in Entity entity, in Coordinate coord, in int entityInQueryIndex) =>
                 {
-                    var l2w = GetComponent<LocalToWorld>(planet);
                     var childrenQuery = GetBufferFromEntity<Child>(true);
                     var nodeQuery = GetComponentDataFromEntity<Node>(true);
-                    if (math.distance(coord.Global(l2w), position) > radius)
+                    if (math.distance(coord.Global, position) > radius)
                     {
                         RecursivelySetChunk(entity, childrenQuery, inactiveChunk, nodeQuery, ecb2, entityInQueryIndex);
                     }

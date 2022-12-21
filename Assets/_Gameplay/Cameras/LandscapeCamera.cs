@@ -56,12 +56,11 @@ public class LandscapeCamera : CameraPerspective
 
         _currentInput = new Input();
 
-        var focusPosition = CameraController.CurrentState.Focus.position;
-        var focusCoord = new Coordinate(focusPosition, Planet.LocalToWorld);
-        focusCoord.Altitude = TerrainAltitude(focusCoord);
+        var focusPosition = CurrentState.Focus.position;
+        var focusCoord = new Coordinate(focusPosition, Planet.LocalToWorld).ClampToTerrain();
         
         var localUp = Vector3.Normalize(focusCoord.LocalPlanet);
-        var localRight = Planet.Transform.InverseTransformDirection(CameraController.CurrentState.Camera.transform.right);
+        var localRight = Planet.Transform.InverseTransformDirection(CurrentState.Camera.transform.right);
         var localForward = Quaternion.AngleAxis(90, localRight) * localUp;
 
         _currentInput.FocusLocalPosition = focusCoord.LocalPlanet;
@@ -144,7 +143,7 @@ public class LandscapeCamera : CameraPerspective
             var localRight = _targetInput.FocusLocalRotation * Vector3.right;
             var localForward = Quaternion.AngleAxis(90, localRight) * localUp;
             var cameraBack = Quaternion.AngleAxis(_targetInput.CameraAngle, localRight) * -localForward;
-            _targetInput.CameraAltitude = (CameraController.CurrentState.FocusLocalPosition + cameraBack * _targetInput.CameraDistance).magnitude;
+            _targetInput.CameraAltitude = (CurrentState.FocusLocalPosition + cameraBack * _targetInput.CameraDistance).magnitude;
         }
     }
     
@@ -183,9 +182,11 @@ public class LandscapeCamera : CameraPerspective
     private void Move()
     {
         var strafeDistance = InputAdapter.LeftMove.Read(this) * InputAdapter.MoveModifier.Read(this) * _strafeSpeed;
-        _targetInput.FocusLocalPosition = CoordAboveTerrain(_targetInput.FocusLocalPosition
-                                                            + _targetInput.FocusLocalRotation * Vector3.right * strafeDistance.x 
-                                                            + _targetInput.FocusLocalRotation * Vector3.forward * strafeDistance.y).LocalPlanet;
+        _targetInput.FocusLocalPosition = new Coordinate(_targetInput.FocusLocalPosition
+                                                         + _targetInput.FocusLocalRotation * Vector3.right * strafeDistance.x
+                                                         + _targetInput.FocusLocalRotation * Vector3.forward * strafeDistance.y)
+                                        .ClampToTerrain()
+                                        .LocalPlanet;
         var localUp = Vector3.Normalize(_targetInput.FocusLocalPosition);
         var localRight = _targetInput.FocusLocalRotation * Vector3.right;
         var localForward = Quaternion.AngleAxis(90, localRight) * localUp;
@@ -215,7 +216,7 @@ public class LandscapeCamera : CameraPerspective
         var localForward = Quaternion.AngleAxis(90, localRight) * localUp;
         var cameraVector = Quaternion.AngleAxis(input.CameraAngle, localRight) * -localForward * input.CameraDistance;
         
-        return new CameraState(CameraController.CurrentState.Camera, CameraController.CurrentState.Focus)
+        return new CameraState(CurrentState.Camera, CurrentState.Focus)
         {
             FocusParent = Planet.Transform,
             FocusLocalPosition = input.FocusLocalPosition,
@@ -227,14 +228,8 @@ public class LandscapeCamera : CameraPerspective
         };
     }
     
-    Coordinate CoordAboveTerrain(Vector3 localPlanetPosition)
-    {
-        var coord = new Coordinate(localPlanetPosition);
-        coord.Altitude = TerrainAltitude(coord);
-        return coord;
-    }
     float TerrainAltitude(Coordinate coord) => math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r,
                                                    Planet.Data.Water.WaterMap.Sample(coord).a)
-                                               + CameraController.CurrentState.Camera.nearClipPlane * 1.5f;
+                                               + CurrentState.Camera.nearClipPlane * 1.5f;
 
 }

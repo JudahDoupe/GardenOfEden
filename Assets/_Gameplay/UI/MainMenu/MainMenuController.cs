@@ -106,7 +106,7 @@ public class MainMenuController : Singleton<MainMenuController>
     public static void EnableMainMenu()
     {
         Instance.ShowUi();
-        CameraController.SetPerspective(FindObjectOfType<MainMenuCamera>(), CameraTransition.Smooth);
+        CameraController.TransitionToMainMenuCamera(CameraTransition.Smooth);
     }
 
     public static void DisableMainMenu()

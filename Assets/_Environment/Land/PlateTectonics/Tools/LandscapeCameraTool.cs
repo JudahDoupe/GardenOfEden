@@ -7,7 +7,7 @@ public class LandscapeCameraTool : MonoBehaviour, ITool
     public void Enable()
     {
         IsActive = true;
-        CameraController.SetPerspective(FindObjectOfType<LandscapeCamera>(), CameraTransition.SmoothFast);
+        CameraController.TransitionToLandscapeCamera(CameraTransition.SmoothFast);
         InputAdapter.Cancel.Subscribe(this, ToolbarController.SelectMovePlateTool);
     }
 

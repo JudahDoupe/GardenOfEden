@@ -70,24 +70,6 @@ public class CameraUtils : MonoBehaviour
         return newBounds;
     }
 
-    public static Coordinate ClampAboveTerrain(Coordinate coord, float minDistance = 1)
-    {
-        if (Planet.Data == null)
-            return coord;
-
-        var minAltitude = math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r, Planet.Data.Water.WaterMap.Sample(coord).a) + minDistance;
-        coord.Altitude = coord.Altitude < minAltitude ? minAltitude : coord.Altitude;
-        return coord;
-    }
-    public static Coordinate ClampToTerrain(Coordinate coord)
-    {
-        if (Planet.Data == null)
-            return coord;
-
-        coord.Altitude = math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r, Planet.Data.Water.WaterMap.Sample(coord).a);
-        return coord;
-    }
-
     public static void SetState(CameraState end)
     {
         var camera = end.Camera.GetComponent<Camera>();
@@ -102,60 +84,6 @@ public class CameraUtils : MonoBehaviour
         camera.farClipPlane = end.FarClip;
         Cursor.lockState = end.Cursor;
     }
-    public static void TransitionState(CameraState end, CameraTransition transition, Action callback = null)
-    {
-        if (transition.Speed <= 0)
-        {
-            SetState(end);
-            callback();
-        }
-        else
-        {
-            end.Camera.transform.parent = end.CameraParent;
-            end.Focus.parent = end.FocusParent;
-            Cursor.lockState = end.Cursor;
-            var start = new CameraState(end.Camera, end.Focus);
-
-            var speeds = new []
-            {
-                GetTransitionTime(start.CameraLocalPosition, end.CameraLocalPosition, transition.Speed), 
-                GetTransitionTime(start.CameraLocalRotation, end.CameraLocalRotation, transition.Speed),
-                GetTransitionTime(start.FocusLocalPosition, end.FocusLocalPosition, transition.Speed),
-                GetTransitionTime(start.FocusLocalRotation, end.FocusLocalRotation, transition.Speed),
-                GetTransitionTime(start.FieldOfView, end.FieldOfView, transition.Speed),
-            };
-            CameraController.Instance.StartCoroutine(AnimateTransition(speeds.Max(), start, end, callback, transition.Ease));
-        }
-    }
-    private static IEnumerator AnimateTransition(float seconds, CameraState start, CameraState end, Action callback, EaseType ease)
-    {
-        var remainingSeconds = seconds;
-        var t = 0f;
-        var camera = end.Camera.GetComponent<Camera>();
-
-        while (t < 1)
-        {
-            yield return new WaitForEndOfFrame();
-
-            var lerp = ease.LerpValue(t);
-            end.Camera.transform.localPosition = Vector3.Lerp(start.CameraLocalPosition, end.CameraLocalPosition, lerp);
-            end.Camera.transform.position = ClampAboveTerrain(new Coordinate(end.Camera.transform.position, Planet.LocalToWorld)).Global(Planet.LocalToWorld);
-            end.Camera.transform.localRotation = Quaternion.Lerp(start.CameraLocalRotation, end.CameraLocalRotation, lerp);
-            end.Focus.localPosition = Vector3.Lerp(start.FocusLocalPosition, end.FocusLocalPosition, lerp);
-            end.Focus.localRotation = Quaternion.Lerp(start.FocusLocalRotation, end.FocusLocalRotation, lerp);
-            camera.fieldOfView = math.lerp(start.FieldOfView, end.FieldOfView, lerp);
-
-            remainingSeconds -= Time.deltaTime;
-            t = 1 - (remainingSeconds / seconds);
-        }
-
-        SetState(end);
-
-        callback?.Invoke();
-    }
-    public static float GetTransitionTime(Vector3 start, Vector3 end, float transitionSpeed = 1) => math.sqrt(Vector3.Distance(start, end)) * 0.05f / transitionSpeed;
-    public static float GetTransitionTime(Quaternion start, Quaternion end, float transitionSpeed = 1) => math.sqrt(Quaternion.Angle(start, end)) * 0.05f / transitionSpeed;
-    public static float GetTransitionTime(float start, float end, float transitionSpeed = 1) => math.sqrt(math.abs(start - end)) * 0.05f / transitionSpeed;
 
     public static float GetScreenDepthAtCursor(float maxDepth = 10000) => math.min(DepthTexture.Sample(Mouse.current.position.ReadValue().x / Screen.width, Mouse.current.position.ReadValue().y / Screen.height).r, maxDepth);
     public static Vector3 GetCursorWorldPosition(float maxDepth = 10000) => 

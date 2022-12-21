@@ -7,7 +7,7 @@ public class GlobalCameraTool : MonoBehaviour, ITool
     public void Enable()
     {
         IsActive = true;
-        CameraController.SetPerspective(FindObjectOfType<SatelliteCamera>(), CameraTransition.Smooth);
+        CameraController.TransitionToSatelliteCamera(CameraTransition.Smooth);
         InputAdapter.Cancel.Subscribe(this, () => {
             ToolbarController.DisableToolbar();
             MainMenuController.EnableMainMenu();

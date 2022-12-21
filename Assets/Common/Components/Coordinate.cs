@@ -13,7 +13,7 @@ public struct Coordinate : IComponentData, IEquatable<Coordinate>
     private float3 _sphericalCoord;
     private float3 _textureCoord;
 
-    public readonly float3 Global(LocalToWorld planet) => ((Matrix4x4) planet.Value).MultiplyPoint(_localPlanetCoord);
+    public float3 Global => ((Matrix4x4) Planet.LocalToWorld.Value).MultiplyPoint(_localPlanetCoord);
     public float3 LocalPlanet
     {
         get => _localPlanetCoord;
@@ -85,11 +85,29 @@ public struct Coordinate : IComponentData, IEquatable<Coordinate>
     public static bool operator == (Coordinate lhs, Coordinate rhs) => lhs.Equals(rhs);
     public static bool operator != (Coordinate lhs, Coordinate rhs) => !(lhs.Equals(rhs));
 
-    public void TravelArc(float distance, float3 direction)
+    public Coordinate TravelArc(float distance, float3 direction)
     {
         var theta = distance / ((math.PI / 180) * Altitude); 
         var right = Quaternion.AngleAxis(90, Vector3.Normalize(LocalPlanet)) * direction;
         LocalPlanet = Quaternion.AngleAxis(theta, right) * LocalPlanet;
+        return this;
+    }
+    public Coordinate ClampAboveTerrain(float minDistance = 1)
+    {
+        if (Planet.Data == null)
+            return this;
+
+        var minAltitude = math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(this).r, Planet.Data.Water.WaterMap.Sample(this).a) + minDistance;
+        Altitude = Altitude < minAltitude ? minAltitude : Altitude;
+        return this;
+    }
+    public Coordinate ClampToTerrain()
+    {
+        if (Planet.Data == null)
+            return this;
+
+        Altitude = math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(this).r, Planet.Data.Water.WaterMap.Sample(this).a);
+        return this;
     }
 
 

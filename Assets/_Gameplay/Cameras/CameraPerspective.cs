@@ -8,7 +8,8 @@ namespace Assets.GamePlay.Cameras
         public float MinAltitude;
         public bool IsActive { get; protected set; } = false;
 
-        public virtual CameraState StartTransitionTo() => CameraController.CurrentState;
+        public virtual CameraState CurrentState => new(CameraController.Instance.Camera, CameraController.Instance.Focus);
+        public virtual CameraState StartTransitionTo() => CurrentState;
         public virtual void Enable() => IsActive = true;
         public virtual void Disable() => IsActive = false;
     }

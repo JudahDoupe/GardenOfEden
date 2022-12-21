@@ -28,7 +28,7 @@ public class SatelliteCamera : CameraPerspective
 
     public override CameraState StartTransitionTo()
     {
-        _targetCoord = new Coordinate(CameraController.CurrentState.Camera.transform.position, Planet.LocalToWorld);
+        _targetCoord = new Coordinate(CurrentState.Camera.transform.position, Planet.LocalToWorld);
         _targetCoord.Lat = math.clamp(_targetCoord.Lat, PoleBuffer, 180 - PoleBuffer);
         _targetCoord.Lat = math.clamp(_targetCoord.Lat, PoleBuffer, 180 - PoleBuffer);
         _targetCoord.Altitude = math.clamp(_targetCoord.Altitude, MinAltitude, MaxAltitude);
@@ -52,7 +52,7 @@ public class SatelliteCamera : CameraPerspective
             priority: InputPriority.Low);
         Cursor.SetCursor(CursorTexture, new Vector2(CursorTexture.width / 2f, CursorTexture.height / 2f), CursorMode.Auto);
 
-        _targetCoord = new Coordinate(CameraController.CurrentState.Camera.transform.position, Planet.LocalToWorld);
+        _targetCoord = new Coordinate(CurrentState.Camera.transform.position, Planet.LocalToWorld);
         IsActive = true;
     }
     public override void Disable()
@@ -75,12 +75,11 @@ public class SatelliteCamera : CameraPerspective
 
     private CameraState GetTargetState(Coordinate coord, bool lerp = false)
     {
-        var currentState = CameraController.CurrentState;
         var cameraPosition = lerp 
-            ? Vector3.Lerp(currentState.Camera.transform.localPosition, coord.LocalPlanet, Time.deltaTime * LerpSpeed) 
+            ? Vector3.Lerp(CurrentState.Camera.transform.localPosition, coord.LocalPlanet, Time.deltaTime * LerpSpeed) 
             : coord.LocalPlanet.ToVector3();
         var height = Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r;
-        return new CameraState(currentState.Camera, currentState.Focus)
+        return new CameraState(CurrentState.Camera, CurrentState.Focus)
         {
             CameraParent = Planet.Transform,
             CameraLocalPosition = cameraPosition,

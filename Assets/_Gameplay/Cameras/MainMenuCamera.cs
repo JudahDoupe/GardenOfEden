@@ -8,7 +8,7 @@ public class MainMenuCamera : CameraPerspective
     
     public override CameraState StartTransitionTo()
     {
-        var currentState = CameraController.CurrentState;
+        var currentState = CurrentState;
         var rotation = Quaternion.LookRotation(currentState.Camera.transform.forward, Vector3.up);
         var pos = rotation * new Vector3(0, 0, Coordinate.PlanetRadius * -Distance);
         return new CameraState(currentState.Camera, currentState.Focus)

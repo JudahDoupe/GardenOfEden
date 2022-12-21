@@ -37,7 +37,7 @@ public class MovePlateTool : MonoBehaviour, ITool
         if (!IsInitialized)
             return;
 
-        CameraController.SetPerspective(FindObjectOfType<SatelliteCamera>(), CameraTransition.SmoothFast);
+        CameraController.TransitionToSatelliteCamera(CameraTransition.SmoothFast);
         StopMoving();
         _simulation.Enable();
         IsActive = true;
