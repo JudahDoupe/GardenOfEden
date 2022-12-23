@@ -33,12 +33,14 @@ public class BreakPlateTool : MonoBehaviour, ITool
         _baker = GetComponent<PlateBakerV2>();
         IsInitialized = true;
     }
+    public void Unlock() => _data.GetTool(nameof(LandscapeCameraTool)).Unlock();
     public void Enable()
     {
         if (!IsInitialized)
             return;
 
         CameraController.TransitionToSatelliteCamera(CameraTransition.SmoothFast);
+        _data.GetTool(nameof(BreakPlateTool)).Use();
         _baker.CancelBake();
         _simulation.Disable();
         _break = null;

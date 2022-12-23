@@ -12,6 +12,6 @@ public class PlayerDbData
 [Serializable]
 public class SettingsDbData
 {
-    [FormerlySerializedAs("SCrollSpeed")] [FormerlySerializedAs("ZoomSpeed")] public float ScrollSpeed;
-    [FormerlySerializedAs("ScrollSpeed")] public float DragSpeed;
+    public float ScrollSpeed;
+    public float DragSpeed;
 }

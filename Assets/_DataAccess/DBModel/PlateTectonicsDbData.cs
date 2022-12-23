@@ -9,6 +9,7 @@ public class PlateTectonicsDbData
     public EnvironmentMapDbData LandHeightMap;
     public EnvironmentMapDbData ContinentalIdMap;
     public EnvironmentMapDbData PlateThicknessMaps;
+    public ToolsDbData[] Tools;
 }
 
 [Serializable]

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using Assets.GamePlay.Cameras;
 using Unity.Mathematics;
@@ -110,13 +111,14 @@ public class LandscapeCamera : CameraPerspective
             {
                 _horizontalDragDirection = Convert.ToInt32(Mouse.current.position.ReadValue().y < (Screen.height / 2.0)) * 2 - 1;
                 _isDragging = true;
-                Cursor.visible = false;
-                Cursor.lockState = CursorLockMode.Locked;
+                StartCoroutine(TryLockCursor());
             },
             finishCallback: () =>
             {
+                StopAllCoroutines();
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
+                ToolbarController.ShowToolbar();
                 _isDragging = false;
             },
 
@@ -145,6 +147,14 @@ public class LandscapeCamera : CameraPerspective
             var cameraBack = Quaternion.AngleAxis(_targetInput.CameraAngle, localRight) * -localForward;
             _targetInput.CameraAltitude = (CurrentState.FocusLocalPosition + cameraBack * _targetInput.CameraDistance).magnitude;
         }
+    }
+
+    private IEnumerator TryLockCursor()
+    {
+        yield return new WaitForSeconds(2f);
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        ToolbarController.HideToolbar();
     }
     
     public override void Disable()

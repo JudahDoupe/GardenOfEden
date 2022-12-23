@@ -33,6 +33,7 @@ public class Planet : Singleton<Planet>
         FindObjectOfType<MovePlateTool>().Initialize(data.PlateTectonics);
         FindObjectOfType<BreakPlateTool>().Initialize(data.PlateTectonics);
         FindObjectOfType<MergePlateTool>().Initialize(data.PlateTectonics);
+        FindObjectOfType<LandscapeCameraTool>().Initialize(data.PlateTectonics);
 
         FindObjectOfType<WaterSimulation>().Initialize(data.Water);
         

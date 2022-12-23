@@ -32,11 +32,13 @@ public class MovePlateTool : MonoBehaviour, ITool
         _baker = GetComponent<PlateBakerV2>();
         IsInitialized = true;
     }
+    public void Unlock() => _data.GetTool(nameof(LandscapeCameraTool)).Unlock();
     public void Enable()
     {
         if (!IsInitialized)
             return;
 
+        _data.GetTool(nameof(MovePlateTool)).Use();
         CameraController.TransitionToSatelliteCamera(CameraTransition.SmoothFast);
         StopMoving();
         _simulation.Enable();

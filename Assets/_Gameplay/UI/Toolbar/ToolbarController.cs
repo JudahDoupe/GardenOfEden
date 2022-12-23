@@ -98,6 +98,17 @@ public class ToolbarController : Singleton<ToolbarController>
             Instance._activeTool = null;
         }
     }
+    
+    public static void HideToolbar()
+    {
+        if(!Instance._toolbar.ClassListContains("Hidden"))
+            Instance._toolbar.AddToClassList("Hidden");
+    }
+    public static void ShowToolbar()
+    {
+        if(Instance._toolbar.ClassListContains("Hidden"))
+            Instance._toolbar.RemoveFromClassList("Hidden");
+    }
 
     // Systems
     public static void SelectGlobalSystem() => Instance.ActivateSystem(Instance.Global, Instance.GlobalCamera);

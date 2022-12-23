@@ -14,6 +14,9 @@ public class PlateTectonicsData
     public EnvironmentMap VisualizedContinentalIdMap { get; }
     public EnvironmentMap PlateThicknessMaps { get; }
     public EnvironmentMap TmpPlateThicknessMaps { get; }
+    
+    private Dictionary<string, ToolData> _tools { get; }
+    public ToolData GetTool(string name) => _tools.ContainsKey(name) ? _tools[name] : _tools[name] = new ToolData(name);
 
     public PlateData GetPlate(float id) => Plates.First(x => Math.Abs(x.Id - id) < float.Epsilon);
     public PlateData AddPlate() => AddPlate(Plates.Max(x => x.Id) + 1f);
@@ -86,9 +89,10 @@ public class PlateTectonicsData
         VisualizedContinentalIdMap = new EnvironmentMap(PlanetName, "VisualizedContinentalIdMap", ContinentalIdMap.Layers, ContinentalIdMap.Channels);
         PlateThicknessMaps = plateThicknessMaps;
         TmpPlateThicknessMaps = new EnvironmentMap(PlanetName, "TmpPlateThicknessMaps", PlateThicknessMaps.Layers, PlateThicknessMaps.Channels);
+        _tools = dbData.Tools?.ToDictionary(x => x.Name, x => new ToolData(x)) ?? new Dictionary<string, ToolData>();
     }
 
-    public PlateTectonicsDbData ToDbData() => new PlateTectonicsDbData
+    public PlateTectonicsDbData ToDbData() => new()
     {
         PlanetName = PlanetName,
         MantleHeight = MantleHeight,
@@ -96,6 +100,7 @@ public class PlateTectonicsData
         LandHeightMap = LandHeightMap.ToDbData(),
         ContinentalIdMap = ContinentalIdMap.ToDbData(),
         PlateThicknessMaps = PlateThicknessMaps.ToDbData(),
+        Tools = _tools.Values.Select(x => x.ToDbData()).ToArray(),
     };
 }
 
