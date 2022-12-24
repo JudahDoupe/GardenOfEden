@@ -1,11 +1,39 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class PlateTectonicsData
 {
+    public PlateTectonicsData(string planetName)
+    {
+        PlanetName = planetName;
+        MantleHeight = 900;
+        Plates = new List<PlateData> { new(1.0001f, 0, Random.rotation) };
+        LandHeightMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "LandHeightMap"));
+        ContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "ContinentalIdMap"));
+        VisualizedContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "VisualizedContinentalIdMap"));
+        PlateThicknessMaps = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "PlateThicknessMaps"));
+        TmpPlateThicknessMaps = new EnvironmentMap(planetName, "TmpPlateThicknessMaps");
+    }
+
+    public PlateTectonicsData(PlateTectonicsDbData dbData,
+                              EnvironmentMap landHeightMap,
+                              EnvironmentMap continentalIdMap,
+                              EnvironmentMap plateThicknessMaps)
+    {
+        PlanetName = dbData.PlanetName;
+        MantleHeight = dbData.MantleHeight;
+        Plates = dbData.Plates.Select(plateData => new PlateData(plateData)).ToList();
+        LandHeightMap = landHeightMap;
+        ContinentalIdMap = continentalIdMap;
+        VisualizedContinentalIdMap = new EnvironmentMap(PlanetName, "VisualizedContinentalIdMap", ContinentalIdMap.Layers, ContinentalIdMap.Channels);
+        PlateThicknessMaps = plateThicknessMaps;
+        TmpPlateThicknessMaps = new EnvironmentMap(PlanetName, "TmpPlateThicknessMaps", PlateThicknessMaps.Layers, PlateThicknessMaps.Channels);
+        _tools = dbData.Tools?.ToDictionary(x => x.Name, x => new ToolData(x)) ?? new Dictionary<string, ToolData>();
+    }
+
     public string PlanetName { get; }
     public float MantleHeight { get; set; }
     public List<PlateData> Plates { get; set; }
@@ -14,12 +42,13 @@ public class PlateTectonicsData
     public EnvironmentMap VisualizedContinentalIdMap { get; }
     public EnvironmentMap PlateThicknessMaps { get; }
     public EnvironmentMap TmpPlateThicknessMaps { get; }
-    
+
     private Dictionary<string, ToolData> _tools { get; }
     public ToolData GetTool(string name) => _tools.ContainsKey(name) ? _tools[name] : _tools[name] = new ToolData(name);
 
     public PlateData GetPlate(float id) => Plates.First(x => Math.Abs(x.Id - id) < float.Epsilon);
     public PlateData AddPlate() => AddPlate(Plates.Max(x => x.Id) + 1f);
+
     public PlateData AddPlate(float id)
     {
         var plate = new PlateData(id, Plates.Count);
@@ -33,13 +62,11 @@ public class PlateTectonicsData
         var newLayerCount = Plates.Count * 6;
         PlateThicknessMaps.Layers = newLayerCount;
         for (var i = 0; i < oldLayerCount; i++)
-        {
             Graphics.CopyTexture(TmpPlateThicknessMaps.RenderTexture, i, PlateThicknessMaps.RenderTexture, i);
-        }
-
 
         return plate;
     }
+
     public void RemovePlate(float id)
     {
         var plate = GetPlate(id);
@@ -57,85 +84,32 @@ public class PlateTectonicsData
         {
             var newIdx = Plates.IndexOf(p);
             for (var i = 0; i < 6; i++)
-            {
-                Graphics.CopyTexture(TmpPlateThicknessMaps.RenderTexture, (p.Idx * 6) + i, PlateThicknessMaps.RenderTexture, (newIdx * 6) + i);
-            }
+                Graphics.CopyTexture(TmpPlateThicknessMaps.RenderTexture, p.Idx * 6 + i, PlateThicknessMaps.RenderTexture, newIdx * 6 + i);
             p.Idx = newIdx;
         }
     }
 
-
-    public PlateTectonicsData(string planetName)
-    {
-        PlanetName = planetName;
-        MantleHeight = 900;
-        Plates = new List<PlateData> { new PlateData(1.0001f, 0, UnityEngine.Random.rotation) };
-        LandHeightMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "LandHeightMap"));
-        ContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "ContinentalIdMap"));
-        VisualizedContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "VisualizedContinentalIdMap"));
-        PlateThicknessMaps = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "PlateThicknessMaps"));
-        TmpPlateThicknessMaps = new EnvironmentMap(planetName, "TmpPlateThicknessMaps");
-    }
-    public PlateTectonicsData(PlateTectonicsDbData dbData,
-                              EnvironmentMap landHeightMap,
-                              EnvironmentMap continentalIdMap,
-                              EnvironmentMap  plateThicknessMaps)
-    {
-        PlanetName = dbData.PlanetName;
-        MantleHeight = dbData.MantleHeight;
-        Plates = dbData.Plates.Select(plateData => new PlateData(plateData)).ToList();
-        LandHeightMap = landHeightMap;
-        ContinentalIdMap = continentalIdMap;
-        VisualizedContinentalIdMap = new EnvironmentMap(PlanetName, "VisualizedContinentalIdMap", ContinentalIdMap.Layers, ContinentalIdMap.Channels);
-        PlateThicknessMaps = plateThicknessMaps;
-        TmpPlateThicknessMaps = new EnvironmentMap(PlanetName, "TmpPlateThicknessMaps", PlateThicknessMaps.Layers, PlateThicknessMaps.Channels);
-        _tools = dbData.Tools?.ToDictionary(x => x.Name, x => new ToolData(x)) ?? new Dictionary<string, ToolData>();
-    }
-
-    public PlateTectonicsDbData ToDbData() => new()
-    {
-        PlanetName = PlanetName,
-        MantleHeight = MantleHeight,
-        Plates = Plates.Select(x => x.ToDbData()).ToArray(),
-        LandHeightMap = LandHeightMap.ToDbData(),
-        ContinentalIdMap = ContinentalIdMap.ToDbData(),
-        PlateThicknessMaps = PlateThicknessMaps.ToDbData(),
-        Tools = _tools.Values.Select(x => x.ToDbData()).ToArray(),
-    };
+    public PlateTectonicsDbData ToDbData()
+        => new()
+        {
+            PlanetName = PlanetName,
+            MantleHeight = MantleHeight,
+            Plates = Plates.Select(x => x.ToDbData()).ToArray(),
+            LandHeightMap = LandHeightMap.ToDbData(),
+            ContinentalIdMap = ContinentalIdMap.ToDbData(),
+            PlateThicknessMaps = PlateThicknessMaps.ToDbData(),
+            Tools = _tools.Values.Select(x => x.ToDbData()).ToArray()
+        };
 }
 
-public class PlateData
+[Serializable]
+public class PlateTectonicsDbData
 {
-    public float Id { get; set; }
-    public int Idx { get; set; }
-    public Quaternion Rotation { get; set; }
-    public Quaternion Velocity { get; set; }
-    public Quaternion TargetVelocity { get; set; }
-    public float TravelDistance => Quaternion.Angle(Quaternion.identity, Velocity) * (math.PI/180) * Coordinate.PlanetRadius;
-    public Vector3 Center => Rotation * Vector3.forward * 1000;
-    public bool IsInMotion => Quaternion.Angle(Velocity, Quaternion.identity) > 0.0001f;
-    public bool IsAligned => Quaternion.Angle(Rotation, Quaternion.identity) < 0.0001f;
-
-    public PlateData(float id, int idx, Quaternion? rotation = null)
-    {
-        Id = id;
-        Idx = idx;
-        Rotation = rotation ?? Quaternion.identity;
-        Velocity = Quaternion.identity;
-        TargetVelocity = Quaternion.identity;
-    }
-    public PlateData(PlateDbData dbData)
-    {
-        Id = dbData.Id;
-        Idx = dbData.Idx;
-        Rotation = dbData.Rotation != null 
-            ? new Quaternion(dbData.Rotation[0], dbData.Rotation[1], dbData.Rotation[2], dbData.Rotation[3])
-            : Quaternion.identity;
-        Velocity = Quaternion.identity;
-        TargetVelocity = Quaternion.identity;
-    }
-    
-    public PlateGpuData ToGpuData() => new PlateGpuData { Id = Id, Idx = Idx, Rotation = new float4(Rotation[0], Rotation[1], Rotation[2], Rotation[3]), TravelDistance = TravelDistance };
-    public PlateDbData ToDbData() => new PlateDbData { Id = Id, Idx = Idx, Rotation = new float[] { Rotation[0], Rotation[1], Rotation[2], Rotation[3] } };
-
+    public string PlanetName;
+    public float MantleHeight;
+    public PlateDbData[] Plates;
+    public EnvironmentMapDbData LandHeightMap;
+    public EnvironmentMapDbData ContinentalIdMap;
+    public EnvironmentMapDbData PlateThicknessMaps;
+    public ToolsDbData[] Tools;
 }

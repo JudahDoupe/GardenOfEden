@@ -1,20 +1,16 @@
+using System;
+
 public class WaterData
 {
-    public string PlanetName { get; }
-    public EnvironmentMap WaterMap {get; }
-    public EnvironmentMap WaterSourceMap {get; }
-    public EnvironmentMap LandHeightMap { get; }
-
-    public bool NeedsRegeneration { get; set; } = false;
-
     public WaterData(string planetName,
                      EnvironmentMap landHeightMap)
     {
         PlanetName = planetName;
-        WaterMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "WaterMap", channels: 4));
+        WaterMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "WaterMap", 4));
         WaterSourceMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "WaterSourceMap"));
         LandHeightMap = landHeightMap;
     }
+
     public WaterData(WaterDbData dbData,
                      EnvironmentMap waterMap,
                      EnvironmentMap waterSourceMap,
@@ -26,11 +22,28 @@ public class WaterData
         LandHeightMap = landHeightMap;
     }
 
-    public WaterDbData ToDbData() => new WaterDbData
-    {
-        PlanetName = PlanetName,
-        WaterMap = WaterMap.ToDbData(),
-        WaterSourceMap = WaterSourceMap.ToDbData(),
-        LandHeightMap = LandHeightMap.ToDbData(),
-    };
+    public string PlanetName { get; }
+    public EnvironmentMap WaterMap { get; }
+    public EnvironmentMap WaterSourceMap { get; }
+    public EnvironmentMap LandHeightMap { get; }
+
+    public bool NeedsRegeneration { get; set; }
+
+    public WaterDbData ToDbData()
+        => new()
+        {
+            PlanetName = PlanetName,
+            WaterMap = WaterMap.ToDbData(),
+            WaterSourceMap = WaterSourceMap.ToDbData(),
+            LandHeightMap = LandHeightMap.ToDbData()
+        };
+}
+
+[Serializable]
+public class WaterDbData
+{
+    public string PlanetName;
+    public EnvironmentMapDbData WaterMap;
+    public EnvironmentMapDbData WaterSourceMap;
+    public EnvironmentMapDbData LandHeightMap;
 }

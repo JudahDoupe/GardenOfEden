@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Mathematics;
@@ -9,34 +8,9 @@ using UnityEngine.Rendering;
 
 public class EnvironmentMap
 {
-    public RenderTexture RenderTexture { get; }
-    public Texture2D[] CachedTextures { get; private set; }
-    public string PlanetName { get; }
-    public string Name { get; }
-    public int Channels { get; }
-    public int Layers { get => RenderTexture.volumeDepth; set => SetLayers(value); }
-    public RenderTextureFormat RenderTextureFormat => Channels switch
-    {
-        1 => RenderTextureFormat.RFloat,
-        2 => RenderTextureFormat.RGFloat,
-        _ => RenderTextureFormat.ARGBFloat
-    };
-    public TextureFormat TextureFormat => Channels switch
-    {
-        1 => TextureFormat.RFloat,
-        2 => TextureFormat.RGFloat,
-        _ => TextureFormat.RGBAFloat,
-    };
-    public GraphicsFormat GraphicsFormat => Channels switch
-    {
-        1 => GraphicsFormat.R32_SFloat,
-        2 => GraphicsFormat.R32G32_SFloat,
-        _ => GraphicsFormat.R32G32B32A32_SFloat,
-    };
-    public bool IsCacheBeingUpdated => !_request.done;
+    private readonly List<Action> _cacheCallbacks = new();
 
     private AsyncGPUReadbackRequest _request;
-    private List<Action> _cacheCallbacks = new List<Action>();
 
     public EnvironmentMap(string planetName, string mapName, int layers = 6, int channels = 1)
     {
@@ -46,6 +20,7 @@ public class EnvironmentMap
         RenderTexture = new RenderTexture(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, 0, RenderTextureFormat, 0);
         ResetTexture(layers);
     }
+
     public EnvironmentMap(EnvironmentMapDbData dbData)
     {
         PlanetName = dbData.PlanetName;
@@ -54,33 +29,66 @@ public class EnvironmentMap
         RenderTexture = new RenderTexture(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, 0, RenderTextureFormat, 0);
         ResetTexture(dbData.Layers);
     }
-    public EnvironmentMapDbData ToDbData() => new EnvironmentMapDbData
+
+    public RenderTexture RenderTexture { get; }
+    public Texture2D[] CachedTextures { get; private set; }
+    public string PlanetName { get; }
+    public string Name { get; }
+    public int Channels { get; }
+
+    public int Layers
     {
-        PlanetName = PlanetName,
-        MapName = Name,
-        Channels = Channels,
-        Layers = Layers,
-    };
+        get => RenderTexture.volumeDepth;
+        set => SetLayers(value);
+    }
+
+    public RenderTextureFormat RenderTextureFormat
+        => Channels switch
+        {
+            1 => RenderTextureFormat.RFloat,
+            2 => RenderTextureFormat.RGFloat,
+            _ => RenderTextureFormat.ARGBFloat
+        };
+
+    public TextureFormat TextureFormat
+        => Channels switch
+        {
+            1 => TextureFormat.RFloat,
+            2 => TextureFormat.RGFloat,
+            _ => TextureFormat.RGBAFloat
+        };
+
+    public GraphicsFormat GraphicsFormat
+        => Channels switch
+        {
+            1 => GraphicsFormat.R32_SFloat,
+            2 => GraphicsFormat.R32G32_SFloat,
+            _ => GraphicsFormat.R32G32B32A32_SFloat
+        };
+
+    public bool IsCacheBeingUpdated => !_request.done;
+
+    public EnvironmentMapDbData ToDbData()
+        => new()
+        {
+            PlanetName = PlanetName,
+            MapName = Name,
+            Channels = Channels,
+            Layers = Layers
+        };
 
     public Task<Texture2D[]> RefreshCacheAsync()
     {
         var refreshTaskSource = new TaskCompletionSource<Texture2D[]>();
-        RefreshCache(() =>
-        {
-            refreshTaskSource.TrySetResult(CachedTextures);
-        });
+        RefreshCache(() => { refreshTaskSource.TrySetResult(CachedTextures); });
         return refreshTaskSource.Task;
     }
 
     public void RefreshCache(Action callback = null)
     {
-        if (callback != null && !_cacheCallbacks.Contains(callback))
-        {
-            _cacheCallbacks.Add(callback);
-        }
+        if (callback != null && !_cacheCallbacks.Contains(callback)) _cacheCallbacks.Add(callback);
 
         if (!IsCacheBeingUpdated && RenderTexture.IsCreated())
-        {
             _request = AsyncGPUReadback.Request(RenderTexture, 0, request =>
             {
                 if (request.hasError || RenderTexture == null || !RenderTexture.IsCreated())
@@ -102,38 +110,34 @@ public class EnvironmentMap
                             default:
                                 CachedTextures[i].SetPixelData(request.GetData<float4>(i), 0);
                                 break;
-
                         }
+
                         CachedTextures[i].Apply();
                     }
 
-                    foreach (var action in _cacheCallbacks)
-                    {
-                        action.Invoke();
-                    }
+                    foreach (var action in _cacheCallbacks) action.Invoke();
                     _cacheCallbacks.Clear();
                 }
             });
-        }
     }
+
     public void SetTextures(Texture2D[] textures)
     {
         CachedTextures = textures;
 
         var texture = new Texture2DArray(textures[0].width, textures[0].height, textures.Length, GraphicsFormat, TextureCreationFlags.None);
-        for (var i = 0; i < textures.Length; i++)
-        {
-            texture.SetPixels(textures[i].GetPixels(0), i, 0);
-        }
+        for (var i = 0; i < textures.Length; i++) texture.SetPixels(textures[i].GetPixels(0), i, 0);
         texture.Apply();
         SetTextures(texture);
     }
+
     public void SetTextures(Texture2DArray tex)
     {
         Layers = tex.depth;
         Graphics.Blit(tex, RenderTexture);
         RefreshCache();
     }
+
     public void SetTextures(EnvironmentMap map)
     {
         Layers = map.Layers;
@@ -159,10 +163,7 @@ public class EnvironmentMap
         RenderTexture.Create();
 
         CachedTextures = new Texture2D[layers];
-        for (var i = 0; i < layers; i++)
-        {
-            CachedTextures[i] = new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat, false);
-        }
+        for (var i = 0; i < layers; i++) CachedTextures[i] = new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat, false);
     }
 
     private void SetLayers(int layers)
@@ -182,10 +183,29 @@ public class EnvironmentMap
         var cacheQueue = new Queue<Texture2D>(CachedTextures);
         CachedTextures = new Texture2D[layers];
         for (var i = 0; i < layers; i++)
-        {
-            CachedTextures[i] = cacheQueue.TryDequeue(out var tex) 
-                ? tex 
+            CachedTextures[i] = cacheQueue.TryDequeue(out var tex)
+                ? tex
                 : new Texture2D(Coordinate.TextureWidthInPixels, Coordinate.TextureWidthInPixels, TextureFormat, false);
-        }
+    }
+}
+
+[Serializable]
+public class EnvironmentMapDbData
+{
+    public string PlanetName;
+    public string MapName;
+    public int Channels;
+    public int Layers;
+
+    public EnvironmentMapDbData()
+    {
+    }
+
+    public EnvironmentMapDbData(string planetName, string mapName, int channels = 1, int layers = 6)
+    {
+        PlanetName = planetName;
+        MapName = mapName;
+        Channels = channels;
+        Layers = layers;
     }
 }

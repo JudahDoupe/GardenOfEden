@@ -1,3 +1,5 @@
+using System;
+
 public class PlanetData
 {
     public PlanetData(PlanetDbData dbData,
@@ -12,4 +14,10 @@ public class PlanetData
     public string PlanetName { get; }
     public PlateTectonicsData PlateTectonics { get; }
     public WaterData Water { get; }
+}
+
+[Serializable]
+public class PlanetDbData
+{
+    public string PlanetName;
 }

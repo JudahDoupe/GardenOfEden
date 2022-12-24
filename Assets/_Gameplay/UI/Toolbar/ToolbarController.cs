@@ -176,4 +176,10 @@ public class ToolbarController : Singleton<ToolbarController>
             _activeTool = tool;
         }
     }
+    private void UnlockTool(Tool tool)
+    {
+    }
+    private void UseTool(Tool tool)
+    {
+    }
 }
