@@ -78,7 +78,7 @@ public class SatelliteCamera : CameraPerspective
         var cameraPosition = lerp 
             ? Vector3.Lerp(CurrentState.Camera.transform.localPosition, coord.LocalPlanet, Time.deltaTime * LerpSpeed) 
             : coord.LocalPlanet.ToVector3();
-        var height = Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r;
+        var height = Planet.Data.Value.PlateTectonics.LandHeightMap.Sample(coord).r;
         return new CameraState(CurrentState.Camera, CurrentState.Focus)
         {
             CameraParent = Planet.Transform,

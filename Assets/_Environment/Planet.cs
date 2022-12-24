@@ -5,44 +5,17 @@ using UnityEngine;
 
 public class Planet : Singleton<Planet>
 {
-    public float RotationSpeed;
-
     public static Entity Entity;
     public static Transform Transform;
+    public static Signal<PlanetData> Data;
+    public float RotationSpeed;
+
     public static LocalToWorld LocalToWorld => World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<LocalToWorld>(Entity);
-    public static PlanetData Data;
 
-    [ContextMenu("Save")]
-    public void Save(Action callback = null) => Instance.RunTaskInCoroutine(PlanetDataStore.Update(Data), callback);
-
-    [ContextMenu("Load")]
-    public void Load(string name, Action callback = null) => Instance.RunTaskInCoroutine(PlanetDataStore.GetOrCreate(name), data =>
-    {
-        Initialize(data);
-        callback?.Invoke();
-    });
-
-    public void Initialize(PlanetData data)
-    {
-        Data = data;
-        
-        FindObjectOfType<PlateTectonicsSimulation>().Initialize(data.PlateTectonics);
-        FindObjectOfType<PlateTectonicsVisualization>().Initialize(data.PlateTectonics);
-        FindObjectOfType<PlateTectonicsAudio>().Initialize(data.PlateTectonics);
-        FindObjectOfType<PlateBakerV2>().Initialize(data.PlateTectonics);
-        FindObjectOfType<MovePlateTool>().Initialize(data.PlateTectonics);
-        FindObjectOfType<BreakPlateTool>().Initialize(data.PlateTectonics);
-        FindObjectOfType<MergePlateTool>().Initialize(data.PlateTectonics);
-        FindObjectOfType<LandscapeCameraTool>().Initialize(data.PlateTectonics);
-
-        FindObjectOfType<WaterSimulation>().Initialize(data.Water);
-        
-        AtmosphereVisualization.AttachToPlanet(this);
-    }
-
-    void Awake()
+    private void Awake()
     {
         Instance = this;
+        Data = new Signal<PlanetData>(null);
         Transform = transform;
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         Entity = em.CreateEntity();
@@ -54,11 +27,16 @@ public class Planet : Singleton<Planet>
 #endif
     }
 
-    void Update()
+    private void Update()
     {
         transform.Rotate(new Vector3(0, RotationSpeed * Time.deltaTime, 0));
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        em.SetComponentData(Entity, new Rotation{ Value = transform.rotation });
+        em.SetComponentData(Entity, new Rotation { Value = transform.rotation });
     }
 
+    [ContextMenu("Save")]
+    public void Save(Action callback = null) => Instance.RunTaskInCoroutine(PlanetDataStore.Update(Data.Value), callback);
+
+    [ContextMenu("Load")]
+    public void Load(string planetName) => Instance.RunTaskInCoroutine(PlanetDataStore.GetOrCreate(planetName), data => Data.Publish(data));
 }

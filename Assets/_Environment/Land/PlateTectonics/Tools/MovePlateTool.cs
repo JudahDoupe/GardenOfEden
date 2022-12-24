@@ -9,52 +9,62 @@ using UnityEngine.InputSystem;
 public class MovePlateTool : MonoBehaviour, ITool
 {
     public float MaxVelocity = 10;
-    [Range(0,1)]
+    [Range(0, 1)]
     public float Dampening = 0.5f;
-
-    public bool IsInitialized { get; private set; }
-    public bool IsActive { get; private set; }
-
-    private PlateTectonicsData _data;
-    private PlateTectonicsVisualization _visualization;
-    private PlateTectonicsSimulation _simulation; 
-    private PlateBakerV2 _baker; 
+    private PlateBakerV2 _baker;
 
     private float _currentPlateId;
-    private Vector3 _startingPosition;
-    private bool _needsBaking = false;
 
-    public void Initialize(PlateTectonicsData data)
+    private PlateTectonicsData _data;
+    private bool _needsBaking;
+    private PlateTectonicsSimulation _simulation;
+    private Vector3 _startingPosition;
+    private PlateTectonicsVisualization _visualization;
+
+    private void Start() => Planet.Data.Subscribe(data =>
     {
-        _data = data;
+        _data = data.PlateTectonics;
         _simulation = GetComponent<PlateTectonicsSimulation>();
         _visualization = GetComponent<PlateTectonicsVisualization>();
         _baker = GetComponent<PlateBakerV2>();
-        IsInitialized = true;
+    });
+
+    private void Update()
+    {
+        if (!IsActive) return;
+
+        _visualization.OutlinePlates();
+        TryMove();
+
+        if (_data.Plates.Any(x => x.IsInMotion))
+        {
+            _needsBaking = true;
+            _baker.CancelBake();
+        }
+        else
+        {
+            TryBake();
+        }
     }
+
+    public bool IsActive { get; private set; }
+
     public void Unlock() => _data.GetTool(nameof(LandscapeCameraTool)).Unlock();
+
     public void Enable()
     {
-        if (!IsInitialized)
-            return;
-
-        _data.GetTool(nameof(MovePlateTool)).Use();
         CameraController.TransitionToSatelliteCamera(CameraTransition.SmoothFast);
         StopMoving();
-        _simulation.Enable();
         IsActive = true;
+        _simulation.Enable();
+        _data.GetTool(nameof(MovePlateTool)).Use();
 
         InputAdapter.Click.Subscribe(this,
-            startCallback: () =>
-            {
-                StartMoving();
-            },
-            finishCallback: () =>
-            {
-                StopMoving();
-            });
+            startCallback: StartMoving,
+            finishCallback: StopMoving);
         InputAdapter.Cancel.Subscribe(this, ToolbarController.SelectGlobalSystem);
     }
+
     public void Disable()
     {
         StopMoving();
@@ -65,35 +75,14 @@ public class MovePlateTool : MonoBehaviour, ITool
         TryBake();
     }
 
-    private void Update()
-    {
-        if (IsActive)
-        {
-            _visualization.OutlinePlates();
-            TryMove();
-
-            if (_data.Plates.Any(x => x.IsInMotion))
-            {
-                _needsBaking = true;
-                _baker.CancelBake();
-            }
-            else
-            {
-                TryBake();
-            }
-        }
-    }
-
-
 
     private void TryBake()
     {
-        if (_needsBaking)
-        {
-            _needsBaking = false;
-            _data.LandHeightMap.RefreshCache();
-            _baker.BakePlates();
-        }
+        if (!_needsBaking) return;
+        
+        _needsBaking = false;
+        _data.LandHeightMap.RefreshCache();
+        _baker.BakePlates();
     }
 
     private void TryMove()
@@ -151,11 +140,9 @@ public class MovePlateTool : MonoBehaviour, ITool
         if (_currentPlateId > 0)
         {
             var plate = _data.GetPlate(_currentPlateId);
-            if (plate != null)
-            {
-                plate.TargetVelocity = Quaternion.identity;
-            }
+            if (plate != null) plate.TargetVelocity = Quaternion.identity;
         }
+
         _currentPlateId = 0;
     }
 }

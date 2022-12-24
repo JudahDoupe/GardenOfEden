@@ -11,12 +11,12 @@ public class PlateTectonicsVisualization : MonoBehaviour
     public Material OutlineReplacementMaterial;
     public Material FaultLineMaterial;
     [Range(0, 10)]
-    public int ShowIndividualPlate = 0;
+    public int ShowIndividualPlate;
 
     [Header("Facets")]
-    [Range(0,0.1f)]
+    [Range(0, 0.1f)]
     public float FacetsDencity = 0.005f;
-    [Range(0,1)]
+    [Range(0, 1)]
     public float FacetStrength = 0.3f;
     [Range(0, 1)]
     public float PatchSize = 0.5f;
@@ -32,22 +32,27 @@ public class PlateTectonicsVisualization : MonoBehaviour
     public float NoiseScale = 0.5f;
 
     private PlateTectonicsData _data;
-    public bool IsInitialized => _data != null;
+
     public bool IsActive { get; private set; }
 
-    public void Initialize(PlateTectonicsData data)
+
+    private void Start()
     {
-        _data = data;
-        OutlineReplacementMaterial.SetTexture("ContinentalIdMap", _data.VisualizedContinentalIdMap.RenderTexture);
-        OutlineReplacementMaterial.SetTexture("HeightMap", _data.LandHeightMap.RenderTexture);
-        SetLandMaterialValues();
-        Disable();
+        Planet.Data.Subscribe(data =>
+        {
+            _data = data.PlateTectonics;
+            OutlineReplacementMaterial.SetTexture("ContinentalIdMap", _data.VisualizedContinentalIdMap.RenderTexture);
+            OutlineReplacementMaterial.SetTexture("HeightMap", _data.LandHeightMap.RenderTexture);
+            SetLandMaterialValues();
+            Disable();
+        });
     }
+
     public void Enable()
     {
-        if (!IsInitialized) return;
         IsActive = true;
     }
+
     public void Disable()
     {
         HideOutlines();
@@ -60,6 +65,7 @@ public class PlateTectonicsVisualization : MonoBehaviour
         UpdateVisualizationMap(outlinedPlateIds);
         FaultLineMaterial.SetFloat("Transparency", outlinedPlateIds.Any() ? 0.6f : 0.3f);
     }
+
     public void HideOutlines()
     {
         FaultLineMaterial.SetFloat("Transparency", 0);
@@ -69,9 +75,9 @@ public class PlateTectonicsVisualization : MonoBehaviour
     private void UpdateVisualizationMap(float[] outlinedPlates)
     {
         ComputeShader.SetInt("NumPlates", outlinedPlates.Length);
-        int kernel = ComputeShader.FindKernel(outlinedPlates.Any() ? "OutlinePlates" : "OutlineAllPlates");
+        var kernel = ComputeShader.FindKernel(outlinedPlates.Any() ? "OutlinePlates" : "OutlineAllPlates");
         using var buffer = new ComputeBuffer(outlinedPlates.Length + 1, Marshal.SizeOf(typeof(OutlinedPlate)));
-        buffer.SetData(outlinedPlates.Append(0).Select(x => new OutlinedPlate { PlateId = x}).ToArray());
+        buffer.SetData(outlinedPlates.Append(0).Select(x => new OutlinedPlate { PlateId = x }).ToArray());
         ComputeShader.SetBuffer(kernel, "OutlinedPlates", buffer);
         ComputeShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
         ComputeShader.SetTexture(kernel, "VisualizedContinentalIdMap", _data.VisualizedContinentalIdMap.RenderTexture);
@@ -80,12 +86,12 @@ public class PlateTectonicsVisualization : MonoBehaviour
 
     private void SetLandMaterialValues()
     {
-        GetComponent<MeshFilter>().sharedMesh.bounds = new Bounds(Vector3.zero, new Vector3(1,1,1) * Coordinate.PlanetRadius * 2);
+        GetComponent<MeshFilter>().sharedMesh.bounds = new Bounds(Vector3.zero, new Vector3(1, 1, 1) * Coordinate.PlanetRadius * 2);
         var landMaterial = GetComponent<Renderer>().sharedMaterial;
         landMaterial.SetTexture("HeightMap", _data.LandHeightMap.RenderTexture);
         landMaterial.SetTexture("ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
         landMaterial.SetFloat("MantleHeight", _data.MantleHeight);
-        landMaterial.SetFloat("MaxHeight", _data.MantleHeight + (_data.MantleHeight / 3));
+        landMaterial.SetFloat("MaxHeight", _data.MantleHeight + _data.MantleHeight / 3);
         landMaterial.SetFloat("FacetDencity", FacetsDencity);
         landMaterial.SetFloat("FacetStrength", FacetStrength);
         landMaterial.SetFloat("FacetPatchSize", PatchSize);
@@ -95,6 +101,7 @@ public class PlateTectonicsVisualization : MonoBehaviour
         landMaterial.SetFloat("NormalNoiseStrength", NoiseStrength);
         landMaterial.SetInt("RenderPlate", ShowIndividualPlate);
     }
+
     private struct OutlinedPlate
     {
         public float PlateId;

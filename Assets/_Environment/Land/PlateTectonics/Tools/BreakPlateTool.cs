@@ -10,70 +10,30 @@ using UnityEngine.InputSystem;
 public class BreakPlateTool : MonoBehaviour, ITool
 {
     public ComputeShader BreakPlateShader;
-    [Range(1, 50)] public float FaultLineNoise = 1;
-    [Range(1, 50)] public float MinBreakPointDistance = 1;
-    [Range(0, 5)] public float LerpSpeed = 3;
-
-    public bool IsInitialized { get; private set; }
-    public bool IsActive { get; private set; }
-
-    private PlateTectonicsData _data;
-    private PlateTectonicsVisualization _visualization;
+    [Range(1, 50)]
+    public float FaultLineNoise = 1;
+    [Range(1, 50)]
+    public float MinBreakPointDistance = 1;
+    [Range(0, 5)]
+    public float LerpSpeed = 3;
     private PlateTectonicsAudio _audio;
-    private PlateTectonicsSimulation _simulation;
     private PlateBakerV2 _baker;
     private Break? _break;
 
-    public void Initialize(PlateTectonicsData data)
+    private PlateTectonicsData _data;
+    private PlateTectonicsSimulation _simulation;
+    private PlateTectonicsVisualization _visualization;
+
+    private void Start() => Planet.Data.Subscribe(data =>
     {
-        _data = data;
+        _data = data.PlateTectonics;
         _simulation = GetComponent<PlateTectonicsSimulation>();
         _visualization = GetComponent<PlateTectonicsVisualization>();
         _audio = GetComponent<PlateTectonicsAudio>();
         _baker = GetComponent<PlateBakerV2>();
-        IsInitialized = true;
-    }
-    public void Unlock() => _data.GetTool(nameof(LandscapeCameraTool)).Unlock();
-    public void Enable()
-    {
-        if (!IsInitialized)
-            return;
+    });
 
-        CameraController.TransitionToSatelliteCamera(CameraTransition.SmoothFast);
-        _data.GetTool(nameof(BreakPlateTool)).Use();
-        _baker.CancelBake();
-        _simulation.Disable();
-        _break = null;
-        IsActive = true;
-
-        InputAdapter.Click.Subscribe(this, () =>
-        {
-            var breakCoord = GetMouseCoord();
-            if (!breakCoord.HasValue) 
-                return;
-            if (_break.HasValue)
-                _break = BreakPlate(_break.Value);
-            else
-                _break = StartBreak(breakCoord.Value);
-        });
-        InputAdapter.Cancel.Subscribe(this, () =>
-        {
-            if (_break.HasValue)
-                _break = null;
-            else
-                ToolbarController.SelectMovePlateTool();
-        });
-    }
-    public void Disable()
-    {
-        _break = null;
-        InputAdapter.Click.Unsubscribe(this);
-        InputAdapter.Cancel.Unsubscribe(this);
-        _visualization.HideOutlines();
-        IsActive = false;
-    }
-
-    void Update()
+    private void Update()
     {
         if (!IsActive) return;
 
@@ -93,6 +53,47 @@ public class BreakPlateTool : MonoBehaviour, ITool
         }
     }
 
+    public bool IsActive { get; private set; }
+
+    public void Unlock() => _data.GetTool(nameof(LandscapeCameraTool)).Unlock();
+
+    public void Enable()
+    {
+        CameraController.TransitionToSatelliteCamera(CameraTransition.SmoothFast);
+        _data.GetTool(nameof(BreakPlateTool)).Use();
+        _baker.CancelBake();
+        _simulation.Disable();
+        _break = null;
+        IsActive = true;
+
+        InputAdapter.Click.Subscribe(this, () =>
+        {
+            var breakCoord = GetMouseCoord();
+            if (!breakCoord.HasValue)
+                return;
+            if (_break.HasValue)
+                _break = BreakPlate(_break.Value);
+            else
+                _break = StartBreak(breakCoord.Value);
+        });
+        InputAdapter.Cancel.Subscribe(this, () =>
+        {
+            if (_break.HasValue)
+                _break = null;
+            else
+                ToolbarController.SelectMovePlateTool();
+        });
+    }
+
+    public void Disable()
+    {
+        _break = null;
+        InputAdapter.Click.Unsubscribe(this);
+        InputAdapter.Cancel.Unsubscribe(this);
+        _visualization.HideOutlines();
+        IsActive = false;
+    }
+
     private Break StartBreak(Coordinate start)
     {
         var originalPlate = _data.GetPlate(_data.ContinentalIdMap.SamplePoint(start).r);
@@ -101,20 +102,23 @@ public class BreakPlateTool : MonoBehaviour, ITool
             StartCoord = start,
             OriginalPlateId = originalPlate.Id,
             OriginalPlateIdx = originalPlate.Idx,
-            NewTmpPlateId = originalPlate.Id + 0.5f,
+            NewTmpPlateId = originalPlate.Id + 0.5f
         };
     }
-    private Break? BreakPlate(Break @break)
+
+    private Break? BreakPlate(Break b)
     {
-        var oldPlate = _data.GetPlate(@break.OriginalPlateId.Value);
+        if (!b.OriginalPlateId.HasValue) return null;
+        
+        var oldPlate = _data.GetPlate(b.OriginalPlateId.Value);
         var plate = _data.AddPlate();
-        @break.NewPlateId = plate.Id;
+        b.NewPlateId = plate.Id;
         plate.Rotation = oldPlate.Rotation;
         plate.Velocity = oldPlate.Velocity;
         plate.TargetVelocity = oldPlate.TargetVelocity;
-        @break.NewPlateIdx = plate.Idx;
+        b.NewPlateIdx = plate.Idx;
 
-        RunKernel("BreakPlate", @break);
+        RunKernel("BreakPlate", b);
         _audio.BreakPlate();
 
         _data.ContinentalIdMap.RefreshCache();
@@ -123,19 +127,17 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
     private Break PreviewNewPlate(Break b, Coordinate? end)
     {
+        if (!b.OriginalPlateId.HasValue) return b;
+        
         _visualization.OutlinePlates(b.OriginalPlateId.Value);
 
-        if (end.HasValue)
-        {
-            var distance = Vector3.Distance(end.Value.LocalPlanet, b.StartCoord.Value.LocalPlanet);
-            if (distance < MinBreakPointDistance)
-            {
-                end = new Coordinate(b.StartCoord.Value.LocalPlanet + new float3(0, 1, 0));
-            }
+        if (!end.HasValue || !b.StartCoord.HasValue) return b;
+        
+        var distance = Vector3.Distance(end.Value.LocalPlanet, b.StartCoord.Value.LocalPlanet);
+        if (distance < MinBreakPointDistance) end = new Coordinate(b.StartCoord.Value.LocalPlanet + new float3(0, 1, 0));
 
-            b.EndCoord = new Coordinate(Vector3.Lerp(b.EndCoord?.LocalPlanet ?? end.Value.LocalPlanet, end.Value.LocalPlanet, Time.deltaTime * LerpSpeed));
-            RunKernel("VisualizeBreakLine", b);
-        }
+        b.EndCoord = new Coordinate(Vector3.Lerp(b.EndCoord?.LocalPlanet ?? end.Value.LocalPlanet, end.Value.LocalPlanet, Time.deltaTime * LerpSpeed));
+        RunKernel("VisualizeBreakLine", b);
 
         return b;
     }
@@ -144,17 +146,14 @@ public class BreakPlateTool : MonoBehaviour, ITool
     {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
         var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out var hit, distance))
-        {
-            return new Coordinate(hit.point, Planet.LocalToWorld);
-        }
+        if (Physics.Raycast(ray, out var hit, distance)) return new Coordinate(hit.point, Planet.LocalToWorld);
 
         return null;
     }
 
     private void RunKernel(string kernelName, Break b)
     {
-        int kernel = BreakPlateShader.FindKernel(kernelName);
+        var kernel = BreakPlateShader.FindKernel(kernelName);
         BreakPlateShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
         BreakPlateShader.SetTexture(kernel, "VisualizedContinentalIdMap", _data.VisualizedContinentalIdMap.RenderTexture);
         BreakPlateShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);

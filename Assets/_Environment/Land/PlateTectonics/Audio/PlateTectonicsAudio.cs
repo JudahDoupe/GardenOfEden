@@ -1,6 +1,7 @@
 using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class PlateTectonicsAudio : MonoBehaviour
 {
@@ -13,19 +14,24 @@ public class PlateTectonicsAudio : MonoBehaviour
     public AudioSource MergePlateSound;
 
     private PlateTectonicsData _data;
-    public bool IsInitialized => _data != null;
+
     public bool IsActive { get; private set; }
 
-    public void Initialize(PlateTectonicsData data)
+    private void Start() => Planet.Data.Subscribe(x => _data = x.PlateTectonics);
+
+    private void Update()
     {
-        _data = data;
+        if (!IsActive) return;
+        var velocity = _data.Plates.Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
+        MovePlateSound.volume = GetVolume(MovePlateSound.volume, velocity, MoveThreshhold);
     }
+
     public void Enable()
     {
-        if (!IsInitialized) return;
         MovePlateSound.Play();
         IsActive = true;
     }
+
     public void Disable()
     {
         MovePlateSound.Stop();
@@ -34,21 +40,16 @@ public class PlateTectonicsAudio : MonoBehaviour
 
     public void BreakPlate()
     {
-        BreakPlateSound.pitch = UnityEngine.Random.Range(1 - PitchVariation, 1 + PitchVariation);
+        BreakPlateSound.pitch = Random.Range(1 - PitchVariation, 1 + PitchVariation);
         BreakPlateSound.Play();
     }
+
     public void MergePlate()
     {
-        MergePlateSound.pitch = UnityEngine.Random.Range(1 - PitchVariation, 1 + PitchVariation);
+        MergePlateSound.pitch = Random.Range(1 - PitchVariation, 1 + PitchVariation);
         MergePlateSound.Play();
     }
 
-    private void Update()
-    {
-        if (!IsActive) return;
-        var velocity = _data.Plates.Sum(x => Quaternion.Angle(x.Velocity, quaternion.identity));
-        MovePlateSound.volume = GetVolume(MovePlateSound.volume, velocity, MoveThreshhold);
-    }
     private float GetVolume(float volume, float velocity, float threshold)
     {
         var target = math.saturate(velocity / threshold);

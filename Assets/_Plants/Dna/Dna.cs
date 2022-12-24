@@ -51,7 +51,7 @@ namespace Assets.Scripts.Plants.Dna
         public Entity Spawn(Coordinate coord)
         {
             var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-            coord.Altitude = Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r;
+            coord.Altitude = Planet.Data.Value.PlateTectonics.LandHeightMap.Sample(coord).r;
 
             var plant = em.Instantiate(GetProtoNode(NodeType.Embryo)); 
             em.SetSharedComponentData(plant, LoadBalancer.ActiveEntityChunk);

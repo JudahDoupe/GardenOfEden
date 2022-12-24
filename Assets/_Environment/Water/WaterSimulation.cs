@@ -17,48 +17,40 @@ public class WaterSimulation : MonoBehaviour, ISimulation
     public float MaxDepth = 1000f;
 
     private WaterData _data;
-    public bool IsInitialized => _data != null;
-    public bool IsActive { get; private set; }
 
-    public void Initialize(WaterData data)
+    private void Start() => Planet.Data.Subscribe(data =>
     {
-        _data = data;
-        if (data.NeedsRegeneration)
+        _data = data.Water;
+        
+        if (_data.NeedsRegeneration)
         {
             Regenerate();
-            data.NeedsRegeneration = false;
+            _data.NeedsRegeneration = false;
         }
+
+        UpdateVisualization();
+    });
+
+    private void FixedUpdate()
+    {
+        if (!IsActive) return;
+
+        RunKernel("Update");
         UpdateVisualization();
     }
-    public void Enable()
-    {
-        if (!IsInitialized)
-        {
-            Debug.LogWarning($"{nameof(WaterSimulation)} cannot be activated before it has been initialized.");
-            return;
-        }
-        IsActive = true;
-    }
-    public void Disable()
-    {
-        IsActive = false;
-    }
-    
+
+    public bool IsActive { get; private set; }
+
+    public void Enable() => IsActive = true;
+    public void Disable() => IsActive = false;
     public void Save() => this.RunTaskInCoroutine(SimulationDataStore.UpdateWater(_data));
-    
-    void FixedUpdate()
-    {
-        if (IsActive)
-        {
-            RunKernel("Update");
-            UpdateVisualization();
-        }
-    }
+
     public void Regenerate()
     {
         RunKernel("Reset");
         UpdateVisualization();
     }
+
     private void UpdateVisualization()
     {
         var waterRenderer = GetComponent<Renderer>();
@@ -66,9 +58,10 @@ public class WaterSimulation : MonoBehaviour, ISimulation
         waterRenderer.gameObject.GetComponent<MeshFilter>().mesh.bounds = new Bounds(Vector3.zero, new Vector3(2000, 2000, 2000));
         waterRenderer.material.SetFloat("SeaLevel", SeaLevel);
     }
+
     private void RunKernel(string name)
     {
-        int kernel = WaterShader.FindKernel(name);
+        var kernel = WaterShader.FindKernel(name);
         WaterShader.SetFloat("MaxAmplitude", MaxAmplitude);
         WaterShader.SetFloat("MaxVelocity", MaxVelocity);
         WaterShader.SetFloat("OceanAmplitudeDampening", OceanAmplitudeDampening);

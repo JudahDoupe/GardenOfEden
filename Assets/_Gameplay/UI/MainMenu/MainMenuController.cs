@@ -14,6 +14,21 @@ public class MainMenuController : Singleton<MainMenuController>
 
     private void Start()
     {
+        Planet.Data.Subscribe(data =>
+        {
+            _playerData.CurrentPlanetName = data.PlanetName;
+            if (!_playerData.PlanetNames.Contains(data.PlanetName)) _playerData.PlanetNames.Add(data.PlanetName);
+            PlayerDataStore.Update(_playerData).ConfigureAwait(false);
+
+            UI.rootVisualElement.Query<Label>("PlanetName").First().text = data.PlanetName;
+            StartCoroutine(AnimationUtils.AnimateVector3(1,
+                Planet.Transform.position,
+                Vector3.zero,
+                x => Planet.Transform.position = x,
+                ShowUi,
+                EaseType.Out));
+        });
+
         this.RunTaskInCoroutine(PlayerDataStore.GetOrCreate(), () =>
         {
             _playerData = PlayerDataStore.GetOrCreate().Result;
@@ -119,8 +134,7 @@ public class MainMenuController : Singleton<MainMenuController>
     private void UnloadPlanet(bool exitLeft = true, Action onUnload = null)
     {
         HideUi();
-        StartCoroutine(AnimationUtils.AnimateVector3(
-            1,
+        StartCoroutine(AnimationUtils.AnimateVector3(1,
             Planet.Transform.position,
             Camera.main.transform.right * (exitLeft ? -7000 : 7000),
             x => Planet.Transform.position = x,
@@ -132,21 +146,7 @@ public class MainMenuController : Singleton<MainMenuController>
     {
         HideUi();
         Planet.Transform.position = Camera.main.transform.right * (enterRight ? 7000 : -7000);
-        Planet.Instance.Load(planetName, () =>
-        {
-            _playerData.CurrentPlanetName = planetName;
-            if (!_playerData.PlanetNames.Contains(planetName)) _playerData.PlanetNames.Add(planetName);
-            PlayerDataStore.Update(_playerData).ConfigureAwait(false);
-
-            UI.rootVisualElement.Query<Label>("PlanetName").First().text = planetName;
-            StartCoroutine(AnimationUtils.AnimateVector3(
-                1,
-                Planet.Transform.position,
-                Vector3.zero,
-                x => Planet.Transform.position = x,
-                ShowUi,
-                EaseType.Out));
-        });
+        Planet.Instance.Load(planetName);
     }
 
     private void DeletePlanet(string planetName)
@@ -159,14 +159,13 @@ public class MainMenuController : Singleton<MainMenuController>
                 ? null
                 : _playerData.PlanetNames[1]
             : _playerData.PlanetNames[index - 1];
-        
+
         HideUi();
         _playerData.PlanetNames.Remove(planetName);
         PlanetDataStore.Delete(planetName);
         PlayerDataStore.Update(_playerData).ConfigureAwait(false);
 
-        StartCoroutine(AnimationUtils.AnimateVector3(
-            1,
+        StartCoroutine(AnimationUtils.AnimateVector3(1,
             Planet.Transform.position,
             new Vector3(0, -5000, 0),
             x => Planet.Transform.position = x,
@@ -182,7 +181,9 @@ public class MainMenuController : Singleton<MainMenuController>
                 ShowUi();
             }
             else
-                LoadPlanet(nextPlanet, enterRight: isFirst);
+            {
+                LoadPlanet(nextPlanet, isFirst);
+            }
         }
     }
 
@@ -213,8 +214,8 @@ public class MainMenuController : Singleton<MainMenuController>
 
         if (_playerData.PlanetNames.Any() && _playerData.CurrentPlanetName != _playerData.PlanetNames.Last())
             ShowUi("Right");
-        
     }
+
     private void HideUi()
     {
         HideUi("Left");
@@ -225,9 +226,9 @@ public class MainMenuController : Singleton<MainMenuController>
 
     private void ShowUi(string uiaNme) => UI.rootVisualElement.Query(uiaNme).First().RemoveFromClassList("Hidden");
     private void HideUi(string uiaNme) => UI.rootVisualElement.Query(uiaNme).First().AddToClassList("Hidden");
-    
+
     private void ShowUiError(string uiaNme) => UI.rootVisualElement.Query(uiaNme).First().RemoveFromClassList("Error");
     private void HideUiError(string uiaNme) => UI.rootVisualElement.Query(uiaNme).First().AddToClassList("Error");
-    
+
     #endregion
 }

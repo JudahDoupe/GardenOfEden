@@ -20,16 +20,6 @@ public class AtmosphereVisualization : Singleton<AtmosphereVisualization>
     [Range(1,10)]
     public float ScatteringStrength = 4;
 
-    private Planet _planet = null;
-    public static void AttachToPlanet(Planet planet)
-    {
-        Instance._planet = planet;
-        Instance.Atmospheere.SetVector("_PlanetCenter", planet.transform.position);
-        Instance.Atmospheere.SetVector("_SunDirection", (Instance.Sun.transform.position - planet.transform.position).normalized);
-        Instance.Atmospheere.SetVector("_PlanetCenter", planet.transform.position);
-        Instance.Atmospheere.SetFloat("_AtmoshpereScale", Instance.AtmosphereScale);
-    }
-
     private void OnValidate()
     {
         UpdateVisualization();
@@ -38,11 +28,13 @@ public class AtmosphereVisualization : Singleton<AtmosphereVisualization>
     {
         UpdateVisualization();
         Atmospheere.SetFloat("_AtmoshpereScale", 0);
+        Planet.Data.Subscribe(_ =>
+        {
+            Atmospheere.SetFloat("_AtmoshpereScale", AtmosphereScale);
+        });
     }
     private void Update()
     {
-        if (_planet == null) return;
-        Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
         Atmospheere.SetVector("_SunDirection", (Sun.transform.position - Planet.Transform.position).normalized);
         Atmospheere.SetVector("_PlanetCenter", Planet.Transform.position);
     }

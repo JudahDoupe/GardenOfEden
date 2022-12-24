@@ -238,8 +238,8 @@ public class LandscapeCamera : CameraPerspective
         };
     }
     
-    float TerrainAltitude(Coordinate coord) => math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(coord).r,
-                                                   Planet.Data.Water.WaterMap.Sample(coord).a)
+    float TerrainAltitude(Coordinate coord) => math.max(Planet.Data.Value.PlateTectonics.LandHeightMap.Sample(coord).r,
+                                                   Planet.Data.Value.Water.WaterMap.Sample(coord).a)
                                                + CurrentState.Camera.nearClipPlane * 1.5f;
 
 }

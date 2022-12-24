@@ -12,6 +12,7 @@ using UnityEngine;
 public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 {
     public ComputeShader TectonicsShader;
+
     [Header("Subduction")]
     [Range(0, 1f)]
     public float StillPlateSubductionRate = 0.1f;
@@ -20,7 +21,8 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     [Range(0, 0.1f)]
     public float StillMinSubductionPreasure = 0.1f;
     [Range(0, 0.1f)]
-    public float MovingMinSubductionPreasure = 0;
+    public float MovingMinSubductionPreasure;
+
     [Header("Inflation")]
     public float OceanicCrustThickness = 25;
     public float MaxThickness = 200;
@@ -30,6 +32,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float MovingPlateInflationRate = 1f;
     [Range(0, 1)]
     public float StillPlateInflationRate = 0.1f;
+
     [Header("Motion")]
     [Range(1, 2)]
     public float PlateCohesion = 1.5f;
@@ -37,66 +40,39 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float PlateInertia = 5;
     [Range(0.1f, 1)]
     public float SimulationSpeed = 1;
-    
-    private float SimulationTimeStep => SimulationSpeed * Mathf.Min(Time.deltaTime, 1);
 
     private PlateTectonicsData _data;
-    public bool IsInitialized => _data != null;
-    public bool IsActive { get; private set; }
 
-    public void Initialize(PlateTectonicsData data)
-    {
-        _data = data;
-    }
-    public void Enable()
-    {
-        if (!IsInitialized)
-        {
-            Debug.LogWarning($"{nameof(PlateTectonicsSimulation)} cannot be activated before it has been initialized.");
-            return;
-        }
-        IsActive = true;
-    }
-    public void Disable()
-    {
-        IsActive = false;
-    }
+    private float SimulationTimeStep => SimulationSpeed * Mathf.Min(Time.deltaTime, 1);
 
-    public void Save() => this.RunTaskInCoroutine(SimulationDataStore.UpdatePlateTectonics(_data));
+    private void Start() => Planet.Data.Subscribe(data => _data = data.PlateTectonics);
 
-    public void UpdateSystem()
+    private void Update()
     {
-        UpdateVelocity();
-        UpdateContinentalIdMap();
-        UpdatePlateThicknessMaps();
-        UpdateHeightMap();
-    }
-    public void UpdateVelocity()
-    {
+        if (!IsActive) return;
+
         foreach (var plate in _data.Plates)
         {
             plate.Velocity = Quaternion.Slerp(plate.Velocity, plate.TargetVelocity, (10 - PlateInertia) * SimulationTimeStep);
             var rotation = Quaternion.SlerpUnclamped(Quaternion.identity, plate.Velocity, SimulationTimeStep);
             plate.Rotation *= rotation;
         }
-    }
-    public void UpdateContinentalIdMap()
-    {
+
         RunTectonicKernel("UpdateContinentalIdMap");
-    }
-    public void UpdatePlateThicknessMaps()
-    {
         RunTectonicKernel("UpdatePlateThicknessMaps");
-    }
-    public void UpdateHeightMap()
-    {
         RunTectonicKernel("UpdateHeightMap");
         RunTectonicKernel("SmoothPlates");
     }
-  
+
+    public bool IsActive { get; private set; }
+
+    public void Enable() => IsActive = true;
+    public void Disable() => IsActive = false;
+    public void Save() => this.RunTaskInCoroutine(SimulationDataStore.UpdatePlateTectonics(_data));
+
     private void RunTectonicKernel(string kernelName)
     {
-        int kernel = TectonicsShader.FindKernel(kernelName);
+        var kernel = TectonicsShader.FindKernel(kernelName);
         using var buffer = new ComputeBuffer(_data.Plates.Count, Marshal.SizeOf(typeof(PlateGpuData)));
         var gpuData = _data.Plates.Select(x => x.ToGpuData()).ToArray();
         buffer.SetData(gpuData);
@@ -119,13 +95,4 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         TectonicsShader.SetFloat("PlateCohesion", PlateCohesion);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
-
-    private void Update()
-    {
-        if (IsActive)
-        {
-            UpdateSystem();
-        }
-    }
 }
-

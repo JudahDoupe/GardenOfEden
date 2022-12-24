@@ -6,30 +6,30 @@ public class ToolData
     public ToolData(string name)
     {
         Name = name;
-        UseState = UseState.Locked;
+        UseState = new Signal<UseStateType>(UseStateType.Locked);
     }
 
     public ToolData(ToolsDbData dbData)
     {
         Name = dbData.Name;
-        UseState = (UseState)dbData.UseState;
+        UseState = new Signal<UseStateType>((UseStateType)dbData.UseState);
     }
 
     public string Name { get; }
-    public UseState UseState { get; private set; }
+    public Signal<UseStateType> UseState { get; }
 
-    public void Unlock() => UseState = (UseState)math.max((int)UseState, (int)UseState.Unlocked);
-    public void Use() => UseState = (UseState)math.max((int)UseState, (int)UseState.Used);
+    public void Unlock() => UseState.Publish((UseStateType)math.max((int)UseState.Value, (int)UseStateType.Unlocked));
+    public void Use() => UseState.Publish((UseStateType)math.max((int)UseState.Value, (int)UseStateType.Used));
 
     public ToolsDbData ToDbData()
         => new()
         {
             Name = Name,
-            UseState = (int)UseState
+            UseState = (int)UseState.Value,
         };
 }
 
-public enum UseState
+public enum UseStateType
 {
     Locked = 0,
     Unlocked = 2,

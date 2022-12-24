@@ -97,7 +97,7 @@ public struct Coordinate : IComponentData, IEquatable<Coordinate>
         if (Planet.Data == null)
             return this;
 
-        var minAltitude = math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(this).r, Planet.Data.Water.WaterMap.Sample(this).a) + minDistance;
+        var minAltitude = math.max(Planet.Data.Value.PlateTectonics.LandHeightMap.Sample(this).r, Planet.Data.Value.Water.WaterMap.Sample(this).a) + minDistance;
         Altitude = Altitude < minAltitude ? minAltitude : Altitude;
         return this;
     }
@@ -106,7 +106,7 @@ public struct Coordinate : IComponentData, IEquatable<Coordinate>
         if (Planet.Data == null)
             return this;
 
-        Altitude = math.max(Planet.Data.PlateTectonics.LandHeightMap.Sample(this).r, Planet.Data.Water.WaterMap.Sample(this).a);
+        Altitude = math.max(Planet.Data.Value.PlateTectonics.LandHeightMap.Sample(this).r, Planet.Data.Value.Water.WaterMap.Sample(this).a);
         return this;
     }
 
