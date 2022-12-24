@@ -55,7 +55,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
     public bool IsActive { get; private set; }
 
-    public void Unlock() => _data.GetTool(nameof(LandscapeCameraTool)).Unlock();
+    public void Unlock() => _data.GetTool(nameof(BreakPlateTool)).Unlock();
 
     public void Enable()
     {

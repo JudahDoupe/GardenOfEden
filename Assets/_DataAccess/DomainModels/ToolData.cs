@@ -32,8 +32,8 @@ public class ToolData
 public enum UseStateType
 {
     Locked = 0,
-    Unlocked = 2,
-    Used = 1
+    Unlocked = 1,
+    Used = 2
 }
 
 

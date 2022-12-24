@@ -16,6 +16,7 @@ public class PlateTectonicsData
         VisualizedContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "VisualizedContinentalIdMap"));
         PlateThicknessMaps = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "PlateThicknessMaps"));
         TmpPlateThicknessMaps = new EnvironmentMap(planetName, "TmpPlateThicknessMaps");
+        _tools = new Dictionary<string, ToolData>();
     }
 
     public PlateTectonicsData(PlateTectonicsDbData dbData,

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
@@ -56,23 +57,39 @@ public class ToolbarController : Singleton<ToolbarController>
     private void Start()
     {
         _toolbar = UI.rootVisualElement.Query("ToolbarContainer");
-        AddButtonAction(Global.UiName, SelectGlobalSystem);
-        AddButtonAction(Land.UiName, SelectLandSystem);
-        AddButtonAction(Water.UiName, SelectWaterSystem);
-        AddButtonAction(Plants.UiName, SelectPlantsSystem);
-        AddButtonAction(MovePlate.UiName, SelectMovePlateTool);
-        AddButtonAction(BreakPlate.UiName, SelectBreakPlateTool);
-        AddButtonAction(MergePlate.UiName, SelectMergePlateTool);
-        AddButtonAction(LandscapeCamera.UiName, SelectLandscapeCamera);
-        AddButtonAction(CloudsTool.UiName, SelectCloudsTool);
-        AddButtonAction(WindTool.UiName, SelectWindTool);
-        AddButtonAction(WaterCamera.UiName, SelectWaterCamera);
-        AddButtonAction(NewPlantTool.UiName, SelectNewPlantTool);
-        AddButtonAction(EditPlantTool.UiName, SelectEditPlantTool);
-        AddButtonAction(ObservationCamera.UiName, SelectObservationCamera);
+        
+        Planet.Data.Subscribe(data =>
+        {
+            UpdateToolButton(data, nameof(MovePlateTool), MovePlate.UiName);
+            UpdateToolButton(data, nameof(BreakPlateTool), BreakPlate.UiName);
+            UpdateToolButton(data, nameof(MergePlateTool), MergePlate.UiName);
+            UpdateToolButton(data, nameof(LandscapeCameraTool), LandscapeCamera.UiName);
+        });
+        
+        RegisterButton(Global.UiName, SelectGlobalSystem);
+        RegisterButton(Land.UiName, SelectLandSystem);
+        RegisterButton(Water.UiName, SelectWaterSystem);
+        RegisterButton(Plants.UiName, SelectPlantsSystem);
+        RegisterButton(MovePlate.UiName, SelectMovePlateTool);
+        RegisterButton(BreakPlate.UiName, SelectBreakPlateTool);
+        RegisterButton(MergePlate.UiName, SelectMergePlateTool);
+        RegisterButton(LandscapeCamera.UiName, SelectLandscapeCamera);
+        RegisterButton(CloudsTool.UiName, SelectCloudsTool);
+        RegisterButton(WindTool.UiName, SelectWindTool);
+        RegisterButton(WaterCamera.UiName, SelectWaterCamera);
+        RegisterButton(NewPlantTool.UiName, SelectNewPlantTool);
+        RegisterButton(EditPlantTool.UiName, SelectEditPlantTool);
+        RegisterButton(ObservationCamera.UiName, SelectObservationCamera);
 
-        void AddButtonAction(string buttonName, Action action)
+        void RegisterButton(string buttonName, Action action)
             => _toolbar.Query(buttonName).First().Query<Button>(classes: "Button").First().clicked += action;
+
+        void UpdateToolButton(PlanetData data, string toolName, string toolUiName)
+        {
+            var state = data.PlateTectonics.GetTool(toolName).UseState;
+            UpdateToolState(toolUiName, state.Value);
+            state.Subscribe(s => UpdateToolState(toolUiName, s));
+        }
     }
 
     // ToolBar
@@ -144,7 +161,6 @@ public class ToolbarController : Singleton<ToolbarController>
             _toolbar.Query(name: _activeSystem.Value.UiName).First().RemoveFromClassList("Active");
             _toolbar.Query(name: _activeSystem.Value.UiName + "Tray").ForEach(x => x.AddToClassList("Hidden"));
             _activeSystem.Value.OnDeactivate.Invoke();
-            
         }
         
         _toolbar.Query(name: system.UiName).First().AddToClassList("Active");
@@ -153,6 +169,7 @@ public class ToolbarController : Singleton<ToolbarController>
         _activeSystem = system;
         
         ActivateTool(system, tool);
+        UpdateSystemButtons();
     }
     private void ActivateTool(System system, Tool tool)
     {
@@ -176,10 +193,68 @@ public class ToolbarController : Singleton<ToolbarController>
             _activeTool = tool;
         }
     }
-    private void UnlockTool(Tool tool)
+
+    private void UpdateToolState(string buttonName, UseStateType state)
     {
+        var button = _toolbar.Query(buttonName).First().Query<Button>(classes: "Button").First();
+        switch (state)
+        {
+            case UseStateType.Used:
+                TryRemoveClass(button, "Hidden");
+                TryRemoveClass(button, "New");
+                break;
+            case UseStateType.Locked:
+                TryAddClass(button, "Hidden");
+                TryRemoveClass(button, "New");
+                break;
+            case UseStateType.Unlocked:
+                TryRemoveClass(button, "Hidden");
+                TryAddClass(button, "New");
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(state), state, null);
+        }
+
+        UpdateSystemButtons();
     }
-    private void UseTool(Tool tool)
+    
+    void UpdateSystemButtons()
     {
+        _toolbar.Query(classes: "System").ForEach(system =>
+        {
+            var trays = _toolbar.Query(system.name + "Tray");
+            trays.ForEach(tray =>
+            {
+                var isActive = system.ClassListContains("Active");
+                var hasAnyTools = tray.Query(classes: "Tool").Where(t => !t.ClassListContains("Hidden")).ToList().Any();
+                var hasNewTool = tray.Query(classes: "Tool").Where(t => t.ClassListContains("New")).ToList().Any();
+
+                if (hasAnyTools)
+                    TryRemoveClass(system, "Hidden");
+                else
+                    TryAddClass(system, "Hidden");
+
+                if (hasNewTool && !isActive)
+                    TryAddClass(system, "New");
+                else
+                    TryRemoveClass(system, "New");
+
+                if (isActive)
+                    TryRemoveClass(tray, "Hidden");
+                else
+                    TryAddClass(tray, "Hidden");
+            });
+        });
+    }
+    
+    private void TryAddClass(VisualElement e, string className)
+    {
+        if (!e.ClassListContains(className))
+            e.AddToClassList(className);
+    }
+    private void TryRemoveClass(VisualElement e, string className)
+    {
+        if (e.ClassListContains(className))
+            e.RemoveFromClassList(className);
     }
 }

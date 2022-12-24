@@ -43,12 +43,12 @@ public class MergePlateTool : MonoBehaviour, ITool
 
     public bool IsActive { get; private set; }
 
-    public void Unlock() => _data.GetTool(nameof(LandscapeCameraTool)).Unlock();
+    public void Unlock() => _data.GetTool(nameof(MergePlateTool)).Unlock();
 
     public void Enable()
     {
         CameraController.TransitionToSatelliteCamera(CameraTransition.SmoothFast);
-        _data.GetTool(nameof(BreakPlateTool)).Use();
+        _data.GetTool(nameof(MergePlateTool)).Use();
         _selectedPlate = null;
         _baker.CancelBake();
         _simulation.Disable();
