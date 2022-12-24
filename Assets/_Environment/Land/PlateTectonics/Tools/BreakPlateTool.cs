@@ -23,6 +23,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
     private PlateTectonicsData _data;
     private PlateTectonicsSimulation _simulation;
     private PlateTectonicsVisualization _visualization;
+    private int _totalBreaks;
 
     private void Start() => Planet.Data.Subscribe(data =>
     {
@@ -108,8 +109,9 @@ public class BreakPlateTool : MonoBehaviour, ITool
 
     private Break? BreakPlate(Break b)
     {
-        if (!b.OriginalPlateId.HasValue) return null;
-        
+        if (!b.OriginalPlateId.HasValue) 
+            return null;
+
         var oldPlate = _data.GetPlate(b.OriginalPlateId.Value);
         var plate = _data.AddPlate();
         b.NewPlateId = plate.Id;
@@ -122,17 +124,21 @@ public class BreakPlateTool : MonoBehaviour, ITool
         _audio.BreakPlate();
 
         _data.ContinentalIdMap.RefreshCache();
+        _totalBreaks++;
+        if (_totalBreaks >= 2)
+            GetComponent<MergePlateTool>().Unlock();
+
         return null;
     }
 
     private Break PreviewNewPlate(Break b, Coordinate? end)
     {
         if (!b.OriginalPlateId.HasValue) return b;
-        
+
         _visualization.OutlinePlates(b.OriginalPlateId.Value);
 
         if (!end.HasValue || !b.StartCoord.HasValue) return b;
-        
+
         var distance = Vector3.Distance(end.Value.LocalPlanet, b.StartCoord.Value.LocalPlanet);
         if (distance < MinBreakPointDistance) end = new Coordinate(b.StartCoord.Value.LocalPlanet + new float3(0, 1, 0));
 

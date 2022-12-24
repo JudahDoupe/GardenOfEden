@@ -78,6 +78,8 @@ public class PlateBakerV2 : MonoBehaviour
 
 
         Log($"Relabeling Continents [time:{logTimer.ElapsedMilliseconds}ms]");
+        
+        GetComponent<BreakPlateTool>().Unlock();
     }
 
     private Dictionary<float, Continent> IdentifyContinents(float[][] continentMaps)

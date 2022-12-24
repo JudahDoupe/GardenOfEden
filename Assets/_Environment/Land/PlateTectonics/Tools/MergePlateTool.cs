@@ -107,6 +107,8 @@ public class MergePlateTool : MonoBehaviour, ITool
         _data.ContinentalIdMap.RefreshCache();
         _selectedPlate = null;
         _audio.MergePlate();
+        
+        GetComponent<LandscapeCameraTool>().Unlock();
 
         void MergePlatesOnGpu(float oldId, float newId, PlateData oldPlate, PlateData newPlate)
         {

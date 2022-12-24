@@ -71,6 +71,11 @@
     min-width: 0;
 }
 
+.Tray {
+    transition-duration: 0.3s;
+    overflow: hidden;
+}
+
 .Tool {
     background-color: rgb(13, 13, 13);
     max-width: 60px;
@@ -83,16 +88,6 @@
     min-width: 0;
 }
 
-#LandSystemTray {
-    flex-direction: row;
-    transition-duration: 0.3s;
-    overflow: hidden;
-}
-
-#LandSystemTray.Hidden {
-    width: 0;
-}
-
 #LandSystemTray .Tool:hover {
     background-color: rgb(26, 11, 5);
 }
@@ -102,7 +97,7 @@
 }
 
 #LandSystemTray .Tool.New {
-    background-color: rgb(255, 112, 51);
+    background-color: rgb(153, 67, 31);
 }
 
 #LandSystemTray .Tool.Active {
@@ -113,10 +108,6 @@
     background-color: rgb(255, 112, 51);
 }
 
-#LandSystem.New {
-    background-color: rgb(255, 113, 51);
-}
-
 #LandSystem:hover > .Icon {
     -unity-background-image-tint-color: rgb(255, 148, 102);
 }
@@ -125,15 +116,8 @@
     -unity-background-image-tint-color: rgb(255, 113, 51);
 }
 
-
-#WaterSystemTray {
-    flex-direction: row;
-    transition-duration: 0.3s;
-    overflow: hidden;
-}
-
-#WaterSystemTray.Hidden {
-    width: 0;
+#LandSystem.New {
+    background-color: rgb(153, 67, 31);
 }
 
 #WaterSystemTray .Tool:hover {
@@ -145,7 +129,7 @@
 }
 
 #WaterSystemTray .Tool.New {
-    background-color: rgb(51, 153, 255);
+    background-color: rgb(30, 92, 153);
 }
 
 #WaterSystemTray .Tool.Active {
@@ -153,10 +137,6 @@
 }
 
 #WaterSystemTray .Tool.Active > .Underline {
-    background-color: rgb(51, 153, 255);
-}
-
-#WaterSystem.New {
     background-color: rgb(51, 153, 255);
 }
 
@@ -168,14 +148,8 @@
     -unity-background-image-tint-color: rgb(51, 153, 255);
 }
 
-#PlantSystemTray {
-    flex-direction: row;
-    transition-duration: 0.3s;
-    overflow: hidden;
-}
-
-#PlantSystemTray.Hidden {
-    width: 0;
+#WaterSystem.New {
+    background-color: rgb(30, 92, 153);
 }
 
 #PlantSystemTray .Tool:hover {
@@ -187,7 +161,7 @@
 }
 
 #PlantSystemTray .Tool.New {
-    background-color: rgb(61, 255, 51);
+    background-color: rgb(36, 153, 30);
 }
 
 #PlantSystemTray .Tool.Active {
@@ -195,11 +169,6 @@
 }
 
 #PlantSystemTray .Tool.Active > .Underline {
-    background-color: rgb(61, 255, 51);
-}
-
-
-#PlantSystemTray.New {
     background-color: rgb(61, 255, 51);
 }
 
@@ -211,5 +180,6 @@
     -unity-background-image-tint-color: rgb(61, 255, 51);
 }
 
-.System.New {
+#PlantSystem.New {
+    background-color: rgb(36, 153, 30);
 }

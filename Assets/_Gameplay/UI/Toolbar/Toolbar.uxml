@@ -10,31 +10,31 @@
             <ui:VisualElement name="Spacer" style="width: 30px; height: 70px; background-color: rgb(32, 32, 32); align-items: center; justify-content: center;">
                 <ui:VisualElement name="Bar" style="width: 3px; height: 75%; background-color: rgb(204, 204, 204); border-top-left-radius: 2px; border-bottom-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px;" />
             </ui:VisualElement>
-            <ui:Button display-tooltip-when-elided="true" name="LandSystem" tooltip="Land" class="Button System Hidden" style="flex-shrink: 1;">
+            <ui:Button display-tooltip-when-elided="true" name="LandSystem" tooltip="Land" class="Button System" style="flex-shrink: 1;">
                 <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/mountain.png?fileID=2800000&amp;guid=88379921de8c9da4db77991bc76966f9&amp;type=3#mountain&apos;);" />
             </ui:Button>
-            <ui:VisualElement name="LandSystemTray" style="flex-direction: row; transition-duration: 0.3s;">
-                <ui:Button display-tooltip-when-elided="true" name="MovePlateTool" tooltip="Move Plates" class="Button Tool Hidden" style="flex-shrink: 1;">
+            <ui:VisualElement name="LandSystemTray" class="Tray" style="flex-direction: row; transition-duration: 0.3s;">
+                <ui:Button display-tooltip-when-elided="true" name="MovePlateTool" tooltip="Move Plates" class="Button Tool" style="flex-shrink: 1;">
                     <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/move.png?fileID=2800000&amp;guid=329deda6817042959162aa12f777a0d0&amp;type=3#move&apos;);" />
                     <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />
                 </ui:Button>
-                <ui:Button display-tooltip-when-elided="true" name="BreakPlateTool" tooltip="Break Plates" class="Button Tool Hidden" style="flex-shrink: 1;">
+                <ui:Button display-tooltip-when-elided="true" name="BreakPlateTool" tooltip="Break Plates" class="Button Tool" style="flex-shrink: 1;">
                     <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/break.png?fileID=2800000&amp;guid=6e9634e67a8267b40b342397d55d6e69&amp;type=3#break&apos;);" />
                     <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />
                 </ui:Button>
-                <ui:Button display-tooltip-when-elided="true" name="MergePlateTool" tooltip="Merge Plates" class="Button Tool Hidden" style="flex-shrink: 1;">
+                <ui:Button display-tooltip-when-elided="true" name="MergePlateTool" tooltip="Merge Plates" class="Button Tool" style="flex-shrink: 1;">
                     <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/merge.png?fileID=2800000&amp;guid=a0fe46d9072ed5940b23a57870c7e928&amp;type=3#merge&apos;);" />
                     <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />
                 </ui:Button>
-                <ui:Button display-tooltip-when-elided="true" name="LandscapeCamera" tooltip="Landscape Camera" class="Button Tool Hidden" style="flex-shrink: 1;">
+                <ui:Button display-tooltip-when-elided="true" name="LandscapeCamera" tooltip="Landscape Camera" class="Button Tool" style="flex-shrink: 1;">
                     <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/video-camera%201.png?fileID=2800000&amp;guid=a72b4d51f1de0ad4ebbc09c649c218bf&amp;type=3#video-camera 1&apos;);" />
                     <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />
                 </ui:Button>
             </ui:VisualElement>
-            <ui:Button display-tooltip-when-elided="true" name="WaterSystem" tooltip="Water" class="Button System Hidden" style="flex-shrink: 1;">
+            <ui:Button display-tooltip-when-elided="true" name="WaterSystem" tooltip="Water" class="Button System" style="flex-shrink: 1;">
                 <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/drop.png?fileID=2800000&amp;guid=6234df2e36de59c4889ab291f562ea14&amp;type=3#drop&apos;); width: 34px; height: 34px; margin-left: 13px; margin-right: 13px; margin-top: 13px; margin-bottom: 13px;" />
             </ui:Button>
-            <ui:VisualElement name="WaterSystemTray" style="flex-direction: row; transition-duration: 0.3s;">
+            <ui:VisualElement name="WaterSystemTray" class="Tray" style="flex-direction: row; transition-duration: 0.3s;">
                 <ui:Button display-tooltip-when-elided="true" name="CloudTool" tooltip="Clouds" class="Button Tool Hidden" style="flex-shrink: 1;">
                     <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/cloud.png?fileID=2800000&amp;guid=03f6744b10bb0b441b83ae3b3f82a06c&amp;type=3#cloud&apos;);" />
                     <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />
@@ -48,10 +48,10 @@
                     <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />
                 </ui:Button>
             </ui:VisualElement>
-            <ui:Button display-tooltip-when-elided="true" name="PlantSystem" tooltip="Plants" class="Button System Hidden" style="flex-shrink: 1;">
+            <ui:Button display-tooltip-when-elided="true" name="PlantSystem" tooltip="Plants" class="Button System" style="flex-shrink: 1;">
                 <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/tea-leaf.png?fileID=2800000&amp;guid=52bb77ba24e03424bb4a991d5f17d244&amp;type=3#tea-leaf&apos;);" />
             </ui:Button>
-            <ui:VisualElement name="PlantSystemTray" class="Hidden" style="flex-direction: row; transition-duration: 0.3s;">
+            <ui:VisualElement name="PlantSystemTray" class="Hidden Tray" style="flex-direction: row; transition-duration: 0.3s;">
                 <ui:Button display-tooltip-when-elided="true" name="NewPlantTool" tooltip="New Plant" class="Button Tool Hidden" style="flex-shrink: 1;">
                     <ui:VisualElement name="Icon" class="Icon" style="background-image: url(&apos;project://database/Assets/_Gameplay/UI/Toolbar/Icons/plus.png?fileID=2800000&amp;guid=9175df25e97d314428a9e583fe56c709&amp;type=3#plus&apos;); margin-left: 15px; margin-right: 15px; margin-top: 15px; margin-bottom: 15px; width: 30px; height: 30px;" />
                     <ui:VisualElement name="Underline" class="Underline" style="width: 100%; height: 10px;" />

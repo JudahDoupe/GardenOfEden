@@ -226,10 +226,10 @@ public class ToolbarController : Singleton<ToolbarController>
             trays.ForEach(tray =>
             {
                 var isActive = system.ClassListContains("Active");
-                var hasAnyTools = tray.Query(classes: "Tool").Where(t => !t.ClassListContains("Hidden")).ToList().Any();
+                var tools = tray.Query(classes: "Tool").Where(t => !t.ClassListContains("Hidden")).ToList();
                 var hasNewTool = tray.Query(classes: "Tool").Where(t => t.ClassListContains("New")).ToList().Any();
 
-                if (hasAnyTools)
+                if (tools.Any())
                     TryRemoveClass(system, "Hidden");
                 else
                     TryAddClass(system, "Hidden");
@@ -240,9 +240,9 @@ public class ToolbarController : Singleton<ToolbarController>
                     TryRemoveClass(system, "New");
 
                 if (isActive)
-                    TryRemoveClass(tray, "Hidden");
+                    tray.style.width = 60 * tools.Count;
                 else
-                    TryAddClass(tray, "Hidden");
+                    tray.style.width = 0;
             });
         });
     }
