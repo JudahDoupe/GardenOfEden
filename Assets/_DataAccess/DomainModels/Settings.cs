@@ -22,6 +22,6 @@ public class Settings
 [Serializable]
 public class SettingsDbData
 {
-    public float ScrollSpeed;
-    public float DragSpeed;
+    public float ScrollSpeed = 5f;
+    public float DragSpeed = 5f;
 }

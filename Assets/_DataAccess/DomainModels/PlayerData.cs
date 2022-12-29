@@ -12,7 +12,7 @@ public class PlayerData
     }
 
     public string CurrentPlanetName { get; set; }
-    public Settings Settings { get; set; }
+    public Settings Settings { get; }
     public List<string> PlanetNames { get; }
 
     public PlayerDbData ToDbData()
@@ -20,14 +20,14 @@ public class PlayerData
         {
             CurrentPlanetName = CurrentPlanetName,
             PlanetNames = PlanetNames.ToArray(),
-            Settings = Settings.ToDbData()
+            Settings = Settings.ToDbData(),
         };
 }
 
 [Serializable]
 public class PlayerDbData
 {
-    public string CurrentPlanetName;
-    public string[] PlanetNames;
-    public SettingsDbData Settings;
+    public string CurrentPlanetName = null;
+    public string[] PlanetNames = Array.Empty<string>();
+    public SettingsDbData Settings = new();
 }
