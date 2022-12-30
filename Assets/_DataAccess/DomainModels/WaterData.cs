@@ -6,8 +6,8 @@ public class WaterData
                      EnvironmentMap landHeightMap)
     {
         PlanetName = planetName;
-        WaterMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "WaterMap", 4));
-        WaterSourceMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "WaterSourceMap"));
+        WaterMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData{PlanetName = planetName, MapName = "WaterMap", Channels = 4});
+        WaterSourceMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData{ PlanetName = planetName, MapName = "WaterSourceMap"});
         LandHeightMap = landHeightMap;
     }
 

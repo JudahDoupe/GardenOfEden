@@ -194,18 +194,6 @@ public class EnvironmentMapDbData
 {
     public string PlanetName;
     public string MapName;
-    public int Channels;
-    public int Layers;
-
-    public EnvironmentMapDbData()
-    {
-    }
-
-    public EnvironmentMapDbData(string planetName, string mapName, int channels = 1, int layers = 6)
-    {
-        PlanetName = planetName;
-        MapName = mapName;
-        Channels = channels;
-        Layers = layers;
-    }
+    public int Channels = 1;
+    public int Layers = 6;
 }

@@ -58,7 +58,7 @@ public static class SimulationDataStore
 
     public static async Task<WaterData> CreateWater(string planetName)
     {
-        var landMap = await EnvironmentMapDataStore.GetOrCreate(new EnvironmentMapDbData(planetName, "LandHeightMap"));
+        var landMap = await EnvironmentMapDataStore.GetOrCreate(new EnvironmentMapDbData{PlanetName = planetName, MapName = "LandHeightMap"});
         var data = new WaterData(planetName, landMap) { NeedsRegeneration = true };
         await UpdateWater(data);
         return data;

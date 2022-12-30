@@ -11,10 +11,10 @@ public class PlateTectonicsData
         PlanetName = planetName;
         MantleHeight = 900;
         Plates = new List<PlateData> { new(1.0001f, 0, Random.rotation) };
-        LandHeightMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "LandHeightMap"));
-        ContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "ContinentalIdMap"));
-        VisualizedContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "VisualizedContinentalIdMap"));
-        PlateThicknessMaps = EnvironmentMapDataStore.Create(new EnvironmentMapDbData(planetName, "PlateThicknessMaps"));
+        LandHeightMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData{PlanetName = planetName, MapName = "LandHeightMap"});
+        ContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData{PlanetName = planetName, MapName = "ContinentalIdMap"});
+        VisualizedContinentalIdMap = EnvironmentMapDataStore.Create(new EnvironmentMapDbData{PlanetName = planetName, MapName = "VisualizedContinentalIdMap"});
+        PlateThicknessMaps = EnvironmentMapDataStore.Create(new EnvironmentMapDbData{PlanetName = planetName, MapName = "PlateThicknessMaps"});
         TmpPlateThicknessMaps = new EnvironmentMap(planetName, "TmpPlateThicknessMaps");
         _tools = new Dictionary<string, ToolData>();
     }

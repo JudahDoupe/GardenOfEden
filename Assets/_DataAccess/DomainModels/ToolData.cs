@@ -41,5 +41,5 @@ public enum UseStateType
 public class ToolsDbData
 {
     public string Name;
-    public int UseState;
+    public int UseState = 0;
 }
