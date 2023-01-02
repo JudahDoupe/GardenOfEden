@@ -10,10 +10,8 @@ RWTexture2DArray<float> PlateThicknessMaps;
 RWTexture2DArray<float> TmpPlateThicknessMaps;
 RWTexture2DArray<float> LandHeightMap;
 
-float StillPlateSubductionRate;
-float MovingPlateSubductionRate;
-float StillMinSubductionPressure;
-float MovingMinSubductionPressure;
+float SimulationTimeStep;
+float MinSubductionPressure;
 float StillPlateInflationRate;
 float MovingPlateInflationRate;
 float OceanicCrustThickness;
@@ -72,7 +70,7 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         uint3 xyp = xyz_to_xyp(xyz, p1);
         float plateThickness = PlateThicknessMaps[xyp];
         totalThickness += plateThickness;
-        totalTravelDistance += Plates[p1].TravelDistance * saturate(plateThickness / OceanicCrustThickness);
+        totalTravelDistance += Plates[p1].TravelDistance * (plateThickness > 0);
     }
     
     for (uint p2 = 0; p2 < NumPlates; p2++)
@@ -86,9 +84,8 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
 		if (isTopPlate)
         {
             //Infalation
-            float inflationRate = lerp(StillPlateInflationRate, MovingPlateInflationRate, saturate(totalTravelDistance));
-			float inflationDampening = saturate(myThickness / MaxThickness);
-			inflationRate = lerp(inflationRate, 0, inflationDampening);
+            float inflationRate = lerp(StillPlateInflationRate * SimulationTimeStep, MovingPlateInflationRate * SimulationTimeStep, saturate(totalTravelDistance));
+			inflationRate = lerp(inflationRate, 0, saturate(myThickness / MaxThickness));
 
 			float targetThickness = clamp(totalThickness, OceanicCrustThickness, MaxThickness);
             myThickness = lerp(myThickness, targetThickness, inflationRate);
@@ -96,11 +93,8 @@ void UpdatePlateThicknessMaps(uint3 id : SV_DispatchThreadID)
         else
         {
             //Subduction
-            float subductionRate = lerp(StillPlateSubductionRate, MovingPlateSubductionRate, saturate(totalTravelDistance));
-            float minSubductionPreasure = lerp(StillMinSubductionPressure, MovingMinSubductionPressure, saturate(totalTravelDistance));
-			float preasure = clamp((otherThickness - myThickness) / (totalThickness + 0.00000001), minSubductionPreasure, 1);
-            float heightLimitingFactor = pow(1 + (totalThickness / MantleHeight), 3);
-            float subduction = myThickness * preasure * subductionRate * heightLimitingFactor;
+			float preasure = clamp((otherThickness - myThickness) / (totalThickness + 0.00000001), MinSubductionPressure, 1);
+            float subduction = otherThickness * preasure * SimulationTimeStep;
 			myThickness = max(myThickness - subduction, 0);
         }
 		
@@ -140,7 +134,6 @@ void SmoothPlates(uint3 id : SV_DispatchThreadID)
 void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
 {
     float height = MantleHeight;
-    float plateId = ContinentalIdMap[id];
 
     for (uint p = 0; p < NumPlates; p++)
     {
