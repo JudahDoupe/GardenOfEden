@@ -33,16 +33,22 @@ public class HeightMapVisualizer : MonoBehaviour
         Controls = new Controls();
         Controls.Exhibit.Enable();
 
-        Controls.Exhibit.Forward.performed += Forward;
-        Controls.Exhibit.Back.performed += Back;
+        Controls.Exhibit.Forward.performed += _ => Forward();
+        Controls.Exhibit.Back.performed += _ => Back();
 
 
-        var map = EnvironmentMapDataStore.GetOrCreate(new EnvironmentMapDbData{PlanetName = Planet, MapName = "LandHeightMap"}).Result;
-        for (int i = 0; i < 6; i++)
-        {
-            Planes[i].GetComponent<Renderer>().material.SetTexture("HeightMap", map.CachedTextures[i]);
-        }
-        Cube.GetComponent<Renderer>().material.SetTexture("HeightMap", map.RenderTexture);
+        this.RunTaskInCoroutine(EnvironmentMapDataStore.GetOrCreate(new EnvironmentMapDbData{PlanetName = Planet, MapName = "LandHeightMap"}),
+            map =>
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    Planes[i].GetComponent<Renderer>().material.SetTexture("HeightMap", map.CachedTextures[i]);
+                }
+                Cube.GetComponent<Renderer>().material.SetTexture("HeightMap", map.RenderTexture);
+                
+                
+                Forward();
+            });
 
         var startPosition = new VisualizationState {
             TextureAlphas = new float[] { 1, 1, 1, 1, 1, 1 },
@@ -124,11 +130,11 @@ public class HeightMapVisualizer : MonoBehaviour
             SphereToHeightLerp = 1,
         };
 
-        var rotateCloser = new VisualizationState(sphereMap)
+        var rotateCloser = new VisualizationState(heightMap)
         {
             TransitionTime = 3,
             ParentPosition = ClosePosition,
-            ParentRotation = Quaternion.LookRotation(Vector3.back, Vector3.up),
+            ParentRotation = Quaternion.LookRotation(Vector3.left, Vector3.up),
         };
 
         States = new[]
@@ -141,16 +147,14 @@ public class HeightMapVisualizer : MonoBehaviour
             heightMap,
             rotateCloser,
         };
-
-        Forward(new InputAction.CallbackContext());
     }
 
-    private void Forward(InputAction.CallbackContext context)
+    private void Forward()
     {
         StateIndex = Mathf.Clamp(StateIndex + 1, 0, States.Length - 1);
         SetState(States[StateIndex].TransitionTime);
     }
-    private void Back(InputAction.CallbackContext context)
+    private void Back()
     {
         StateIndex = Mathf.Clamp(StateIndex - 1, 0, States.Length - 1);
         SetState(States[StateIndex + 1].TransitionTime);
