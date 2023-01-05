@@ -17,46 +17,43 @@ float MovingPlateInflationRate;
 float OceanicCrustThickness;
 float MaxThickness;
 float MaxSlope;
-float PlateCohesion;
+
+float PlateCohesionRatio;
+int PlateCohesionKernelSize;
 
 [numthreads(8, 8, 6)]
 void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 {
-	float plateId = ContinentalIdMap[id];
-    uint pIdx = GetPlateIdx(plateId);
     float3 xyz = xyw_to_xyz(id, MantleHeight);
-    float currentThickness = PlateThicknessMaps[xyz_to_xyp(xyz, pIdx)];
-	float neighbors[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    
-	for (int x = -1; x <= 1; x++)
-	{
-		for (int y = -1; y <= 1; y++)
-		{
-			int n = (x + 1) * 3 + (y + 1);
-			int3 xyw = int3(id.x + x, id.y + y, id.z);
-            neighbors[n] = ContinentalIdMap[xyz_to_xyw(xyw_to_xyz(xyw, MantleHeight))];
-        }
-	}
-    
-    for (uint p = 0; p < NumPlates; p++)
+	float maxThickness = 0;
+	float thickestPlateId = 0;
+	for (uint p = 0; p < NumPlates; p++)
 	{
 		Plate plate = Plates[p];
 		uint3 xyp = xyz_to_xyp(xyz, p);
 		float thickness = PlateThicknessMaps[xyp];
-        if (thickness > currentThickness * PlateCohesion)
+		if (thickness > maxThickness)
 		{
-			for (int i = 0; i < 9; i++)
-			{
-				if (neighbors[i] == plate.Id)
-				{
-                    currentThickness = thickness;
-					plateId = plate.Id;
-				}
-			}
+			maxThickness = thickness;
+			thickestPlateId = plate.Id;
 		}
 	}
 
-    ContinentalIdMap[id] = plateId;
+	int neighborCount = 0;
+	for (int x = -PlateCohesionKernelSize; x <= PlateCohesionKernelSize; x++)
+	{
+		for (int y = -PlateCohesionKernelSize; y <= PlateCohesionKernelSize; y++)
+		{
+			uint3 xyw2 = xyz_to_xyw(xyw_to_xyz(id + uint3(x,y,0), MantleHeight));
+			neighborCount += ContinentalIdMap[xyw2] == thickestPlateId;
+        }
+	}
+
+	float neighborRatio = neighborCount / (PlateCohesionKernelSize * PlateCohesionKernelSize);
+	if (neighborRatio >= PlateCohesionRatio)
+	{
+		ContinentalIdMap[id] = thickestPlateId;
+	}
 }
 
 [numthreads(8, 8, 6)]

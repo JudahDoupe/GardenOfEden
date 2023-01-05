@@ -14,8 +14,6 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
 {
     public ComputeShader TectonicsShader;
 
-    [FormerlySerializedAs("MinimumPressure")]
-    [FormerlySerializedAs("StillMinSubductionPressure")]
     [Header("Subduction")]
     [Range(0, 1f)]
     public float MinSubductionPressure = 0.1f;
@@ -31,8 +29,10 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     public float StillPlateInflationRate = 0.1f;
 
     [Header("Motion")]
-    [Range(1, 2)]
-    public float PlateCohesion = 1.5f;
+    [Range(0, 0.5f)]
+    public float PlateCohesionRatio = 0.25f;
+    [Range(1, 10)]
+    public int PlateCohesionKernelSize = 3;
     [Range(1, 10)]
     public float PlateInertia = 5;
     [Range(0.1f, 1)]
@@ -87,7 +87,8 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
         TectonicsShader.SetFloat("SimulationTimeStep", SimulationTimeStep);
         TectonicsShader.SetFloat("MaxSlope", MaxSlope);
         TectonicsShader.SetFloat("MaxThickness", MaxThickness);
-        TectonicsShader.SetFloat("PlateCohesion", PlateCohesion);
+        TectonicsShader.SetFloat("PlateCohesionRatio", PlateCohesionRatio);
+        TectonicsShader.SetInt("PlateCohesionKernelSize", PlateCohesionKernelSize);
         TectonicsShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
     }
 }
