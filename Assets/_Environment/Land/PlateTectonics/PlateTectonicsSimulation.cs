@@ -31,7 +31,7 @@ public class PlateTectonicsSimulation : MonoBehaviour, ISimulation
     [Header("Motion")]
     [Range(0, 0.5f)]
     public float PlateCohesionRatio = 0.25f;
-    [Range(1, 10)]
+    [Range(1, 20)]
     public int PlateCohesionKernelSize = 3;
     [Range(1, 10)]
     public float PlateInertia = 5;
