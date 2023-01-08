@@ -1,9 +1,10 @@
+using System.Linq;
+using System.Runtime.InteropServices;
 using Assets.GamePlay.Cameras;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(PlateTectonicsSimulation))]
 [RequireComponent(typeof(PlateTectonicsVisualization))]
 [RequireComponent(typeof(PlateTectonicsAudio))]
 [RequireComponent(typeof(PlateBakerV2))]
@@ -21,14 +22,12 @@ public class BreakPlateTool : MonoBehaviour, ITool
     private Break? _break;
 
     private PlateTectonicsData _data;
-    private PlateTectonicsSimulation _simulation;
     private PlateTectonicsVisualization _visualization;
     private int _totalBreaks;
 
     private void Start() => Planet.Data.Subscribe(data =>
     {
         _data = data.PlateTectonics;
-        _simulation = GetComponent<PlateTectonicsSimulation>();
         _visualization = GetComponent<PlateTectonicsVisualization>();
         _audio = GetComponent<PlateTectonicsAudio>();
         _baker = GetComponent<PlateBakerV2>();
@@ -63,7 +62,6 @@ public class BreakPlateTool : MonoBehaviour, ITool
         CameraController.TransitionToSatelliteCamera(CameraTransition.SmoothFast);
         _data.GetTool(nameof(BreakPlateTool)).Use();
         _baker.CancelBake();
-        _simulation.Disable();
         _break = null;
         IsActive = true;
 
@@ -120,6 +118,7 @@ public class BreakPlateTool : MonoBehaviour, ITool
         plate.TargetVelocity = oldPlate.TargetVelocity;
         b.NewPlateIdx = plate.Idx;
 
+        RunKernel("VisualizeBreakLine", b);
         RunKernel("BreakPlate", b);
         _audio.BreakPlate();
 
@@ -160,9 +159,14 @@ public class BreakPlateTool : MonoBehaviour, ITool
     private void RunKernel(string kernelName, Break b)
     {
         var kernel = BreakPlateShader.FindKernel(kernelName);
+        using var buffer = new ComputeBuffer(_data.Plates.Count, Marshal.SizeOf(typeof(PlateGpuData)));
+        var gpuData = _data.Plates.Select(x => x.ToGpuData()).ToArray();
+        buffer.SetData(gpuData);
+        BreakPlateShader.SetBuffer(kernel, "Plates", buffer);
         BreakPlateShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
         BreakPlateShader.SetTexture(kernel, "VisualizedContinentalIdMap", _data.VisualizedContinentalIdMap.RenderTexture);
         BreakPlateShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
+        BreakPlateShader.SetTexture(kernel, "LandHeightMap", _data.LandHeightMap.RenderTexture);
         BreakPlateShader.SetFloat("FaultLineNoise", FaultLineNoise);
         BreakPlateShader.SetFloat("MantleHeight", _data.MantleHeight);
         BreakPlateShader.SetFloat("OldPlateId", b.OriginalPlateId ?? 0);

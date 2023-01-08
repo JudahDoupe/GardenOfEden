@@ -6,6 +6,7 @@
 RWTexture2DArray<float> VisualizedContinentalIdMap; 
 RWTexture2DArray<float> ContinentalIdMap; 
 RWTexture2DArray<float> PlateThicknessMaps;
+RWTexture2DArray<float> LandHeightMap;
 
 float FaultLineNoise;
 float OldPlateId; 
@@ -27,33 +28,28 @@ void VisualizeBreakLine(uint3 id : SV_DispatchThreadID)
     float oldDist = distance(xyz, OldPlateCenter);
     float newDist = distance(xyz, NewPlateCenter);
 
-    bool isNewPlate = oldDist >= newDist && VisualizedContinentalIdMap[id] != 0;
-    
-    VisualizedContinentalIdMap[id] = !isNewPlate * VisualizedContinentalIdMap[id]
-                                   + isNewPlate * NewPlateId;
+    bool isNewPlate = oldDist >= newDist && ContinentalIdMap[id] == OldPlateId;
+
+    VisualizedContinentalIdMap[id] = ContinentalIdMap[id];
+    if (isNewPlate)
+    {
+        
+        VisualizedContinentalIdMap[id] = NewPlateId;
+    }
 }
 
 [numthreads(8, 8, 6)]
 void BreakPlate(uint3 id : SV_DispatchThreadID)
 {
-    float3 xyz = xyw_to_xyz(id, MantleHeight);
-    xyz = xyz + noise3d(xyz, FaultLineNoise);
-    xyz = xyz + noise3d(xyz, FaultLineNoise / 6.35);
-    xyz = xyz + noise3d(xyz, FaultLineNoise / 11.7);
+    uint3 oldXyp = uint3(id.x, id.y, OldPlateIdx * 6 + id.z);
+    uint3 oldXyw = xyz_to_xyw(xyp_to_xyz(oldXyp, OldPlateIdx));
+    PlateThicknessMaps[oldXyp] = (LandHeightMap[oldXyw] - MantleHeight)
+                               * (VisualizedContinentalIdMap[oldXyw] == OldPlateId);
     
-    float oldDist = distance(xyz, OldPlateCenter);
-    float newDist = distance(xyz, NewPlateCenter);
-    
-    if (oldDist >= newDist)
-    {
-        uint3 oldXyp = uint3(id.x, id.y, OldPlateIdx * 6 + id.z);
-        uint3 newXyp = uint3(id.x, id.y, NewPlateIdx * 6 + id.z);
-        
-        PlateThicknessMaps[newXyp] = PlateThicknessMaps[oldXyp];
-        PlateThicknessMaps[oldXyp] = 0;
+    uint3 newXyp = uint3(id.x, id.y, NewPlateIdx * 6 + id.z);
+    uint3 newXyw = xyz_to_xyw(xyp_to_xyz(newXyp, NewPlateIdx));
+    PlateThicknessMaps[newXyp] = (LandHeightMap[newXyw] - MantleHeight)
+                               * (VisualizedContinentalIdMap[newXyw] == NewPlateId);
 
-        int isOldPlate = ContinentalIdMap[id] == OldPlateId;
-        ContinentalIdMap[id] = !isOldPlate * ContinentalIdMap[id]
-                             + isOldPlate * NewPlateId;
-    }
+    ContinentalIdMap[id] = VisualizedContinentalIdMap[id];
 }

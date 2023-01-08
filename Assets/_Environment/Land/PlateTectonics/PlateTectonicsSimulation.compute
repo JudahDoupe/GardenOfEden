@@ -135,8 +135,9 @@ void UpdateHeightMap(uint3 id : SV_DispatchThreadID)
     for (uint p = 0; p < NumPlates; p++)
     {
         Plate plate = Plates[p];
+        bool isTopPlate = ContinentalIdMap[id] == plate.Id;
         float3 xyp = xyw_to_xyp(id, p);
-        height += PlateThicknessMaps[xyp] * (plate.Id == ContinentalIdMap[id]);
+        height += PlateThicknessMaps[xyp] * isTopPlate;
     }
 
     LandHeightMap[id] = height;

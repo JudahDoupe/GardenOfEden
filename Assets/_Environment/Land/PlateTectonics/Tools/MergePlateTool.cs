@@ -4,7 +4,6 @@ using Assets.GamePlay.Cameras;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(PlateTectonicsSimulation))]
 [RequireComponent(typeof(PlateTectonicsVisualization))]
 [RequireComponent(typeof(PlateTectonicsAudio))]
 [RequireComponent(typeof(PlateBakerV2))]
@@ -15,14 +14,12 @@ public class MergePlateTool : MonoBehaviour, ITool
     private PlateBakerV2 _baker;
 
     private PlateTectonicsData _data;
-    private PlateTectonicsSimulation _simulation;
     private PlateTectonicsVisualization _visualization;
     private PlateData _selectedPlate;
 
     private void Start() => Planet.Data.Subscribe(data =>
     {
         _data = data.PlateTectonics;
-        _simulation = GetComponent<PlateTectonicsSimulation>();
         _visualization = GetComponent<PlateTectonicsVisualization>();
         _audio = GetComponent<PlateTectonicsAudio>();
         _baker = GetComponent<PlateBakerV2>();
@@ -51,7 +48,6 @@ public class MergePlateTool : MonoBehaviour, ITool
         _data.GetTool(nameof(MergePlateTool)).Use();
         _selectedPlate = null;
         _baker.CancelBake();
-        _simulation.Disable();
         IsActive = true;
         InputAdapter.Click.Subscribe(this, () =>
         {
@@ -102,7 +98,7 @@ public class MergePlateTool : MonoBehaviour, ITool
 
         var hoveredPlate = _data.GetPlate(hoveredPlateId);
 
-        MergePlatesOnGpu(_selectedPlate.Id, hoveredPlate.Id, _selectedPlate, hoveredPlate);
+        MergePlatesOnGpu(_selectedPlate.Id, hoveredPlate.Id, hoveredPlate);
         _data.RemovePlate(_selectedPlate.Id);
         _data.ContinentalIdMap.RefreshCache();
         _selectedPlate = null;
@@ -110,16 +106,16 @@ public class MergePlateTool : MonoBehaviour, ITool
         
         GetComponent<LandscapeCameraTool>().Unlock();
 
-        void MergePlatesOnGpu(float oldId, float newId, PlateData oldPlate, PlateData newPlate)
+        void MergePlatesOnGpu(float oldId, float newId, PlateData newPlate)
         {
             var kernel = MergePlateShader.FindKernel("MergePlates");
             MergePlateShader.SetTexture(kernel, "ContinentalIdMap", _data.ContinentalIdMap.RenderTexture);
+            MergePlateShader.SetTexture(kernel, "LandHeightMap", _data.LandHeightMap.RenderTexture);
             MergePlateShader.SetTexture(kernel, "PlateThicknessMaps", _data.PlateThicknessMaps.RenderTexture);
+            MergePlateShader.SetFloat("MantleHeight", _data.MantleHeight);
             MergePlateShader.SetFloat("OldPlateId", oldId);
             MergePlateShader.SetFloat("NewPlateId", newId);
-            MergePlateShader.SetFloat("OldPlateIdx", oldPlate.Idx);
             MergePlateShader.SetFloat("NewPlateIdx", newPlate.Idx);
-            MergePlateShader.SetFloats("OldPlateRotation", oldPlate.Rotation[0], oldPlate.Rotation[1], oldPlate.Rotation[2], oldPlate.Rotation[3]);
             MergePlateShader.SetFloats("NewPlateRotation", newPlate.Rotation[0], newPlate.Rotation[1], newPlate.Rotation[2], newPlate.Rotation[3]);
             MergePlateShader.Dispatch(kernel, Coordinate.TextureWidthInPixels / 8, Coordinate.TextureWidthInPixels / 8, 1);
         }

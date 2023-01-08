@@ -65,49 +65,40 @@ public class PlateBakerV2 : MonoBehaviour
         var continents = continentsTask.Result;
 
 
-        Log($"Analyzing Continents [time:{logTimer.ElapsedMilliseconds}ms]");
+        Log($"Analyzing Continents [time:{logTimer.ElapsedMilliseconds}ms] [plateCount:{continents.Count}]");
 
 
         logTimer.Restart();
-        _data.Plates = continents.Values.Where(x => x.IsRoot).Select((c, i) => new PlateData(c.Relabel, i)).ToList();
 
-        _data.PlateThicknessMaps.Layers = _data.Plates.Count() * 6;
+        _data.Plates = continents.Values.Where(x => x.IsRoot).Select((c, i) => new PlateData(c.Relabel, i)).ToList();
+        _data.PlateThicknessMaps.Layers = _data.Plates.Count * 6;
         var continentRelabels = continents.Values.Select(x => new RelabelGpuData { From = x.Label, To = x.Root.Relabel }).ToArray();
-        RelableContinentsGPU(continentRelabels);
+        RelabelContinentsGPU(continentRelabels);
         _data.ContinentalIdMap.RefreshCache();
 
 
-        Log($"Relabeling Continents [time:{logTimer.ElapsedMilliseconds}ms]");
+        Log($"Relabeling Continents [time:{logTimer.ElapsedMilliseconds}ms] [plateCount:{_data.Plates.Count}]");
         
         GetComponent<BreakPlateTool>().Unlock();
     }
 
-    private Dictionary<float, Continent> IdentifyContinents(float[][] continentMaps)
+    private Dictionary<int, Continent> IdentifyContinents(float[][] continentMaps)
     {
-        var continents = new Dictionary<float, Continent>();
+        var continents = new Dictionary<int, Continent>();
 
-        Continent GetOrCreateContinent(float label)
-        {
-            return continents.ContainsKey(label)
-                ? continents[label]
-                : continents[label] = new Continent(label);
-        }
+        Continent GetOrCreateContinent(int label) => continents.ContainsKey(label)
+            ? continents[label]
+            : continents[label] = new Continent(label);
 
-        float[] Neighbors(int x, int y, int w)
+        int[] Neighbors(int x, int y, int w) => new[]
         {
-            return new[]
-            {
-                Sample(CoordinateTransforms.GetSourceXyw(new int3(x + 1, y, w))),
-                Sample(CoordinateTransforms.GetSourceXyw(new int3(x - 1, y, w))),
-                Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y + 1, w))),
-                Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y - 1, w)))
-            };
-        }
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x + 1, y, w))),
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x - 1, y, w))),
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y + 1, w))),
+            Sample(CoordinateTransforms.GetSourceXyw(new int3(x, y - 1, w)))
+        };
 
-        float Sample(int3 xyw)
-        {
-            return math.round(continentMaps[xyw.z][xyw.x + xyw.y * Coordinate.TextureWidthInPixels]);
-        }
+        int Sample(int3 xyw) => (int)math.round(continentMaps[xyw.z][xyw.x + xyw.y * Coordinate.TextureWidthInPixels]);
 
         for (var w = 0; w < 6; w++)
         for (var x = 0; x < Coordinate.TextureWidthInPixels; x++)
@@ -125,34 +116,39 @@ public class PlateBakerV2 : MonoBehaviour
             }
         }
 
-        var minLabel = 1.0001f;
-        foreach (var continent in continents.Values)
-            if (continent.Size < MinContinentSize)
+        var minLabel = 1;
+        foreach (var continent in continents.Values.OrderByDescending(x => x.Size))
+        {
+            if (continent.Size > (MinContinentSize * MinContinentSize))
             {
-                var neighbors = continent.Neighbors.Select(x => x.Root).Where(x => !x.Root.Equals(continent)).ToArray();
-                var newRoot = neighbors.Aggregate((x, y) => x.Size > y.Size ? x : y);
-                continent.Root = newRoot;
-                newRoot.Size += continent.Size;
-                foreach (var neighbor in neighbors.Where(x => !x.Equals(newRoot))) newRoot.Neighbors.Add(neighbor);
+                continent.Relabel = minLabel++;
             }
             else
             {
-                continent.Relabel = minLabel;
-                minLabel += 1;
+                continent.Root = continent.Neighbors
+                    .Select(x => x.Root)
+                    .Where(x => !x.Root.Equals(continent))
+                    .OrderByDescending(x => x.Size)
+                    .First();
+                continent.Root.Size += continent.Size;
+                
+                foreach (var neighbor in continent.Neighbors.Where(x => !x.Equals(continent.Root))) 
+                    continent.Root.Neighbors.Add(neighbor);
             }
+        }
 
         return continents;
     }
 
     private class Continent : IEquatable<Continent>
     {
-        public readonly float Label;
+        public readonly int Label;
         public readonly HashSet<Continent> Neighbors;
-        private Continent _parent;
-        public float Relabel;
+        public int Relabel;
         public int Size;
+        private Continent _parent;
 
-        public Continent(float label)
+        public Continent(int label)
         {
             Label = label;
             Relabel = 0;
@@ -200,7 +196,7 @@ public class PlateBakerV2 : MonoBehaviour
         return labelData[0].Changed > 0;
     }
 
-    private void RelableContinentsGPU(RelabelGpuData[] relabels)
+    private void RelabelContinentsGPU(RelabelGpuData[] relabels)
     {
         var kernel = BakePlatesShader.FindKernel("RelabelContinents");
 

@@ -4,12 +4,11 @@
 
 RWTexture2DArray<float> ContinentalIdMap; 
 RWTexture2DArray<float> PlateThicknessMaps;
+RWTexture2DArray<float> LandHeightMap;
 
 float OldPlateId; 
 float NewPlateId;
-float OldPlateIdx; 
 float NewPlateIdx;
-float4 OldPlateRotation;
 float4 NewPlateRotation;
 
 uint3 xyz_to_xyp(float3 xyz, float4 rotation, int p)
@@ -21,21 +20,14 @@ uint3 xyz_to_xyp(float3 xyz, float4 rotation, int p)
 [numthreads(8, 8, 6)]
 void MergePlates(uint3 id : SV_DispatchThreadID)
 {
-    //Id centers on new plate thickness map
     float3 xyz = rotate_vector(xyw_to_xyz(id, 1000), NewPlateRotation);
-    float plateId = ContinentalIdMap[xyz_to_xyw(xyz)];
-    uint3 oldIdx = xyz_to_xyp(xyz, OldPlateRotation, OldPlateIdx);
-    uint3 newIdx = uint3(id.x, id.y, id.z + NewPlateIdx * 6);
-    float oldThickness = PlateThicknessMaps[oldIdx];
-    float newThickness = PlateThicknessMaps[newIdx];
+    uint3 uvw = xyz_to_xyw(xyz);
+    uint3 xyp = uint3(id.x, id.y, id.z + NewPlateIdx * 6);
+    float plateId = ContinentalIdMap[uvw];
+    bool isTopPlate = plateId == OldPlateId || plateId == NewPlateId;
+    float thickness = LandHeightMap[uvw] - MantleHeight;
     
-    bool isOld = plateId == OldPlateId;
-    bool isNew = plateId == NewPlateId;
-    float thickness = max(oldThickness, newThickness) * (!isOld && !isNew)
-                    + (oldThickness * isOld)
-                    + (newThickness * isNew);
-    
-    PlateThicknessMaps[newIdx] = thickness;
+    PlateThicknessMaps[xyp] = thickness * isTopPlate;
 
     if (ContinentalIdMap[id] == OldPlateId)
     {

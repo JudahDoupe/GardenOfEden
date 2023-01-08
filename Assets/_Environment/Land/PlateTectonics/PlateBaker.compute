@@ -73,5 +73,9 @@ void RelabelContinents(uint3 id : SV_DispatchThreadID)
         }
     }
 
-    PlateThicknessMaps[xyw_to_xyp(id, GetPlateIdx(ContinentalIdMap[id]))] = LandHeightMap[id] - MantleHeight;
+    for (uint p = 0; p < NumPlates; p++){
+        Plate plate = GetPlate(ContinentalIdMap[id]);
+        float thickness = (LandHeightMap[id] - MantleHeight) * (ContinentalIdMap[id] == plate.Id);
+        PlateThicknessMaps[xyw_to_xyp(id, plate.Idx)] = thickness;
+    }
 }
