@@ -9,11 +9,6 @@ public class TimeService : Singleton<TimeService>
     public static int MonthOfTheYear { get; private set; } = 0;
     public static int Year { get; private set; } = 0;
 
-    public void Start()
-    {
-        LoadBalancer.RegisterEndSimulationAction(IncrementDay);
-    }
-
     private static void IncrementDay()
     {
         DayOfTheWeek = (DayOfTheWeek + 1) % 7;

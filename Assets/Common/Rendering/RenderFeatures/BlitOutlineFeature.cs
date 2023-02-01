@@ -5,33 +5,27 @@ using UnityEngine.Rendering.Universal;
 
 public class BlitOutlineFeature : ScriptableRendererFeature
 {
-    class RenderPass : ScriptableRenderPass
+    internal class RenderPass : ScriptableRenderPass
     {
+        public RTHandle MainCameraHandle;
+        
         private string layerName;
         private Material renderMaterial;
         private Material outlineMaterial;
-        private RenderTargetIdentifier sourceID;
-        private RenderTargetHandle tempTextureHandle;
-        private RenderTargetHandle outlineTextureHandle;
+        private RTHandle  tempTextureHandle;
+        private RTHandle  outlineTextureHandle;
 
         public RenderPass(Material renderMaterial, Material outlineMaterial, string layerName) : base()
         {
             this.renderMaterial = renderMaterial;
             this.outlineMaterial = outlineMaterial;
             this.layerName = layerName;
-            outlineTextureHandle.Init("_OutlinedGroupTexture");
-            tempTextureHandle.Init("_TempOutlineBlitMaterialTexture");
-        }
-
-        public void SetSource(RenderTargetIdentifier source)
-        {
-            this.sourceID = source;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            cmd.GetTemporaryRT(outlineTextureHandle.id, cameraTextureDescriptor, FilterMode.Bilinear);
-            ConfigureTarget(outlineTextureHandle.Identifier());
+            RenderingUtils.ReAllocateIfNeeded(ref outlineTextureHandle, cameraTextureDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_OutlinedGroupTexture");
+            ConfigureTarget(outlineTextureHandle);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -49,13 +43,13 @@ public class BlitOutlineFeature : ScriptableRendererFeature
             drawSettings.overrideMaterial = outlineMaterial;
             context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filteringSettings);
 
-            RenderTextureDescriptor cameraTextureDesc = renderingData.cameraData.cameraTargetDescriptor;
-            cameraTextureDesc.depthBufferBits = 0;
+            var desc = renderingData.cameraData.cameraTargetDescriptor;
+            desc.depthBufferBits = 0; // Color and depth cannot be combined in RTHandles
+            RenderingUtils.ReAllocateIfNeeded(ref tempTextureHandle, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_TempOutlineBlitMaterialTexture");
+            
             CommandBuffer cmd = CommandBufferPool.Get("BlitOutlineFeature");
-
-            cmd.GetTemporaryRT(tempTextureHandle.id, cameraTextureDesc, FilterMode.Bilinear);
-            Blit(cmd, sourceID, tempTextureHandle.Identifier(), renderMaterial);
-            Blit(cmd, tempTextureHandle.Identifier(), sourceID);
+            Blit(cmd, MainCameraHandle, tempTextureHandle, renderMaterial);
+            Blit(cmd, tempTextureHandle, MainCameraHandle);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -63,8 +57,8 @@ public class BlitOutlineFeature : ScriptableRendererFeature
 
         public override void FrameCleanup(CommandBuffer cmd)
         {
-            cmd.ReleaseTemporaryRT(tempTextureHandle.id);
-            cmd.ReleaseTemporaryRT(outlineTextureHandle.id); 
+            outlineTextureHandle.Release();
+            tempTextureHandle.Release();
         }
     }
 
@@ -90,7 +84,11 @@ public class BlitOutlineFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        renderPass.SetSource(renderer.cameraColorTarget);
         renderer.EnqueuePass(renderPass);
+    }
+    
+    public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
+    {
+        renderPass.MainCameraHandle = renderer.cameraColorTargetHandle;  // use of target after allocation
     }
 }

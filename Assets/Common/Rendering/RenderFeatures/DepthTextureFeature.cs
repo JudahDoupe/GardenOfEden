@@ -4,67 +4,47 @@ using UnityEngine.Rendering.Universal;
 
 public class DepthTextureFeature : ScriptableRendererFeature
 {
-    class RenderPass : ScriptableRenderPass
-    {
-        public Material DepthMaterial;
-        private RenderTargetIdentifier SourceId;
-
-        public RenderPass(Material depthMaterial)
-        {
-            DepthMaterial = depthMaterial;
-        }
-
-        public void SetSource(RenderTargetIdentifier source)
-        {
-            SourceId = source;
-        }
-
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get("DepthTexture");
-            var screen = renderingData.cameraData.cameraTargetDescriptor;
-            var outputTexture = CameraUtils.DepthTexture;
-
-            if (outputTexture == null || screen.width != outputTexture.width || screen.height != outputTexture.height)
-            {
-                if (outputTexture != null)
-                {
-                    outputTexture.ClearCache();
-                    outputTexture.Release();
-                }
-                CameraUtils.DepthTexture = outputTexture = new RenderTexture(screen.width, screen.height, 0, RenderTextureFormat.RFloat);
-            }
-
-            Blit(cmd, SourceId, outputTexture, DepthMaterial);
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-            CameraUtils.DepthTexture.UpdateTextureCache();
-        }
-    }
-
-    [System.Serializable]
-    public class Settings
-    {
-        public Material depthMaterial;
-        public RenderPassEvent renderEvent = RenderPassEvent.AfterRenderingOpaques;
-    }
-
-    [SerializeField]
-    private Settings settings = new Settings();
-    RenderPass Pass;
+    public RenderPassEvent RenderEvent = RenderPassEvent.AfterRenderingOpaques;
+    
+    private RenderPass _pass;
 
     public override void Create()
     {
-        Pass = new RenderPass(settings.depthMaterial);
-        Pass.renderPassEvent = settings.renderEvent;
+        _pass = new RenderPass
+        {
+            renderPassEvent = RenderEvent
+        };
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        Pass.SetSource(renderer.cameraColorTarget);
-        renderer.EnqueuePass(Pass);
+        renderer.EnqueuePass(_pass);
+    }
+
+    public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
+    {
+        _pass.MainCameraDepthHandle = renderer.cameraDepthTargetHandle; // use of target after allocation
+    }
+
+
+    private class RenderPass : ScriptableRenderPass
+    {
+        public RTHandle MainCameraDepthHandle;
+        
+        private Material _depthMaterial;
+        private RTHandle _outputTexture;
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            RenderingUtils.ReAllocateIfNeeded(ref _outputTexture, cameraTextureDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_OutlinedGroupTexture");
+            CameraUtils.DepthTexture = _outputTexture;
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            var cmd = CommandBufferPool.Get("DepthTexture");
+
+            Blit(cmd, MainCameraDepthHandle, _outputTexture, _depthMaterial);
+        }
     }
 }
-
-

@@ -9,19 +9,18 @@ public class OutlineFeature : ScriptableRendererFeature
     {
         private string layerName;
         private Material outlineMaterial;
-        private RenderTargetHandle destinationHandle;
+        private RTHandle  destinationHandle;
 
         public RenderPass(Material material, string layerName)
         {
             this.outlineMaterial = material;
             this.layerName = layerName;
-            destinationHandle.Init("_OutlinedObjectsTexture");
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            cmd.GetTemporaryRT(destinationHandle.id, cameraTextureDescriptor, FilterMode.Bilinear);
-            ConfigureTarget(destinationHandle.Identifier());
+            RenderingUtils.ReAllocateIfNeeded(ref destinationHandle, cameraTextureDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_OutlinedObjectsTexture");
+            ConfigureTarget(destinationHandle);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -41,7 +40,7 @@ public class OutlineFeature : ScriptableRendererFeature
 
         public override void FrameCleanup(CommandBuffer cmd)
         {
-            cmd.ReleaseTemporaryRT(destinationHandle.id);
+            destinationHandle.Release();
         }
     }
 

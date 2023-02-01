@@ -17,21 +17,11 @@ public class Planet : Singleton<Planet>
         Instance = this;
         Data = new Signal<PlanetData>(null);
         Transform = transform;
-        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        Entity = em.CreateEntity();
-        em.AddComponent<Translation>(Entity);
-        em.AddComponent<Rotation>(Entity);
-        em.AddComponent<LocalToWorld>(Entity);
-#if UNITY_EDITOR
-        em.SetName(Entity, "Planet");
-#endif
     }
 
     private void Update()
     {
         transform.Rotate(new Vector3(0, RotationSpeed * Time.deltaTime, 0));
-        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        em.SetComponentData(Entity, new Rotation { Value = transform.rotation });
     }
 
     [ContextMenu("Save")]

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
+﻿using System.Linq;
 using Assets.GamePlay.Cameras;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -111,15 +108,7 @@ public class CameraUtils : MonoBehaviour
             }
         }
 
-        if (em.HasComponent<RenderMesh>(entity))
-        {
-            var mesh = em.GetSharedComponentData<RenderMesh>(entity);
-            if (mesh.layer != layer)
-            {
-                mesh.layer = layer;
-                em.SetSharedComponentData(entity, mesh);
-            }
-        }
+        //TODO: Set Layer
     }
 
 }

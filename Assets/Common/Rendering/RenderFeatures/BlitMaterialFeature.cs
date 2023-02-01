@@ -1,90 +1,58 @@
-//    Copyright (C) 2020 Ned Makes Games
-
-//    This program is free software: you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation, either version 3 of the License, or
-//    (at your option) any later version.
-
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-//    GNU General Public License for more details.
-
-//    You should have received a copy of the GNU General Public License
-//    along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 public class BlitMaterialFeature : ScriptableRendererFeature
 {
-    class RenderPass : ScriptableRenderPass
-    {
-        private string profilingName;
-        private Material material;
-        private RenderTargetIdentifier sourceID;
-        private RenderTargetHandle tempTextureHandle;
-
-        public RenderPass(string profilingName, Material material) : base()
-        {
-            this.profilingName = profilingName;
-            this.material = material;
-            tempTextureHandle.Init("_TempBlitMaterialTexture");
-        }
-
-        public void SetSource(RenderTargetIdentifier source)
-        {
-            this.sourceID = source;
-        }
-
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get(profilingName);
-
-            RenderTextureDescriptor cameraTextureDesc = renderingData.cameraData.cameraTargetDescriptor;
-            cameraTextureDesc.depthBufferBits = 0;
-
-            cmd.GetTemporaryRT(tempTextureHandle.id, cameraTextureDesc, FilterMode.Bilinear);
-            Blit(cmd, sourceID, tempTextureHandle.Identifier(), material);
-            Blit(cmd, tempTextureHandle.Identifier(), sourceID);
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-
-        public override void FrameCleanup(CommandBuffer cmd)
-        {
-            cmd.ReleaseTemporaryRT(tempTextureHandle.id);
-        }
-    }
-
-    [System.Serializable]
-    public class Settings
-    {
-        public Material material;
-        public RenderPassEvent renderEvent = RenderPassEvent.AfterRenderingOpaques;
-    }
-
-    [SerializeField]
-    private Settings settings = new Settings();
-
-    private RenderPass renderPass;
-
-    public Material Material
-    {
-        get => settings.material;
-    }
+    public Material Material;
+    public RenderPassEvent RenderEvent = RenderPassEvent.AfterRenderingOpaques;
+    private RenderPass _renderPass;
 
     public override void Create()
     {
-        this.renderPass = new RenderPass(name, settings.material);
-        renderPass.renderPassEvent = settings.renderEvent;
+        _renderPass = new RenderPass
+        {
+            renderPassEvent = RenderEvent,
+            Material = Material,
+        };
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        renderPass.SetSource(renderer.cameraColorTarget);
-        renderer.EnqueuePass(renderPass);
+        renderer.EnqueuePass(_renderPass);
+    }
+    
+    public override void SetupRenderPasses(ScriptableRenderer renderer,
+                                           in RenderingData renderingData)
+    {
+        _renderPass.ConfigureInput(ScriptableRenderPassInput.Color);
+        _renderPass.SetTarget(renderer.cameraColorTargetHandle, Material);
+    }
+
+    private class RenderPass : ScriptableRenderPass
+    {
+        public Material Material;
+        public RTHandle MainCameraHandle;
+
+        public void SetTarget(RTHandle colorHandle, Material material)
+        {
+            MainCameraHandle = colorHandle;
+            Material = material;
+        }
+        
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            ConfigureTarget(MainCameraHandle);
+        }
+        
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            var cmd = CommandBufferPool.Get();
+            Blitter.BlitCameraTexture(cmd, MainCameraHandle, MainCameraHandle, Material, 0);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            CommandBufferPool.Release(cmd);
+        }
     }
 }
