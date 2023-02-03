@@ -14,37 +14,44 @@ public class DepthTextureFeature : ScriptableRendererFeature
         {
             renderPassEvent = RenderEvent
         };
+        _pass.ConfigureInput(ScriptableRenderPassInput.Depth);
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        _pass.Setup(renderingData);
         renderer.EnqueuePass(_pass);
     }
-
-    public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
+        
+    protected override void Dispose(bool disposing)
     {
-        _pass.MainCameraDepthHandle = renderer.cameraDepthTargetHandle; // use of target after allocation
+        _pass.Dispose();
     }
-
 
     private class RenderPass : ScriptableRenderPass
     {
-        public RTHandle MainCameraDepthHandle;
-        
-        private Material _depthMaterial;
         private RTHandle _outputTexture;
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public void Setup(in RenderingData renderingData)
         {
-            RenderingUtils.ReAllocateIfNeeded(ref _outputTexture, cameraTextureDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_OutlinedGroupTexture");
+            var desc = renderingData.cameraData.cameraTargetDescriptor;
+            desc.depthBufferBits = (int) DepthBits.Depth32;
+            RenderingUtils.ReAllocateIfNeeded(ref _outputTexture, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_CPUDepthTexture");
             CameraUtils.DepthTexture = _outputTexture;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get("DepthTexture");
-
-            Blit(cmd, MainCameraDepthHandle, _outputTexture, _depthMaterial);
+            var source = renderingData.cameraData.renderer.cameraDepthTargetHandle;
+            Blitter.BlitCameraTexture(cmd, source, _outputTexture); 
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+        
+        public void Dispose()
+        {
+            _outputTexture?.Release();
         }
     }
 }

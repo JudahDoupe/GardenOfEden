@@ -194,3 +194,11 @@ The following packages were updated:
   com.unity.ide.visualstudio from version 2.0.16 to 2.0.17
   com.unity.render-pipelines.universal from version 12.1.7 to 14.0.5
   com.unity.test-framework from version 1.1.31 to 1.1.33
+
+=== Thu Feb  2 17:26:01 2023
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.render-pipelines.universal from version 14.0.5 to 14.0.6
