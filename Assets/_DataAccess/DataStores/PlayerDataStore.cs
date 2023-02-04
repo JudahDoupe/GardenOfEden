@@ -25,7 +25,7 @@ public static class PlayerDataStore
                 CurrentPlanetName = null,
                 PlanetNames = Array.Empty<string>(),
             });
-            Update(_cache);
+            await Update(_cache);
         }
         return _cache;
     }
