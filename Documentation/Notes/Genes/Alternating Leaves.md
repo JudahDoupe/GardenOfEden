@@ -1,1 +1,0 @@
-Alternating leaves are [[Growth Pattern]] where leaves alternate 180 degrees between nodes.

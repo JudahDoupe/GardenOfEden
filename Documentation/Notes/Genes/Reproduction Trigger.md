@@ -1,1 +1,0 @@
-Reproduction triggers tell a plant when to

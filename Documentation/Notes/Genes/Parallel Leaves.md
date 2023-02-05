@@ -1,1 +1,0 @@
-Parallel leaves is a [[Growth Pattern]] where 2 leaves shoot out from a node 180 degrees apart.

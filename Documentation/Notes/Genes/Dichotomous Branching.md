@@ -1,1 +1,0 @@
-Dichotomous Branching is a [[Branching Strategy]] where energy is divided equally between all branches.  This strategy should produce very semetrical plants. 

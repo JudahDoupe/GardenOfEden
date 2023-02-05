@@ -1,1 +1,0 @@
-Dominat Barnching (or pseudomonopodial branching) is a [[Branching Strategy]] that allocates more energy to branches that are more successful.  This strategy exploits it's environment more efficiently for light, although it can be wasteful if the plant tries to branch too much.

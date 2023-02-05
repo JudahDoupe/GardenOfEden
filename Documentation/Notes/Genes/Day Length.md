@@ -1,1 +1,0 @@
-Day Length is a [[Reproduction Trigger]] that activates reproduction when the environmental day length is within a specific range.

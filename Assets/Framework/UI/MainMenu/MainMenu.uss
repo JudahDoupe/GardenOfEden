@@ -1,0 +1,221 @@
+.Button {
+    width: 60px;
+    height: 60px;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-left-color: rgba(255, 255, 255, 0.7);
+    border-right-color: rgba(255, 255, 255, 0.7);
+    border-top-color: rgba(255, 255, 255, 0.7);
+    border-bottom-color: rgba(255, 255, 255, 0.7);
+    transition-duration: 0.1s;
+    transition-timing-function: ease-out;
+    overflow: hidden;
+}
+
+.Button:hover {
+    -unity-background-image-tint-color: rgb(30, 30, 30);
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    scale: 1.1 1.1;
+}
+
+.Hidden > Button {
+    display: none;
+}
+
+.Button:hover > .Icon {
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.Button > .Icon {
+    -unity-background-image-tint-color: rgb(175, 175, 175);
+}
+
+.Icon {
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+.Title {
+    font-size: 40px;
+    background-color: rgba(0, 0, 0, 0.7);
+    width: auto;
+    -unity-text-align: middle-center;
+    height: 60px;
+    min-width: 400px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    color: rgb(255, 255, 255);
+    -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway%20SDF.asset?fileID=11400000&guid=63109fddb78715f489a34a7e86eb1926&type=2#Raleway SDF');
+}
+
+#NextPlanet .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/right-arrow.png?fileID=2800000&guid=2201aae25718597478f4adcfa8890ce0&type=3#right-arrow');
+}
+
+#PrevPlanet .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/left-arrow.png?fileID=2800000&guid=b025aef7f916e6d49885d2c5f2a2becf&type=3#left-arrow');
+}
+
+#DeletePlanet .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/trash-can.png?fileID=2800000&guid=d82be03425dee2e40a6a7f603aaff4ed&type=3#trash-can');
+}
+
+#NewPlanet .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/add.png?fileID=2800000&guid=ff9448d4981c19a449ff847745b80dd3&type=3#add');
+}
+
+#Continue .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/play-button-arrowhead.png?fileID=2800000&guid=935e65856c94c65428918d4972c46452&type=3#play-button-arrowhead');
+}
+
+#Quit .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/error.png?fileID=2800000&guid=ec168e9e7131b1f4a95b643ab807b8c1&type=3#error');
+}
+
+#Settings .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/setting.png?fileID=2800000&guid=4229b691afbe7c944a0e5ea518c93a91&type=3#setting');
+}
+
+#CancelNewPlanet .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/error.png?fileID=2800000&guid=ec168e9e7131b1f4a95b643ab807b8c1&type=3#error');
+}
+
+#ConfirmNewPlanet .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/check.png?fileID=2800000&guid=403d2f92ce90f5b4ebfb040afdb03851&type=3#check');
+}
+
+#CancelDeletePlanet .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/error.png?fileID=2800000&guid=ec168e9e7131b1f4a95b643ab807b8c1&type=3#error');
+}
+
+#ConfirmDeletePlanet .Icon {
+    background-image: url('project://database/Assets/Framework/UI/MainMenu/Icons/check.png?fileID=2800000&guid=403d2f92ce90f5b4ebfb040afdb03851&type=3#check');
+}
+
+#Left {
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    translate: 0.1% 0;
+}
+
+#Left.Hidden {
+    translate: -100% 0;
+}
+
+#Right {
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    translate: 0.1% 0;
+}
+
+#Right.Hidden {
+    translate: 100% 0;
+}
+
+#Header {
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    translate: 0 0.1%;
+}
+
+#Header.Hidden {
+    translate: 0 -100%;
+}
+
+#Footer {
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    translate: 0 0.1%;
+}
+
+#Footer.Hidden {
+    translate: 0 100%;
+}
+
+#NewPlanetInput > Label {
+    -unity-text-align: upper-center;
+    font-size: 30px;
+    color: rgb(255, 255, 255);
+    -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway/Raleway-ExtraLight%20SDF.asset?fileID=11400000&guid=154387a1eeff7f24da0a76270189b508&type=2#Raleway-ExtraLight SDF');
+    -unity-font: url('project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Light.ttf?fileID=12800000&guid=1e4724edc335041458658f2bc32fabd8&type=3#Raleway-Light');
+}
+
+#NewPlanetInput > TextInput {
+    font-size: 24px;
+    width: 100%;
+    -unity-text-align: upper-center;
+    margin-left: 25px;
+    margin-right: 25px;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgba(255, 255, 255, 0.7);
+    border-right-color: rgba(255, 255, 255, 0.7);
+    border-top-color: rgba(255, 255, 255, 0.7);
+    border-bottom-color: rgba(255, 255, 255, 0.7);
+    color: rgb(255, 255, 255);
+    -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway%20SDF.asset?fileID=11400000&guid=63109fddb78715f489a34a7e86eb1926&type=2#Raleway SDF');
+    -unity-font: url('project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Bold.ttf?fileID=12800000&guid=dbe3c3546677f8f4cbb54d830e9a59f5&type=3#Raleway-Bold');
+}
+
+#NewPlanetInput.Error > TextInput {
+    border-left-color: rgba(255, 0, 0, 0.7);
+    border-right-color: rgba(255, 0, 0, 0.7);
+    border-top-color: rgba(255, 0, 0, 0.7);
+    border-bottom-color: rgba(255, 0, 0, 0.7);
+    -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway%20SDF.asset?fileID=11400000&guid=63109fddb78715f489a34a7e86eb1926&type=2#Raleway SDF');
+}
+
+.Popup {
+    background-color: rgba(0, 0, 0, 0.7);
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    transition-duration: 0.3s;
+}
+
+.Popup.Hidden {
+    display: none;
+    scale: 0.001 0.001;
+}
+
+.Title.Hidden {
+    display: none;
+}

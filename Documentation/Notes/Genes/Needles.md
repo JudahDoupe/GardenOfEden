@@ -1,1 +1,0 @@
-Needles are a type of elongated [[Foliage]] with minimal surface area.  They are generally resilient to environmental change, but their small size means that plants need large numbers of them.  Furthermore they are typically more water efficient, with the trade off of producing less energy per surface area.     

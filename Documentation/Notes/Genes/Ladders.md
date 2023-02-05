@@ -1,1 +1,0 @@
-Ladders are a type of [[Parallel Leaves]] that do not grow indefinitly.  Ladders grow a set defined number of parallel leaves in one growth transformation and do not contain terminal buds.  See Honey Suckle.

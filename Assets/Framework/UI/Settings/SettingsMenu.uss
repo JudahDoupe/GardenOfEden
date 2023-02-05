@@ -1,0 +1,76 @@
+VisualElement {
+}
+
+.TabButton {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    width: 250px;
+    -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway/Raleway-SemiBold%20SDF.asset?fileID=11400000&guid=39dda5a3b21eb784c98e93ce0bcfe601&type=2#Raleway-SemiBold SDF');
+    font-size: 18px;
+    -unity-text-align: middle-left;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: rgba(255, 255, 255, 0.7);
+    transition-duration: 0.1s;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 2px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-left-color: rgb(64, 64, 64);
+    border-right-color: rgb(64, 64, 64);
+    border-top-color: rgb(64, 64, 64);
+    border-bottom-color: rgb(64, 64, 64);
+}
+
+.TabButton:hover {
+    color: rgb(255, 255, 255);
+    padding-left: 25px;
+}
+
+.Hidden {
+    display: none;
+}
+
+.Title {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 10px;
+    -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway/Raleway-ExtraLight%20SDF.asset?fileID=11400000&guid=154387a1eeff7f24da0a76270189b508&type=2#Raleway-ExtraLight SDF');
+    -unity-font: url('project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Light.ttf?fileID=12800000&guid=1e4724edc335041458658f2bc32fabd8&type=3#Raleway-Light');
+    font-size: 28px;
+    -unity-text-align: upper-center;
+    color: rgb(255, 255, 255);
+    -unity-font-style: normal;
+}
+
+Slider {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+Slider > Label {
+    font-size: 20px;
+    width: 250px;
+    -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway%20SDF.asset?fileID=11400000&guid=63109fddb78715f489a34a7e86eb1926&type=2#Raleway SDF');
+    -unity-font: url('project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Light.ttf?fileID=12800000&guid=1e4724edc335041458658f2bc32fabd8&type=3#Raleway-Light');
+    color: rgb(255, 255, 255);
+}
+
+Slider > VisualElement {
+    align-items: center;
+    flex-direction: row;
+}
+
+Slider #unity-dragger {
+    scale: 2 2;
+}

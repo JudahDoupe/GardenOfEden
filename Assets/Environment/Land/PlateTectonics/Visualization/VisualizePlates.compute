@@ -1,0 +1,29 @@
+#pragma kernel OutlineAllPlates
+#pragma kernel OutlinePlates
+
+struct OutlinedPlate
+{
+    float Id;
+}; 
+RWStructuredBuffer<OutlinedPlate> OutlinedPlates;
+Texture2DArray<float> ContinentalIdMap; 
+RWTexture2DArray<float> VisualizedContinentalIdMap;
+
+uint NumPlates;
+
+[numthreads(8, 8, 6)]
+void OutlineAllPlates(uint3 id : SV_DispatchThreadID)
+{
+    VisualizedContinentalIdMap[id] = ContinentalIdMap[id];
+}
+
+[numthreads(8, 8, 6)]
+void OutlinePlates(uint3 id : SV_DispatchThreadID)
+{
+    int includePlate = 0;
+    for (uint i = 0; i < NumPlates; i++)
+    {
+        includePlate = includePlate || ContinentalIdMap[id] == OutlinedPlates[i].Id;
+    }
+    VisualizedContinentalIdMap[id] = ContinentalIdMap[id] * includePlate;
+}

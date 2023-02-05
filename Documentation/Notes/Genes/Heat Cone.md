@@ -1,1 +1,0 @@
-Heat Cones are a type of [[Cone]] that release their seeds when they are in an environment within a specific tempurature range.
