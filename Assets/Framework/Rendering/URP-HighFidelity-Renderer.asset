@@ -69,7 +69,7 @@ MonoBehaviour:
   m_Name: OutlineLayerFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  InjectionPoint: 300
+  InjectionPoint: 1000
   LayerName: Land
   ReplacementMaterial: {fileID: 2100000, guid: 6506b8ffe02abb843a2a77e6c23788f7, type: 2}
   OutlineMaterial: {fileID: 2100000, guid: cf68a52a0f209504d80ed3b341bb21f7, type: 2}

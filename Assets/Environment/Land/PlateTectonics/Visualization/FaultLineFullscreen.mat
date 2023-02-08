@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FaultLineMaterial
+  m_Name: FaultLineFullscreen
   m_Shader: {fileID: -6465566751694194690, guid: 5d7eee92ccc0c7c4e8c3cf8f33ff08c3,
     type: 3}
   m_Parent: {fileID: 0}
@@ -103,7 +103,7 @@ Material:
     - OutlineThickness: 0.0005
     - OutlineThreshold: 1
     - OutlineTightening: 1
-    - Transparency: 0
+    - Transparency: 1
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1
