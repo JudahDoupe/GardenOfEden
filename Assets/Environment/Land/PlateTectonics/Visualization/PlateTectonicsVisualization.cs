@@ -77,7 +77,7 @@ public class PlateTectonicsVisualization : MonoBehaviour
 
     public void HideOutlines()
     {
-        //FaultLineMaterial.SetFloat("Transparency", 0);
+        FaultLineMaterial.SetFloat("Transparency", 0);
     }
 
 

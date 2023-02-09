@@ -103,7 +103,7 @@ Material:
     - OutlineThickness: 0.0005
     - OutlineThreshold: 1
     - OutlineTightening: 1
-    - Transparency: 1
+    - Transparency: 0
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1
