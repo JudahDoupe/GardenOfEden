@@ -1,12 +1,11 @@
 using Unity.Burst;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
 
 [BurstCompile]
 [UpdateInGroup(typeof(SimulationSystemGroup))]
 public partial struct DnaSystem : ISystem
 {
+
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
@@ -20,15 +19,16 @@ public partial struct DnaSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-    }
-}
+        var ecbSingleton = SystemAPI.GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>();
+        var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
 
-[BurstCompile]
-public partial struct DnaJob : IJobEntity
-{
-    [BurstCompile]
-    private void Execute(Parent parent, PrimaryGrowthTarget growth)
-    {
-        //TODO: if a parent has DNA but the entity does not, copy dna
+        foreach (var (copyDna, e) in SystemAPI.Query<RefRO<CopyDna>>()
+                                              .WithAll<Dna>()
+                                              .WithEntityAccess())
+        {
+            var originalDna = SystemAPI.GetComponent<Dna>(copyDna.ValueRO.DnaSource);
+            ecb.SetComponent(e, originalDna);
+            ecb.RemoveComponent<CopyDna>(e);
+        }
     }
 }

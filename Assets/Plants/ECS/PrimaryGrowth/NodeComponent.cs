@@ -1,23 +1,23 @@
 using Unity.Entities;
 using UnityEngine;
 
-public struct NodeRenderer : IComponentData
+public struct Node : IComponentData
 {
     public Entity NodeRendererEntity;
     public Entity InternodeRendererEntity;
 }
 
-public class NodeRendererComponent : MonoBehaviour
+public class NodeComponent : MonoBehaviour
 {
     public GameObject NodeRenderer;
     public GameObject InternodeRenderer;
 }
 
-public class NodeRendererComponentBaker : Baker<NodeRendererComponent>
+public class NodeComponentBaker : Baker<NodeComponent>
 {
-    public override void Bake(NodeRendererComponent authoring)
+    public override void Bake(NodeComponent authoring)
     {
-        AddComponent(new NodeRenderer
+        AddComponent(new Node
         {
             NodeRendererEntity = GetEntity(authoring.NodeRenderer),
             InternodeRendererEntity = GetEntity(authoring.InternodeRenderer)

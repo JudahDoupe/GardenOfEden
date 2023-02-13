@@ -15,4 +15,5 @@ public readonly partial struct NodeDivisionAspect : IAspect
     public bool IsReadyToDivide => _size.ValueRO.NodeSize > 0.99f;
     public Entity Structure => _dna.ValueRO.StructurePrefab;
     public Entity Parent => _parent.ValueRO.Value;
+    public Dna Dna => _dna.ValueRO;
 }

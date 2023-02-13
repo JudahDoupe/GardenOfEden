@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
+using UnityEngine;
 
 [BurstCompile]
 [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -44,6 +45,7 @@ public partial struct NodeDivisionJob : IJobEntity
             Value = division.Parent,
         });
         Ecb.SetComponent(newNode, division.Transform.LocalTransform);
+        Ecb.SetComponent(newNode, division.Dna);
         Ecb.DestroyEntity(division.Entity);
     }
 }
