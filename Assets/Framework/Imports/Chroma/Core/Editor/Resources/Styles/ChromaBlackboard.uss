@@ -1,0 +1,65 @@
+/* All Chroma pills. */
+.chroma #pill #node-border {
+    -unity-background-image-tint-color: #dfffff;
+}
+
+/* Pure attributes. */
+.chroma-pure-attribute #pill #node-border {
+    border-color: #999999;
+    background-image: none;
+    -unity-font-style: italic;
+}
+
+.chroma-pure-attribute #icon {
+    display: none;
+}
+
+/* Headers. */
+.chroma-header {
+    margin-top: 5px;
+}
+
+.blackboardRow .chroma-header #contents #top #title-label {
+    margin: 2px;
+    font-size: 140%;
+    -unity-font-style: bold;
+}
+
+/* Spaces. */
+.chroma-space {
+    margin-top: 6px;
+}
+
+/* Gradients, curves, minmax, etc. */
+.chroma-specific #pill #node-border {
+    border-color: #7a8a8a;
+}
+
+/* Tabs. */
+.chroma-tab-1 {
+    margin-left: 10px;
+}
+.chroma-tab-2 {
+    margin-left: 20px;
+}
+.chroma-tab-3 {
+    margin-left: 30px;
+}
+.chroma-tab-4 {
+    margin-left: 40px;
+}
+.chroma-tab-5 {
+    margin-left: 50px;
+}
+.chroma-tab-6 {
+    margin-left: 60px;
+}
+.chroma-tab-7 {
+    margin-left: 70px;
+}
+.chroma-tab-8 {
+    margin-left: 80px;
+}
+.chroma-tab-9 {
+    margin-left: 90px;
+}

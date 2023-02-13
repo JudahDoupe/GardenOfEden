@@ -157,7 +157,6 @@
     font-size: 30px;
     color: rgb(255, 255, 255);
     -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway/Raleway-ExtraLight%20SDF.asset?fileID=11400000&guid=154387a1eeff7f24da0a76270189b508&type=2#Raleway-ExtraLight SDF');
-    -unity-font: url('project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Light.ttf?fileID=12800000&guid=1e4724edc335041458658f2bc32fabd8&type=3#Raleway-Light');
 }
 
 #NewPlanetInput > TextInput {
@@ -187,7 +186,6 @@
     border-bottom-color: rgba(255, 255, 255, 0.7);
     color: rgb(255, 255, 255);
     -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway%20SDF.asset?fileID=11400000&guid=63109fddb78715f489a34a7e86eb1926&type=2#Raleway SDF');
-    -unity-font: url('project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Bold.ttf?fileID=12800000&guid=dbe3c3546677f8f4cbb54d830e9a59f5&type=3#Raleway-Bold');
 }
 
 #NewPlanetInput.Error > TextInput {

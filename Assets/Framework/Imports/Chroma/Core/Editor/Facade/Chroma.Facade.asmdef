@@ -1,0 +1,37 @@
+{
+    "name": "Chroma.Facade",
+    "rootNamespace": "",
+    "references": [
+        "GUID:343deaaf83e0cee4ca978e7df0b80d21",
+        "GUID:be0903cd8e1546f498710afdc59db5eb",
+        "GUID:c579267770062bf448e75eb160330b7f",
+        "GUID:78bd2ddd6e276394a9615c203e574844"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "10",
+            "define": "HAS_URP"
+        },
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "11",
+            "define": "HAS_HDRP"
+        },
+        {
+            "name": "com.unity.shadergraph",
+            "expression": "10",
+            "define": "HAS_SG"
+        }
+    ],
+    "noEngineReferences": false
+}

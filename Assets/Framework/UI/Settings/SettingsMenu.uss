@@ -46,7 +46,6 @@ VisualElement {
     padding-top: 0;
     padding-bottom: 10px;
     -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway/Raleway-ExtraLight%20SDF.asset?fileID=11400000&guid=154387a1eeff7f24da0a76270189b508&type=2#Raleway-ExtraLight SDF');
-    -unity-font: url('project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Light.ttf?fileID=12800000&guid=1e4724edc335041458658f2bc32fabd8&type=3#Raleway-Light');
     font-size: 28px;
     -unity-text-align: upper-center;
     color: rgb(255, 255, 255);
@@ -62,7 +61,6 @@ Slider > Label {
     font-size: 20px;
     width: 250px;
     -unity-font-definition: url('project://database/Assets/Framework/UI/Common/Fonts/Raleway%20SDF.asset?fileID=11400000&guid=63109fddb78715f489a34a7e86eb1926&type=2#Raleway SDF');
-    -unity-font: url('project://database/Assets/_Gameplay/UI/Common/Fonts/Raleway/Raleway-Light.ttf?fileID=12800000&guid=1e4724edc335041458658f2bc32fabd8&type=3#Raleway-Light');
     color: rgb(255, 255, 255);
 }
 

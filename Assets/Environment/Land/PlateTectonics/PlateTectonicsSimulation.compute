@@ -39,7 +39,7 @@ void UpdateContinentalIdMap(uint3 id : SV_DispatchThreadID)
 		}
 	}
 
-	int neighborCount = 0;
+	float neighborCount = 0;
 	for (int x = -PlateCohesionKernelSize; x <= PlateCohesionKernelSize; x++)
 	{
 		for (int y = -PlateCohesionKernelSize; y <= PlateCohesionKernelSize; y++)
