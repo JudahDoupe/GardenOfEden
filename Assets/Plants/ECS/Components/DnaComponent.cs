@@ -1,15 +1,16 @@
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public struct Dna : IComponentData
 {
-    public Entity StructurePrefab;
+    public Entity SupportStructurePrefab;
 }
 
 
 public class DnaComponent : MonoBehaviour
 {
-    public GameObject StructurePrefab;
+    public GameObject SupportStructurePrefab;
 }
 
 public class DnaComponentBaker : Baker<DnaComponent>
@@ -18,7 +19,7 @@ public class DnaComponentBaker : Baker<DnaComponent>
     {
         AddComponent(new Dna
         {
-            StructurePrefab = GetEntity(authoring.StructurePrefab)
+            SupportStructurePrefab = GetEntity(authoring.SupportStructurePrefab)
         });
     }
 }
