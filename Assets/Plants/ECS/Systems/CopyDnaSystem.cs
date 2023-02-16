@@ -20,7 +20,8 @@ public partial struct CopyDnaSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var beginSimulation = SystemAPI.GetSingleton<BeginPlantSimulationEntityCommandBufferSystem>().CreateCommandBuffer(state.WorldUnmanaged);
+        var beginSimulation = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
+                                       .CreateCommandBuffer(state.WorldUnmanaged);
         var dnaLookup = SystemAPI.GetComponentLookup<Dna>(isReadOnly: true);
 
         foreach (var (dnaSource, dna, entity) in SystemAPI.Query<RefRO<DnaSource>, RefRW<Dna>>().WithEntityAccess())

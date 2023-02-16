@@ -25,7 +25,7 @@ public partial struct RelinkNodesSystem : ISystem
                                      .WithNone<LinkedEntityGroup>()
                                      .WithAll<Child>()
                                      .Build();
-
+        var cmd = new EntityCommandBuffer(Allocator.Temp);
         new RelinkNewNodesJob
         {
             Ecb = endInitialization.CreateCommandBuffer(state.WorldUnmanaged),

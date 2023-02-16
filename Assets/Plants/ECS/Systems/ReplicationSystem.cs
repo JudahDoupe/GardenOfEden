@@ -1,4 +1,5 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 
@@ -19,12 +20,12 @@ public partial struct ReplicationSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var beginInitialization = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>();
-        
+        using var ecb = new EntityCommandBuffer(Allocator.TempJob);
         new InstantiateStructureJob
         {
-            Ecb = beginInitialization.CreateCommandBuffer(state.WorldUnmanaged),
+            Ecb = ecb,
         }.Run();
+        ecb.Playback(state.EntityManager);
     }
 }
 
