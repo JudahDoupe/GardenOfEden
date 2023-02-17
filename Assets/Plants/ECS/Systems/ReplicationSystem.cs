@@ -2,20 +2,17 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
+using UnityEngine;
 
 [BurstCompile]
 [UpdateInGroup(typeof(SimulationSystemGroup))]
 public partial struct ReplicationSystem : ISystem
 {
     [BurstCompile]
-    public void OnCreate(ref SystemState state)
-    {
-    }
+    public void OnCreate(ref SystemState state) { }
 
     [BurstCompile]
-    public void OnDestroy(ref SystemState state)
-    {
-    }
+    public void OnDestroy(ref SystemState state) { }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
@@ -23,7 +20,7 @@ public partial struct ReplicationSystem : ISystem
         using var ecb = new EntityCommandBuffer(Allocator.TempJob);
         new InstantiateStructureJob
         {
-            Ecb = ecb,
+            Ecb = ecb
         }.Run();
         ecb.Playback(state.EntityManager);
     }
@@ -38,16 +35,19 @@ public partial struct InstantiateStructureJob : IJobEntity
     private void Execute(Entity entity, ReplicationAspect division)
     {
         if (!division.IsReadyToDivide) return;
-        
+
         var newNode = Ecb.Instantiate(division.SupportStructure);
-        Ecb.AddComponent(newNode, new Parent()
+        Ecb.AddComponent(newNode, new Parent
         {
-            Value = division.Parent,
+            Value = division.Parent
         });
         Ecb.SetComponent(newNode, division.Transform.LocalTransform);
         Ecb.SetComponent(newNode, division.Dna);
-        Ecb.DestroyEntity(entity);
         
+        //TODO: we probably want to make the entity to kill itself over time
+        //Ecb.DestroyEntity(entity);
+        Ecb.RemoveComponent<Replicator>(entity);
+
         //We remove the linked entity groups so that they can be reinitialized
         Ecb.RemoveComponent<LinkedEntityGroup>(newNode);
         Ecb.RemoveComponent<LinkedEntityGroup>(division.Parent);

@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 [BurstCompile]
 [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -24,7 +25,7 @@ public partial struct PrimaryGrowthSystem : ISystem
         new PrimaryGrowthJob
         {
             DeltaTime = deltaTime,
-        }.Run();
+        }.ScheduleParallel();
     }
 }
 
@@ -36,8 +37,6 @@ public partial struct PrimaryGrowthJob : IJobEntity
     [BurstCompile]
     private void Execute(GrowthAspect growth)
     {
-        growth.Size.ValueRW.NodeRadius = math.lerp(growth.Size.ValueRO.NodeRadius, growth.PrimaryGrowthTarget.ValueRO.NodeRadius, DeltaTime);
-        growth.Size.ValueRW.InternodeLength = math.lerp(growth.Size.ValueRO.InternodeLength, growth.PrimaryGrowthTarget.ValueRO.InternodeLength, DeltaTime);
-        growth.Transform.LocalPosition = new float3(0,0, growth.Size.ValueRO.InternodeLength);
+        growth.Grow(DeltaTime);
     }
 }
