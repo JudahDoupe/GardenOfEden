@@ -116,6 +116,18 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_6c1fc8eb84614f62bc078015dc76085d_Texture_1:
+        m_Texture: {fileID: 2800000, guid: b39944f049c66b241b5af3662b50ddc0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_dd47dab1d6fc454aa8de8836876d22a2_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 54dec0cb7f183b743be741a404917eba, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_fc69a52d2a6140e78b740a709033be23_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 583763b96e9a12841ba18a8d863e8c61, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -153,9 +165,12 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
+    - _FPS: 10
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
+    - _LumpHeight: 0.1
+    - _LumpSize: 0.7
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
