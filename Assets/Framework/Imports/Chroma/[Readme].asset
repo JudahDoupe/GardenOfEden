@@ -39,5 +39,6 @@ MonoBehaviour:
     atime6: 65535
     atime7: 65535
     m_Mode: 0
+    m_ColorSpace: -1
     m_NumColorKeys: 4
     m_NumAlphaKeys: 6

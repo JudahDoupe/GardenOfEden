@@ -8,16 +8,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3671451741412616624}
     m_Modifications:
-    - target: {fileID: 4015208268944160731, guid: 1b05d899208b0ba4fa00b7e346753e8e,
-        type: 3}
-      propertyPath: NodeRadius
-      value: 0.9
-      objectReference: {fileID: 0}
-    - target: {fileID: 4015208268944160731, guid: 1b05d899208b0ba4fa00b7e346753e8e,
-        type: 3}
-      propertyPath: InternodeLength
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 4741056965193414358, guid: 1b05d899208b0ba4fa00b7e346753e8e,
         type: 3}
       propertyPath: m_Name

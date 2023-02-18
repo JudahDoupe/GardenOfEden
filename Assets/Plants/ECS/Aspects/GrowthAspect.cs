@@ -4,11 +4,11 @@ using Unity.Transforms;
 
 public readonly partial struct GrowthAspect : IAspect
 {
-    private readonly TransformAspect _transform;
+    public readonly TransformAspect Transform;
     private readonly RefRO<PrimaryGrowth> _primaryGrowthTarget;
     private readonly RefRW<Size> _size;
 
-    public bool IsMature => _size.ValueRO.NodeRadius > 0.9f;
+    public bool IsMature => (MaxNodeRadius * 0.99) < NodeRadius;
     public float MaxNodeRadius => _primaryGrowthTarget.ValueRO.NodeRadius;
     public float MaxInternodeLength => _primaryGrowthTarget.ValueRO.InternodeLength;
 
@@ -34,6 +34,6 @@ public readonly partial struct GrowthAspect : IAspect
         var requestedInternodeEnergy = math.min(energy, MaxInternodeLength - InternodeLength);
         InternodeLength += requestedInternodeEnergy;
 
-        _transform.LocalPosition = _transform.LocalTransform.Forward() * InternodeLength;
+        Transform.LocalPosition = Transform.LocalTransform.Forward() * InternodeLength;
     }
 }

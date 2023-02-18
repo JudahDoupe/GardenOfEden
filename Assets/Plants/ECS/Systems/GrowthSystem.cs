@@ -1,21 +1,16 @@
 using Unity.Burst;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
 
 [BurstCompile]
-[UpdateInGroup(typeof(SimulationSystemGroup))]
-public partial struct PrimaryGrowthSystem : ISystem
+[UpdateInGroup(typeof(PlantSimulationGroup))]
+[UpdateAfter(typeof(ReplicationSystem))]
+public partial struct GrowthSystem : ISystem
 {
     [BurstCompile]
-    public void OnCreate(ref SystemState state)
-    {
-    }
+    public void OnCreate(ref SystemState state) { }
 
     [BurstCompile]
-    public void OnDestroy(ref SystemState state)
-    {
-    }
+    public void OnDestroy(ref SystemState state) { }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
@@ -24,8 +19,8 @@ public partial struct PrimaryGrowthSystem : ISystem
 
         new PrimaryGrowthJob
         {
-            DeltaTime = deltaTime,
-        }.ScheduleParallel();
+            DeltaTime = deltaTime
+        }.Run();
     }
 }
 

@@ -5,11 +5,16 @@ using Unity.Mathematics;
 using Unity.Transforms;
 
 [BurstCompile]
-[UpdateInGroup(typeof(SimulationSystemGroup))]
+[UpdateInGroup(typeof(PlantSimulationGroup))]
 public partial struct NodeRendererSystem : ISystem
 {
+    private ComponentLookup<Size> _sizeLookup;
+
     [BurstCompile]
-    public void OnCreate(ref SystemState state) { }
+    public void OnCreate(ref SystemState state)
+    {
+        _sizeLookup = SystemAPI.GetComponentLookup<Size>(true);
+    }
 
     [BurstCompile]
     public void OnDestroy(ref SystemState state) { }
@@ -17,15 +22,16 @@ public partial struct NodeRendererSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var sizeLookup = SystemAPI.GetComponentLookup<Size>(true);
+        _sizeLookup.Update(ref state);
+
         new NodeRendererJob
         {
-            SizeLookup = sizeLookup
-        }.ScheduleParallel();
+            SizeLookup = _sizeLookup
+        }.Run();
         new CalculateInternodeRendererDataJob
         {
-            SizeLookup = sizeLookup
-        }.ScheduleParallel();
+            SizeLookup = _sizeLookup
+        }.Run();
     }
 }
 

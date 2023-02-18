@@ -7,15 +7,16 @@ using Unity.Transforms;
 [UpdateInGroup(typeof(LateSimulationSystemGroup))]
 public partial struct RelinkNodesSystem : ISystem
 {
+    private BufferLookup<Child> _childLookup;
+
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
+        _childLookup = state.GetBufferLookup<Child>(true);
     }
 
     [BurstCompile]
-    public void OnDestroy(ref SystemState state)
-    {
-    }
+    public void OnDestroy(ref SystemState state) { }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
@@ -25,10 +26,11 @@ public partial struct RelinkNodesSystem : ISystem
                                      .WithNone<LinkedEntityGroup>()
                                      .WithAll<Child>()
                                      .Build();
+        _childLookup.Update(ref state);
         new RelinkNewNodesJob
         {
             Ecb = endInitialization.CreateCommandBuffer(state.WorldUnmanaged),
-            ChildLookup = state.GetBufferLookup<Child>(isReadOnly: true)
+            ChildLookup = _childLookup
         }.Run(unlinkedNodes);
     }
 }
@@ -38,7 +40,8 @@ public partial struct RelinkNewNodesJob : IJobEntity
 {
     public EntityCommandBuffer Ecb;
 
-    [ReadOnly] public BufferLookup<Child> ChildLookup;
+    [ReadOnly]
+    public BufferLookup<Child> ChildLookup;
 
 
     [BurstCompile]

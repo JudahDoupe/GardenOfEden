@@ -2,32 +2,34 @@ using Unity.Burst;
 using Unity.Entities;
 
 [BurstCompile]
-[UpdateInGroup(typeof(SimulationSystemGroup))]
+[UpdateInGroup(typeof(LateSimulationSystemGroup))]
 public partial struct CopyDnaSystem : ISystem
 {
+    private ComponentLookup<Dna> _dnaLookup;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
+        _dnaLookup = SystemAPI.GetComponentLookup<Dna>(true);
     }
 
     [BurstCompile]
-    public void OnDestroy(ref SystemState state)
-    {
-    }
+    public void OnDestroy(ref SystemState state) { }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var beginSimulation = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
-                                       .CreateCommandBuffer(state.WorldUnmanaged);
-        var dnaLookup = SystemAPI.GetComponentLookup<Dna>(isReadOnly: true);
+        var commandBuffer = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                                     .CreateCommandBuffer(state.WorldUnmanaged);
+        _dnaLookup.Update(ref state);
 
         foreach (var (dnaSource, dna, entity) in SystemAPI.Query<RefRO<DnaSource>, RefRW<Dna>>().WithEntityAccess())
         {
-            var sourceDna = dnaLookup[dnaSource.ValueRO.Source];
+            var sourceDna = _dnaLookup[dnaSource.ValueRO.Source];
+
             dna.ValueRW.SupportStructurePrefab = sourceDna.SupportStructurePrefab;
-            beginSimulation.RemoveComponent<DnaSource>(entity);
+
+            commandBuffer.RemoveComponent<DnaSource>(entity);
         }
     }
 }
