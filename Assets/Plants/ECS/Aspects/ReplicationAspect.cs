@@ -10,7 +10,7 @@ public readonly partial struct ReplicationAspect : IAspect
     private readonly RefRO<Replicator> _nodeDivision;
 
     public readonly GrowthAspect Growth;
-    public TransformAspect Transform => Growth.Transform;
+    public LocalTransform LocalTransform => Growth.LocalTransform;
     
     public bool IsReadyToDivide => Growth.IsMature;
     public Entity SupportStructure => _dna.ValueRO.SupportStructurePrefab;

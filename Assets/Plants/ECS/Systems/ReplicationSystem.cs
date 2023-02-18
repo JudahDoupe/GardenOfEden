@@ -40,7 +40,7 @@ public partial struct InstantiateStructureJob : IJobEntity
         {
             Value = division.Parent
         });
-        Ecb.SetComponent(newNode, division.Transform.LocalTransform);
+        Ecb.SetComponent(newNode, division.LocalTransform);
         Ecb.SetComponent(newNode, division.Dna);
 
         //TODO: we probably want to make the entity to kill itself over time
