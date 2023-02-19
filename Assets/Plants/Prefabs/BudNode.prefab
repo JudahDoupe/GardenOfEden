@@ -84,6 +84,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5018789576690931080, guid: 0eb1d8c9715c5e3479452da96a63e097,
         type: 3}
+    - target: {fileID: 6573767627076674713, guid: e3184ca5db0394142a0a4f3792e648e1,
+        type: 3}
+      propertyPath: Stiffness
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6958411985755041341, guid: e3184ca5db0394142a0a4f3792e648e1,
         type: 3}
       propertyPath: m_Materials.Array.data[0]

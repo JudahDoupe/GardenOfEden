@@ -125,7 +125,7 @@ public class MergePlateTool : MonoBehaviour, ITool
     {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
         var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out var hit, distance)) return new Coordinate(hit.point, Planet.LocalToWorld);
+        if (UnityEngine.Physics.Raycast(ray, out var hit, distance)) return new Coordinate(hit.point, Planet.LocalToWorld);
         return null;
     }
 }

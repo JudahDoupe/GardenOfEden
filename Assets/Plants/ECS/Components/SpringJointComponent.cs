@@ -6,12 +6,9 @@ public struct SpringJoint : IComponentData
 {
     public float Stiffness;
     public float3 EquilibriumPosition;
+    public float FixedLength;
 }
 
-public struct Force : IComponentData
-{
-    public float3 Value;
-}
 
 public class SpringJointComponent : MonoBehaviour
 {
@@ -25,7 +22,8 @@ public class SpringJointComponentBaker : Baker<SpringJointComponent>
         AddComponent(new SpringJoint
         {
             Stiffness = authoring.Stiffness,
+            EquilibriumPosition = float3.zero,
+            FixedLength = 0,
         });
-        AddComponent(new Force());
     }
 }

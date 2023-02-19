@@ -95,7 +95,7 @@ public class MovePlateTool : MonoBehaviour, ITool
     {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
         var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        var targetPos = Physics.Raycast(ray, out var hit, distance) ? hit.point : Camera.main.transform.position + ray.direction * distance;
+        var targetPos = UnityEngine.Physics.Raycast(ray, out var hit, distance) ? hit.point : Camera.main.transform.position + ray.direction * distance;
         targetPos = new Coordinate(targetPos, Planet.LocalToWorld).LocalPlanet;
         var plate = _data.GetPlate(_currentPlateId);
 
@@ -119,7 +119,7 @@ public class MovePlateTool : MonoBehaviour, ITool
     {
         var distance = Vector3.Distance(Planet.Transform.position, Camera.main.transform.position);
         var ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out var hit, distance))
+        if (UnityEngine.Physics.Raycast(ray, out var hit, distance))
         {
             var coord = new Coordinate(hit.point, Planet.LocalToWorld)
             {

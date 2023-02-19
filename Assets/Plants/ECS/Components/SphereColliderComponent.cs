@@ -16,6 +16,10 @@ public class SphereColliderComponentBaker : Baker<SphereColliderComponent>
 {
     public override void Bake(SphereColliderComponent authoring)
     {
-        AddComponent(new SphereCollider());
+        AddComponent(new SphereCollider
+        {
+            Center = new float3(0,0,0),
+            Radius = 0,
+        });
     }
 }

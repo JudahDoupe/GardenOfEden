@@ -3,7 +3,7 @@ using Unity.Entities;
 
 [BurstCompile]
 [UpdateInGroup(typeof(PlantSimulationGroup))]
-[UpdateAfter(typeof(ReplicationSystem))]
+[UpdateBefore(typeof(ReplicationSystem))]
 public partial struct GrowthSystem : ISystem
 {
     [BurstCompile]
@@ -32,6 +32,6 @@ public partial struct PrimaryGrowthJob : IJobEntity
     [BurstCompile]
     private void Execute(GrowthAspect growth)
     {
-        growth.Grow(DeltaTime);
+        growth.Grow(DeltaTime * 0.2f);
     }
 }

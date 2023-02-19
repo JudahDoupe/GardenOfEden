@@ -1,8 +1,8 @@
 {
   "dependencies": {
     "com.unity.collab-proxy": "2.0.0",
-    "com.unity.entities": "1.0.0-pre.15",
-    "com.unity.entities.graphics": "1.0.0-pre.15",
+    "com.unity.entities": "1.0.0-pre.44",
+    "com.unity.entities.graphics": "1.0.0-pre.44",
     "com.unity.ide.rider": "3.0.18",
     "com.unity.inputsystem": "1.4.4",
     "com.unity.render-pipelines.universal": "14.0.6",

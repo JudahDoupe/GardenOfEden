@@ -15,6 +15,7 @@ public static class Vector3Extensions
         return new[] {t.x, t.y, t.z};
     }
 
+    public static bool IsNan(this float3 t) => float.IsNaN(t.x) || float.IsNaN(t.y) || float.IsNaN(t.z);
     public static float3 ToFloat3(this Vector3 t) => new float3(t.x, t.y, t.z);
     public static Vector3 ToVector3(this float3 t) => new Vector3(t.x, t.y, t.z);
 
