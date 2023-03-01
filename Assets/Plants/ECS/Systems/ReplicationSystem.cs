@@ -3,29 +3,27 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 
-[BurstCompile]
 [UpdateInGroup(typeof(PlantSimulationGroup))]
 public partial struct ReplicationSystem : ISystem
 {
     [BurstCompile]
-    public void OnCreate(ref SystemState state) { }
-
-    [BurstCompile]
-    public void OnDestroy(ref SystemState state) { }
-
+    public void OnCreate(ref SystemState state)
+    {
+    }
+    
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         using var ecb = new EntityCommandBuffer(Allocator.TempJob);
+        state.Dependency.Complete(); 
         new InstantiateStructureJob
         {
-            Ecb = ecb
+            Ecb = ecb,
         }.Run();
         ecb.Playback(state.EntityManager);
     }
 }
 
-[BurstCompile]
 public partial struct InstantiateStructureJob : IJobEntity
 {
     public EntityCommandBuffer Ecb;

@@ -3,8 +3,8 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 
-[BurstCompile]
-[UpdateInGroup(typeof(LateSimulationSystemGroup))]
+[UpdateInGroup(typeof(PlantSimulationGroup))]
+[UpdateAfter(typeof(ReplicationSystem))]
 public partial struct RelinkNodesSystem : ISystem
 {
     private BufferLookup<Child> _childLookup;
@@ -16,29 +16,25 @@ public partial struct RelinkNodesSystem : ISystem
     }
 
     [BurstCompile]
-    public void OnDestroy(ref SystemState state) { }
-
-    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var endInitialization = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
+        var endSimulation = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
         var unlinkedNodes = SystemAPI.QueryBuilder()
                                      .WithNone<LinkedEntityGroup>()
                                      .WithAll<Child>()
                                      .Build();
         _childLookup.Update(ref state);
-        new RelinkNewNodesJob
+        state.Dependency = new RelinkNewNodesJob
         {
-            Ecb = endInitialization.CreateCommandBuffer(state.WorldUnmanaged),
+            Ecb = endSimulation.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
             ChildLookup = _childLookup
-        }.Run(unlinkedNodes);
+        }.ScheduleParallel(unlinkedNodes, state.Dependency);
     }
 }
 
-[BurstCompile]
 public partial struct RelinkNewNodesJob : IJobEntity
 {
-    public EntityCommandBuffer Ecb;
+    public EntityCommandBuffer.ParallelWriter Ecb;
 
     [ReadOnly]
     public BufferLookup<Child> ChildLookup;
@@ -47,16 +43,16 @@ public partial struct RelinkNewNodesJob : IJobEntity
     [BurstCompile]
     private void Execute(Entity entity)
     {
-        Ecb.AddBuffer<LinkedEntityGroup>(entity);
+        Ecb.AddBuffer<LinkedEntityGroup>(entity.Index, entity);
 
         if (!ChildLookup.TryGetBuffer(entity, out var children))
             return;
 
-        Ecb.AppendToBuffer(entity, new LinkedEntityGroup { Value = entity });
+        Ecb.AppendToBuffer(entity.Index, entity, new LinkedEntityGroup { Value = entity });
 
         for (int i = 0, childCount = children.Length; i < childCount; i++)
         {
-            Ecb.AppendToBuffer(entity, new LinkedEntityGroup { Value = children[i].Value });
+            Ecb.AppendToBuffer(entity.Index, entity, new LinkedEntityGroup { Value = children[i].Value });
         }
     }
 }

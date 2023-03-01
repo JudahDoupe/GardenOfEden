@@ -1,8 +1,8 @@
 using Unity.Burst;
 using Unity.Entities;
 
-[BurstCompile]
-[UpdateInGroup(typeof(LateSimulationSystemGroup))]
+[UpdateInGroup(typeof(PlantSimulationGroup))]
+[UpdateAfter(typeof(ReplicationSystem))]
 public partial struct CopyDnaSystem : ISystem
 {
     private ComponentLookup<Dna> _dnaLookup;
@@ -12,9 +12,6 @@ public partial struct CopyDnaSystem : ISystem
     {
         _dnaLookup = SystemAPI.GetComponentLookup<Dna>(true);
     }
-
-    [BurstCompile]
-    public void OnDestroy(ref SystemState state) { }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)

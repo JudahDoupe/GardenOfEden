@@ -4,8 +4,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-[BurstCompile]
 [UpdateInGroup(typeof(PlantSimulationGroup))]
+[UpdateAfter(typeof(ReplicationSystem))]
 public partial struct NodeRendererSystem : ISystem
 {
     private ComponentLookup<Size> _sizeLookup;
@@ -17,39 +17,35 @@ public partial struct NodeRendererSystem : ISystem
     }
 
     [BurstCompile]
-    public void OnDestroy(ref SystemState state) { }
-
-    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         _sizeLookup.Update(ref state);
 
-        new NodeRendererJob
+        state.Dependency = new NodeRendererJob
         {
             SizeLookup = _sizeLookup
-        }.Run();
-        new CalculateInternodeRendererDataJob
+        }.ScheduleParallel(state.Dependency);
+        state.Dependency = new InternodeRendererJob
         {
             SizeLookup = _sizeLookup
-        }.Run();
+        }.ScheduleParallel(state.Dependency);
     }
 }
 
-[BurstCompile]
 public partial struct NodeRendererJob : IJobEntity
 {
     [ReadOnly]
     public ComponentLookup<Size> SizeLookup;
 
     [BurstCompile]
-    private void Execute(NodeRenderer renderer, TransformAspect transformAspect)
+    private void Execute(NodeRenderer renderer, 
+                         ref LocalTransform transform)
     {
-        transformAspect.WorldScale = SizeLookup[renderer.Node].NodeRadius;
+        transform.Scale = SizeLookup[renderer.Node].NodeRadius;
     }
 }
 
-[BurstCompile]
-public partial struct CalculateInternodeRendererDataJob : IJobEntity
+public partial struct InternodeRendererJob : IJobEntity
 {
     [ReadOnly]
     public ComponentLookup<Size> SizeLookup;
