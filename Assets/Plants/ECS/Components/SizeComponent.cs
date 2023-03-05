@@ -1,10 +1,12 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 public struct Size : IComponentData
 {
     public float NodeRadius;
     public float InternodeLength;
+    public float3 LocalDirection;
 }
 
 public class SizeComponent : MonoBehaviour
@@ -21,6 +23,7 @@ public class SizeComponentBaker : Baker<SizeComponent>
         {
             NodeRadius = authoring.NodeRadius,
             InternodeLength = authoring.InternodeLength,
+            LocalDirection = authoring.transform.localRotation * Vector3.forward,
         });
     }
 }

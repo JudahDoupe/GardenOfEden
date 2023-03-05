@@ -110,9 +110,8 @@ GameObject:
   - component: {fileID: 4896783615440641951}
   - component: {fileID: 4951931473235392758}
   - component: {fileID: 4947821018196243757}
-  - component: {fileID: 6453604941708116033}
   - component: {fileID: 3517518653972876662}
-  - component: {fileID: 2185257833344262614}
+  - component: {fileID: -5114732912162142430}
   m_Layer: 0
   m_Name: Node
   m_TagString: Untagged
@@ -149,8 +148,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ec0432d2b994c078eaf9e47aaacd0bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NodeRadius: 0
-  InternodeLength: 0
+  NodeRadius: 0.01
+  InternodeLength: 0.01
 --- !u!114 &4896783615440641951
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,7 +163,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   NodeRadius: 1
-  InternodeLength: 0
+  InternodeLength: 0.01
 --- !u!114 &4951931473235392758
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -196,9 +195,9 @@ MonoBehaviour:
     y: 0
     z: 0
   m_PrimitiveSize:
-    x: 1.0000002
-    y: 1.0000002
-    z: 1.0000002
+    x: 0.02
+    y: 0.02
+    z: 0.02
   m_PrimitiveOrientation:
     Value:
       x: -0
@@ -206,15 +205,15 @@ MonoBehaviour:
       z: 0
     RotationOrder: 4
   m_Capsule:
-    Height: 1.0000002
-    Radius: 0.5000001
+    Height: 0.02
+    Radius: 0.01
     Axis: 2
   m_Cylinder:
-    Height: 1.0000002
-    Radius: 0.5000001
+    Height: 0.02
+    Radius: 0.01
     Axis: 2
   m_CylinderSideCount: 20
-  m_SphereRadius: 0.5000001
+  m_SphereRadius: 0.01
   m_MinimumSkinnedVertexWeight: 0.1
   m_ConvexHullGenerationParameters:
     m_SimplificationTolerance: 0.015000003
@@ -321,20 +320,6 @@ MonoBehaviour:
         Tag07: 0
     m_SerializedVersion: 1
   m_SerializedVersion: 1
---- !u!114 &6453604941708116033
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3857230089201966738}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8d4037d33b649b48b67ad0c0d73363d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  strength: 0.7
-  damping: 0.1
 --- !u!114 &3517518653972876662
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -386,7 +371,7 @@ MonoBehaviour:
     Tag05: 0
     Tag06: 0
     Tag07: 0
---- !u!114 &2185257833344262614
+--- !u!114 &-5114732912162142430
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -395,7 +380,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3857230089201966738}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aac4cbb04050700418dbd717777b24f1, type: 3}
+  m_Script: {fileID: 11500000, guid: b8d4037d33b649b48b67ad0c0d73363d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ConnectedBody: {fileID: 0}
@@ -404,16 +389,8 @@ MonoBehaviour:
     x: Infinity
     y: Infinity
     z: Infinity
-  EditPivots: 0
-  AutoSetConnected: 1
-  PositionLocal:
-    x: 0
-    y: 0
-    z: 0
-  PositionInConnectedEntity:
-    x: 0
-    y: 0
-    z: 0
+  Strength: 0.9
+  Damping: 0.5
 --- !u!1 &5760784771137944056
 GameObject:
   m_ObjectHideFlags: 0

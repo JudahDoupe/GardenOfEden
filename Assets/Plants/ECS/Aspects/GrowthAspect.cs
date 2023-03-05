@@ -1,10 +1,11 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Physics.Authoring;
 using Unity.Transforms;
 
 public readonly partial struct GrowthAspect : IAspect
 {
-    public readonly TransformAspect Transform;
     private readonly RefRO<PrimaryGrowth> _primaryGrowthTarget;
     private readonly RefRW<Size> _size;
 
@@ -33,7 +34,5 @@ public readonly partial struct GrowthAspect : IAspect
 
         var requestedInternodeEnergy = math.min(energy, MaxInternodeLength - InternodeLength);
         InternodeLength += requestedInternodeEnergy;
-
-        Transform.LocalPosition = Transform.LocalTransform.Forward() * InternodeLength;
     }
 }

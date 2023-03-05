@@ -1,18 +1,34 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Physics;
 
 [UpdateInGroup(typeof(PlantSimulationGroup))]
 [UpdateAfter(typeof(ReplicationSystem))]
 public partial struct GrowthSystem : ISystem
 {
+    private ComponentLookup<Size> _sizeLookup;
+
+    [BurstCompile]
+    public void OnCreate(ref SystemState state)
+    {
+        _sizeLookup = state.GetComponentLookup<Size>(true);
+    }
+
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var deltaTime = SystemAPI.Time.DeltaTime;
+        _sizeLookup.Update(ref state);
 
         state.Dependency = new PrimaryGrowthJob
         {
             DeltaTime = deltaTime
+        }.ScheduleParallel(state.Dependency);
+
+        state.Dependency = new UpdatePhysicsJob
+        {
+            SizeLookup = _sizeLookup,
         }.ScheduleParallel(state.Dependency);
     }
 }
@@ -22,8 +38,31 @@ public partial struct PrimaryGrowthJob : IJobEntity
     public float DeltaTime;
 
     [BurstCompile]
-    private void Execute(GrowthAspect growth)
+    private void Execute(GrowthAspect growth) 
     {
         growth.Grow(DeltaTime);
+    }
+}
+
+public partial struct UpdatePhysicsJob : IJobEntity
+{
+    [ReadOnly]
+    public ComponentLookup<Size> SizeLookup;
+
+    [BurstCompile]
+    private void Execute(RefRW<Spring> spring, RefRW<PhysicsJoint> joint, RefRO<PhysicsConstrainedBodyPair> bodyPair)
+    {
+        var nodeEntity = bodyPair.ValueRO.EntityA;
+
+        if (!SizeLookup.HasComponent(nodeEntity))
+            return;
+
+        var equilibriumPosition = SizeLookup[nodeEntity].LocalDirection * SizeLookup[nodeEntity].InternodeLength;
+        spring.ValueRW.EquilibriumPosition = equilibriumPosition;
+
+        joint.ValueRW.BodyAFromJoint = new BodyFrame(joint.ValueRO.BodyAFromJoint.AsRigidTransform())
+        {
+            Position = -equilibriumPosition,
+        };
     }
 }

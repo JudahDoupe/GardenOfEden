@@ -82,10 +82,10 @@ public struct SpringSystem : ISystem
             while (enumerator.NextEntityIndex(out var i))
             {
                 var spring = chunkSpring[i];
-                var node = spring.nodeEntity;
-                var parentNode = spring.nodeParentEntity;
+                var node = spring.NodeEntity;
+                var parentNode = spring.NodeParentEntity;
 
-                if (spring.strength == 0
+                if (spring.Strength == 0
                     || node == Entity.Null
                     || !Velocities.HasComponent(node))
                     continue;
@@ -117,11 +117,11 @@ public struct SpringSystem : ISystem
                 if (Masses.HasComponent(parentNode)) massB = Masses[parentNode];
 
                 var posA = math.transform(new RigidTransform(localTransformA.Rotation, localTransformA.Position), float3.zero);
-                var posB = math.transform(new RigidTransform(localTransformB.Rotation, localTransformB.Position), spring.nodeParentOffset);
+                var posB = math.transform(new RigidTransform(localTransformB.Rotation, localTransformB.Position), spring.EquilibriumPosition);
                 var lvA = velocityA.GetLinearVelocity(massA, localTransformA.Position, localTransformA.Rotation, posA);
                 var lvB = velocityB.GetLinearVelocity(massB, localTransformB.Position, localTransformB.Rotation, posB);
 
-                var impulse = spring.strength * (posB - posA) + spring.damping * (lvB - lvA);
+                var impulse = spring.Strength * (posB - posA) + spring.Damping * (lvB - lvA);
                 impulse = math.clamp(impulse, new float3(-100.0f), new float3(100.0f));
                 velocityA.ApplyImpulse(massA, localTransformA.Position, localTransformA.Rotation, impulse, posA);
 

@@ -14,6 +14,7 @@ public partial struct ReplicationSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        return;
         using var ecb = new EntityCommandBuffer(Allocator.TempJob);
         state.Dependency.Complete(); 
         new InstantiateStructureJob
