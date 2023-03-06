@@ -22,8 +22,10 @@ public class SizeComponentBaker : Baker<SizeComponent>
         AddComponent(new Size
         {
             NodeRadius = authoring.NodeRadius,
-            InternodeLength = math.max(authoring.InternodeLength,0.001f),
-            LocalDirection = authoring.transform.parent.InverseTransformDirection(authoring.transform.forward),
+            InternodeLength = math.max(authoring.InternodeLength, 0.001f),
+            LocalDirection = authoring.transform.parent != null
+                             ? authoring.transform.parent.InverseTransformDirection(authoring.transform.forward)
+                             : Vector3.forward
         });
     }
 }

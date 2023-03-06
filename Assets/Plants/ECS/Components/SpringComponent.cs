@@ -7,10 +7,7 @@ using UnityEngine;
 
 public struct Spring : IComponentData
 {
-    public Entity NodeEntity;
-    public Entity NodeParentEntity;
     public float3 EquilibriumPosition;
-
     public float Strength;
     public float Damping;
 }
@@ -52,8 +49,6 @@ internal class SpringBaker : JointBaker<SpringComponent>
             AddComponent(jointEntity,
                          new Spring
                          {
-                             NodeEntity = GetEntity(),
-                             NodeParentEntity = GetEntity(authoring.ConnectedBody),
                              EquilibriumPosition = forward * internodeLength,
                              Strength = authoring.Strength,
                              Damping = authoring.Damping
