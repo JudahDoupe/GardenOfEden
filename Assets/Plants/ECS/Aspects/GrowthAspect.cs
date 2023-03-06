@@ -1,8 +1,5 @@
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
-using Unity.Physics.Authoring;
-using Unity.Transforms;
 
 public readonly partial struct GrowthAspect : IAspect
 {

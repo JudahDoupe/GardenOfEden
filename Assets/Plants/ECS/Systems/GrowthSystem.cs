@@ -59,8 +59,9 @@ public partial struct UpdatePhysicsJob : IJobEntity
             return;
 
         spring.ValueRW.EquilibriumPosition = SizeLookup[nodeEntity].LocalDirection * SizeLookup[nodeEntity].InternodeLength;
+        
         var frame = joint.ValueRW.BodyAFromJoint;
-        frame.Position = new float3(0, 0, SizeLookup[nodeEntity].InternodeLength);
+        frame.Position = new float3(0, 0, -SizeLookup[nodeEntity].InternodeLength);
         joint.ValueRW.BodyAFromJoint = frame;
     }
 }
