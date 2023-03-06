@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Physics;
 
 [UpdateInGroup(typeof(PlantSimulationGroup))]
@@ -57,12 +58,9 @@ public partial struct UpdatePhysicsJob : IJobEntity
         if (!SizeLookup.HasComponent(nodeEntity))
             return;
 
-        var equilibriumPosition = SizeLookup[nodeEntity].LocalDirection * SizeLookup[nodeEntity].InternodeLength;
-        spring.ValueRW.EquilibriumPosition = equilibriumPosition;
-
-        joint.ValueRW.BodyAFromJoint = new BodyFrame(joint.ValueRO.BodyAFromJoint.AsRigidTransform())
-        {
-            Position = -equilibriumPosition,
-        };
+        spring.ValueRW.EquilibriumPosition = SizeLookup[nodeEntity].LocalDirection * SizeLookup[nodeEntity].InternodeLength;
+        var frame = joint.ValueRW.BodyAFromJoint;
+        frame.Position = new float3(0, 0, SizeLookup[nodeEntity].InternodeLength);
+        joint.ValueRW.BodyAFromJoint = frame;
     }
 }

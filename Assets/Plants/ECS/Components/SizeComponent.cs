@@ -23,7 +23,7 @@ public class SizeComponentBaker : Baker<SizeComponent>
         {
             NodeRadius = authoring.NodeRadius,
             InternodeLength = authoring.InternodeLength,
-            LocalDirection = authoring.transform.localRotation * Vector3.forward,
+            LocalDirection = authoring.transform.localRotation * Vector3.back,
         });
     }
 }

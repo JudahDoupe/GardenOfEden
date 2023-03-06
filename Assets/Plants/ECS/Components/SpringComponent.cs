@@ -27,13 +27,17 @@ internal class SpringBaker : JointBaker<SpringComponent>
     {
         if (authoring.enabled)
         {
-            var ballAndSocket = PhysicsJoint.CreateBallAndSocket(new float3(0, 0, authoring.transform.localPosition.magnitude), float3.zero);
-            ballAndSocket.SetImpulseEventThresholdAllConstraints(authoring.MaxImpulse);
-            var constrainedBodyPair = GetConstrainedBodyPair(authoring);
-
             uint worldIndex = GetWorldIndexFromBaseJoint(authoring);
 
+            var ballAndSocket = PhysicsJoint.CreateBallAndSocket(new float3(0, 0, authoring.transform.localPosition.magnitude), float3.zero);
+            var constraints = ballAndSocket.GetConstraints();
+            constraints.Add(Constraint.Twist(2, new Math.FloatRange(0, 0)));
+            ballAndSocket.SetConstraints(constraints);
+            ballAndSocket.SetImpulseEventThresholdAllConstraints(authoring.MaxImpulse);
+
+            var constrainedBodyPair = GetConstrainedBodyPair(authoring);
             var jointEntity = CreateJointEntity(worldIndex, constrainedBodyPair, ballAndSocket);
+
             AddComponent(jointEntity, new Spring()
             {
                 NodeEntity = GetEntity(),

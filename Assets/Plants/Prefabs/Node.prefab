@@ -389,8 +389,8 @@ MonoBehaviour:
     x: Infinity
     y: Infinity
     z: Infinity
-  Strength: 0.9
-  Damping: 0.5
+  Strength: 0.5
+  Damping: 0.1
 --- !u!1 &5760784771137944056
 GameObject:
   m_ObjectHideFlags: 0
