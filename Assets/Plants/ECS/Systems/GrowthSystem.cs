@@ -39,9 +39,17 @@ public partial struct PrimaryGrowthJob : IJobEntity
     public float DeltaTime;
 
     [BurstCompile]
-    private void Execute(GrowthAspect growth) 
+    private void Execute(GrowthAspect growth)
     {
-        growth.Grow(DeltaTime);
+        var energy = DeltaTime;
+        
+        var requestedNodeEnergy = math.min(energy, growth.MaxNodeRadius - growth.NodeRadius);
+        growth.NodeRadius += requestedNodeEnergy;
+
+        energy -= requestedNodeEnergy;
+
+        var requestedInternodeEnergy = math.min(energy, growth.MaxInternodeLength - growth.InternodeLength);
+        growth.InternodeLength += requestedInternodeEnergy;
     }
 }
 

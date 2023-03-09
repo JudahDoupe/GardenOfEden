@@ -162,6 +162,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 511cf20cab427e64a8d4312d8ae0fc36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Density: 1
   NodeRadius: 1
   InternodeLength: 0.01
 --- !u!114 &4951931473235392758
