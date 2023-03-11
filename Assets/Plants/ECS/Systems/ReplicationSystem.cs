@@ -14,7 +14,6 @@ public partial struct ReplicationSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        return;
         using var ecb = new EntityCommandBuffer(Allocator.TempJob);
         state.Dependency.Complete(); 
         new InstantiateStructureJob
@@ -35,10 +34,6 @@ public partial struct InstantiateStructureJob : IJobEntity
         if (!division.IsReadyToDivide) return;
 
         var newNode = Ecb.Instantiate(division.SupportStructure);
-        Ecb.AddComponent(newNode, new Parent
-        {
-            Value = division.Parent
-        });
         Ecb.SetComponent(newNode, division.Transform.LocalTransform);
         Ecb.SetComponent(newNode, division.Dna);
 
@@ -46,8 +41,6 @@ public partial struct InstantiateStructureJob : IJobEntity
         //Ecb.DestroyEntity(entity);
         Ecb.RemoveComponent<Replicator>(entity);
 
-        //We remove the linked entity groups so that they can be reinitialized
-        Ecb.RemoveComponent<LinkedEntityGroup>(newNode);
-        Ecb.RemoveComponent<LinkedEntityGroup>(division.Parent);
+        //TODO: fix the linked entity buffer
     }
 }

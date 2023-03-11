@@ -3,17 +3,13 @@ using Unity.Transforms;
 
 public readonly partial struct ReplicationAspect : IAspect
 {
-
-    private readonly RefRO<Dna> _dna;
-    private readonly RefRO<Parent> _parent;
-    
     private readonly RefRO<Replicator> _nodeDivision;
+    private readonly RefRO<Dna> _dna;
 
-    public readonly GrowthAspect Growth;
+    public readonly PrimaryGrowthAspect PrimaryGrowth;
     public readonly TransformAspect Transform;
     
-    public bool IsReadyToDivide => Growth.IsMature;
+    public bool IsReadyToDivide => PrimaryGrowth.IsMature;
     public Entity SupportStructure => _dna.ValueRO.SupportStructurePrefab;
-    public Entity Parent => _parent.ValueRO.Value;
     public Dna Dna => _dna.ValueRO;
 }

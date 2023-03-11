@@ -2,7 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 
-public readonly partial struct GrowthAspect : IAspect
+public readonly partial struct PrimaryGrowthAspect : IAspect
 {
     private readonly RefRO<PrimaryGrowth> _primaryGrowthTarget;
     private readonly RefRW<Size> _size;
