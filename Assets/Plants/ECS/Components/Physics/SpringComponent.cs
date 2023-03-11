@@ -5,6 +5,8 @@ using Unity.Physics;
 using Unity.Physics.Authoring;
 using UnityEngine;
 
+public struct InitializePhysics : IComponentData {}
+
 public struct Spring : IComponentData
 {
     public float3 EquilibriumPosition;
@@ -53,6 +55,11 @@ internal class SpringBaker : JointBaker<SpringComponent>
                              Strength = authoring.Strength,
                              Damping = authoring.Damping
                          });
+            
+            if (authoring.ConnectedBody == null)
+            {
+                AddComponent<InitializePhysics>(jointEntity);                
+            }
         }
     }
 }

@@ -34,8 +34,9 @@ public partial struct InstantiateStructureJob : IJobEntity
         if (!division.IsReadyToDivide) return;
 
         var newNode = Ecb.Instantiate(division.SupportStructure);
-        Ecb.SetComponent(newNode, division.Transform.LocalTransform);
+        Ecb.SetComponent(newNode, division.Transform.WorldTransform);
         Ecb.SetComponent(newNode, division.Dna);
+        Ecb.SetComponent(newNode, new BaseNode{ Entity = division.ConnectionPoint });
 
         //TODO: we probably want to make the entity to kill itself over time
         //Ecb.DestroyEntity(entity);

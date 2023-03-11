@@ -41,7 +41,7 @@ public partial struct PrimaryGrowthJob : IJobEntity
     [BurstCompile]
     private void Execute(PrimaryGrowthAspect primaryGrowth)
     {
-        var energy = DeltaTime;
+        var energy = DeltaTime / 10;
         
         var requestedNodeEnergy = math.min(energy, primaryGrowth.MaxNodeRadius - primaryGrowth.NodeRadius);
         primaryGrowth.NodeRadius += requestedNodeEnergy;

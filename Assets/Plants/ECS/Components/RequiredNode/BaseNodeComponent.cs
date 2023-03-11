@@ -1,12 +1,10 @@
 using Unity.Entities;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public struct BaseNode : IComponentData
 {
     public Entity Entity;
 }
-
 
 public class BaseNodeComponent : MonoBehaviour
 {

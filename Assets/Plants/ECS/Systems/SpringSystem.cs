@@ -148,7 +148,8 @@ public struct SpringJob : IJobChunk
             impulse = math.clamp(impulse, new float3(-100.0f), new float3(100.0f));
             velocityA.ApplyImpulse(massA, localTransformA.Position, localTransformA.Rotation, impulse, posA);
 
-            Velocities[node] = velocityA;
+            //TODO: reenable
+            //Velocities[node] = velocityA;
         }
     }
 }
