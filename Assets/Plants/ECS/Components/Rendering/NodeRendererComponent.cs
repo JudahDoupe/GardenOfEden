@@ -17,7 +17,7 @@ public class NodeRendererComponentBaker : Baker<NodeRendererComponent>
     {
         AddComponent(new NodeRenderer
         {
-            Node = GetEntity(authoring.Node)
+            Node = GetEntity(authoring.Node) 
         });
     }
 }

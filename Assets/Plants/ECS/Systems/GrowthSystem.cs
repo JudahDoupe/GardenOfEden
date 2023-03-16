@@ -39,7 +39,7 @@ public partial struct PrimaryGrowthJob : IJobEntity
     public float DeltaTime;
 
     [BurstCompile]
-    private void Execute(PrimaryGrowthAspect primaryGrowth)
+    private void Execute(RefRW<PhysicsCollider> spring, PrimaryGrowthAspect primaryGrowth)
     {
         var energy = DeltaTime / 10;
         
@@ -50,6 +50,7 @@ public partial struct PrimaryGrowthJob : IJobEntity
 
         var requestedInternodeEnergy = math.min(energy, primaryGrowth.MaxInternodeLength - primaryGrowth.InternodeLength);
         primaryGrowth.InternodeLength += requestedInternodeEnergy;
+        
     }
 }
 

@@ -17,7 +17,7 @@ public class InternodeRendererComponentBaker : Baker<InternodeRendererComponent>
     {
         AddComponent(new InternodeRenderer
         {
-            Node = GetEntity(authoring.Node)
+            Node = GetEntity(authoring.Node) 
         });
     }
 }

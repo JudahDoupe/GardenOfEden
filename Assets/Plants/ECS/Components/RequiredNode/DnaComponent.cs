@@ -19,7 +19,7 @@ public class DnaComponentBaker : Baker<DnaComponent>
     {
         AddComponent(new Dna
         {
-            SupportStructurePrefab = GetEntity(authoring.SupportStructurePrefab)
+            SupportStructurePrefab = GetEntity(authoring.SupportStructurePrefab) 
         });
     }
 }

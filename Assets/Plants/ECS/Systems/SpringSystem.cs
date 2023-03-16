@@ -54,7 +54,8 @@ public struct SpringSystem : ISystem
     {
         Handles = new ComponentHandles(ref state);
 
-        SpringQuery = state.GetEntityQuery(ComponentType.ReadOnly<Spring>(), ComponentType.ReadOnly<PhysicsConstrainedBodyPair>());
+        SpringQuery = state.GetEntityQuery(ComponentType.ReadOnly<Spring>(), 
+                                           ComponentType.ReadOnly<PhysicsConstrainedBodyPair>()); 
         state.RequireForUpdate(SpringQuery);
     }
 
@@ -149,7 +150,7 @@ public struct SpringJob : IJobChunk
             velocityA.ApplyImpulse(massA, localTransformA.Position, localTransformA.Rotation, impulse, posA);
 
             //TODO: reenable
-            //Velocities[node] = velocityA;
+            Velocities[node] = velocityA;
         }
     }
 }

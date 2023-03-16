@@ -19,7 +19,7 @@ public class SpringComponent : BaseJoint
     public float Strength;
     public float Damping;
 
-    private void OnEnable() { }
+    private void OnEnable() { } 
 }
 
 internal class SpringBaker : JointBaker<SpringComponent>

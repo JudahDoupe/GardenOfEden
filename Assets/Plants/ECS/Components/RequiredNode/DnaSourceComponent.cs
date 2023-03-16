@@ -18,7 +18,7 @@ public class CopyDnaComponentBaker : Baker<DnaSourceComponent>
     {
         AddComponent(new DnaSource
         {
-            Source = GetEntity(authoring.Source)
+            Source = GetEntity(authoring.Source) 
         });
     }
 }

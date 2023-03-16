@@ -9,6 +9,6 @@ public class ReplicatorComponentBaker : Baker<ReplicatorComponent>
 {
     public override void Bake(ReplicatorComponent authoring)
     {
-        AddComponent(new Replicator());
+        AddComponent(new Replicator()); 
     }
 }
