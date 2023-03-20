@@ -24,14 +24,14 @@ public partial struct NodeRendererSystem : ISystem
     {
         _sizeLookup.Update(ref state);
 
-        new NodeRendererJob
+        state.Dependency = new NodeRendererJob
         {
             SizeLookup = _sizeLookup
-        }.Run();
-        new CalculateInternodeRendererDataJob
+        }.ScheduleParallel(state.Dependency);
+        state.Dependency = new CalculateInternodeRendererDataJob
         {
             SizeLookup = _sizeLookup
-        }.Run();
+        }.ScheduleParallel(state.Dependency);
     }
 }
 

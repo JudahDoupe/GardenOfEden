@@ -4,9 +4,6 @@ using Unity.Transforms;
 
 public readonly partial struct GrowthAspect : IAspect
 {
-    public readonly PhysicsAspect Physics;
-    public TransformAspect Transform => Physics.Transform;
-
     private readonly RefRW<PrimaryGrowth> _primaryGrowthTarget;
     private readonly RefRW<Size> _size;
 
@@ -36,7 +33,7 @@ public readonly partial struct GrowthAspect : IAspect
         var requestedInternodeEnergy = math.min(energy, MaxInternodeLength - InternodeLength);
         InternodeLength += requestedInternodeEnergy;
 
-        Physics.UpdateSpring(Transform.LocalTransform.Forward() * InternodeLength, InternodeLength);
-        Physics.UpdateCollider(NodeRadius);
+        //Physics.UpdateSpring(Transform.LocalTransform.Forward() * InternodeLength, InternodeLength);
+        //Physics.UpdateCollider(NodeRadius);
     }
 }

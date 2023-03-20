@@ -9,7 +9,9 @@ public struct SphereCollider : IComponentData
 }
 
 public class SphereColliderComponent : MonoBehaviour
-{
+{    
+    public float Radius = 0.5f;
+    public float3 Center = new float3(0,0,0);
 }
 
 public class SphereColliderComponentBaker : Baker<SphereColliderComponent>
@@ -18,8 +20,8 @@ public class SphereColliderComponentBaker : Baker<SphereColliderComponent>
     {
         AddComponent(new SphereCollider
         {
-            Center = new float3(0,0,0),
-            Radius = 0,
+            Center = authoring.Center,
+            Radius = authoring.Radius,
         });
     }
 }

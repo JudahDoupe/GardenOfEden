@@ -17,10 +17,10 @@ public partial struct GrowthSystem : ISystem
     {
         var deltaTime = SystemAPI.Time.DeltaTime;
 
-        new PrimaryGrowthJob
+        state.Dependency = new PrimaryGrowthJob
         {
             DeltaTime = deltaTime
-        }.Run();
+        }.ScheduleParallel(state.Dependency);
     }
 }
 

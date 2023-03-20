@@ -11,7 +11,7 @@ public struct Physics : IComponentData
 
 public class PhysicsComponent : MonoBehaviour
 {
-    public float Mass;
+    public float Mass = 1;
 }
 
 public class PhysicsComponentBaker : Baker<PhysicsComponent>
