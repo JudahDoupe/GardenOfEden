@@ -4,12 +4,14 @@ using UnityEngine;
 
 public struct SphereCollider : IComponentData
 {
+    public float Bounciness;
     public float Radius;
     public float3 Center;
 }
 
 public class SphereColliderComponent : MonoBehaviour
 {    
+    public float Bounciness = 0.5f;
     public float Radius = 0.5f;
     public float3 Center = new float3(0,0,0);
 }
@@ -22,6 +24,7 @@ public class SphereColliderComponentBaker : Baker<SphereColliderComponent>
         {
             Center = authoring.Center,
             Radius = authoring.Radius,
+            Bounciness = authoring.Bounciness,
         });
     }
 }
