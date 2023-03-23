@@ -2,7 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public struct Physics : IComponentData
+public struct PhysicsBody : IComponentData
 {
     public float Mass;
     public float3 Force;
@@ -18,7 +18,7 @@ public class PhysicsComponentBaker : Baker<PhysicsComponent>
 {
     public override void Bake(PhysicsComponent authoring)
     {
-        AddComponent(new Physics
+        AddComponent(new PhysicsBody
         {
             Mass = authoring.Mass,
         });

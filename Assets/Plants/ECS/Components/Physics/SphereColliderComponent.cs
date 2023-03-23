@@ -2,7 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public struct Collision : IComponentData
+public struct CollisionResponse : IComponentData
 {
     public float3 VelocityAdjustment;
     public float3 PositionAdjustment;
@@ -32,6 +32,6 @@ public class SphereColliderComponentBaker : Baker<SphereColliderComponent>
             Radius = authoring.Radius,
             Bounciness = authoring.Bounciness,
         });
-        AddComponent<Collision>();
+        AddComponent<CollisionResponse>();
     }
 }
