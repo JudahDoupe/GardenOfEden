@@ -1,5 +1,5 @@
-using System.Threading;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -18,20 +18,31 @@ public partial struct PhysicsSystem : ISystem
     {
         var deltaTime = SystemAPI.Time.fixedDeltaTime;
 
-        state.Dependency = new AddGravity().ScheduleParallel(state.Dependency);
+        state.Dependency = new AddGravity()
+            .ScheduleParallel(state.Dependency);
+
         state.Dependency = new IntegrateVelocityEuler
         {
-            TimeStep = deltaTime,
+            TimeStep = deltaTime
         }.ScheduleParallel(state.Dependency);
+
         state.Dependency = new DetectGroundCollisions
         {
-            TimeStep = deltaTime,
+            TimeStep = deltaTime
         }.ScheduleParallel(state.Dependency);
+
+        state.Dependency = new DetectSphereToSphereCollisions
+        {
+            TimeStep = deltaTime
+        }.ScheduleParallel(state.Dependency);
+
+        state.Dependency = new ResolveCollisions()
+            .ScheduleParallel(state.Dependency);
     }
 }
 
 [BurstCompile]
-public partial struct AddGravity : IJobEntity
+public struct AddGravity : IJobEntity
 {
     [BurstCompile]
     private void Execute(RefRW<Physics> physics)
@@ -41,10 +52,10 @@ public partial struct AddGravity : IJobEntity
 }
 
 [BurstCompile]
-public partial struct IntegrateVelocityEuler : IJobEntity
+public struct IntegrateVelocityEuler : IJobEntity
 {
     public float TimeStep;
-    
+
     [BurstCompile]
     private void Execute(RefRW<Physics> physics, TransformAspect transform)
     {
@@ -56,44 +67,70 @@ public partial struct IntegrateVelocityEuler : IJobEntity
 }
 
 [BurstCompile]
-public partial struct DetectGroundCollisions : IJobEntity
+public struct DetectGroundCollisions : IJobEntity
 {
     public float TimeStep;
-    
+
     [BurstCompile]
-    private void Execute(RefRW<Physics> physics, RefRO<SphereCollider> collider, TransformAspect transform)
+    private void Execute(RefRO<Physics> physics, RefRO<SphereCollider> collider, RefRO<WorldTransform> transform, RefRW<Collision> collision)
     {
-        var overlap = 0.5f - (transform.WorldPosition.y - collider.ValueRO.Radius);
-        if (overlap < 0) 
-            return; //no collision
-        
+        var overlap = 0.5f - (transform.ValueRO.Position.y - collider.ValueRO.Radius);
+        if (overlap < 0)
+            return;
+
         var penetrationNormal = new float3(0, 1, 0);
-        var penetrationSpeed = math.dot(physics.ValueRW.Velocity, penetrationNormal);
+        var penetrationSpeed = math.dot(physics.ValueRO.Velocity, penetrationNormal);
         var penetrationVector = penetrationNormal * penetrationSpeed;
         var restitution = 1 + collider.ValueRO.Bounciness;
-        physics.ValueRW.Velocity -= penetrationVector * restitution;
-        transform.WorldPosition += penetrationNormal * overlap;
+
+        collision.ValueRW.VelocityAdjustment -= penetrationVector * restitution;
+        collision.ValueRW.VelocityAdjustment += penetrationNormal * overlap;
     }
 }
 
 [BurstCompile]
-public partial struct DetectSphereToSphereCollisions : IJobEntity
+public struct DetectSphereToSphereCollisions : IJobEntity
 {
     public float TimeStep;
-    
+
+    [ReadOnly]
+    public ComponentLookup<SphereCollider> ColliderLookup;
+    [ReadOnly]
+    public ComponentLookup<Physics> PhysicsLookup;
+    [ReadOnly]
+    public ComponentLookup<WorldTransform> TransformLookup;
+
+
     [BurstCompile]
-    private void Execute(RefRW<Physics> physics, RefRO<SphereCollider> collider, TransformAspect transform)
+    private void Execute(Entity e, RefRW<Collision> collision)
     {
+        return;
+        /*
         var myPosition = transform.WorldPosition;
         var otherPosition = new float3(transform.WorldPosition.x, 0.5f, transform.WorldPosition.z);
         var distanceVector = myPosition - otherPosition;
 
-        if (math.lengthsq(distanceVector) > math.sqrt(collider.ValueRO.Radius)) 
+        if (math.lengthsq(distanceVector) > math.sqrt(ColliderLookup[e].Radius))
             return; //no collision
 
-        var separationVector = distanceVector - (math.normalize(distanceVector) * collider.ValueRO.Radius);
-        
+        var separationVector = distanceVector - math.normalize(distanceVector) * ColliderLookup[e].Radius;
+
         transform.WorldPosition += separationVector;
-        physics.ValueRW.Velocity += separationVector;        
+        physics.ValueRW.Velocity += separationVector;
+        */
+    }
+}
+
+[BurstCompile]
+public struct ResolveCollisions : IJobEntity
+{
+    [BurstCompile]
+    private void Execute(RefRW<Physics> physics, TransformAspect transform, RefRW<Collision> collision)
+    {
+        transform.WorldPosition += collision.ValueRO.PositionAdjustment;
+        physics.ValueRW.Velocity += collision.ValueRO.VelocityAdjustment;
+
+        collision.ValueRW.PositionAdjustment = float3.zero;
+        collision.ValueRW.VelocityAdjustment = float3.zero;
     }
 }

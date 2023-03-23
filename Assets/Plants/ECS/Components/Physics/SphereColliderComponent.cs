@@ -2,6 +2,12 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
+public struct Collision : IComponentData
+{
+    public float3 VelocityAdjustment;
+    public float3 PositionAdjustment;
+}
+
 public struct SphereCollider : IComponentData
 {
     public float Bounciness;
@@ -26,5 +32,6 @@ public class SphereColliderComponentBaker : Baker<SphereColliderComponent>
             Radius = authoring.Radius,
             Bounciness = authoring.Bounciness,
         });
+        AddComponent<Collision>();
     }
 }
