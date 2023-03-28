@@ -4,8 +4,9 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
+[UpdateAfter(typeof(VelocityIntegrationSystem))]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-public partial struct PhysicsSystem : ISystem
+public partial struct CollisionSystem : ISystem
 {
     public ComponentLookup<SphereCollider> ColliderLookup;
     public ComponentLookup<PhysicsBody> PhysicsLookup;
@@ -32,17 +33,9 @@ public partial struct PhysicsSystem : ISystem
         PhysicsLookup.Update(ref state);
         TransformLookup.Update(ref state);
 
-        state.Dependency = new AddGravity()
-            .ScheduleParallel(state.Dependency);
-
-        state.Dependency = new IntegrateVelocityEuler
-        {
-            TimeStep = deltaTime,
-        }.ScheduleParallel(state.Dependency);
-
         state.Dependency = new DetectGroundCollisions
         {
-            TimeStep = deltaTime,
+            TimeStep = deltaTime
         }.ScheduleParallel(state.Dependency);
 
         state.Dependency = new DetectSphereToSphereCollisions
@@ -51,37 +44,11 @@ public partial struct PhysicsSystem : ISystem
             ColliderLookup = ColliderLookup,
             PhysicsLookup = PhysicsLookup,
             TransformLookup = TransformLookup,
-            Spheres = SphereQuery.ToEntityArray(Allocator.TempJob),
+            Spheres = SphereQuery.ToEntityArray(Allocator.TempJob)
         }.ScheduleParallel(SphereQuery, state.Dependency);
 
         state.Dependency = new ResolveCollisions()
             .ScheduleParallel(state.Dependency);
-    }
-}
-
-[BurstCompile]
-public partial struct AddGravity : IJobEntity
-{
-    [BurstCompile]
-    private void Execute(RefRW<PhysicsBody> physics)
-    {
-        physics.ValueRW.Force += new float3(0, -9.8f, 0) * physics.ValueRO.Mass;
-    }
-}
-
-[BurstCompile]
-public partial struct IntegrateVelocityEuler : IJobEntity
-{
-    public float TimeStep;
-
-    [BurstCompile]
-    private void Execute(RefRW<PhysicsBody> physics, 
-                         TransformAspect transform)
-    {
-        transform.WorldPosition += physics.ValueRO.Velocity * TimeStep;
-
-        physics.ValueRW.Velocity += physics.ValueRO.Force / physics.ValueRO.Mass * TimeStep;
-        physics.ValueRW.Force = 0;
     }
 }
 
@@ -91,9 +58,9 @@ public partial struct DetectGroundCollisions : IJobEntity
     public float TimeStep;
 
     [BurstCompile]
-    private void Execute(RefRO<PhysicsBody> physics, 
+    private void Execute(RefRO<PhysicsBody> physics,
                          RefRO<SphereCollider> collider,
-                         RefRO<WorldTransform> transform, 
+                         RefRO<WorldTransform> transform,
                          RefRW<CollisionResponse> collision)
     {
         var overlap = 0.5f - transform.ValueRO.Position.y + collider.ValueRO.Radius;
@@ -117,16 +84,19 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
 
     [ReadOnly]
     public ComponentLookup<SphereCollider> ColliderLookup;
+
     [ReadOnly]
     public ComponentLookup<PhysicsBody> PhysicsLookup;
+
     [ReadOnly]
     public ComponentLookup<WorldTransform> TransformLookup;
+
     [ReadOnly]
     public NativeArray<Entity> Spheres;
 
 
     [BurstCompile]
-    private void Execute(Entity e, 
+    private void Execute(Entity e,
                          RefRW<CollisionResponse> collision)
     {
         var myCollider = ColliderLookup[e];
@@ -136,13 +106,13 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
         {
             if (sphere == e)
                 continue;
-            
+
             var otherCollider = ColliderLookup[sphere];
             var otherTransform = TransformLookup[sphere];
             var otherPhysics = PhysicsLookup[sphere];
-            
+
             var distance = math.distance(myTransform.Position, otherTransform.Position);
-            var overlap = (myCollider.Radius + otherCollider.Radius) - distance;
+            var overlap = myCollider.Radius + otherCollider.Radius - distance;
             if (overlap < 0)
                 continue;
 
@@ -161,8 +131,8 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
 public partial struct ResolveCollisions : IJobEntity
 {
     [BurstCompile]
-    private void Execute(RefRW<PhysicsBody> physics, 
-                         TransformAspect transform, 
+    private void Execute(RefRW<PhysicsBody> physics,
+                         TransformAspect transform,
                          RefRW<CollisionResponse> collision)
     {
         transform.WorldPosition += collision.ValueRO.PositionAdjustment;
