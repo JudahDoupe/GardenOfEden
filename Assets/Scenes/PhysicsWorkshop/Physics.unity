@@ -387,7 +387,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef9b143cef60452999f347cf67694ccc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bounciness: 0.5
+  Bounciness: 0
   Radius: 0.5
   Center:
     x: 0
@@ -851,7 +851,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef9b143cef60452999f347cf67694ccc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bounciness: 0.5
+  Bounciness: 0.25
   Radius: 0.5
   Center:
     x: 0

@@ -10,6 +10,7 @@ public partial struct PhysicsSystem : ISystem
     public ComponentLookup<SphereCollider> ColliderLookup;
     public ComponentLookup<PhysicsBody> PhysicsLookup;
     public ComponentLookup<WorldTransform> TransformLookup;
+    public EntityQuery SphereQuery;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
@@ -17,6 +18,7 @@ public partial struct PhysicsSystem : ISystem
         ColliderLookup = state.GetComponentLookup<SphereCollider>();
         PhysicsLookup = state.GetComponentLookup<PhysicsBody>();
         TransformLookup = state.GetComponentLookup<WorldTransform>();
+        SphereQuery = state.GetEntityQuery(typeof(SphereCollider));
     }
 
     [BurstCompile]
@@ -49,7 +51,8 @@ public partial struct PhysicsSystem : ISystem
             ColliderLookup = ColliderLookup,
             PhysicsLookup = PhysicsLookup,
             TransformLookup = TransformLookup,
-        }.ScheduleParallel(state.Dependency);
+            Spheres = SphereQuery.ToEntityArray(Allocator.TempJob),
+        }.ScheduleParallel(SphereQuery, state.Dependency);
 
         state.Dependency = new ResolveCollisions()
             .ScheduleParallel(state.Dependency);
@@ -93,7 +96,7 @@ public partial struct DetectGroundCollisions : IJobEntity
                          RefRO<WorldTransform> transform, 
                          RefRW<CollisionResponse> collision)
     {
-        var overlap = 0.5f - (transform.ValueRO.Position.y - collider.ValueRO.Radius);
+        var overlap = 0.5f - transform.ValueRO.Position.y + collider.ValueRO.Radius;
         if (overlap < 0)
             return;
 
@@ -118,27 +121,39 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
     public ComponentLookup<PhysicsBody> PhysicsLookup;
     [ReadOnly]
     public ComponentLookup<WorldTransform> TransformLookup;
+    [ReadOnly]
+    public NativeArray<Entity> Spheres;
 
 
     [BurstCompile]
     private void Execute(Entity e, 
                          RefRW<CollisionResponse> collision)
     {
-        return;
-        //Entity query
-        /*
-        var myPosition = transform.WorldPosition;
-        var otherPosition = new float3(transform.WorldPosition.x, 0.5f, transform.WorldPosition.z);
-        var distanceVector = myPosition - otherPosition;
+        var myCollider = ColliderLookup[e];
+        var myTransform = TransformLookup[e];
+        var myPhysics = PhysicsLookup[e];
+        foreach (var sphere in Spheres)
+        {
+            if (sphere == e)
+                continue;
+            
+            var otherCollider = ColliderLookup[sphere];
+            var otherTransform = TransformLookup[sphere];
+            var otherPhysics = PhysicsLookup[sphere];
+            
+            var distance = math.distance(myTransform.Position, otherTransform.Position);
+            var overlap = (myCollider.Radius + otherCollider.Radius) - distance;
+            if (overlap < 0)
+                continue;
 
-        if (math.lengthsq(distanceVector) > math.sqrt(ColliderLookup[e].Radius))
-            return; //no collision
+            var penetrationNormal = math.normalize(myTransform.Position - otherTransform.Position);
+            var penetrationSpeed = math.dot(myPhysics.Velocity - otherPhysics.Velocity, penetrationNormal);
+            var penetrationVector = penetrationNormal * penetrationSpeed;
+            var restitution = 1 + math.max(myCollider.Bounciness, otherCollider.Bounciness);
 
-        var separationVector = distanceVector - math.normalize(distanceVector) * ColliderLookup[e].Radius;
-
-        transform.WorldPosition += separationVector;
-        physics.ValueRW.Velocity += separationVector;
-        */
+            collision.ValueRW.VelocityAdjustment -= penetrationVector * restitution;
+            collision.ValueRW.PositionAdjustment += penetrationNormal * overlap;
+        }
     }
 }
 
