@@ -1,153 +1,33 @@
 using Unity.Burst;
-using Unity.Burst.Intrinsics;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-/*
+
 [RequireMatchingQueriesForUpdate]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 [UpdateBefore(typeof(ConstraintSystem))]
 [BurstCompile]
-public struct SpringSystem : ISystem
+public partial struct SpringSystem : ISystem
 {
-    public EntityQuery SpringQuery;
-    public ComponentHandles Handles;
-
-    public struct ComponentHandles
-    {
-        public ComponentLookup<PhysicsVelocity> Velocities;
-        public ComponentLookup<LocalTransform> LocalTransforms;
-        public ComponentLookup<PhysicsMass> Masses;
-        public ComponentLookup<LocalToWorld> LocalToWorlds;
-        public ComponentTypeHandle<Spring> SpringHandle;
-        public ComponentTypeHandle<PhysicsConstrainedBodyPair> BodyPairHandle;
-
-        public ComponentHandles(ref SystemState state)
-        {
-            Velocities = state.GetComponentLookup<PhysicsVelocity>();
-            LocalTransforms = state.GetComponentLookup<LocalTransform>(true);
-
-            Masses = state.GetComponentLookup<PhysicsMass>(true);
-            LocalToWorlds = state.GetComponentLookup<LocalToWorld>(true);
-            SpringHandle = state.GetComponentTypeHandle<Spring>(true);
-            BodyPairHandle = state.GetComponentTypeHandle<PhysicsConstrainedBodyPair>(true);
-        }
-
-        public void Update(ref SystemState state)
-        {
-            Velocities.Update(ref state);
-            LocalTransforms.Update(ref state);
-
-            Masses.Update(ref state);
-            LocalToWorlds.Update(ref state);
-            SpringHandle.Update(ref state);
-            BodyPairHandle.Update(ref state);
-        }
-    }
-
-    [BurstCompile]
-    public void OnCreate(ref SystemState state)
-    {
-        Handles = new ComponentHandles(ref state);
-
-        SpringQuery = state.GetEntityQuery(ComponentType.ReadOnly<Spring>(), 
-                                           ComponentType.ReadOnly<PhysicsConstrainedBodyPair>()); 
-        state.RequireForUpdate(SpringQuery);
-    }
-
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        Handles.Update(ref state);
-
-        state.Dependency = new SpringJob
-        {
-            Velocities = Handles.Velocities,
-            LocalTransforms = Handles.LocalTransforms,
-            Masses = Handles.Masses,
-            LocalToWorlds = Handles.LocalToWorlds,
-            SpringHandle = Handles.SpringHandle,
-            BodyPairHandle = Handles.BodyPairHandle,
-        }.Schedule(SpringQuery, state.Dependency);
+        state.Dependency = new AddSpringForces()
+            .Schedule(state.Dependency);
     }
 }
 
 [BurstCompile]
-public struct SpringJob : IJobChunk
+public partial struct AddSpringForces : IJobEntity
 {
-    public ComponentLookup<PhysicsVelocity> Velocities;
-
-    [ReadOnly]
-    public ComponentLookup<LocalTransform> LocalTransforms;
-
-    [ReadOnly]
-    public ComponentLookup<PhysicsMass> Masses;
-
-    [ReadOnly]
-    public ComponentLookup<LocalToWorld> LocalToWorlds;
-
-    [ReadOnly]
-    public ComponentTypeHandle<Spring> SpringHandle;
-    
-    [ReadOnly]
-    public ComponentTypeHandle<PhysicsConstrainedBodyPair> BodyPairHandle;
-
     [BurstCompile]
-    public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
+    private void Execute(RefRW<PhysicsBody> physics, RefRO<StiffSpringJoint> spring, TransformAspect transform)
     {
-        var chunkSpring = chunk.GetNativeArray(ref SpringHandle);
-        var bodyPairs = chunk.GetNativeArray(ref BodyPairHandle);
+        var springForce = -spring.ValueRO.Stiffness * (transform.LocalPosition - spring.ValueRO.EquilibriumPosition);
+        var dampingForce = -spring.ValueRO.Dampening * physics.ValueRO.Velocity;
+        physics.ValueRW.Force += springForce + dampingForce;
 
-        var enumerator = new ChunkEntityEnumerator(useEnabledMask, chunkEnabledMask, chunk.Count);
-        while (enumerator.NextEntityIndex(out var i))
-        {
-            var spring = chunkSpring[i];
-            var node = bodyPairs[i].EntityA;
-            var parentNode = bodyPairs[i].EntityB;
-
-            if (spring.Strength == 0
-             || node == Entity.Null
-             || !Velocities.HasComponent(node))
-                continue;
-
-            var localTransformA = LocalTransform.Identity;
-
-            PhysicsVelocity velocityA = default;
-            PhysicsMass massA = default;
-
-            var localTransformB = localTransformA;
-            var velocityB = velocityA;
-            var massB = massA;
-
-            if (LocalTransforms.HasComponent(node)) localTransformA = LocalTransforms[node];
-
-            if (Velocities.HasComponent(node)) velocityA = Velocities[node];
-            if (Masses.HasComponent(node)) massA = Masses[node];
-
-            if (LocalToWorlds.HasComponent(parentNode))
-            {
-                // parent could be static and not have a Translation or Rotation
-                var worldFromBody = Math.DecomposeRigidBodyTransform(LocalToWorlds[parentNode].Value);
-                localTransformB.Position = worldFromBody.pos;
-                localTransformB.Rotation = worldFromBody.rot;
-            }
-
-            if (LocalTransforms.HasComponent(parentNode)) localTransformB = LocalTransforms[parentNode];
-            if (Velocities.HasComponent(parentNode)) velocityB = Velocities[parentNode];
-            if (Masses.HasComponent(parentNode)) massB = Masses[parentNode];
-
-            var posA = math.transform(new RigidTransform(localTransformA.Rotation, localTransformA.Position), float3.zero);
-            var posB = math.transform(new RigidTransform(localTransformB.Rotation, localTransformB.Position), spring.EquilibriumPosition);
-            var lvA = velocityA.GetLinearVelocity(massA, localTransformA.Position, localTransformA.Rotation, posA);
-            var lvB = velocityB.GetLinearVelocity(massB, localTransformB.Position, localTransformB.Rotation, posB);
-
-            var impulse = spring.Strength * (posB - posA) + spring.Damping * (lvB - lvA);
-            impulse = math.clamp(impulse, new float3(-100.0f), new float3(100.0f));
-            velocityA.ApplyImpulse(massA, localTransformA.Position, localTransformA.Rotation, impulse, posA);
-
-            Velocities[node] = velocityA;
-        }
+        var back = quaternion.LookRotationSafe(-transform.LocalPosition, math.normalize(transform.WorldPosition));
+        transform.LocalRotation = math.mul(back, spring.ValueRO.TargetRotation);
     }
 }
-*/

@@ -25,5 +25,8 @@ public partial struct ConstraintSystem : ISystem
 public partial struct SolveLengthConstraint : IJobEntity
 {
     [BurstCompile]
-    private void Execute(RefRW<PhysicsBody> physics) { }
+    private void Execute(RefRW<PhysicsBody> physics)
+    {
+        
+    }
 }

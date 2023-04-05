@@ -17,34 +17,11 @@ public partial struct VelocityIntegrationSystem : ISystem
     {
         var deltaTime = SystemAPI.Time.fixedDeltaTime;
 
-        state.Dependency = new AddGravity()
-            .ScheduleParallel(state.Dependency);
-
-        state.Dependency = new AddSpringForce()
-            .ScheduleParallel(state.Dependency);
-
         state.Dependency = new IntegrateVelocityEuler
         {
             TimeStep = deltaTime
         }.ScheduleParallel(state.Dependency);
     }
-}
-
-[BurstCompile]
-public partial struct AddGravity : IJobEntity
-{
-    [BurstCompile]
-    private void Execute(RefRW<PhysicsBody> physics)
-    {
-        physics.ValueRW.Force += new float3(0, -9.8f, 0) * physics.ValueRO.Mass;
-    }
-}
-
-[BurstCompile]
-public partial struct AddSpringForce : IJobEntity
-{
-    [BurstCompile]
-    private void Execute(RefRW<PhysicsBody> physics) { }
 }
 
 [BurstCompile]
@@ -56,7 +33,7 @@ public partial struct IntegrateVelocityEuler : IJobEntity
     private void Execute(RefRW<PhysicsBody> physics,
                          TransformAspect transform)
     {
-        transform.WorldPosition += physics.ValueRO.Velocity * TimeStep;
+        transform.LocalPosition += physics.ValueRO.Velocity * TimeStep;
 
         physics.ValueRW.Velocity += physics.ValueRO.Force / physics.ValueRO.Mass * TimeStep;
         physics.ValueRW.Force = 0;
