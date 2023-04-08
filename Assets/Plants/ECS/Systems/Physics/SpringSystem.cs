@@ -9,9 +9,23 @@ using Unity.Transforms;
 [BurstCompile]
 public partial struct SpringSystem : ISystem
 {
+    private bool _haveTransformsInitialized;
+    
+    [BurstCompile]
+    public void OnCreate(ref SystemState state)
+    {
+        _haveTransformsInitialized = false;
+    }
+    
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        if (!_haveTransformsInitialized)
+        {
+            _haveTransformsInitialized = true;
+            return;
+        }
+        
         state.Dependency = new AddSpringForces()
             .Schedule(state.Dependency);
     }
@@ -21,7 +35,7 @@ public partial struct SpringSystem : ISystem
 public partial struct AddSpringForces : IJobEntity
 {
     [BurstCompile]
-    private void Execute(RefRW<PhysicsBody> physics, RefRO<StiffSpringJoint> spring, TransformAspect transform)
+    private void Execute(RefRW<PhysicsBody> physics, RefRO<SpringJoint> spring, TransformAspect transform)
     {
         var springForce = -spring.ValueRO.Stiffness * (transform.LocalPosition - spring.ValueRO.EquilibriumPosition);
         var dampingForce = -spring.ValueRO.Dampening * physics.ValueRO.Velocity;

@@ -12,6 +12,8 @@ public partial struct CollisionSystem : ISystem
     public ComponentLookup<PhysicsBody> PhysicsLookup;
     public ComponentLookup<WorldTransform> TransformLookup;
     public EntityQuery SphereQuery;
+    
+    private bool _haveTransformsInitialized;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
@@ -20,6 +22,7 @@ public partial struct CollisionSystem : ISystem
         PhysicsLookup = state.GetComponentLookup<PhysicsBody>();
         TransformLookup = state.GetComponentLookup<WorldTransform>();
         SphereQuery = state.GetEntityQuery(typeof(SphereCollider));
+        _haveTransformsInitialized = false;
     }
 
     [BurstCompile]
@@ -28,6 +31,12 @@ public partial struct CollisionSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        if (!_haveTransformsInitialized)
+        {
+            _haveTransformsInitialized = true;
+            return;
+        }
+        
         var deltaTime = SystemAPI.Time.fixedDeltaTime;
         ColliderLookup.Update(ref state);
         PhysicsLookup.Update(ref state);
