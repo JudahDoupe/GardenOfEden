@@ -3,6 +3,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
+// ReSharper disable PartialTypeWithSinglePart
+
 [RequireMatchingQueriesForUpdate]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 [UpdateBefore(typeof(ConstraintSystem))]
@@ -10,13 +12,13 @@ using Unity.Transforms;
 public partial struct SpringSystem : ISystem
 {
     private bool _haveTransformsInitialized;
-    
+
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         _haveTransformsInitialized = false;
     }
-    
+
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
@@ -25,7 +27,7 @@ public partial struct SpringSystem : ISystem
             _haveTransformsInitialized = true;
             return;
         }
-        
+
         state.Dependency = new AddSpringForces()
             .Schedule(state.Dependency);
     }

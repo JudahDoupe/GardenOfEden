@@ -1,7 +1,8 @@
 using Unity.Burst;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
+
+// ReSharper disable PartialTypeWithSinglePart
 
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public partial struct VelocityIntegrationSystem : ISystem
