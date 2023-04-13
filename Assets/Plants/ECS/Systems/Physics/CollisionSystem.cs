@@ -44,20 +44,16 @@ public partial struct CollisionSystem : ISystem
             return;
         }
 
-        var deltaTime = SystemAPI.Time.fixedDeltaTime;
         SphereColliderLookup.Update(ref state);
         CapsuleColliderLookup.Update(ref state);
         PhysicsLookup.Update(ref state);
         TransformLookup.Update(ref state);
 
-        state.Dependency = new DetectGroundCollisions
-        {
-            TimeStep = deltaTime
-        }.ScheduleParallel(state.Dependency);
+        state.Dependency = new DetectGroundCollisions()
+            .ScheduleParallel(state.Dependency);
 
         state.Dependency = new DetectSphereToSphereCollisions
         {
-            TimeStep = deltaTime,
             ColliderLookup = SphereColliderLookup,
             PhysicsLookup = PhysicsLookup,
             TransformLookup = TransformLookup,
@@ -66,7 +62,6 @@ public partial struct CollisionSystem : ISystem
         
         state.Dependency = new DetectCapsuleToCapsuleCollisions()
         {
-            TimeStep = deltaTime,
             ColliderLookup = CapsuleColliderLookup,
             PhysicsLookup = PhysicsLookup,
             TransformLookup = TransformLookup,
@@ -81,7 +76,6 @@ public partial struct CollisionSystem : ISystem
 [BurstCompile]
 public partial struct DetectGroundCollisions : IJobEntity
 {
-    public float TimeStep;
 
     [BurstCompile]
     private void Execute(RefRO<PhysicsBody> physics,
@@ -106,7 +100,6 @@ public partial struct DetectGroundCollisions : IJobEntity
 [BurstCompile]
 public partial struct DetectSphereToSphereCollisions : IJobEntity
 {
-    public float TimeStep;
     [ReadOnly]
     public ComponentLookup<SphereCollider> ColliderLookup;
     [ReadOnly]
@@ -148,7 +141,6 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
 [BurstCompile]
 public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
 {
-    public float TimeStep;
     [ReadOnly]
     public ComponentLookup<CapsuleCollider> ColliderLookup;
     [ReadOnly]
@@ -166,19 +158,18 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
         var myCollider = ColliderLookup[e];
         var myTransform = TransformLookup[e];
         var myPhysics = PhysicsLookup[e];
-        var myStart = myTransform.Position + myCollider.Start;
-        var myEnd = myTransform.Position + myCollider.End;
-        foreach (var sphere in Capsules)
+        var myStart = myTransform.Position + math.mul(myTransform.Rotation, myCollider.Start);
+        var myEnd = myTransform.Position + math.mul(myTransform.Rotation, myCollider.End);
+        foreach (var capsule in Capsules)
         {
-            if (sphere == e)
+            if (capsule == e)
                 continue;
 
-            var otherCollider = ColliderLookup[sphere];
-            var otherTransform = TransformLookup[sphere];
-            var otherPhysics = PhysicsLookup[sphere];
-            var otherStart = otherTransform.Position + otherCollider.Start;
-            var otherEnd = otherTransform.Position + otherCollider.End;
-
+            var otherCollider = ColliderLookup[capsule];
+            var otherTransform = TransformLookup[capsule];
+            var otherPhysics = PhysicsLookup[capsule];
+            var otherStart = otherTransform.Position + math.mul(otherTransform.Rotation, otherCollider.Start);
+            var otherEnd = otherTransform.Position + math.mul(otherTransform.Rotation, otherCollider.End);
             var v0 = otherStart - myStart;
             var v1 = otherEnd - myStart;
             var v2 = otherStart - myEnd;
@@ -189,10 +180,10 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
             var d2 = math.dot(v2, v2);
             var d3 = math.dot(v3, v3);
 
-            var myClosestPoint = d2 < d0 || d2 < d1 || d3 < d0 || d3 < d1 ? myCollider.End : myCollider.Start;
-            var otherClosestPoint = myClosestPoint.ClosestPointOnLineSegment(otherCollider.Start, otherCollider.End);
-            myClosestPoint = otherClosestPoint.ClosestPointOnLineSegment(myCollider.Start, myCollider.End);
-
+            var myClosestPoint = d2 < d0 || d2 < d1 || d3 < d0 || d3 < d1 ? myEnd : myStart;
+            var otherClosestPoint = myClosestPoint.ClosestPointOnLineSegment(otherStart, otherEnd);
+            myClosestPoint = otherClosestPoint.ClosestPointOnLineSegment(myStart, myEnd);
+            
             collision.AddSphereCollisionResponse(myClosestPoint,
                                                  otherClosestPoint,
                                                  myCollider.Radius,

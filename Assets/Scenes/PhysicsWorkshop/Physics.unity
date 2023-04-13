@@ -2008,7 +2008,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Stiffness: 100
-  Dampening: 15
+  Dampening: 30
 --- !u!114 &1291358092
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2039,7 +2039,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 315a004f5d374afb8a1ade9b51964212, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Mass: 5
+  Mass: 30
 --- !u!23 &1291358094
 MeshRenderer:
   m_ObjectHideFlags: 0
