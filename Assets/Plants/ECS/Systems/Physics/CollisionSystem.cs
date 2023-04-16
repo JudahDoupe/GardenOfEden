@@ -49,7 +49,10 @@ public partial struct CollisionSystem : ISystem
         PhysicsLookup.Update(ref state);
         TransformLookup.Update(ref state);
 
-        state.Dependency = new DetectGroundCollisions()
+        state.Dependency = new DetectSphereToGroundCollisions()
+            .ScheduleParallel(state.Dependency);
+        
+        state.Dependency = new DetectCapsuleToGroundCollisions()
             .ScheduleParallel(state.Dependency);
 
         state.Dependency = new DetectSphereToSphereCollisions
@@ -74,45 +77,59 @@ public partial struct CollisionSystem : ISystem
 }
 
 [BurstCompile]
-public partial struct DetectGroundCollisions : IJobEntity
+public partial struct DetectSphereToGroundCollisions : IJobEntity
 {
 
     [BurstCompile]
     private void Execute(RefRO<PhysicsBody> physics,
                          RefRO<SphereCollider> collider,
                          RefRO<WorldTransform> transform,
-                         RefRW<CollisionResponse> collision)
+                         CollisionAspect collision)
     {
-        var overlap = 0.5f - transform.ValueRO.Position.y + collider.ValueRO.Radius;
-        if (overlap < 0)
-            return;
+        var groundPosition = new float3(transform.ValueRO.Position.x, 0.5f, transform.ValueRO.Position.z);
 
-        var penetrationNormal = new float3(0, 1, 0);
-        var penetrationSpeed = math.dot(physics.ValueRO.Velocity,
-                                        penetrationNormal);
-        var restitution = 1 + collider.ValueRO.Bounciness;
+        collision.AddSphereToGroundCollisionResponse(transform.ValueRO.Position, 
+                                                     groundPosition,
+                                                     collider.ValueRO.Radius, 
+                                                     physics.ValueRO.Velocity, 
+                                                     collider.ValueRO.Bounciness);
+    }
+}
 
-        collision.ValueRW.VelocityAdjustment -= penetrationNormal * penetrationSpeed * restitution;
-        collision.ValueRW.PositionAdjustment += penetrationNormal * overlap;
+[BurstCompile]
+public partial struct DetectCapsuleToGroundCollisions : IJobEntity
+{
+
+    [BurstCompile]
+    private void Execute(RefRO<PhysicsBody> physics,
+                         RefRO<CapsuleCollider> collider,
+                         RefRO<WorldTransform> transform,
+                         CollisionAspect collision)
+    {
+        var myStart = transform.ValueRO.Position + math.mul(transform.ValueRO.Rotation, collider.ValueRO.Start);
+        var myEnd = transform.ValueRO.Position + math.mul(transform.ValueRO.Rotation, collider.ValueRO.End);
+        var groundStart = new float3(myStart.x, 0.5f, myStart.z);
+        var groundEnd = new float3(myEnd.x, 0.5f, myEnd.z);
+
+        var (myClosestPoint, groundPosition) = collision.ClosestPointsOnLineSegments(myStart, groundStart, myEnd, groundEnd);
+        collision.AddSphereToGroundCollisionResponse(myClosestPoint, 
+                                                     groundPosition,
+                                                     collider.ValueRO.Radius, 
+                                                     physics.ValueRO.Velocity, 
+                                                     collider.ValueRO.Bounciness);
     }
 }
 
 [BurstCompile]
 public partial struct DetectSphereToSphereCollisions : IJobEntity
 {
-    [ReadOnly]
-    public ComponentLookup<SphereCollider> ColliderLookup;
-    [ReadOnly]
-    public ComponentLookup<PhysicsBody> PhysicsLookup;
-    [ReadOnly]
-    public ComponentLookup<WorldTransform> TransformLookup;
-    [ReadOnly]
-    public NativeArray<Entity> Spheres;
-
+    [ReadOnly] public ComponentLookup<SphereCollider> ColliderLookup;
+    [ReadOnly] public ComponentLookup<PhysicsBody> PhysicsLookup;
+    [ReadOnly] public ComponentLookup<WorldTransform> TransformLookup;
+    [ReadOnly] public NativeArray<Entity> Spheres;
 
     [BurstCompile]
-    private void Execute(Entity e,
-                         CollisionAspect collision)
+    private void Execute(Entity e, CollisionAspect collision)
     {
         var myCollider = ColliderLookup[e];
         var myTransform = TransformLookup[e];
@@ -126,14 +143,10 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
             var otherTransform = TransformLookup[sphere];
             var otherPhysics = PhysicsLookup[sphere];
 
-            collision.AddSphereCollisionResponse(myTransform.Position,
-                                                 otherTransform.Position,
-                                                 myCollider.Radius,
-                                                 otherCollider.Radius,
-                                                 myPhysics.Velocity,
-                                                 otherPhysics.Velocity,
-                                                 myCollider.Bounciness,
-                                                 otherCollider.Bounciness);
+            collision.AddSphereToSphereCollisionResponse(myTransform.Position, otherTransform.Position,
+                                                         myCollider.Radius, otherCollider.Radius,
+                                                         myPhysics.Velocity, otherPhysics.Velocity,
+                                                         myCollider.Bounciness, otherCollider.Bounciness);
         }
     }
 }
@@ -141,25 +154,17 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
 [BurstCompile]
 public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
 {
-    [ReadOnly]
-    public ComponentLookup<CapsuleCollider> ColliderLookup;
-    [ReadOnly]
-    public ComponentLookup<PhysicsBody> PhysicsLookup;
-    [ReadOnly]
-    public ComponentLookup<WorldTransform> TransformLookup;
-    [ReadOnly]
-    public NativeArray<Entity> Capsules;
-
+    [ReadOnly] public ComponentLookup<CapsuleCollider> ColliderLookup;
+    [ReadOnly] public ComponentLookup<PhysicsBody> PhysicsLookup;
+    [ReadOnly] public ComponentLookup<WorldTransform> TransformLookup;
+    [ReadOnly] public NativeArray<Entity> Capsules;
 
     [BurstCompile]
-    private void Execute(Entity e,
-                         CollisionAspect collision)
+    private void Execute(Entity e, CollisionAspect collision)
     {
         var myCollider = ColliderLookup[e];
         var myTransform = TransformLookup[e];
         var myPhysics = PhysicsLookup[e];
-        var myStart = myTransform.Position + math.mul(myTransform.Rotation, myCollider.Start);
-        var myEnd = myTransform.Position + math.mul(myTransform.Rotation, myCollider.End);
         foreach (var capsule in Capsules)
         {
             if (capsule == e)
@@ -168,30 +173,17 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
             var otherCollider = ColliderLookup[capsule];
             var otherTransform = TransformLookup[capsule];
             var otherPhysics = PhysicsLookup[capsule];
+            
+            var myStart = myTransform.Position + math.mul(myTransform.Rotation, myCollider.Start);
+            var myEnd = myTransform.Position + math.mul(myTransform.Rotation, myCollider.End);
             var otherStart = otherTransform.Position + math.mul(otherTransform.Rotation, otherCollider.Start);
             var otherEnd = otherTransform.Position + math.mul(otherTransform.Rotation, otherCollider.End);
-            var v0 = otherStart - myStart;
-            var v1 = otherEnd - myStart;
-            var v2 = otherStart - myEnd;
-            var v3 = otherEnd - myEnd;
 
-            var d0 = math.dot(v0, v0);
-            var d1 = math.dot(v1, v1);
-            var d2 = math.dot(v2, v2);
-            var d3 = math.dot(v3, v3);
-
-            var myClosestPoint = d2 < d0 || d2 < d1 || d3 < d0 || d3 < d1 ? myEnd : myStart;
-            var otherClosestPoint = myClosestPoint.ClosestPointOnLineSegment(otherStart, otherEnd);
-            myClosestPoint = otherClosestPoint.ClosestPointOnLineSegment(myStart, myEnd);
-            
-            collision.AddSphereCollisionResponse(myClosestPoint,
-                                                 otherClosestPoint,
-                                                 myCollider.Radius,
-                                                 otherCollider.Radius,
-                                                 myPhysics.Velocity,
-                                                 otherPhysics.Velocity,
-                                                 myCollider.Bounciness,
-                                                 otherCollider.Bounciness);
+            var (myClosestPoint, otherClosestPoint) = collision.ClosestPointsOnLineSegments(myStart, otherStart, myEnd, otherEnd);
+            collision.AddSphereToSphereCollisionResponse(myClosestPoint, otherClosestPoint,
+                                                         myCollider.Radius, otherCollider.Radius,
+                                                         myPhysics.Velocity, otherPhysics.Velocity,
+                                                         myCollider.Bounciness, otherCollider.Bounciness);
         }
     }
 }
