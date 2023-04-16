@@ -1,4 +1,3 @@
-using Framework.Utils;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -15,6 +14,8 @@ public partial struct CollisionSystem : ISystem
     public ComponentLookup<CapsuleCollider> CapsuleColliderLookup;
     public ComponentLookup<PhysicsBody> PhysicsLookup;
     public ComponentLookup<WorldTransform> TransformLookup;
+    public ComponentLookup<Parent> ParentLookup;
+    public BufferLookup<Child> ChildrenLookup;
     public EntityQuery SphereQuery;
     public EntityQuery CapsulesQuery;
 
@@ -27,6 +28,8 @@ public partial struct CollisionSystem : ISystem
         CapsuleColliderLookup = state.GetComponentLookup<CapsuleCollider>();
         PhysicsLookup = state.GetComponentLookup<PhysicsBody>();
         TransformLookup = state.GetComponentLookup<WorldTransform>();
+        ParentLookup = state.GetComponentLookup<Parent>();
+        ChildrenLookup = state.GetBufferLookup<Child>();
         SphereQuery = state.GetEntityQuery(typeof(SphereCollider));
         CapsulesQuery = state.GetEntityQuery(typeof(CapsuleCollider));
         _haveTransformsInitialized = false;
@@ -48,6 +51,8 @@ public partial struct CollisionSystem : ISystem
         CapsuleColliderLookup.Update(ref state);
         PhysicsLookup.Update(ref state);
         TransformLookup.Update(ref state);
+        ParentLookup.Update(ref state);
+        ChildrenLookup.Update(ref state);
 
         state.Dependency = new DetectSphereToGroundCollisions()
             .ScheduleParallel(state.Dependency);
@@ -60,6 +65,8 @@ public partial struct CollisionSystem : ISystem
             ColliderLookup = SphereColliderLookup,
             PhysicsLookup = PhysicsLookup,
             TransformLookup = TransformLookup,
+            ParentLookup = ParentLookup,
+            ChildrenLookup = ChildrenLookup,
             Spheres = SphereQuery.ToEntityArray(Allocator.TempJob)
         }.ScheduleParallel(SphereQuery, state.Dependency);
         
@@ -68,6 +75,8 @@ public partial struct CollisionSystem : ISystem
             ColliderLookup = CapsuleColliderLookup,
             PhysicsLookup = PhysicsLookup,
             TransformLookup = TransformLookup,
+            ParentLookup = ParentLookup,
+            ChildrenLookup = ChildrenLookup,
             Capsules = CapsulesQuery.ToEntityArray(Allocator.TempJob)
         }.ScheduleParallel(CapsulesQuery, state.Dependency);
 
@@ -127,6 +136,8 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
     [ReadOnly] public ComponentLookup<PhysicsBody> PhysicsLookup;
     [ReadOnly] public ComponentLookup<WorldTransform> TransformLookup;
     [ReadOnly] public NativeArray<Entity> Spheres;
+    [ReadOnly] public ComponentLookup<Parent> ParentLookup;
+    [ReadOnly] public BufferLookup<Child> ChildrenLookup;
 
     [BurstCompile]
     private void Execute(Entity e, CollisionAspect collision)
@@ -136,7 +147,7 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
         var myPhysics = PhysicsLookup[e];
         foreach (var sphere in Spheres)
         {
-            if (sphere == e)
+            if (!collision.ShouldCollide(e, sphere, ParentLookup, ChildrenLookup))
                 continue;
 
             var otherCollider = ColliderLookup[sphere];
@@ -158,6 +169,8 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
     [ReadOnly] public ComponentLookup<PhysicsBody> PhysicsLookup;
     [ReadOnly] public ComponentLookup<WorldTransform> TransformLookup;
     [ReadOnly] public NativeArray<Entity> Capsules;
+    [ReadOnly] public ComponentLookup<Parent> ParentLookup;
+    [ReadOnly] public BufferLookup<Child> ChildrenLookup;
 
     [BurstCompile]
     private void Execute(Entity e, CollisionAspect collision)
@@ -167,7 +180,7 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
         var myPhysics = PhysicsLookup[e];
         foreach (var capsule in Capsules)
         {
-            if (capsule == e)
+            if (!collision.ShouldCollide(e, capsule, ParentLookup, ChildrenLookup))
                 continue;
 
             var otherCollider = ColliderLookup[capsule];

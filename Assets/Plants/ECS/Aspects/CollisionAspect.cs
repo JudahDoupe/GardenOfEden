@@ -1,6 +1,10 @@
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using Framework.Utils;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 public readonly partial struct CollisionAspect : IAspect
 {
@@ -76,5 +80,33 @@ public readonly partial struct CollisionAspect : IAspect
         var otherClosestPoint = myClosestPoint.ClosestPointOnLineSegment(otherStart, otherEnd);
         myClosestPoint = otherClosestPoint.ClosestPointOnLineSegment(myStart, myEnd);
         return (myClosestPoint, otherClosestPoint);
+    }
+    
+    public bool ShouldCollide(Entity me, Entity other, ComponentLookup<Parent> parentLookup, BufferLookup<Child> childrenLookup)
+    {
+        var collide = other != me;
+
+        if (parentLookup.TryGetComponent(me, out var parent))
+        {
+            collide = collide && other != parent.Value;
+            
+            if (childrenLookup.TryGetBuffer(parent.Value, out var siblings))
+            {
+                for (var i = 0; i < siblings.Length; i++)
+                {
+                    collide &= other != siblings[i].Value;
+                }
+            }
+        }
+        
+        if (childrenLookup.TryGetBuffer(me, out var children))
+        {
+            for (var i = 0; i < children.Length; i++)
+            {
+                collide = collide && other != children[i].Value;
+            }
+        }
+
+        return collide;
     }
 }

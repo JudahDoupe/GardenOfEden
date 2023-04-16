@@ -1195,7 +1195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee21572ab18a400399360798378689ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bounciness: 0.5
+  Bounciness: 0.25
   Radius: 0.5
   Length: 1
   Start:
@@ -1514,7 +1514,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1116029994}
-  m_LocalRotation: {x: 0, y: 0, z: 0.17364816, w: 0.9848078}
+  m_LocalRotation: {x: 0.0073767686, y: -0.041835796, z: 0.1734914, w: 0.9839188}
   m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1524,7 +1524,7 @@ Transform:
   - {fileID: 1634595699}
   m_Father: {fileID: 1312680937}
   m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 20}
+  m_LocalEulerAnglesHint: {x: 1.664, y: -4.577, z: 19.934}
 --- !u!114 &1116029996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1564,7 +1564,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee21572ab18a400399360798378689ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bounciness: 0.5
+  Bounciness: 0.25
   Radius: 0.5
   Length: 1
   Start:
@@ -1865,7 +1865,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee21572ab18a400399360798378689ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bounciness: 0.5
+  Bounciness: 0.25
   Radius: 0.5
   Length: 1
   Start:
@@ -2351,7 +2351,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee21572ab18a400399360798378689ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bounciness: 0.5
+  Bounciness: 0.25
   Radius: 0.5
   Length: 1
   Start:
@@ -2789,7 +2789,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1748186975}
-  m_LocalRotation: {x: -0, y: -0, z: -0.17364825, w: 0.9848078}
+  m_LocalRotation: {x: 0.010795869, y: 0.061226215, z: 0.17331237, w: -0.9829027}
   m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2799,7 +2799,7 @@ Transform:
   - {fileID: 2111501181}
   m_Father: {fileID: 1312680937}
   m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -20}
+  m_LocalEulerAnglesHint: {x: -2.433, y: -366.703, z: -19.858}
 --- !u!114 &1748186977
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2839,7 +2839,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee21572ab18a400399360798378689ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bounciness: 0.5
+  Bounciness: 0.25
   Radius: 0.5
   Length: 1
   Start:
@@ -3123,7 +3123,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee21572ab18a400399360798378689ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bounciness: 0.5
+  Bounciness: 0.25
   Radius: 0.5
   Length: 1
   Start:
