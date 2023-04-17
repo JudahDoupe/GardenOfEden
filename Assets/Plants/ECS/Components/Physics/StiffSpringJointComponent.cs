@@ -19,8 +19,6 @@ public struct ConstraintResponse : IComponentData
 {
     public float3 PositionAdjustment;
     public float3 VelocityAdjustment;
-    public float3 ParentPositionAdjustment;
-    public float3 ParentVelocityAdjustment;
 }
 
 public class StiffSpringJointComponent : MonoBehaviour
@@ -52,8 +50,6 @@ public class StiffSpringJointComponentBaker : Baker<StiffSpringJointComponent>
         {
             PositionAdjustment = new float3(0,0,0),
             VelocityAdjustment = new float3(0,0,0),
-            ParentPositionAdjustment = new float3(0,0,0),
-            ParentVelocityAdjustment = new float3(0,0,0),
         });
     }
 }
