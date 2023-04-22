@@ -110,7 +110,7 @@ GameObject:
   - component: {fileID: 4896783615440641951}
   - component: {fileID: 4951931473235392758}
   - component: {fileID: 7629578144601330832}
-  - component: {fileID: 8812426676636634109}
+  - component: {fileID: 2870427130569500176}
   - component: {fileID: 6573767627076674713}
   m_Layer: 0
   m_Name: Node
@@ -190,7 +190,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Mass: 1
---- !u!114 &8812426676636634109
+--- !u!114 &2870427130569500176
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -199,9 +199,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 3857230089201966738}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef9b143cef60452999f347cf67694ccc, type: 3}
+  m_Script: {fileID: 11500000, guid: ee21572ab18a400399360798378689ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Bounciness: 0.5
+  Radius: 0
+  Length: 0
+  Start:
+    x: 0
+    y: 0
+    z: 0
+  End:
+    x: 0
+    y: 0
+    z: 0
 --- !u!114 &6573767627076674713
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -215,6 +226,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Stiffness: 1
+  Dampening: 0
 --- !u!1 &5760784771137944056
 GameObject:
   m_ObjectHideFlags: 0

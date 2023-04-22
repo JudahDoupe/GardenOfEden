@@ -1,6 +1,8 @@
 using Unity.Burst;
 using Unity.Entities;
 
+// ReSharper disable PartialTypeWithSinglePart
+
 [BurstCompile]
 [UpdateInGroup(typeof(PlantSimulationGroup))]
 [UpdateBefore(typeof(ReplicationSystem))]
@@ -30,8 +32,8 @@ public partial struct PrimaryGrowthJob : IJobEntity
     public float DeltaTime;
 
     [BurstCompile]
-    private void Execute(GrowthAspect growth)
+    private void Execute(NodeAspect node)
     {
-        growth.Grow(DeltaTime * 0.2f);
+        node.Grow(DeltaTime * 0.2f);
     }
 }

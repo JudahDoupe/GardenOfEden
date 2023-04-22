@@ -7,6 +7,8 @@ public struct PrimaryGrowth : IComponentData
 {
     public float NodeRadius;
     public float InternodeLength;
+    public float EnergyToVolumeRatio;
+    public float Density;
 }
 
 public class PrimaryGrowthComponent : MonoBehaviour
@@ -23,6 +25,8 @@ public class PrimaryGrowthComponentBaker : Baker<PrimaryGrowthComponent>
         {
             NodeRadius = authoring.NodeRadius,
             InternodeLength = authoring.InternodeLength,
+            EnergyToVolumeRatio = 1,
+            Density = 1,
         });
     }
 }

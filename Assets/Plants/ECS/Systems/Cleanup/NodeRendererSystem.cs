@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 
 [BurstCompile]
-[UpdateInGroup(typeof(PlantSimulationGroup))]
+[UpdateInGroup(typeof(LateSimulationSystemGroup))]
 public partial struct NodeRendererSystem : ISystem
 {
     private ComponentLookup<Size> _sizeLookup;
@@ -56,12 +56,12 @@ public partial struct CalculateInternodeRendererDataJob : IJobEntity
 
     [BurstCompile]
     private void Execute(InternodeRenderer renderer,
-                         ref LocalTransform transform,
-                         ref PostTransformScale nonUniformScale)
+                         RefRW<LocalTransform> transform,
+                         RefRW<PostTransformScale> nonUniformScale)
     {
         var size = SizeLookup[renderer.Node];
 
-        transform.Scale = size.NodeRadius;
-        nonUniformScale.Value = new float3x3(1, 0, 0, 0, 1, 0, 0, 0, size.InternodeLength / size.NodeRadius);
+        transform.ValueRW.Scale = size.NodeRadius;
+        nonUniformScale.ValueRW.Value = new float3x3(1, 0, 0, 0, 1, 0, 0, 0, size.InternodeLength / size.NodeRadius);
     }
 }
