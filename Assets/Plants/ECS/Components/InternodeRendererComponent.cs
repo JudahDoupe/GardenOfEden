@@ -15,9 +15,10 @@ public class InternodeRendererComponentBaker : Baker<InternodeRendererComponent>
 {
     public override void Bake(InternodeRendererComponent authoring)
     {
-        AddComponent(new InternodeRenderer
+        var e = GetEntity(TransformUsageFlags.NonUniformScale);
+        AddComponent(e, new InternodeRenderer
         {
-            Node = GetEntity(authoring.Node)
+            Node = GetEntity(authoring.Node, TransformUsageFlags.Dynamic)
         });
     }
 }

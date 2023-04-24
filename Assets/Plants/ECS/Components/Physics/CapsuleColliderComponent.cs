@@ -24,7 +24,8 @@ public class CapsuleColliderComponentBaker : Baker<CapsuleColliderComponent>
 {
     public override void Bake(CapsuleColliderComponent authoring)
     {
-        AddComponent(new CapsuleCollider
+        var e = GetEntity(TransformUsageFlags.Dynamic);
+        AddComponent(e, new CapsuleCollider
         {
             Bounciness = authoring.Bounciness,
             Radius = authoring.Radius,
@@ -32,6 +33,6 @@ public class CapsuleColliderComponentBaker : Baker<CapsuleColliderComponent>
             Start = authoring.Start,
             End = authoring.End
         });
-        AddComponent<CollisionResponse>();
+        AddComponent<CollisionResponse>(e);
     }
 }

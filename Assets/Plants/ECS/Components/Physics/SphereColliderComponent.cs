@@ -26,12 +26,13 @@ public class SphereColliderComponentBaker : Baker<SphereColliderComponent>
 {
     public override void Bake(SphereColliderComponent authoring)
     {
-        AddComponent(new SphereCollider
+        var e = GetEntity(TransformUsageFlags.Dynamic);
+        AddComponent(e, new SphereCollider
         {
             Center = authoring.Center,
             Radius = authoring.Radius,
             Bounciness = authoring.Bounciness,
         });
-        AddComponent<CollisionResponse>();
+        AddComponent<CollisionResponse>(e);
     }
 }

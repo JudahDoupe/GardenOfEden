@@ -21,7 +21,8 @@ public class PrimaryGrowthComponentBaker : Baker<PrimaryGrowthComponent>
 {
     public override void Bake(PrimaryGrowthComponent authoring)
     {
-        AddComponent(new PrimaryGrowth
+        var e = GetEntity(TransformUsageFlags.Dynamic);
+        AddComponent(e, new PrimaryGrowth
         {
             NodeRadius = authoring.NodeRadius,
             InternodeLength = authoring.InternodeLength,

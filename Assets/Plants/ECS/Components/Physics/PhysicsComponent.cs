@@ -18,7 +18,8 @@ public class PhysicsComponentBaker : Baker<PhysicsComponent>
 {
     public override void Bake(PhysicsComponent authoring)
     {
-        AddComponent(new PhysicsBody
+        var e = GetEntity(TransformUsageFlags.Dynamic);
+        AddComponent(e, new PhysicsBody
         {
             Mass = authoring.Mass,
         });

@@ -4,10 +4,9 @@ using Unity.Mathematics;
 
 // ReSharper disable PartialTypeWithSinglePart
 
-[RequireMatchingQueriesForUpdate]
-[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-[UpdateBefore(typeof(ConstraintSystem))]
 [BurstCompile]
+[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+[UpdateBefore(typeof(VelocityIntegrationSystem))]
 public partial struct GravitySystem : ISystem
 {
     [BurstCompile]

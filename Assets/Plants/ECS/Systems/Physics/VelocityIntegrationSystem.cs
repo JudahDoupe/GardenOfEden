@@ -4,6 +4,7 @@ using Unity.Transforms;
 
 // ReSharper disable PartialTypeWithSinglePart
 
+[BurstCompile]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public partial struct VelocityIntegrationSystem : ISystem
 {
@@ -32,9 +33,9 @@ public partial struct IntegrateVelocityEuler : IJobEntity
 
     [BurstCompile]
     private void Execute(RefRW<PhysicsBody> physics,
-                         TransformAspect transform)
+                         RefRW<LocalTransform> transform)
     {
-        transform.LocalPosition += physics.ValueRO.Velocity * TimeStep;
+        transform.ValueRW.Position += physics.ValueRO.Velocity * TimeStep;
 
         physics.ValueRW.Velocity += physics.ValueRO.Force / physics.ValueRO.Mass * TimeStep;
         physics.ValueRW.Force = 0;

@@ -17,9 +17,10 @@ public class DnaComponentBaker : Baker<DnaComponent>
 {
     public override void Bake(DnaComponent authoring)
     {
-        AddComponent(new Dna
+        var e = GetEntity(TransformUsageFlags.Dynamic);
+        AddComponent(e, new Dna
         {
-            SupportStructurePrefab = GetEntity(authoring.SupportStructurePrefab)
+            SupportStructurePrefab = GetEntity(authoring.SupportStructurePrefab, TransformUsageFlags.Dynamic),
         });
     }
 }

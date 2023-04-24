@@ -17,7 +17,8 @@ public class SizeComponentBaker : Baker<SizeComponent>
 {
     public override void Bake(SizeComponent authoring)
     {
-        AddComponent(new Size
+        var e = GetEntity(TransformUsageFlags.Dynamic);
+        AddComponent(e, new Size
         {
             NodeRadius = authoring.NodeRadius,
             InternodeLength = authoring.InternodeLength,

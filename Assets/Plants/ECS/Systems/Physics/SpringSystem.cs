@@ -37,13 +37,16 @@ public partial struct SpringSystem : ISystem
 public partial struct AddSpringForces : IJobEntity
 {
     [BurstCompile]
-    private void Execute(RefRW<PhysicsBody> physics, RefRO<SpringJoint> spring, TransformAspect transform)
+    private void Execute(RefRW<PhysicsBody> physics, 
+                         RefRO<SpringJoint> spring, 
+                         RefRW<LocalTransform> localTransform, 
+                         LocalToWorld worldTransform)
     {
-        var springForce = -spring.ValueRO.Stiffness * (transform.LocalPosition - spring.ValueRO.EquilibriumPosition);
+        var springForce = -spring.ValueRO.Stiffness * (localTransform.ValueRO.Position - spring.ValueRO.EquilibriumPosition);
         var dampingForce = -spring.ValueRO.Dampening * physics.ValueRO.Velocity;
         physics.ValueRW.Force += springForce + dampingForce;
 
-        var back = quaternion.LookRotationSafe(-transform.LocalPosition, math.normalize(transform.WorldPosition));
-        transform.LocalRotation = math.mul(back, spring.ValueRO.TargetRotation);
+        var back = quaternion.LookRotationSafe(-localTransform.ValueRO.Position, math.normalize(worldTransform.Position));
+        localTransform.ValueRW.Rotation = math.mul(back, spring.ValueRO.TargetRotation);
     }
 }

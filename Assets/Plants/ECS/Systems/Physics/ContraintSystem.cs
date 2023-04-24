@@ -8,10 +8,11 @@ using Unity.Transforms;
 
 [UpdateAfter(typeof(CollisionSystem))]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+[BurstCompile]
 public partial struct ConstraintSystem : ISystem
 {
     public ComponentLookup<PhysicsBody> PhysicsLookup;
-    public ComponentLookup<WorldTransform> TransformLookup;
+    public ComponentLookup<LocalToWorld> WorldTransformLookup;
 
     private bool _haveTransformsInitialized;
 
@@ -19,7 +20,7 @@ public partial struct ConstraintSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
         PhysicsLookup = state.GetComponentLookup<PhysicsBody>();
-        TransformLookup = state.GetComponentLookup<WorldTransform>();
+        WorldTransformLookup = state.GetComponentLookup<LocalToWorld>();
         _haveTransformsInitialized = false;
     }
 
@@ -36,12 +37,12 @@ public partial struct ConstraintSystem : ISystem
         }
 
         PhysicsLookup.Update(ref state);
-        TransformLookup.Update(ref state);
+        WorldTransformLookup.Update(ref state);
 
         state.Dependency = new SolveLengthConstraint
             {
                 PhysicsLookup = PhysicsLookup,
-                TransformLookup = TransformLookup
+                WorldTransformLookup = WorldTransformLookup
             }
             .ScheduleParallel(state.Dependency);
 
@@ -56,7 +57,7 @@ public partial struct SolveLengthConstraint : IJobEntity
     [ReadOnly]
     public ComponentLookup<PhysicsBody> PhysicsLookup;
     [ReadOnly]
-    public ComponentLookup<WorldTransform> TransformLookup;
+    public ComponentLookup<LocalToWorld> WorldTransformLookup;
 
     [BurstCompile]
     private void Execute(Entity e,
@@ -64,8 +65,8 @@ public partial struct SolveLengthConstraint : IJobEntity
                          RefRW<ConstraintResponse> constraint,
                          RefRO<LengthConstraint> length)
     {
-        var myPosition = TransformLookup[e].Position;
-        var parentPosition = TransformLookup[parent.ValueRO.Value].Position;
+        var myPosition = WorldTransformLookup[e].Position;
+        var parentPosition = WorldTransformLookup[parent.ValueRO.Value].Position;
         var distance = math.distance(myPosition, parentPosition);
         var direction = math.normalize(myPosition - parentPosition);
 
@@ -89,9 +90,10 @@ public partial struct ResolveConstraints : IJobEntity
     [BurstCompile]
     private void Execute(RefRW<ConstraintResponse> constraint,
                          RefRW<PhysicsBody> physics,
-                         TransformAspect transform)
+                         RefRW<LocalTransform> localTransform,
+                         LocalToWorld worldTransform)
     {
-        transform.WorldPosition += constraint.ValueRO.PositionAdjustment;
+        localTransform.ValueRW.Position += math.mul(math.inverse(worldTransform.Rotation), constraint.ValueRO.PositionAdjustment);
         physics.ValueRW.Velocity += constraint.ValueRO.VelocityAdjustment;
 
         constraint.ValueRW.PositionAdjustment = float3.zero;

@@ -15,9 +15,10 @@ public class NodeRendererComponentBaker : Baker<NodeRendererComponent>
 {
     public override void Bake(NodeRendererComponent authoring)
     {
-        AddComponent(new NodeRenderer
+        var e = GetEntity(TransformUsageFlags.NonUniformScale);
+        AddComponent(e, new NodeRenderer
         {
-            Node = GetEntity(authoring.Node)
+            Node = GetEntity(authoring.Node, TransformUsageFlags.Dynamic)
         });
     }
 }

@@ -16,9 +16,10 @@ public class CopyDnaComponentBaker : Baker<DnaSourceComponent>
 {
     public override void Bake(DnaSourceComponent authoring)
     {
-        AddComponent(new DnaSource
+        var e = GetEntity(TransformUsageFlags.Dynamic);
+        AddComponent(e, new DnaSource
         {
-            Source = GetEntity(authoring.Source)
+            Source = GetEntity(authoring.Source, TransformUsageFlags.Dynamic)
         });
     }
 }

@@ -42,9 +42,9 @@ public partial struct NodeRendererJob : IJobEntity
     public ComponentLookup<Size> SizeLookup;
 
     [BurstCompile]
-    private void Execute(NodeRenderer renderer, TransformAspect transformAspect)
+    private void Execute(NodeRenderer renderer, RefRW<LocalTransform> transformAspect)
     {
-        transformAspect.WorldScale = SizeLookup[renderer.Node].NodeRadius;
+        transformAspect.ValueRW.Scale = SizeLookup[renderer.Node].NodeRadius;
     }
 }
 
@@ -57,11 +57,14 @@ public partial struct CalculateInternodeRendererDataJob : IJobEntity
     [BurstCompile]
     private void Execute(InternodeRenderer renderer,
                          RefRW<LocalTransform> transform,
-                         RefRW<PostTransformScale> nonUniformScale)
+                         RefRW<PostTransformMatrix> nonUniformScale)
     {
         var size = SizeLookup[renderer.Node];
 
         transform.ValueRW.Scale = size.NodeRadius;
-        nonUniformScale.ValueRW.Value = new float3x3(1, 0, 0, 0, 1, 0, 0, 0, size.InternodeLength / size.NodeRadius);
+        nonUniformScale.ValueRW.Value = new float4x4(1, 0, 0, 0, 
+                                                     0, 1, 0, 0, 
+                                                     0, 0, 1, 0,
+                                                     0, 0, 0, size.InternodeLength / size.NodeRadius);
     }
 }

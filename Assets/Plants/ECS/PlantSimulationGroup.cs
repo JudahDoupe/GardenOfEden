@@ -3,4 +3,4 @@ using Unity.Transforms;
 
 [WorldSystemFilter(WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor | WorldSystemFilterFlags.ThinClientSimulation)]
 [UpdateInGroup(typeof(VariableRateSimulationSystemGroup))]
-public class PlantSimulationGroup : ComponentSystemGroup { }
+public partial class PlantSimulationGroup : ComponentSystemGroup { }
