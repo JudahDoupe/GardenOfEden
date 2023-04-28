@@ -1,13 +1,12 @@
 using Unity.Burst;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 
 // ReSharper disable PartialTypeWithSinglePart
 
 [RequireMatchingQueriesForUpdate]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-[UpdateBefore(typeof(ConstraintSystem))]
+[UpdateBefore(typeof(VelocityIntegrationSystem))]
 [BurstCompile]
 public partial struct SpringSystem : ISystem
 {
@@ -37,16 +36,12 @@ public partial struct SpringSystem : ISystem
 public partial struct AddSpringForces : IJobEntity
 {
     [BurstCompile]
-    private void Execute(RefRW<PhysicsBody> physics, 
-                         RefRO<SpringJoint> spring, 
-                         RefRW<LocalTransform> localTransform, 
-                         LocalToWorld worldTransform)
+    private void Execute(RefRW<PhysicsBody> physics,
+                         LocalTransform localTransform,
+                         SpringJoint spring)
     {
-        var springForce = -spring.ValueRO.Stiffness * (localTransform.ValueRO.Position - spring.ValueRO.EquilibriumPosition);
-        var dampingForce = -spring.ValueRO.Dampening * physics.ValueRO.Velocity;
+        var springForce = -spring.Stiffness * (localTransform.Position - spring.EquilibriumPosition);
+        var dampingForce = -spring.Dampening * physics.ValueRO.Velocity;
         physics.ValueRW.Force += springForce + dampingForce;
-
-        var back = quaternion.LookRotationSafe(-localTransform.ValueRO.Position, math.normalize(worldTransform.Position));
-        localTransform.ValueRW.Rotation = math.mul(back, spring.ValueRO.TargetRotation);
     }
 }

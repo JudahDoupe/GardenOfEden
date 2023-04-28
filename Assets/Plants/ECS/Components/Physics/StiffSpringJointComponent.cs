@@ -7,12 +7,16 @@ public struct SpringJoint : IComponentData
     public float Stiffness;
     public float Dampening;
     public float3 EquilibriumPosition;
-    public quaternion TargetRotation;
 }
 
 public struct LengthConstraint : IComponentData
 {
     public float Length;
+}
+
+public struct FaceParentConstraint : IComponentData
+{
+    public quaternion InitialRotation;
 }
 
 public struct ConstraintResponse : IComponentData
@@ -39,7 +43,6 @@ public class StiffSpringJointComponentBaker : Baker<StiffSpringJointComponent>
             Stiffness = authoring.Stiffness,
             Dampening = authoring.Dampening,
             EquilibriumPosition = authoring.transform.localPosition,
-            TargetRotation = Quaternion.Inverse(back) * authoring.transform.localRotation,
         });
         
         AddComponent(e, new LengthConstraint
@@ -47,6 +50,11 @@ public class StiffSpringJointComponentBaker : Baker<StiffSpringJointComponent>
             Length = authoring.transform.localPosition.magnitude,
         });
         
+        AddComponent(e, new FaceParentConstraint()
+        {
+            InitialRotation = Quaternion.Inverse(back) * authoring.transform.localRotation,
+        });
+
         AddComponent(e, new ConstraintResponse
         {
             PositionAdjustment = new float3(0,0,0),

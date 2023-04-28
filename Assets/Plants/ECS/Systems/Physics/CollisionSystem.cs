@@ -1,3 +1,4 @@
+using Framework.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -7,7 +8,7 @@ using Unity.Transforms;
 // ReSharper disable PartialTypeWithSinglePart
 
 [BurstCompile]
-[UpdateAfter(typeof(VelocityIntegrationSystem))]
+[UpdateAfter(typeof(IntegrateVelocityEuler))]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public partial struct CollisionSystem : ISystem
 {
@@ -16,9 +17,12 @@ public partial struct CollisionSystem : ISystem
     public ComponentLookup<PhysicsBody> PhysicsLookup;
     public ComponentLookup<LocalToWorld> WorldTransformLookup;
     public ComponentLookup<Parent> ParentLookup;
+    public ComponentLookup<LocalTransform> LocalTransformLookup;
+    public ComponentLookup<PostTransformMatrix> PostTransformMatrixLookup;
     public BufferLookup<Child> ChildrenLookup;
     public EntityQuery SphereQuery;
     public EntityQuery CapsulesQuery;
+    public EntityQuery RecalculateLocalTransformQuery;
 
     private bool _haveTransformsInitialized;
 
@@ -30,9 +34,12 @@ public partial struct CollisionSystem : ISystem
         PhysicsLookup = state.GetComponentLookup<PhysicsBody>();
         WorldTransformLookup = state.GetComponentLookup<LocalToWorld>();
         ParentLookup = state.GetComponentLookup<Parent>();
+        LocalTransformLookup = state.GetComponentLookup<LocalTransform>();
+        PostTransformMatrixLookup = state.GetComponentLookup<PostTransformMatrix>();
         ChildrenLookup = state.GetBufferLookup<Child>();
         SphereQuery = state.GetEntityQuery(typeof(SphereCollider), typeof(PhysicsBody), typeof(LocalToWorld), typeof(CollisionResponse));
         CapsulesQuery = state.GetEntityQuery(typeof(CapsuleCollider), typeof(PhysicsBody), typeof(LocalToWorld), typeof(CollisionResponse));
+        RecalculateLocalTransformQuery = state.GetEntityQuery(typeof(LocalTransform), typeof(LocalToWorld));
         _haveTransformsInitialized = false;
     }
 
@@ -53,25 +60,27 @@ public partial struct CollisionSystem : ISystem
         PhysicsLookup.Update(ref state);
         WorldTransformLookup.Update(ref state);
         ParentLookup.Update(ref state);
+        LocalTransformLookup.Update(ref state);
+        PostTransformMatrixLookup.Update(ref state);
         ChildrenLookup.Update(ref state);
 
         state.Dependency = new DetectSphereToGroundCollisions()
             .ScheduleParallel(state.Dependency);
-        
+
         state.Dependency = new DetectCapsuleToGroundCollisions()
             .ScheduleParallel(state.Dependency);
 
         state.Dependency = new DetectSphereToSphereCollisions
-        {
-            ColliderLookup = SphereColliderLookup,
-            PhysicsLookup = PhysicsLookup,
-            WorldTransformLookup = WorldTransformLookup,
-            ParentLookup = ParentLookup,
-            ChildrenLookup = ChildrenLookup,
-            Spheres = SphereQuery.ToEntityArray(Allocator.TempJob)
-        }.ScheduleParallel(SphereQuery, state.Dependency);
-        
-        state.Dependency = new DetectCapsuleToCapsuleCollisions()
+            {
+                ColliderLookup = SphereColliderLookup,
+                PhysicsLookup = PhysicsLookup,
+                WorldTransformLookup = WorldTransformLookup,
+                ParentLookup = ParentLookup,
+                ChildrenLookup = ChildrenLookup,
+                Spheres = SphereQuery.ToEntityArray(Allocator.TempJob)
+            }.ScheduleParallel(SphereQuery, state.Dependency);
+
+        state.Dependency = new DetectCapsuleToCapsuleCollisions
         {
             ColliderLookup = CapsuleColliderLookup,
             PhysicsLookup = PhysicsLookup,
@@ -83,13 +92,20 @@ public partial struct CollisionSystem : ISystem
 
         state.Dependency = new ResolveCollisions()
             .ScheduleParallel(state.Dependency);
+
+        state.Dependency = new RecalculateLocalToWorld
+            {
+                ParentLookup = ParentLookup,
+                LocalTransformLookup = LocalTransformLookup,
+                PostTransformMatrixLookup = PostTransformMatrixLookup
+            }
+            .ScheduleParallel(RecalculateLocalTransformQuery, state.Dependency);
     }
 }
 
 [BurstCompile]
 public partial struct DetectSphereToGroundCollisions : IJobEntity
 {
-
     [BurstCompile]
     private void Execute(RefRO<PhysicsBody> physics,
                          RefRO<SphereCollider> collider,
@@ -98,10 +114,10 @@ public partial struct DetectSphereToGroundCollisions : IJobEntity
     {
         var groundPosition = new float3(worldTransform.ValueRO.Position.x, 0.5f, worldTransform.ValueRO.Position.z);
 
-        collision.AddSphereToGroundCollisionResponse(worldTransform.ValueRO.Position, 
+        collision.AddSphereToGroundCollisionResponse(worldTransform.ValueRO.Position,
                                                      groundPosition,
-                                                     collider.ValueRO.Radius, 
-                                                     physics.ValueRO.Velocity, 
+                                                     collider.ValueRO.Radius,
+                                                     physics.ValueRO.Velocity,
                                                      collider.ValueRO.Bounciness);
     }
 }
@@ -121,10 +137,10 @@ public partial struct DetectCapsuleToGroundCollisions : IJobEntity
         var groundEnd = new float3(myEnd.x, 0.5f, myEnd.z);
 
         var (myClosestPoint, groundPosition) = collision.ClosestPointsOnLineSegments(myStart, groundStart, myEnd, groundEnd);
-        collision.AddSphereToGroundCollisionResponse(myClosestPoint, 
+        collision.AddSphereToGroundCollisionResponse(myClosestPoint,
                                                      groundPosition,
-                                                     collider.ValueRO.Radius, 
-                                                     physics.ValueRO.Velocity, 
+                                                     collider.ValueRO.Radius,
+                                                     physics.ValueRO.Velocity,
                                                      collider.ValueRO.Bounciness);
     }
 }
@@ -132,12 +148,18 @@ public partial struct DetectCapsuleToGroundCollisions : IJobEntity
 [BurstCompile]
 public partial struct DetectSphereToSphereCollisions : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<SphereCollider> ColliderLookup;
-    [ReadOnly] public ComponentLookup<PhysicsBody> PhysicsLookup;
-    [ReadOnly] public ComponentLookup<LocalToWorld> WorldTransformLookup;
-    [ReadOnly] public NativeArray<Entity> Spheres;
-    [ReadOnly] public ComponentLookup<Parent> ParentLookup;
-    [ReadOnly] public BufferLookup<Child> ChildrenLookup;
+    [ReadOnly]
+    public ComponentLookup<SphereCollider> ColliderLookup;
+    [ReadOnly]
+    public ComponentLookup<PhysicsBody> PhysicsLookup;
+    [ReadOnly]
+    public ComponentLookup<LocalToWorld> WorldTransformLookup;
+    [ReadOnly]
+    public NativeArray<Entity> Spheres;
+    [ReadOnly]
+    public ComponentLookup<Parent> ParentLookup;
+    [ReadOnly]
+    public BufferLookup<Child> ChildrenLookup;
 
     [BurstCompile]
     private void Execute(Entity e, CollisionAspect collision)
@@ -154,10 +176,14 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
             var otherTransform = WorldTransformLookup[sphere];
             var otherPhysics = PhysicsLookup[sphere];
 
-            collision.AddSphereToSphereCollisionResponse(myTransform.Position, otherTransform.Position,
-                                                         myCollider.Radius, otherCollider.Radius,
-                                                         myPhysics.Velocity, otherPhysics.Velocity,
-                                                         myCollider.Bounciness, otherCollider.Bounciness);
+            collision.AddSphereToSphereCollisionResponse(myTransform.Position,
+                                                         otherTransform.Position,
+                                                         myCollider.Radius,
+                                                         otherCollider.Radius,
+                                                         myPhysics.Velocity,
+                                                         otherPhysics.Velocity,
+                                                         myCollider.Bounciness,
+                                                         otherCollider.Bounciness);
         }
     }
 }
@@ -165,12 +191,18 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
 [BurstCompile]
 public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<CapsuleCollider> ColliderLookup;
-    [ReadOnly] public ComponentLookup<PhysicsBody> PhysicsLookup;
-    [ReadOnly] public ComponentLookup<LocalToWorld> WorldTransformLookup;
-    [ReadOnly] public NativeArray<Entity> Capsules;
-    [ReadOnly] public ComponentLookup<Parent> ParentLookup;
-    [ReadOnly] public BufferLookup<Child> ChildrenLookup;
+    [ReadOnly]
+    public ComponentLookup<CapsuleCollider> ColliderLookup;
+    [ReadOnly]
+    public ComponentLookup<PhysicsBody> PhysicsLookup;
+    [ReadOnly]
+    public ComponentLookup<LocalToWorld> WorldTransformLookup;
+    [ReadOnly]
+    public NativeArray<Entity> Capsules;
+    [ReadOnly]
+    public ComponentLookup<Parent> ParentLookup;
+    [ReadOnly]
+    public BufferLookup<Child> ChildrenLookup;
 
     [BurstCompile]
     private void Execute(Entity e, CollisionAspect collision)
@@ -186,17 +218,21 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
             var otherCollider = ColliderLookup[capsule];
             var otherTransform = WorldTransformLookup[capsule];
             var otherPhysics = PhysicsLookup[capsule];
-            
+
             var myStart = myTransform.Position + math.mul(myTransform.Rotation, myCollider.Start);
             var myEnd = myTransform.Position + math.mul(myTransform.Rotation, myCollider.End);
             var otherStart = otherTransform.Position + math.mul(otherTransform.Rotation, otherCollider.Start);
             var otherEnd = otherTransform.Position + math.mul(otherTransform.Rotation, otherCollider.End);
 
             var (myClosestPoint, otherClosestPoint) = collision.ClosestPointsOnLineSegments(myStart, otherStart, myEnd, otherEnd);
-            collision.AddSphereToSphereCollisionResponse(myClosestPoint, otherClosestPoint,
-                                                         myCollider.Radius, otherCollider.Radius,
-                                                         myPhysics.Velocity, otherPhysics.Velocity,
-                                                         myCollider.Bounciness, otherCollider.Bounciness);
+            collision.AddSphereToSphereCollisionResponse(myClosestPoint,
+                                                         otherClosestPoint,
+                                                         myCollider.Radius,
+                                                         otherCollider.Radius,
+                                                         myPhysics.Velocity,
+                                                         otherPhysics.Velocity,
+                                                         myCollider.Bounciness,
+                                                         otherCollider.Bounciness);
         }
     }
 }
@@ -205,11 +241,13 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
 public partial struct ResolveCollisions : IJobEntity
 {
     [BurstCompile]
-    private void Execute(RefRW<PhysicsBody> physics,
+    private void Execute(Entity e,
+                         RefRW<PhysicsBody> physics,
                          RefRW<LocalTransform> transform,
-                         RefRO<LocalToWorld> l2w,
+                         LocalToWorld worldTransform,
                          CollisionAspect collision)
     {
+        transform.ValueRW.Position += math.mul(math.inverse(worldTransform.Rotation), collision.PositionAdjustment);
         transform.ValueRW.Position += collision.PositionAdjustment;
         physics.ValueRW.Velocity += collision.VelocityAdjustment;
 
