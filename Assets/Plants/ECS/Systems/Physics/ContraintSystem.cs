@@ -130,7 +130,7 @@ public partial struct ResolveFaceDirectionConstraint : IJobEntity
     [BurstCompile]
     private void Execute(RefRW<LocalTransform> localTransform,
                          LocalToWorld worldTransform,
-                         FaceParentConstraint constraint)
+                         FaceAwayFromParentConstraint constraint)
     {
         var back = quaternion.LookRotationSafe(-localTransform.ValueRO.Position, math.normalize(worldTransform.Position));
         localTransform.ValueRW.Rotation = math.mul(back, constraint.InitialRotation);

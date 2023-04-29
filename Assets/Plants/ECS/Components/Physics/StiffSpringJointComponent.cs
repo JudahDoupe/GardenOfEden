@@ -14,7 +14,7 @@ public struct LengthConstraint : IComponentData
     public float Length;
 }
 
-public struct FaceParentConstraint : IComponentData
+public struct FaceAwayFromParentConstraint : IComponentData
 {
     public quaternion InitialRotation;
 }
@@ -50,7 +50,7 @@ public class StiffSpringJointComponentBaker : Baker<StiffSpringJointComponent>
             Length = authoring.transform.localPosition.magnitude,
         });
         
-        AddComponent(e, new FaceParentConstraint()
+        AddComponent(e, new FaceAwayFromParentConstraint()
         {
             InitialRotation = Quaternion.Inverse(back) * authoring.transform.localRotation,
         });

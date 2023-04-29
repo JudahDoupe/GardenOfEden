@@ -70,18 +70,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4896783615440641951, guid: e3184ca5db0394142a0a4f3792e648e1,
         type: 3}
-      propertyPath: NodeRadius
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4896783615440641951, guid: e3184ca5db0394142a0a4f3792e648e1,
-        type: 3}
       propertyPath: InternodeLength
       value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6573767627076674713, guid: e3184ca5db0394142a0a4f3792e648e1,
-        type: 3}
-      propertyPath: Stiffness
-      value: 0.95
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
