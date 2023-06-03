@@ -5,7 +5,7 @@ namespace Framework.Components
 {
     public class DynamicTransformComponent : MonoBehaviour { }
 
-    public class StiffSpringJointComponentBaker : Baker<DynamicTransformComponent>
+    public class DynamicTransformComponentBaker : Baker<DynamicTransformComponent>
     {
         public override void Bake(DynamicTransformComponent authoring)
         {

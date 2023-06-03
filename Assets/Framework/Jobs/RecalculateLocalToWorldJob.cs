@@ -15,7 +15,7 @@ namespace Framework.Jobs
         [BurstCompile]
         private void Execute(Entity e, RefRW<LocalToWorld> l2w)
         {
-            Helpers.ComputeWorldTransformMatrix(e, out l2w.ValueRW.Value, ref LocalTransformLookup, ref ParentLookup, ref PostTransformMatrixLookup);
+            TransformHelpers.ComputeWorldTransformMatrix(e, out l2w.ValueRW.Value, ref LocalTransformLookup, ref ParentLookup, ref PostTransformMatrixLookup);
         }
     }
 }
