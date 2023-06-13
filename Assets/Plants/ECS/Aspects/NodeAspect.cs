@@ -24,8 +24,9 @@ public readonly partial struct NodeAspect : IAspect
 
         var requestedInternodeEnergy = math.min(energy, MaxInternodeLength - InternodeLength);
         _size.ValueRW.InternodeLength += requestedInternodeEnergy;
+        _size.ValueRW.InternodeLength = math.max(_size.ValueRO.InternodeLength, _size.ValueRO.NodeRadius);
 
-        Physics.UpdateSize(InternodeLength,
+        Physics.UpdateSize(InternodeLength - NodeRadius,
                            NodeRadius,
                            _primaryGrowthTarget.ValueRO.Density * Volume(NodeRadius, InternodeLength));
 

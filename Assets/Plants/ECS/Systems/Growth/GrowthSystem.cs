@@ -17,6 +17,7 @@ public partial struct GrowthSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        return;
         var deltaTime = SystemAPI.Time.DeltaTime;
 
         state.Dependency = new PrimaryGrowthJob

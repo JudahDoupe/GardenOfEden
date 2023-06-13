@@ -1250,67 +1250,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Stiffness: 100
   Dampening: 15
---- !u!1 &597120991
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 597120992}
-  - component: {fileID: 597120994}
-  - component: {fileID: 597120993}
-  m_Layer: 0
-  m_Name: Trunk
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &597120992
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 597120991}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.5}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1312680937}
-  m_Father: {fileID: 1629717824}
-  m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &597120993
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 597120991}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 252ac2a84f50482b8d89ed6a74e832b8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Stiffness: 1000
-  Dampening: 100
---- !u!114 &597120994
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 597120991}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 315a004f5d374afb8a1ade9b51964212, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Mass: 10
 --- !u!1 &724501540
 GameObject:
   m_ObjectHideFlags: 0
@@ -1811,7 +1750,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Stiffness: 100
-  Dampening: 100
+  Dampening: 15
 --- !u!114 &896964713
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2377,7 +2316,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Stiffness: 100
-  Dampening: 100
+  Dampening: 15
 --- !u!114 &1077956166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2607,7 +2546,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Stiffness: 100
-  Dampening: 100
+  Dampening: 15
 --- !u!114 &1116029997
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3114,14 +3053,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1312680936}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0, z: 1.115}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 919465511}
   - {fileID: 1116029995}
   - {fileID: 1748186976}
-  m_Father: {fileID: 597120992}
+  m_Father: {fileID: 1629717824}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1312680938
@@ -3160,7 +3099,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Stiffness: 100
-  Dampening: 100
+  Dampening: 15
 --- !u!114 &1312680940
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3533,11 +3472,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1629717823}
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 9.429, y: 0.493, z: 6.724}
+  m_LocalPosition: {x: 9.429, y: 1.1, z: 6.724}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 597120992}
+  - {fileID: 1312680937}
   m_Father: {fileID: 0}
   m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
@@ -3707,7 +3646,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Stiffness: 100
-  Dampening: 100
+  Dampening: 15
 --- !u!114 &1680025972
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4089,7 +4028,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Stiffness: 100
-  Dampening: 100
+  Dampening: 15
 --- !u!114 &1748186978
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4197,7 +4136,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Stiffness: 100
-  Dampening: 100
+  Dampening: 15
 --- !u!114 &1780644952
 MonoBehaviour:
   m_ObjectHideFlags: 0

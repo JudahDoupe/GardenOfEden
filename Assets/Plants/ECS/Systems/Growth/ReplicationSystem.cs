@@ -20,6 +20,7 @@ public partial struct ReplicationSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        return;
         var endSimulation = SystemAPI.GetSingleton<EndVariableRateSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
 
