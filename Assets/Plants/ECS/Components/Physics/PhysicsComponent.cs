@@ -5,6 +5,8 @@ using UnityEngine;
 public struct PhysicsBody : IComponentData
 {
     public float Mass;
+    
+    // Force and Velocity ar in world space
     public float3 Force;
     public float3 Velocity;
 }

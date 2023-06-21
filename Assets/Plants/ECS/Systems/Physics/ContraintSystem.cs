@@ -1,4 +1,5 @@
 using Framework.Jobs;
+using Framework.Utils;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -116,7 +117,7 @@ public partial struct ResolveConstraints : IJobEntity
                          RefRW<LocalTransform> localTransform,
                          LocalToWorld worldTransform)
     {
-        localTransform.ValueRW.Position += math.mul(math.inverse(worldTransform.Rotation), constraint.ValueRO.PositionAdjustment);
+        localTransform.ValueRW.TranslateWorld(worldTransform, constraint.ValueRO.PositionAdjustment);
         physics.ValueRW.Velocity += constraint.ValueRO.VelocityAdjustment;
 
         constraint.ValueRW.PositionAdjustment = float3.zero;

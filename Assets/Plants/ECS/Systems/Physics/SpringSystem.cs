@@ -1,3 +1,4 @@
+using Framework.Utils;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
@@ -38,9 +39,10 @@ public partial struct AddSpringForces : IJobEntity
     [BurstCompile]
     private void Execute(RefRW<PhysicsBody> physics,
                          LocalTransform localTransform,
+                         LocalToWorld worldTransform,
                          SpringJoint spring)
     {
-        var springForce = -spring.Stiffness * (localTransform.Position - spring.EquilibriumPosition);
+        var springForce = -spring.Stiffness * worldTransform.LocalToWorldVector(localTransform.Position - spring.EquilibriumPosition);
         var dampingForce = -spring.Dampening * physics.ValueRO.Velocity;
         physics.ValueRW.Force += springForce + dampingForce;
     }

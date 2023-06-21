@@ -1,4 +1,5 @@
 using Framework.Jobs;
+using Framework.Utils;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
@@ -54,9 +55,10 @@ public partial struct IntegrateVelocityEuler : IJobEntity
 
     [BurstCompile]
     private void Execute(RefRW<PhysicsBody> physics,
-                         RefRW<LocalTransform> transform)
+                         RefRW<LocalTransform> localTransform,
+                         LocalToWorld worldTransform)
     {
-        transform.ValueRW.Position += physics.ValueRO.Velocity * TimeStep;
+        localTransform.ValueRW.TranslateWorld(worldTransform, physics.ValueRO.Velocity * TimeStep);
 
         physics.ValueRW.Velocity += physics.ValueRO.Force / physics.ValueRO.Mass * TimeStep;
         physics.ValueRW.Force = 0;

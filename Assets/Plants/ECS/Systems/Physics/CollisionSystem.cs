@@ -1,4 +1,5 @@
 using Framework.Jobs;
+using Framework.Utils;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -241,14 +242,12 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
 public partial struct ResolveCollisions : IJobEntity
 {
     [BurstCompile]
-    private void Execute(Entity e,
-                         RefRW<PhysicsBody> physics,
+    private void Execute(RefRW<PhysicsBody> physics,
                          RefRW<LocalTransform> transform,
                          LocalToWorld worldTransform,
                          CollisionAspect collision)
     {
-        transform.ValueRW.Position += math.mul(math.inverse(worldTransform.Rotation), collision.PositionAdjustment);
-        transform.ValueRW.Position += collision.PositionAdjustment;
+        transform.ValueRW.TranslateWorld(worldTransform, collision.PositionAdjustment);
         physics.ValueRW.Velocity += collision.VelocityAdjustment;
 
         collision.Clear();
