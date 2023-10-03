@@ -9,7 +9,7 @@ using Unity.Transforms;
 // ReSharper disable PartialTypeWithSinglePart
 
 [BurstCompile]
-[UpdateAfter(typeof(IntegrateVelocityEuler))]
+[UpdateAfter(typeof(VelocityIntegrationSystem))]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public partial struct CollisionSystem : ISystem
 {
