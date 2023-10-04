@@ -13,7 +13,6 @@ using Unity.Transforms;
 [BurstCompile]
 public partial struct ConstraintSystem : ISystem
 {
-    public ComponentLookup<PhysicsBody> PhysicsLookup;
     public ComponentLookup<LocalToWorld> WorldTransformLookup;
     public ComponentLookup<Parent> ParentLookup;
     public ComponentLookup<LocalTransform> LocalTransformLookup;
@@ -25,7 +24,6 @@ public partial struct ConstraintSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        PhysicsLookup = state.GetComponentLookup<PhysicsBody>();
         WorldTransformLookup = state.GetComponentLookup<LocalToWorld>();
         ParentLookup = state.GetComponentLookup<Parent>();
         LocalTransformLookup = state.GetComponentLookup<LocalTransform>();
@@ -46,7 +44,6 @@ public partial struct ConstraintSystem : ISystem
             return;
         }
 
-        PhysicsLookup.Update(ref state);
         WorldTransformLookup.Update(ref state);
         ParentLookup.Update(ref state);
         LocalTransformLookup.Update(ref state);
@@ -54,7 +51,6 @@ public partial struct ConstraintSystem : ISystem
 
         state.Dependency = new SolveLengthConstraint
             {
-                PhysicsLookup = PhysicsLookup,
                 WorldTransformLookup = WorldTransformLookup
             }
             .ScheduleParallel(state.Dependency);
@@ -62,7 +58,10 @@ public partial struct ConstraintSystem : ISystem
         state.Dependency = new ResolveFaceDirectionConstraint()
             .ScheduleParallel(state.Dependency);
 
-        state.Dependency = new ResolveConstraints()
+        state.Dependency = new ResolveConstraints
+            {
+                TimeStep = SystemAPI.Time.fixedDeltaTime,
+            }
             .ScheduleParallel(state.Dependency);
 
         state.Dependency = new RecalculateLocalToWorld
@@ -79,8 +78,6 @@ public partial struct ConstraintSystem : ISystem
 public partial struct SolveLengthConstraint : IJobEntity
 {
     [ReadOnly]
-    public ComponentLookup<PhysicsBody> PhysicsLookup;
-    [ReadOnly]
     public ComponentLookup<LocalToWorld> WorldTransformLookup;
 
     [BurstCompile]
@@ -94,23 +91,18 @@ public partial struct SolveLengthConstraint : IJobEntity
         var distance = math.distance(myPosition, parentPosition);
         var direction = math.normalize(myPosition - parentPosition);
 
-        var myVelocity = new float3(0, 0, 0);
-        if (PhysicsLookup.TryGetComponent(e, out var myPhysics)) myVelocity = myPhysics.Velocity;
-
-        var parentVelocity = new float3(0, 0, 0);
-        if (PhysicsLookup.TryGetComponent(e, out var parentPhysics)) parentVelocity = parentPhysics.Velocity;
-
         var displacement = length.Length - distance;
-        var displacementSpeed = math.dot(myVelocity - parentVelocity, direction);
 
-        constraint.ValueRW.VelocityAdjustment -= direction * displacementSpeed;
-        constraint.ValueRW.PositionAdjustment += direction * displacement;
+        var positionAdjustment = direction * displacement;
+        constraint.ValueRW.PositionAdjustment += positionAdjustment;
     }
 }
 
 [BurstCompile]
 public partial struct ResolveConstraints : IJobEntity
 {
+    public float TimeStep;
+    
     [BurstCompile]
     private void Execute(RefRW<ConstraintResponse> constraint,
                          RefRW<PhysicsBody> physics,
@@ -118,10 +110,9 @@ public partial struct ResolveConstraints : IJobEntity
                          LocalToWorld worldTransform)
     {
         localTransform.ValueRW.TranslateWorld(worldTransform, constraint.ValueRO.PositionAdjustment);
-        physics.ValueRW.Velocity += constraint.ValueRO.VelocityAdjustment;
+        physics.ValueRW.Velocity += constraint.ValueRO.PositionAdjustment / TimeStep;
 
         constraint.ValueRW.PositionAdjustment = float3.zero;
-        constraint.ValueRW.VelocityAdjustment = float3.zero;
     }
 }
 

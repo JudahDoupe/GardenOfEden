@@ -22,7 +22,6 @@ public struct FaceAwayFromParentConstraint : IComponentData
 public struct ConstraintResponse : IComponentData
 {
     public float3 PositionAdjustment;
-    public float3 VelocityAdjustment;
 }
 
 public class StiffSpringJointComponent : MonoBehaviour
@@ -58,7 +57,6 @@ public class StiffSpringJointComponentBaker : Baker<StiffSpringJointComponent>
         AddComponent(e, new ConstraintResponse
         {
             PositionAdjustment = new float3(0,0,0),
-            VelocityAdjustment = new float3(0,0,0),
         });
     }
 }

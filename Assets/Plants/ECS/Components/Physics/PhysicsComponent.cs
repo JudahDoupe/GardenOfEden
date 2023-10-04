@@ -9,6 +9,7 @@ public struct PhysicsBody : IComponentData
     // Force and Velocity ar in world space
     public float3 Force;
     public float3 Velocity;
+    public float3 PreviousPosition;
 }
 
 public class PhysicsComponent : MonoBehaviour
