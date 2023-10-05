@@ -17,6 +17,7 @@ public partial struct ConstraintSystem : ISystem
     public ComponentLookup<Parent> ParentLookup;
     public ComponentLookup<LocalTransform> LocalTransformLookup;
     public ComponentLookup<PostTransformMatrix> PostTransformMatrixLookup;
+    public ComponentLookup<FaceAwayFromParentConstraint> FaceAwayLookup;
     public EntityQuery RecalculateLocalTransformQuery;
 
     private bool _haveTransformsInitialized;
@@ -28,6 +29,7 @@ public partial struct ConstraintSystem : ISystem
         ParentLookup = state.GetComponentLookup<Parent>();
         LocalTransformLookup = state.GetComponentLookup<LocalTransform>();
         PostTransformMatrixLookup = state.GetComponentLookup<PostTransformMatrix>();
+        FaceAwayLookup = state.GetComponentLookup<FaceAwayFromParentConstraint>();
         RecalculateLocalTransformQuery = state.GetEntityQuery(typeof(LocalTransform), typeof(LocalToWorld));
         _haveTransformsInitialized = false;
     }
@@ -48,6 +50,7 @@ public partial struct ConstraintSystem : ISystem
         ParentLookup.Update(ref state);
         LocalTransformLookup.Update(ref state);
         PostTransformMatrixLookup.Update(ref state);
+        FaceAwayLookup.Update(ref state);
 
         state.Dependency = new SolveLengthConstraint
             {
@@ -56,6 +59,12 @@ public partial struct ConstraintSystem : ISystem
             .ScheduleParallel(state.Dependency);
 
         state.Dependency = new ResolveFaceDirectionConstraint()
+            .ScheduleParallel(state.Dependency);
+        
+        state.Dependency = new ResolveFaceDirectionConstraintForChildren()
+            {
+                FaceAwayLookup = FaceAwayLookup,
+            }
             .ScheduleParallel(state.Dependency);
 
         state.Dependency = new ResolveConstraints
@@ -122,9 +131,29 @@ public partial struct ResolveFaceDirectionConstraint : IJobEntity
     [BurstCompile]
     private void Execute(RefRW<LocalTransform> localTransform,
                          LocalToWorld worldTransform,
-                         FaceAwayFromParentConstraint constraint)
+                         RefRW<FaceAwayFromParentConstraint> constraint)
     {
         var back = quaternion.LookRotationSafe(-localTransform.ValueRO.Position, math.normalize(worldTransform.Position));
-        localTransform.ValueRW.Rotation = math.mul(back, constraint.InitialRotation);
+        var newRotation = math.mul(back, constraint.ValueRO.InitialRotation);
+        constraint.ValueRW.RotationAdjustment = math.mul(localTransform.ValueRW.Rotation, math.inverse(newRotation));
+        localTransform.ValueRW.Rotation = newRotation;
+    }
+}
+
+[BurstCompile]
+public partial struct ResolveFaceDirectionConstraintForChildren : IJobEntity
+{
+    [ReadOnly]
+    public ComponentLookup<FaceAwayFromParentConstraint> FaceAwayLookup;
+    
+    [BurstCompile]
+    private void Execute(RefRW<LocalTransform> localTransform,
+                         Parent parent,
+                         PhysicsBody _)
+    {
+        if (FaceAwayLookup.HasComponent(parent.Value))
+        {
+            localTransform.ValueRW.Rotation = math.mul(localTransform.ValueRW.Rotation, FaceAwayLookup[parent.Value].RotationAdjustment);
+        }
     }
 }

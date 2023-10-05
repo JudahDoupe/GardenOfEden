@@ -17,6 +17,7 @@ public struct LengthConstraint : IComponentData
 public struct FaceAwayFromParentConstraint : IComponentData
 {
     public quaternion InitialRotation;
+    public quaternion RotationAdjustment;
 }
 
 public struct ConstraintResponse : IComponentData
