@@ -38,8 +38,8 @@ public partial struct CollisionSystem : ISystem
         LocalTransformLookup = state.GetComponentLookup<LocalTransform>();
         PostTransformMatrixLookup = state.GetComponentLookup<PostTransformMatrix>();
         ChildrenLookup = state.GetBufferLookup<Child>();
-        SphereQuery = state.GetEntityQuery(typeof(SphereCollider), typeof(PhysicsBody), typeof(LocalToWorld), typeof(CollisionResponse));
-        CapsulesQuery = state.GetEntityQuery(typeof(CapsuleCollider), typeof(PhysicsBody), typeof(LocalToWorld), typeof(CollisionResponse));
+        SphereQuery = state.GetEntityQuery(typeof(SphereCollider), typeof(LocalToWorld), typeof(CollisionResponse));
+        CapsulesQuery = state.GetEntityQuery(typeof(CapsuleCollider), typeof(LocalToWorld), typeof(CollisionResponse));
         RecalculateLocalTransformQuery = state.GetEntityQuery(typeof(LocalTransform), typeof(LocalToWorld));
         _haveTransformsInitialized = false;
     }
@@ -167,7 +167,10 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
     {
         var myCollider = ColliderLookup[e];
         var myTransform = WorldTransformLookup[e];
-        var myPhysics = PhysicsLookup[e];
+        var myVelocity = new float3(0,0,0);
+        if (PhysicsLookup.HasComponent(e))
+            myVelocity = PhysicsLookup[e].Velocity;
+
         foreach (var sphere in Spheres)
         {
             if (!collision.ShouldCollide(e, sphere, ParentLookup, ChildrenLookup))
@@ -175,14 +178,16 @@ public partial struct DetectSphereToSphereCollisions : IJobEntity
 
             var otherCollider = ColliderLookup[sphere];
             var otherTransform = WorldTransformLookup[sphere];
-            var otherPhysics = PhysicsLookup[sphere];
+            var otherVelocity = new float3(0,0,0);
+            if (PhysicsLookup.HasComponent(sphere))
+                otherVelocity = PhysicsLookup[sphere].Velocity;
 
             collision.AddSphereToSphereCollisionResponse(myTransform.Position,
                                                          otherTransform.Position,
                                                          myCollider.Radius,
                                                          otherCollider.Radius,
-                                                         myPhysics.Velocity,
-                                                         otherPhysics.Velocity,
+                                                         myVelocity,
+                                                         otherVelocity,
                                                          myCollider.Bounciness,
                                                          otherCollider.Bounciness);
         }
@@ -210,7 +215,10 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
     {
         var myCollider = ColliderLookup[e];
         var myTransform = WorldTransformLookup[e];
-        var myPhysics = PhysicsLookup[e];
+        var myVelocity = new float3(0,0,0);
+        if (PhysicsLookup.HasComponent(e))
+            myVelocity = PhysicsLookup[e].Velocity;
+        
         foreach (var capsule in Capsules)
         {
             if (!collision.ShouldCollide(e, capsule, ParentLookup, ChildrenLookup))
@@ -218,7 +226,9 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
 
             var otherCollider = ColliderLookup[capsule];
             var otherTransform = WorldTransformLookup[capsule];
-            var otherPhysics = PhysicsLookup[capsule];
+            var otherVelocity = new float3(0,0,0);
+            if (PhysicsLookup.HasComponent(capsule))
+                otherVelocity = PhysicsLookup[capsule].Velocity;
 
             var myStart = myTransform.Position + math.mul(myTransform.Rotation, myCollider.Start);
             var myEnd = myTransform.Position + math.mul(myTransform.Rotation, myCollider.End);
@@ -230,8 +240,8 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
                                                          otherClosestPoint,
                                                          myCollider.Radius,
                                                          otherCollider.Radius,
-                                                         myPhysics.Velocity,
-                                                         otherPhysics.Velocity,
+                                                         myVelocity,
+                                                         otherVelocity,
                                                          myCollider.Bounciness,
                                                          otherCollider.Bounciness);
         }
