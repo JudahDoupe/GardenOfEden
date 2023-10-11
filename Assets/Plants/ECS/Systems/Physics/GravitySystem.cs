@@ -23,6 +23,6 @@ public partial struct AddGravity : IJobEntity
     [BurstCompile]
     private void Execute(RefRW<PhysicsBody> physics)
     {
-        physics.ValueRW.Force += new float3(0, -9.8f, 0) * physics.ValueRO.Mass;
+        physics.ValueRW.AddAcceleration(new float3(0, -9.8f, 0));
     }
 }

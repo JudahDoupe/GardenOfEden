@@ -4,8 +4,8 @@ using UnityEngine;
 
 public struct CollisionResponse : IComponentData
 {
-    public float3 VelocityAdjustment;
     public float3 PositionAdjustment;
+    public float3 VelocityAdjustment;
 }
 
 public struct SphereCollider : IComponentData

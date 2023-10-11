@@ -40,6 +40,7 @@ public partial struct ConstraintSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        return;
         if (!_haveTransformsInitialized)
         {
             _haveTransformsInitialized = true;
@@ -119,7 +120,7 @@ public partial struct ResolveConstraints : IJobEntity
                          LocalToWorld worldTransform)
     {
         localTransform.ValueRW.TranslateWorld(worldTransform, constraint.ValueRO.PositionAdjustment);
-        physics.ValueRW.Velocity += constraint.ValueRO.PositionAdjustment / TimeStep;
+        physics.ValueRW.Position += constraint.ValueRO.PositionAdjustment;
 
         constraint.ValueRW.PositionAdjustment = float3.zero;
     }

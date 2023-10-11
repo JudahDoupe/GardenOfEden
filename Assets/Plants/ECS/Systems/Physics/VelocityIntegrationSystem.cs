@@ -58,9 +58,12 @@ public partial struct IntegrateVelocityEuler : IJobEntity
                          RefRW<LocalTransform> localTransform,
                          LocalToWorld worldTransform)
     {
-        physics.ValueRW.PreviousPosition = worldTransform.Position;
-        physics.ValueRW.Velocity += physics.ValueRO.Force / physics.ValueRO.Mass * TimeStep;
-        localTransform.ValueRW.TranslateWorld(worldTransform, physics.ValueRO.Velocity * TimeStep);
-        physics.ValueRW.Force = 0;
+        var totalDisplacement = physics.ValueRO.Displacement + physics.ValueRO.Acceleration * (TimeStep * TimeStep);
+        physics.ValueRW.PrevPosition = physics.ValueRO.Position;
+        physics.ValueRW.Position += totalDisplacement;
+        physics.ValueRW.Acceleration = 0;
+        physics.ValueRW.PrevTimeStep = TimeStep;
+
+        localTransform.ValueRW.TranslateWorld(worldTransform, totalDisplacement);
     }
 }

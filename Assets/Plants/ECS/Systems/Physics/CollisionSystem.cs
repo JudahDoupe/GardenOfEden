@@ -258,7 +258,9 @@ public partial struct ResolveCollisions : IJobEntity
                          CollisionAspect collision)
     {
         transform.ValueRW.TranslateWorld(worldTransform, collision.PositionAdjustment);
-        physics.ValueRW.Velocity += collision.VelocityAdjustment;
+        physics.ValueRW.Position += collision.PositionAdjustment;
+        physics.ValueRW.PrevPosition += collision.PositionAdjustment;
+        physics.ValueRW.AddVelocity(collision.VelocityAdjustment);
 
         collision.Clear();
     }
