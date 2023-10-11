@@ -22,7 +22,6 @@ public partial struct SpringSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        return;
         if (!_haveTransformsInitialized)
         {
             _haveTransformsInitialized = true;
@@ -43,8 +42,8 @@ public partial struct AddSpringForces : IJobEntity
                          LocalToWorld worldTransform,
                          SpringJoint spring)
     {
-        //var springForce = -spring.Stiffness * worldTransform.LocalToWorldVector(localTransform.Position - spring.EquilibriumPosition);
-        //var dampingForce = -spring.Dampening * physics.ValueRO.Velocity;
-        //physics.ValueRW.Acceleration += springForce + dampingForce;
+        var springForce = -spring.Stiffness * worldTransform.LocalToWorldVector(localTransform.Position - spring.EquilibriumPosition);
+        var dampingForce = -spring.Dampening * physics.ValueRO.Velocity;
+        physics.ValueRW.Acceleration += springForce + dampingForce;
     }
 }

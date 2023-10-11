@@ -90,6 +90,28 @@ public partial struct CollisionSystem : ISystem
             ChildrenLookup = ChildrenLookup,
             Capsules = CapsulesQuery.ToEntityArray(Allocator.TempJob)
         }.ScheduleParallel(CapsulesQuery, state.Dependency);
+        
+        state.Dependency = new DetectSphereToCapsuleCollisions()
+        {
+            SphereColliderLookup = SphereColliderLookup,
+            CapsuleColliderLookup = CapsuleColliderLookup,
+            PhysicsLookup = PhysicsLookup,
+            WorldTransformLookup = WorldTransformLookup,
+            ParentLookup = ParentLookup,
+            ChildrenLookup = ChildrenLookup,
+            Capsules = CapsulesQuery.ToEntityArray(Allocator.TempJob)
+        }.ScheduleParallel(SphereQuery, state.Dependency);
+        
+        state.Dependency = new DetectCapsuleToSphereCollisions()
+        {
+            SphereColliderLookup = SphereColliderLookup,
+            CapsuleColliderLookup = CapsuleColliderLookup,
+            PhysicsLookup = PhysicsLookup,
+            WorldTransformLookup = WorldTransformLookup,
+            ParentLookup = ParentLookup,
+            ChildrenLookup = ChildrenLookup,
+            Spheres = SphereQuery.ToEntityArray(Allocator.TempJob)
+        }.ScheduleParallel(CapsulesQuery, state.Dependency);
 
         state.Dependency = new ResolveCollisions()
             .ScheduleParallel(state.Dependency);
@@ -238,6 +260,114 @@ public partial struct DetectCapsuleToCapsuleCollisions : IJobEntity
             var (myClosestPoint, otherClosestPoint) = collision.ClosestPointsOnLineSegments(myStart, otherStart, myEnd, otherEnd);
             collision.AddSphereToSphereCollisionResponse(myClosestPoint,
                                                          otherClosestPoint,
+                                                         myCollider.Radius,
+                                                         otherCollider.Radius,
+                                                         myVelocity,
+                                                         otherVelocity,
+                                                         myCollider.Bounciness,
+                                                         otherCollider.Bounciness);
+        }
+    }
+}
+
+[BurstCompile]
+public partial struct DetectSphereToCapsuleCollisions : IJobEntity
+{
+    [ReadOnly]
+    public ComponentLookup<CapsuleCollider> CapsuleColliderLookup;
+    [ReadOnly]
+    public ComponentLookup<SphereCollider> SphereColliderLookup;
+    [ReadOnly]
+    public ComponentLookup<PhysicsBody> PhysicsLookup;
+    [ReadOnly]
+    public ComponentLookup<LocalToWorld> WorldTransformLookup;
+    [ReadOnly]
+    public NativeArray<Entity> Capsules;
+    [ReadOnly]
+    public ComponentLookup<Parent> ParentLookup;
+    [ReadOnly]
+    public BufferLookup<Child> ChildrenLookup;
+
+    [BurstCompile]
+    private void Execute(Entity e, CollisionAspect collision)
+    {
+        var myCollider = SphereColliderLookup[e];
+        var myTransform = WorldTransformLookup[e];
+        var myVelocity = new float3(0,0,0);
+        if (PhysicsLookup.HasComponent(e))
+            myVelocity = PhysicsLookup[e].Velocity;
+        
+        foreach (var capsule in Capsules)
+        {
+            if (!collision.ShouldCollide(e, capsule, ParentLookup, ChildrenLookup))
+                continue;
+
+            var otherCollider = CapsuleColliderLookup[capsule];
+            var otherTransform = WorldTransformLookup[capsule];
+            var otherVelocity = new float3(0,0,0);
+            if (PhysicsLookup.HasComponent(capsule))
+                otherVelocity = PhysicsLookup[capsule].Velocity;
+
+            var otherStart = otherTransform.Position + math.mul(otherTransform.Rotation, otherCollider.Start);
+            var otherEnd = otherTransform.Position + math.mul(otherTransform.Rotation, otherCollider.End);
+
+            var otherClosestPoint = myTransform.Position.ClosestPointOnLineSegment(otherStart, otherEnd);
+            collision.AddSphereToSphereCollisionResponse(myTransform.Position,
+                                                         otherClosestPoint,
+                                                         myCollider.Radius,
+                                                         otherCollider.Radius,
+                                                         myVelocity,
+                                                         otherVelocity,
+                                                         myCollider.Bounciness,
+                                                         otherCollider.Bounciness);
+        }
+    }
+}
+
+[BurstCompile]
+public partial struct DetectCapsuleToSphereCollisions : IJobEntity
+{
+    [ReadOnly]
+    public ComponentLookup<CapsuleCollider> CapsuleColliderLookup;
+    [ReadOnly]
+    public ComponentLookup<SphereCollider> SphereColliderLookup;
+    [ReadOnly]
+    public ComponentLookup<PhysicsBody> PhysicsLookup;
+    [ReadOnly]
+    public ComponentLookup<LocalToWorld> WorldTransformLookup;
+    [ReadOnly]
+    public NativeArray<Entity> Spheres;
+    [ReadOnly]
+    public ComponentLookup<Parent> ParentLookup;
+    [ReadOnly]
+    public BufferLookup<Child> ChildrenLookup;
+
+    [BurstCompile]
+    private void Execute(Entity e, CollisionAspect collision)
+    {
+        var myCollider = CapsuleColliderLookup[e];
+        var myTransform = WorldTransformLookup[e];
+        var myVelocity = new float3(0,0,0);
+        if (PhysicsLookup.HasComponent(e))
+            myVelocity = PhysicsLookup[e].Velocity;
+        
+        var myStart = myTransform.Position + math.mul(myTransform.Rotation, myCollider.Start);
+        var myEnd = myTransform.Position + math.mul(myTransform.Rotation, myCollider.End);
+        
+        foreach (var capsule in Spheres)
+        {
+            if (!collision.ShouldCollide(e, capsule, ParentLookup, ChildrenLookup))
+                continue;
+
+            var otherCollider = SphereColliderLookup[capsule];
+            var otherTransform = WorldTransformLookup[capsule];
+            var otherVelocity = new float3(0,0,0);
+            if (PhysicsLookup.HasComponent(capsule))
+                otherVelocity = PhysicsLookup[capsule].Velocity;
+
+            var myClosestPoint = otherTransform.Position.ClosestPointOnLineSegment(myStart, myEnd);
+            collision.AddSphereToSphereCollisionResponse(myClosestPoint,
+                                                         otherTransform.Position,
                                                          myCollider.Radius,
                                                          otherCollider.Radius,
                                                          myVelocity,

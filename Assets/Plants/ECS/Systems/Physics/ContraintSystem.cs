@@ -40,7 +40,6 @@ public partial struct ConstraintSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        return;
         if (!_haveTransformsInitialized)
         {
             _haveTransformsInitialized = true;
