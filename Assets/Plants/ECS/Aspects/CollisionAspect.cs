@@ -9,11 +9,13 @@ public readonly partial struct CollisionAspect : IAspect
 
     public float3 PositionAdjustment => _response.ValueRO.PositionAdjustment;
     public float3 VelocityAdjustment => _response.ValueRO.VelocityAdjustment;
+    public float3 ForceAdjustment => _response.ValueRO.ForceAdjustment;
 
     public void Clear()
     {
         _response.ValueRW.PositionAdjustment = new float3(0, 0, 0);
         _response.ValueRW.VelocityAdjustment = new float3(0, 0, 0);
+        _response.ValueRW.ForceAdjustment = new float3(0, 0, 0);
     }
 
     public bool AddSphereToSphereCollisionResponse(float3 myCenter, float3 otherCenter,
@@ -43,7 +45,8 @@ public readonly partial struct CollisionAspect : IAspect
                                                    float3 groundPosition,
                                                    float myRadius, 
                                                    float3 myVelocity, 
-                                                   float myBounciness)
+                                                   float myBounciness,
+                                                   float myFriction)
     {
         
         var penetrationDistance = 0.5f - myCenter.y + myRadius;
@@ -56,6 +59,7 @@ public readonly partial struct CollisionAspect : IAspect
 
         _response.ValueRW.PositionAdjustment += penetrationNormal * penetrationDistance;
         _response.ValueRW.VelocityAdjustment -= penetrationNormal * penetrationSpeed * restitution;
+        _response.ValueRW.ForceAdjustment -= (myVelocity - penetrationNormal * penetrationSpeed) * myFriction;
 
         return true;
     }

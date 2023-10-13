@@ -141,7 +141,8 @@ public partial struct DetectSphereToGroundCollisions : IJobEntity
                                                      groundPosition,
                                                      collider.ValueRO.Radius,
                                                      physics.ValueRO.Velocity,
-                                                     collider.ValueRO.Bounciness);
+                                                     collider.ValueRO.Bounciness,
+                                                     collider.ValueRO.Friction);
     }
 }
 
@@ -164,7 +165,8 @@ public partial struct DetectCapsuleToGroundCollisions : IJobEntity
                                                      groundPosition,
                                                      collider.ValueRO.Radius,
                                                      physics.ValueRO.Velocity,
-                                                     collider.ValueRO.Bounciness);
+                                                     collider.ValueRO.Bounciness,
+                                                     collider.ValueRO.Friction);
     }
 }
 
@@ -391,6 +393,7 @@ public partial struct ResolveCollisions : IJobEntity
         physics.ValueRW.Position += collision.PositionAdjustment;
         physics.ValueRW.PrevPosition += collision.PositionAdjustment;
         physics.ValueRW.AddVelocity(collision.VelocityAdjustment);
+        physics.ValueRW.AddForce(collision.ForceAdjustment);
 
         collision.Clear();
     }
